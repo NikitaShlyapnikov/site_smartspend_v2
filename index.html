@@ -707,6 +707,7 @@
 
     const QuizModal = {
       open(cb) {
+        login(); // set auth immediately so any navigation works
         quizCallback = cb || null;
         overlay.classList.add('open');
         document.body.style.overflow = 'hidden';
