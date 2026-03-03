@@ -81,7 +81,12 @@
 <script src="assets/js/sidebar-component.js"></script>
 <script>
   // Auth check
-  if (localStorage.getItem('smartspend_auth') !== 'true') location.href = 'index.html';
+  console.log('[SmartSpend] feed.html loaded. smartspend_auth =', JSON.stringify(localStorage.getItem('smartspend_auth')));
+  console.log('[SmartSpend] All localStorage keys:', Object.keys(localStorage).map(k => k + '=' + JSON.stringify(localStorage.getItem(k))).join(', '));
+  if (localStorage.getItem('smartspend_auth') !== 'true') {
+    console.log('[SmartSpend] AUTH FAILED — redirecting to index.html');
+    location.href = 'index.html';
+  }
 
   // Init sidebar
   initSidebarPage('feed');
