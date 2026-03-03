@@ -695,27 +695,17 @@
 
     console.log('[SmartSpend] index.html script start. isLoggedIn:', isLoggedIn(), '| raw value:', localStorage.getItem(AUTH_KEY));
 
-    // Если уже залогинен — меняем кнопки
-    if (isLoggedIn()) {
-      document.querySelectorAll('[data-cta-login], [data-cta-quiz]').forEach(btn => {
-        btn.textContent = 'Перейти в приложение →';
-        btn.onclick = () => { console.log('[SmartSpend] Already logged in, redirecting to feed.html'); location.href = 'feed.html'; };
-      });
-    }
-
     // ── QUIZ MODAL ──
     const overlay = document.getElementById('quizOverlay');
-    let quizCallback = null;
     let answers = {};
     let currentScreen = 0;
     const totalScreens = 4;
 
     const QuizModal = {
-      open(cb) {
+      open() {
         console.log('[SmartSpend] QuizModal.open() called');
-        login(); // set auth immediately so any navigation works
+        login();
         console.log('[SmartSpend] After login(), isLoggedIn:', isLoggedIn());
-        quizCallback = cb || null;
         overlay.classList.add('open');
         document.body.style.overflow = 'hidden';
         this.goTo(0);
@@ -729,7 +719,6 @@
         document.querySelectorAll('.q-screen').forEach((s, i) => {
           s.classList.toggle('active', i === index);
         });
-        // Update progress
         const step = index < totalScreens ? index + 1 : totalScreens;
         const pct = Math.round((step / totalScreens) * 100);
         document.getElementById('quizProgress').style.width = pct + '%';
@@ -738,17 +727,29 @@
       }
     };
 
-    // Open quiz buttons
+    // Кнопки CTA: если залогинен → редирект, если нет → квиз
     const ctaLoginBtns = document.querySelectorAll('[data-cta-login]');
     const ctaQuizBtns = document.querySelectorAll('[data-cta-quiz]');
     console.log('[SmartSpend] Found data-cta-login buttons:', ctaLoginBtns.length, '| data-cta-quiz buttons:', ctaQuizBtns.length);
 
-    ctaLoginBtns.forEach(btn => {
-      btn.onclick = () => { console.log('[SmartSpend] data-cta-login clicked'); QuizModal.open(); };
-    });
-    ctaQuizBtns.forEach(btn => {
-      btn.onclick = () => { console.log('[SmartSpend] data-cta-quiz clicked'); QuizModal.open(); };
-    });
+    if (isLoggedIn()) {
+      console.log('[SmartSpend] User logged in → setting buttons to redirect feed.html');
+      document.querySelectorAll('[data-cta-login], [data-cta-quiz]').forEach(btn => {
+        btn.textContent = 'Перейти в приложение →';
+        btn.onclick = () => {
+          console.log('[SmartSpend] CTA clicked (logged in) → location.href = feed.html');
+          location.href = 'feed.html';
+        };
+      });
+    } else {
+      console.log('[SmartSpend] User NOT logged in → setting buttons to open quiz');
+      ctaLoginBtns.forEach(btn => {
+        btn.onclick = () => { console.log('[SmartSpend] data-cta-login clicked → quiz'); QuizModal.open(); };
+      });
+      ctaQuizBtns.forEach(btn => {
+        btn.onclick = () => { console.log('[SmartSpend] data-cta-quiz clicked → quiz'); QuizModal.open(); };
+      });
+    }
 
     // Close
     document.getElementById('quizClose').onclick = () => QuizModal.close();
