@@ -116,25 +116,22 @@
   let activeTab = 'all';
   let activeCat = '';
 
-  fetch('data/inventory.json')
-    .then(r => r.json())
-    .then(data => {
-      allItems = data.items;
-      renderCategories(data.categories || []);
-      renderSummary(allItems);
-      renderList(allItems);
-    })
-    .catch(() => {
-      allItems = mockItems();
-      renderSummary(allItems);
-      renderList(allItems);
-    });
+  // Load inventory (inline mock — no fetch needed for file:// protocol)
+  allItems = mockItems();
+  renderCategories([...new Set(allItems.map(i => i.category))]);
+  renderSummary(allItems);
+  renderList(allItems);
 
   function mockItems() {
     return [
       { id: 'i1', name: 'Протеин Whey', category: 'Спорт и питание', type: 'consumable', quantity: 200, unit: 'г', dailyUse: 100, daysLeft: 2, status: 'urgent', price: 2800, buyDate: '2026-02-01', history: [{ date: '2026-02-01', qty: 1000, price: 2800 }] },
-      { id: 'i2', name: 'Шампунь', category: 'Уход', type: 'consumable', quantity: 120, unit: 'мл', dailyUse: 15, daysLeft: 8, status: 'soon', price: 380, buyDate: '2026-02-10', history: [{ date: '2026-02-10', qty: 400, price: 380 }] },
-      { id: 'i3', name: 'Кроссовки Nike', category: 'Одежда', type: 'wear', daysLeft: 42, monthsLeft: 5, totalMonths: 18, status: 'ok', price: 8900, buyDate: '2025-10-15', history: [{ date: '2025-10-15', qty: 1, price: 8900 }] }
+      { id: 'i2', name: 'Шампунь Head&Shoulders', category: 'Уход', type: 'consumable', quantity: 120, unit: 'мл', dailyUse: 15, daysLeft: 8, status: 'soon', price: 380, buyDate: '2026-02-10', history: [{ date: '2026-02-10', qty: 400, price: 380 }] },
+      { id: 'i3', name: 'Зубная паста Splat', category: 'Уход', type: 'consumable', quantity: 30, unit: 'мл', dailyUse: 5, daysLeft: 6, status: 'soon', price: 240, buyDate: '2026-02-05', history: [{ date: '2026-02-05', qty: 100, price: 240 }] },
+      { id: 'i4', name: 'Омега-3', category: 'Спорт и питание', type: 'consumable', quantity: 60, unit: 'шт', dailyUse: 2, daysLeft: 30, status: 'ok', price: 890, buyDate: '2026-01-20', history: [{ date: '2026-01-20', qty: 120, price: 890 }] },
+      { id: 'i5', name: 'Витамин D3', category: 'Здоровье', type: 'consumable', quantity: 90, unit: 'шт', dailyUse: 1, daysLeft: 90, status: 'ok', price: 450, buyDate: '2026-01-01', history: [{ date: '2026-01-01', qty: 90, price: 450 }] },
+      { id: 'i6', name: 'Гель для душа Dove', category: 'Уход', type: 'consumable', quantity: 200, unit: 'мл', dailyUse: 20, daysLeft: 10, status: 'soon', price: 290, buyDate: '2026-02-15', history: [{ date: '2026-02-15', qty: 400, price: 290 }] },
+      { id: 'i7', name: 'Кроссовки Nike', category: 'Одежда', type: 'wear', daysLeft: 42, monthsLeft: 5, totalMonths: 18, status: 'ok', price: 8900, buyDate: '2025-10-15', history: [{ date: '2025-10-15', qty: 1, price: 8900 }] },
+      { id: 'i8', name: 'Зонт', category: 'Разное', type: 'wear', daysLeft: 200, monthsLeft: 18, totalMonths: 24, status: 'ok', price: 1200, buyDate: '2025-06-01', history: [{ date: '2025-06-01', qty: 1, price: 1200 }] }
     ];
   }
 

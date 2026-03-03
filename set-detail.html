@@ -86,13 +86,8 @@
 
   const categoryEmoji = { 'Уход': '🧴', 'Спорт': '💪', 'Продукты': '☕', 'Здоровье': '💊', 'Одежда': '👕', 'Техника': '💻' };
 
-  fetch('data/sets.json')
-    .then(r => r.json())
-    .then(data => {
-      const set = data.sets.find(s => s.id === setId) || data.sets[0];
-      renderSet(set);
-    })
-    .catch(() => renderSet(mockSet()));
+  // Load set (inline mock — no fetch needed for file:// protocol)
+  renderSet(mockSet());
 
   function mockSet() {
     return {
@@ -201,23 +196,25 @@
       });
     });
 
-    // Load related articles
+    // Load related articles (inline mock)
     if (s.relatedArticles?.length) {
-      fetch('data/articles.json')
-        .then(r => r.json())
-        .then(data => {
-          const related = data.articles.filter(a => s.relatedArticles.includes(a.id));
-          const el = document.getElementById('relatedArticles');
-          if (el) el.innerHTML = related.map(a => `
-            <a class="related-article" href="article.html?id=${a.id}">
-              <div class="related-article-icon" style="background:${a.coverColor || '#F2F7F4'}">${a.category === 'Финансы' ? '📊' : a.category === 'Философия' ? '🧠' : '📖'}</div>
-              <div>
-                <div class="related-article-title">${a.title}</div>
-                <div class="related-article-meta">${a.category} · ${a.readTime} мин чтения</div>
-              </div>
-            </a>
-          `).join('');
-        }).catch(() => {});
+      const allArticles = [
+        { id: 'a1', title: 'Как перестать покупать ненужное', category: 'Философия', coverColor: '#E8F4EE', readTime: 8 },
+        { id: 'a2', title: 'Инвентарь вместо списка покупок', category: 'Инвентарь', coverColor: '#EEF2F8', readTime: 5 },
+        { id: 'a3', title: 'Smart-база: сколько стоит ваш месяц', category: 'Финансы', coverColor: '#F5EDE4', readTime: 10 }
+      ];
+      const catIcon = { 'Финансы': '📊', 'Философия': '🧠', 'Инвентарь': '📦' };
+      const related = allArticles.filter(a => s.relatedArticles.includes(a.id));
+      const el = document.getElementById('relatedArticles');
+      if (el && related.length) el.innerHTML = related.map(a => `
+        <a class="related-article" href="article.html?id=${a.id}">
+          <div class="related-article-icon" style="background:${a.coverColor}">${catIcon[a.category] || '📖'}</div>
+          <div>
+            <div class="related-article-title">${a.title}</div>
+            <div class="related-article-meta">${a.category} · ${a.readTime} мин чтения</div>
+          </div>
+        </a>
+      `).join('');
     }
   }
 

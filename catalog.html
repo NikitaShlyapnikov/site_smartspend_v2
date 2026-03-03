@@ -106,24 +106,19 @@
   let searchQuery = '';
   const addedSets = new Set(JSON.parse(localStorage.getItem('added_sets') || '[]'));
 
-  fetch('data/sets.json')
-    .then(r => r.json())
-    .then(data => {
-      allSets = data.sets;
-      renderCategories(data.sets);
-      renderGrid(allSets);
-    })
-    .catch(() => {
-      allSets = mockSets();
-      renderCategories(allSets);
-      renderGrid(allSets);
-    });
+  // Load sets (inline mock — no fetch needed for file:// protocol)
+  allSets = mockSets();
+  renderCategories(allSets);
+  renderGrid(allSets);
 
   function mockSets() {
     return [
       { id: 's1', title: 'Базовый уход за телом', category: 'Уход', categoryColor: '#4E8268', description: 'Минимально необходимый набор средств гигиены и ухода. Рассчитан на один месяц.', itemsCount: 6, monthlyBudget: 1850, rating: 4.8, reviewsCount: 124, inInventoryCount: 892, author: 'SmartSpend', authorInitials: 'SS' },
       { id: 's2', title: 'Спортивное питание: старт', category: 'Спорт', categoryColor: '#5B7EA6', description: 'Базовый набор спортивного питания: протеин, витамины, омега-3.', itemsCount: 4, monthlyBudget: 3200, rating: 4.6, reviewsCount: 87, inInventoryCount: 456, author: 'Алексей Фитнес', authorInitials: 'АФ' },
-      { id: 's4', title: 'Домашняя аптечка', category: 'Здоровье', categoryColor: '#C06060', description: 'Базовый набор лекарств и средств первой помощи.', itemsCount: 8, monthlyBudget: 800, rating: 4.7, reviewsCount: 198, inInventoryCount: 1240, author: 'SmartSpend', authorInitials: 'SS' }
+      { id: 's3', title: 'Кофейная база', category: 'Продукты', categoryColor: '#8B6543', description: 'Всё для качественного кофе дома: зерно, фильтры, молоко.', itemsCount: 5, monthlyBudget: 2100, rating: 4.9, reviewsCount: 211, inInventoryCount: 634, author: 'Иван Бариста', authorInitials: 'ИБ' },
+      { id: 's4', title: 'Домашняя аптечка', category: 'Здоровье', categoryColor: '#C06060', description: 'Базовый набор лекарств и средств первой помощи.', itemsCount: 8, monthlyBudget: 800, rating: 4.7, reviewsCount: 198, inInventoryCount: 1240, author: 'SmartSpend', authorInitials: 'SS' },
+      { id: 's5', title: 'Базовый гардероб (мужской)', category: 'Одежда', categoryColor: '#6B6B6B', description: 'Базовые вещи capsule wardrobe для мужчины: футболки, брюки, рубашки.', itemsCount: 10, monthlyBudget: 0, rating: 4.5, reviewsCount: 76, inInventoryCount: 328, author: 'Стиль СС', authorInitials: 'СС' },
+      { id: 's6', title: 'Рабочее место дома', category: 'Техника', categoryColor: '#5B7EA6', description: 'Эргономика и комфорт: подставка, освещение, периферия.', itemsCount: 7, monthlyBudget: 0, rating: 4.4, reviewsCount: 52, inInventoryCount: 215, author: 'SmartSpend', authorInitials: 'SS' }
     ];
   }
 

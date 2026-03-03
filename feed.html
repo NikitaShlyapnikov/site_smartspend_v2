@@ -97,19 +97,18 @@
   let allItems = [];
   let currentTab = 'all';
 
-  // Load feed data
-  fetch('data/feed.json')
-    .then(r => r.json())
-    .then(data => {
-      allItems = data.items;
-      renderFeed(allItems);
-    })
-    .catch(() => renderFeed(mockFeed()));
+  // Load feed data (inline mock — no fetch needed for file:// protocol)
+  allItems = mockFeed();
+  renderFeed(allItems);
 
   function mockFeed() {
     return [
-      { id: 'f1', type: 'article', articleId: 'a3', title: 'Smart-база: сколько стоит ваш месяц', excerpt: 'Smart-база — точная стоимость одного месяца вашей жизни без излишеств.', category: 'Финансы', categoryColor: '#8B6543', author: 'SmartSpend', authorInitials: 'SS', publishedAt: '2026-01-10', readTime: 10, likesCount: 487, commentsCount: 56, coverColor: '#F5EDE4' },
-      { id: 'f2', type: 'set', setId: 's1', title: 'Базовый уход за телом', excerpt: 'Минимально необходимый набор средств гигиены и ухода. 6 позиций.', category: 'Уход', categoryColor: '#4E8268', author: 'SmartSpend', authorInitials: 'SS', publishedAt: '2026-01-15', itemsCount: 6, monthlyBudget: 1850 }
+      { id: 'f1', type: 'article', articleId: 'a3', title: 'Smart-база: сколько стоит ваш месяц', excerpt: 'Smart-база — точная стоимость одного месяца вашей жизни без излишеств. Считаем вместе.', category: 'Финансы', categoryColor: '#8B6543', author: 'SmartSpend', authorInitials: 'SS', publishedAt: '2026-01-10', readTime: 10, likesCount: 487, commentsCount: 56, coverColor: '#F5EDE4' },
+      { id: 'f2', type: 'set', setId: 's1', title: 'Базовый уход за телом', excerpt: 'Минимально необходимый набор средств гигиены и ухода. 6 позиций на месяц.', category: 'Уход', categoryColor: '#4E8268', author: 'SmartSpend', authorInitials: 'SS', publishedAt: '2026-01-15', itemsCount: 6, monthlyBudget: 1850 },
+      { id: 'f3', type: 'article', articleId: 'a1', title: 'Как перестать покупать ненужное', excerpt: 'Каждый раз, когда вы открываете маркетплейс «просто посмотреть», алгоритмы уже знают, что вы купите.', category: 'Философия', categoryColor: '#4E8268', author: 'SmartSpend', authorInitials: 'SS', publishedAt: '2026-02-15', readTime: 8, likesCount: 342, commentsCount: 28, coverColor: '#E8F4EE' },
+      { id: 'f4', type: 'set', setId: 's2', title: 'Спортивное питание: старт', excerpt: 'Базовый набор для тех, кто начинает тренироваться. Протеин, витамины, омега-3.', category: 'Спорт', categoryColor: '#5B7EA6', author: 'Алексей Фитнес', authorInitials: 'АФ', publishedAt: '2026-02-01', itemsCount: 4, monthlyBudget: 3200 },
+      { id: 'f5', type: 'article', articleId: 'a2', title: 'Инвентарь вместо списка покупок', excerpt: 'Почему хаотичный список в заметках не работает и как система учёта меняет привычки потребления.', category: 'Инвентарь', categoryColor: '#6B6BA0', author: 'Редакция', authorInitials: 'РД', publishedAt: '2026-02-20', readTime: 5, likesCount: 198, commentsCount: 14, coverColor: '#EEF2F8' },
+      { id: 'f6', type: 'set', setId: 's4', title: 'Домашняя аптечка', excerpt: 'Минимальный набор лекарств на все случаи жизни. Обновляется раз в год, стоит копейки.', category: 'Здоровье', categoryColor: '#C06060', author: 'SmartSpend', authorInitials: 'SS', publishedAt: '2026-03-01', itemsCount: 8, monthlyBudget: 800 }
     ];
   }
 

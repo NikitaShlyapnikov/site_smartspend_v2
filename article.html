@@ -97,15 +97,11 @@
   const categoryEmoji = { 'Финансы': '📊', 'Философия': '🧠', 'Инвентарь': '📦', 'Потребление': '🛒', 'Психология': '🧘' };
   const setEmoji = { 'Уход': '🧴', 'Спорт': '💪', 'Продукты': '☕', 'Здоровье': '💊', 'Одежда': '👕', 'Техника': '💻' };
 
-  fetch('data/articles.json')
-    .then(r => r.json())
-    .then(data => {
-      const article = data.articles.find(a => a.id === articleId) || data.articles[0];
-      document.title = `${article.title} — SmartSpend`;
-      renderArticle(article);
-      if (article.relatedSets?.length) loadRelatedSets(article.relatedSets);
-    })
-    .catch(() => renderArticle(mockArticle()));
+  // Load article (inline mock — no fetch needed for file:// protocol)
+  const article = mockArticle();
+  document.title = `${article.title} — SmartSpend`;
+  renderArticle(article);
+  if (article.relatedSets?.length) loadRelatedSets(article.relatedSets);
 
   function mockArticle() {
     return {
@@ -193,26 +189,30 @@
   }
 
   function loadRelatedSets(ids) {
-    fetch('data/sets.json')
-      .then(r => r.json())
-      .then(data => {
-        const sets = data.sets.filter(s => ids.includes(s.id));
-        const el = document.getElementById('relatedSetsSection');
-        if (!el || !sets.length) return;
-        el.innerHTML = `
-          <div class="section-title">Связанные наборы</div>
-          ${sets.map(s => {
-            const emoji = setEmoji[s.category] || '📦';
-            return `
-              <a class="related-set" href="set-detail.html?id=${s.id}">
-                <div class="related-set-icon" style="background:${s.categoryColor}14">${emoji}</div>
-                <div>
-                  <div class="related-set-title">${s.title}</div>
-                  <div class="related-set-meta">${s.itemsCount} позиций · ${s.monthlyBudget?.toLocaleString('ru')} ₽/мес</div>
-                </div>
-              </a>`;
-          }).join('')}`;
-      }).catch(() => {});
+    const allSets = [
+      { id: 's1', title: 'Базовый уход за телом', category: 'Уход', categoryColor: '#4E8268', itemsCount: 6, monthlyBudget: 1850 },
+      { id: 's2', title: 'Спортивное питание: старт', category: 'Спорт', categoryColor: '#5B7EA6', itemsCount: 4, monthlyBudget: 3200 },
+      { id: 's3', title: 'Кофейная база', category: 'Продукты', categoryColor: '#8B6543', itemsCount: 5, monthlyBudget: 2100 },
+      { id: 's4', title: 'Домашняя аптечка', category: 'Здоровье', categoryColor: '#C06060', itemsCount: 8, monthlyBudget: 800 },
+      { id: 's5', title: 'Базовый гардероб (мужской)', category: 'Одежда', categoryColor: '#6B6B6B', itemsCount: 10, monthlyBudget: 0 },
+      { id: 's6', title: 'Рабочее место дома', category: 'Техника', categoryColor: '#5B7EA6', itemsCount: 7, monthlyBudget: 0 }
+    ];
+    const sets = allSets.filter(s => ids.includes(s.id));
+    const el = document.getElementById('relatedSetsSection');
+    if (!el || !sets.length) return;
+    el.innerHTML = `
+      <div class="section-title">Связанные наборы</div>
+      ${sets.map(s => {
+        const emoji = setEmoji[s.category] || '📦';
+        return `
+          <a class="related-set" href="set-detail.html?id=${s.id}">
+            <div class="related-set-icon" style="background:${s.categoryColor}14">${emoji}</div>
+            <div>
+              <div class="related-set-title">${s.title}</div>
+              <div class="related-set-meta">${s.itemsCount} позиций${s.monthlyBudget ? ' · ' + s.monthlyBudget.toLocaleString('ru') + ' ₽/мес' : ''}</div>
+            </div>
+          </a>`;
+      }).join('')}`;
   }
 </script>
 </body>
