@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Настройки — SmartSpend</title>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/sidebar.css">
+  <style>
+    .settings-container { max-width: 640px; }
+    .settings-group { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 20px; overflow: hidden; }
+    .settings-group-title { font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+    .settings-row { display: flex; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); gap: 16px; }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row-info { flex: 1; }
+    .settings-row-label { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+    .settings-row-desc { font-size: 12px; color: var(--text-3); line-height: 1.4; }
+
+    /* Toggle switch */
+    .toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; inset: 0; background: var(--surface-3); border: 1px solid var(--border); border-radius: 100px; cursor: pointer; transition: all 0.2s; }
+    .toggle-slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 2px; bottom: 2px; background: white; border-radius: 50%; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .toggle input:checked + .toggle-slider { background: var(--accent-green); border-color: var(--accent-green); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+    /* Select */
+    .settings-select { padding: 7px 12px; border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: var(--sans); font-size: 13px; cursor: pointer; outline: none; }
+    .settings-select:focus { border-color: var(--accent-green); }
+
+    /* Input */
+    .settings-input { width: 100%; padding: 9px 12px; border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: var(--sans); font-size: 14px; outline: none; transition: border-color 0.15s; }
+    .settings-input:focus { border-color: var(--accent-green); }
+
+    /* Danger zone */
+    .danger-group { background: var(--accent-red-light); border: 1px solid var(--accent-red-border); border-radius: var(--r); margin-bottom: 20px; overflow: hidden; }
+    .danger-group .settings-group-title { background: var(--accent-red-light); color: var(--accent-red); border-bottom-color: var(--accent-red-border); }
+    .danger-group .settings-row { border-bottom-color: var(--accent-red-border); }
+
+    .save-bar { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--border); padding: 14px 0; display: flex; gap: 10px; }
+  </style>
+</head>
+<body>
+
+<div class="app-layout" id="appLayout">
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Настройки</div>
+        <div class="page-subtitle">Управляйте своим аккаунтом и предпочтениями</div>
+      </div>
+    </div>
+
+    <div class="settings-container">
+
+      <!-- Profile -->
+      <div class="settings-group">
+        <div class="settings-group-title">Профиль</div>
+        <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+          <label style="font-size:12px;color:var(--text-3);font-weight:500">Отображаемое имя</label>
+          <input class="settings-input" id="nameInput" type="text" placeholder="Ваше имя">
+        </div>
+        <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+          <label style="font-size:12px;color:var(--text-3);font-weight:500">Email</label>
+          <input class="settings-input" id="emailInput" type="email" placeholder="email@example.com">
+        </div>
+      </div>
+
+      <!-- Appearance -->
+      <div class="settings-group">
+        <div class="settings-group-title">Внешний вид</div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">Тёмная тема</div>
+            <div class="settings-row-desc">Переключить на тёмное оформление</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="darkToggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">Язык интерфейса</div>
+          </div>
+          <select class="settings-select">
+            <option>Русский</option>
+            <option>English</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="settings-group">
+        <div class="settings-group-title">Уведомления</div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">Напоминания о покупках</div>
+            <div class="settings-row-desc">Когда позиция в инвентаре заканчивается</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="notifInventory" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">Новые статьи и наборы</div>
+            <div class="settings-row-desc">Публикации от авторов в вашей ленте</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="notifFeed" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">Email-дайджест</div>
+            <div class="settings-row-desc">Еженедельная сводка по инвентарю</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="notifEmail">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Plan -->
+      <div class="settings-group">
+        <div class="settings-group-title">Подписка</div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">Текущий план</div>
+            <div class="settings-row-desc">Оплачено до 15 марта 2027</div>
+          </div>
+          <span class="badge badge-green">✦ Pro</span>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">История платежей</div>
+          </div>
+          <button class="btn btn-ghost" style="font-size:13px">Посмотреть →</button>
+        </div>
+      </div>
+
+      <!-- Privacy -->
+      <div class="settings-group">
+        <div class="settings-group-title">Конфиденциальность</div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">Публичный профиль</div>
+            <div class="settings-row-desc">Другие пользователи могут видеть ваши наборы</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="privacyPublic" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">Экспорт данных</div>
+            <div class="settings-row-desc">Скачать все ваши данные в JSON</div>
+          </div>
+          <button class="btn btn-secondary" style="font-size:13px" onclick="exportData()">Скачать</button>
+        </div>
+      </div>
+
+      <!-- Danger -->
+      <div class="danger-group settings-group">
+        <div class="settings-group-title">Опасная зона</div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label" style="color:var(--accent-red)">Выйти из аккаунта</div>
+            <div class="settings-row-desc">Завершить текущую сессию</div>
+          </div>
+          <button class="btn btn-danger" data-logout>Выйти</button>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label" style="color:var(--accent-red)">Удалить аккаунт</div>
+            <div class="settings-row-desc">Безвозвратно удалить все данные</div>
+          </div>
+          <button class="btn btn-danger" onclick="confirmDelete()">Удалить</button>
+        </div>
+      </div>
+
+      <div class="save-bar">
+        <button class="btn btn-primary" onclick="saveSettings()">Сохранить изменения</button>
+        <button class="btn btn-ghost" onclick="location.reload()">Отменить</button>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/theme.js"></script>
+<script src="assets/js/sidebar-component.js"></script>
+<script>
+  if (localStorage.getItem('smartspend_auth') !== 'true') location.href = 'index.html';
+  initSidebarPage('settings');
+  Theme.init();
+
+  // Load saved values
+  const savedName = localStorage.getItem('smartspend_username') || 'Никита Орлов';
+  document.getElementById('nameInput').value = savedName;
+  document.getElementById('emailInput').value = 'nikita@example.com';
+
+  // Sync dark toggle with theme
+  const darkToggle = document.getElementById('darkToggle');
+  darkToggle.checked = document.body.classList.contains('dark');
+  darkToggle.addEventListener('change', () => Theme.toggle());
+
+  function saveSettings() {
+    const name = document.getElementById('nameInput').value.trim();
+    if (name) localStorage.setItem('smartspend_username', name);
+    showToast('Настройки сохранены ✓');
+  }
+
+  function exportData() {
+    const data = {
+      user: { name: localStorage.getItem('smartspend_username'), exportDate: new Date().toISOString() },
+      note: 'Это демо-экспорт данных SmartSpend'
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'smartspend-data.json'; a.click();
+    URL.revokeObjectURL(url);
+    showToast('Данные экспортированы');
+  }
+
+  function confirmDelete() {
+    if (confirm('Вы уверены? Это действие необратимо.')) {
+      localStorage.clear();
+      location.href = 'index.html';
+    }
+  }
+
+  function showToast(msg) {
+    let t = document.querySelector('.toast');
+    if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2500);
+  }
+</script>
+</body>
+</html>

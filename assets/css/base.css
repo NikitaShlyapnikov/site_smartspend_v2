@@ -1,0 +1,223 @@
+/* ──────────────────────────────────────────
+   SmartSpend — Base CSS
+   Переменные, сброс, типографика, утилиты
+────────────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── LIGHT THEME (default) ── */
+:root {
+  --bg: #EEEDE9;
+  --surface: #FFFFFF;
+  --surface-2: #F6F5F2;
+  --surface-3: #EFEEE9;
+  --border: rgba(0,0,0,0.07);
+  --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.03);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.05);
+  --text: #1A1916;
+  --text-2: #6B6860;
+  --text-3: #AEACA5;
+
+  --accent-green: #4E8268;
+  --accent-green-light: #F2F7F4;
+  --accent-green-border: #C8DDD3;
+
+  --accent-red: #B85555;
+  --accent-red-light: #FFEFED;
+  --accent-red-border: #FCD9D4;
+
+  /* inventory statuses */
+  --status-ok: #5E9478;
+  --status-ok-bg: #F2F7F4;
+  --status-ok-border: #C8DDD3;
+  --status-soon: #B08840;
+  --status-soon-bg: #FDFAF2;
+  --status-soon-border: #EAD898;
+  --status-urgent: #B85555;
+  --status-urgent-bg: #FDF5F5;
+  --status-urgent-border: #E8C8C8;
+  --status-over: #7B5EA7;
+  --status-over-bg: #F7F3FD;
+  --status-over-border: #D8C8EE;
+
+  --mono: 'Geist Mono', monospace;
+  --sans: 'Geist', sans-serif;
+  --r: 16px;
+  --r-sm: 10px;
+}
+
+/* ── DARK THEME ── */
+body.dark {
+  --bg: #141412;
+  --surface: #1E1D1B;
+  --surface-2: #252422;
+  --surface-3: #2C2B28;
+  --border: rgba(255,255,255,0.07);
+  --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.4), 0 8px 32px rgba(0,0,0,0.3);
+  --text: #F0EEE8;
+  --text-2: #9A9890;
+  --text-3: #5A5854;
+
+  --accent-green: #6AAF8E;
+  --accent-green-light: #1A2820;
+  --accent-green-border: #2A4035;
+
+  --accent-red: #C86868;
+  --accent-red-light: #2F1C1A;
+  --accent-red-border: #5A2E2A;
+
+  --status-ok: #6AAF8E;
+  --status-ok-bg: #1A2820;
+  --status-ok-border: #2A4035;
+  --status-soon: #C4A050;
+  --status-soon-bg: #2A2010;
+  --status-soon-border: #4A3820;
+  --status-urgent: #C86868;
+  --status-urgent-bg: #2F1818;
+  --status-urgent-border: #5A2E2E;
+  --status-over: #9B7EC8;
+  --status-over-bg: #221830;
+  --status-over-border: #4A3068;
+}
+
+/* ── BASE ── */
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.2s, color 0.2s;
+}
+
+a { color: inherit; text-decoration: none; }
+button { font-family: var(--sans); cursor: pointer; }
+img { max-width: 100%; }
+
+/* ── TYPOGRAPHY ── */
+h1 { font-size: clamp(32px, 4vw, 52px); font-weight: 700; letter-spacing: -0.035em; line-height: 1.1; }
+h2 { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.2; }
+h3 { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
+h4 { font-size: 14px; font-weight: 600; letter-spacing: -0.015em; }
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 18px; border-radius: var(--r-sm);
+  font-size: 13px; font-weight: 500; letter-spacing: -0.01em;
+  border: none; cursor: pointer; transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-primary { background: var(--text); color: var(--bg); }
+.btn-primary:hover { opacity: 0.8; }
+.btn-secondary {
+  background: var(--surface-2); color: var(--text-2);
+  border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+}
+.btn-secondary:hover { background: var(--surface-3); color: var(--text); }
+.btn-ghost {
+  background: transparent; color: var(--text-2);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { background: var(--surface-2); color: var(--text); }
+.btn-green {
+  background: var(--accent-green); color: #fff;
+}
+.btn-green:hover { opacity: 0.88; }
+.btn-danger {
+  background: var(--accent-red-light); color: var(--accent-red);
+  border: 1px solid var(--accent-red-border);
+}
+.btn-danger:hover { background: var(--accent-red); color: #fff; }
+
+/* ── BADGES / TAGS ── */
+.badge {
+  display: inline-flex; align-items: center;
+  font-size: 11px; font-weight: 500; letter-spacing: -0.01em;
+  padding: 3px 9px; border-radius: 100px;
+}
+.badge-green { background: var(--accent-green-light); color: var(--accent-green); border: 1px solid var(--accent-green-border); }
+.badge-red { background: var(--accent-red-light); color: var(--accent-red); border: 1px solid var(--accent-red-border); }
+.badge-neutral { background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border); }
+.badge-ok { background: var(--status-ok-bg); color: var(--status-ok); border: 1px solid var(--status-ok-border); }
+.badge-soon { background: var(--status-soon-bg); color: var(--status-soon); border: 1px solid var(--status-soon-border); }
+.badge-urgent { background: var(--status-urgent-bg); color: var(--status-urgent); border: 1px solid var(--status-urgent-border); }
+.badge-over { background: var(--status-over-bg); color: var(--status-over); border: 1px solid var(--status-over-border); }
+
+/* ── CARD ── */
+.card {
+  background: var(--surface);
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+/* ── SECTION LABEL ── */
+.section-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--accent-green); background: var(--accent-green-light);
+  display: inline-block; padding: 4px 10px; border-radius: 100px;
+  border: 1px solid var(--accent-green-border);
+}
+
+/* ── LOGO MARK ── */
+.logo-mark {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: var(--text); display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.logo-mark svg { width: 16px; height: 16px; }
+
+/* ── AVATAR ── */
+.avatar {
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: var(--accent-green-light);
+  color: var(--accent-green); font-weight: 600; letter-spacing: -0.01em;
+  border: 1px solid var(--accent-green-border); flex-shrink: 0;
+  font-size: 12px;
+}
+.avatar-sm { width: 32px; height: 32px; }
+.avatar-md { width: 40px; height: 40px; font-size: 14px; }
+.avatar-lg { width: 56px; height: 56px; font-size: 18px; }
+.avatar-xl { width: 80px; height: 80px; font-size: 24px; }
+
+/* ── DIVIDER ── */
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center; padding: 64px 24px;
+  color: var(--text-3);
+}
+.empty-state h3 { font-size: 15px; color: var(--text-2); margin-bottom: 8px; }
+.empty-state p { font-size: 13px; }
+
+/* ── REVEAL ANIMATION ── */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.55s ease, transform 0.55s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ── SPINNER ── */
+.spinner {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent-green);
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── TOAST NOTIFICATION ── */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--text); color: var(--bg);
+  padding: 10px 20px; border-radius: var(--r-sm);
+  font-size: 13px; font-weight: 500;
+  z-index: 1000; opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  white-space: nowrap; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }

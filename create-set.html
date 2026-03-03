@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Создать набор — SmartSpend</title>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/sidebar.css">
+  <style>
+    .create-form { max-width: 680px; }
+    .form-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 24px; margin-bottom: 16px; }
+    .form-section-title { font-size: 13px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+    .form-section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .form-group { margin-bottom: 16px; }
+    .form-label { font-size: 13px; font-weight: 500; color: var(--text-2); margin-bottom: 6px; display: block; }
+    .form-input {
+      width: 100%; padding: 10px 14px; border-radius: var(--r-sm); border: 1px solid var(--border);
+      background: var(--surface); color: var(--text); font-family: var(--sans); font-size: 14px;
+      outline: none; transition: border-color 0.15s;
+    }
+    .form-input:focus { border-color: var(--accent-green); box-shadow: 0 0 0 3px var(--accent-green-light); }
+    .form-input::placeholder { color: var(--text-3); }
+    .form-textarea { resize: vertical; min-height: 90px; }
+    .form-hint { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+
+    /* Type selector */
+    .type-selector { display: flex; gap: 8px; }
+    .type-opt { flex: 1; padding: 12px 16px; border-radius: var(--r-sm); border: 1px solid var(--border); cursor: pointer; transition: all 0.15s; text-align: center; }
+    .type-opt:hover { border-color: var(--accent-green-border); background: var(--accent-green-light); }
+    .type-opt.selected { border-color: var(--accent-green); background: var(--accent-green-light); color: var(--accent-green); }
+    .type-opt-icon { font-size: 24px; margin-bottom: 6px; }
+    .type-opt-label { font-size: 13px; font-weight: 600; }
+    .type-opt-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    .type-opt.selected .type-opt-sub { color: var(--accent-green); opacity: 0.7; }
+
+    /* Items table */
+    .items-area { border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; }
+    .items-header { display: grid; grid-template-columns: 1fr 100px 80px 70px 36px; gap: 0; background: var(--surface-2); border-bottom: 1px solid var(--border); padding: 8px 12px; font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; }
+    .items-body { }
+    .item-row { display: grid; grid-template-columns: 1fr 100px 80px 70px 36px; gap: 0; border-bottom: 1px solid var(--border); align-items: center; }
+    .item-row:last-child { border-bottom: none; }
+    .item-cell { padding: 8px 12px; }
+    .item-input {
+      width: 100%; padding: 6px 8px; border: 1px solid transparent; border-radius: 6px;
+      background: transparent; font-family: var(--sans); font-size: 13px; color: var(--text);
+      outline: none; transition: border-color 0.15s; -moz-appearance: textfield;
+    }
+    .item-input:focus { border-color: var(--accent-green); background: var(--surface); }
+    .item-input::placeholder { color: var(--text-3); }
+    input[type=number].item-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .item-delete { width: 28px; height: 28px; border-radius: 7px; background: none; border: none; cursor: pointer; color: var(--text-3); display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .item-delete:hover { background: var(--accent-red-light); color: var(--accent-red); }
+    .add-item-row { padding: 10px 12px; border-top: 1px solid var(--border); }
+
+    /* Unit select */
+    .item-select { width: 100%; padding: 5px 6px; border: 1px solid transparent; border-radius: 6px; background: transparent; font-family: var(--sans); font-size: 13px; color: var(--text); outline: none; cursor: pointer; }
+    .item-select:focus { border-color: var(--accent-green); background: var(--surface); }
+
+    /* Form actions */
+    .form-actions { display: flex; gap: 10px; align-items: center; padding: 16px 0; position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--border); }
+    .form-counter { font-size: 13px; color: var(--text-3); margin-left: auto; }
+  </style>
+</head>
+<body>
+
+<div class="app-layout" id="appLayout">
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Создать набор</div>
+        <div class="page-subtitle">Добавьте позиции и поделитесь с сообществом</div>
+      </div>
+      <a href="catalog.html" class="btn btn-ghost">Отмена</a>
+    </div>
+
+    <div class="create-form">
+
+      <!-- Основная информация -->
+      <div class="form-section">
+        <div class="form-section-title">Основное</div>
+        <div class="form-group">
+          <label class="form-label">Название набора *</label>
+          <input class="form-input" id="setTitle" type="text" placeholder="Например: Базовый уход за телом" maxlength="80">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Тип набора</label>
+          <div class="type-selector">
+            <div class="type-opt selected" data-type="mixed" onclick="selectType(this, 'mixed')">
+              <div class="type-opt-icon">🔀</div>
+              <div class="type-opt-label">Смешанный</div>
+              <div class="type-opt-sub">Расходное + ноское</div>
+            </div>
+            <div class="type-opt" data-type="consumable" onclick="selectType(this, 'consumable')">
+              <div class="type-opt-icon">📦</div>
+              <div class="type-opt-label">Расходное</div>
+              <div class="type-opt-sub">Продукты, косметика</div>
+            </div>
+            <div class="type-opt" data-type="wear" onclick="selectType(this, 'wear')">
+              <div class="type-opt-icon">👕</div>
+              <div class="type-opt-label">Ноское</div>
+              <div class="type-opt-sub">Одежда, техника</div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Категория</label>
+          <select class="form-input" id="setCategory">
+            <option>Уход</option>
+            <option>Здоровье</option>
+            <option>Спорт</option>
+            <option>Одежда</option>
+            <option>Техника</option>
+            <option>Продукты</option>
+            <option>Другое</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Краткое описание *</label>
+          <input class="form-input" id="setDesc" type="text" placeholder="1-2 предложения о назначении набора" maxlength="160">
+          <div class="form-hint">Отображается в карточке каталога</div>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Полное описание</label>
+          <textarea class="form-input form-textarea" id="setFullDesc" placeholder="Расскажите подробнее: принципы выбора позиций, для кого подходит, особенности использования…"></textarea>
+        </div>
+      </div>
+
+      <!-- Позиции -->
+      <div class="form-section">
+        <div class="form-section-title">Позиции (<span id="itemCount">0</span>)</div>
+        <div class="items-area">
+          <div class="items-header">
+            <span>Наименование</span>
+            <span>Тип</span>
+            <span id="paramHeader">Доз/день</span>
+            <span>Ед. изм.</span>
+            <span></span>
+          </div>
+          <div class="items-body" id="itemsBody"></div>
+          <div class="add-item-row">
+            <button class="btn btn-ghost" style="font-size:13px;width:100%" onclick="addItem()">
+              + Добавить позицию
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Действия -->
+      <div class="form-actions">
+        <button class="btn btn-primary" id="publishBtn" onclick="publishSet()" disabled>Опубликовать набор</button>
+        <button class="btn btn-secondary" onclick="saveDraft()">Сохранить черновик</button>
+        <span class="form-counter" id="formCounter">Заполните название и добавьте позиции</span>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/theme.js"></script>
+<script src="assets/js/sidebar-component.js"></script>
+<script>
+  if (localStorage.getItem('smartspend_auth') !== 'true') location.href = 'index.html';
+  initSidebarPage('catalog');
+  Theme.init();
+
+  let items = [];
+  let setType = 'mixed';
+  let itemIdCounter = 0;
+
+  function selectType(el, type) {
+    document.querySelectorAll('.type-opt').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    setType = type;
+    updateParamHeader();
+    renderItems();
+  }
+
+  function updateParamHeader() {
+    const h = document.getElementById('paramHeader');
+    if (setType === 'wear') h.textContent = 'Месяцев';
+    else h.textContent = 'Ед/день';
+  }
+
+  function addItem() {
+    items.push({ id: ++itemIdCounter, name: '', type: setType === 'wear' ? 'wear' : 'consumable', param: '', unit: 'шт' });
+    renderItems();
+    updateCounter();
+    // Focus last input
+    setTimeout(() => {
+      const inputs = document.querySelectorAll('.item-name-input');
+      inputs[inputs.length - 1]?.focus();
+    }, 50);
+  }
+
+  function renderItems() {
+    const body = document.getElementById('itemsBody');
+    body.innerHTML = items.map(item => `
+      <div class="item-row" data-id="${item.id}">
+        <div class="item-cell">
+          <input class="item-input item-name-input" type="text" placeholder="Название…" value="${item.name}"
+            oninput="updateItem(${item.id}, 'name', this.value)" />
+        </div>
+        <div class="item-cell">
+          <select class="item-select" onchange="updateItem(${item.id}, 'type', this.value)">
+            <option value="consumable"${item.type === 'consumable' ? ' selected' : ''}>Расходное</option>
+            <option value="wear"${item.type === 'wear' ? ' selected' : ''}>Ноское</option>
+          </select>
+        </div>
+        <div class="item-cell">
+          <input class="item-input" type="number" min="0" placeholder="${item.type === 'wear' ? '12' : '1'}"
+            value="${item.param}" oninput="updateItem(${item.id}, 'param', this.value)" />
+        </div>
+        <div class="item-cell">
+          <select class="item-select" onchange="updateItem(${item.id}, 'unit', this.value)">
+            ${['шт','г','мл','л','кг','пара','упак','компл'].map(u => `<option${u === item.unit ? ' selected' : ''}>${u}</option>`).join('')}
+          </select>
+        </div>
+        <div class="item-cell" style="padding:8px 8px 8px 4px">
+          <button class="item-delete" onclick="removeItem(${item.id})" title="Удалить">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l8 8M10 2L2 10"/></svg>
+          </button>
+        </div>
+      </div>
+    `).join('');
+    document.getElementById('itemCount').textContent = items.length;
+  }
+
+  function updateItem(id, field, value) {
+    const item = items.find(i => i.id === id);
+    if (item) item[field] = value;
+    updateCounter();
+    validateForm();
+  }
+
+  function removeItem(id) {
+    items = items.filter(i => i.id !== id);
+    renderItems();
+    updateCounter();
+    validateForm();
+  }
+
+  function updateCounter() {
+    document.getElementById('itemCount').textContent = items.length;
+  }
+
+  function validateForm() {
+    const title = document.getElementById('setTitle').value.trim();
+    const desc = document.getElementById('setDesc').value.trim();
+    const hasItems = items.length > 0 && items.some(i => i.name.trim());
+    const valid = title.length > 0 && desc.length > 0 && hasItems;
+    document.getElementById('publishBtn').disabled = !valid;
+    document.getElementById('formCounter').textContent = valid
+      ? `${items.length} позиц${items.length === 1 ? 'ия' : 'ий'} готово`
+      : 'Заполните название, описание и добавьте позиции';
+  }
+
+  ['setTitle', 'setDesc', 'setFullDesc'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', validateForm);
+  });
+
+  function publishSet() {
+    showToast('Набор опубликован! ✓');
+    setTimeout(() => location.href = 'catalog.html', 1000);
+  }
+
+  function saveDraft() {
+    showToast('Черновик сохранён');
+  }
+
+  function showToast(msg) {
+    let t = document.querySelector('.toast');
+    if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  // Add initial item
+  addItem();
+</script>
+</body>
+</html>

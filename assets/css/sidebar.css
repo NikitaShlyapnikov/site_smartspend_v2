@@ -1,0 +1,177 @@
+/* ──────────────────────────────────────────
+   SmartSpend — Sidebar CSS
+   Общий сайдбар для всех app-страниц
+────────────────────────────────────────── */
+
+/* ── APP LAYOUT ── */
+.app-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+.app-layout.collapsed { grid-template-columns: 56px 1fr; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  background: var(--surface);
+  display: flex; flex-direction: column;
+  padding: 20px 0;
+  position: sticky; top: 0; height: 100vh;
+  box-shadow: 1px 0 0 var(--border);
+  overflow: hidden;
+  transition: width 0.2s ease;
+  width: 240px;
+  z-index: 100;
+}
+.app-layout.collapsed .sidebar { width: 56px; }
+
+/* Logo */
+.sidebar-logo {
+  font-size: 17px; font-weight: 700; letter-spacing: -0.02em;
+  padding: 0 14px 20px;
+  display: flex; align-items: center; gap: 10px;
+  color: var(--text); text-decoration: none;
+  white-space: nowrap; overflow: hidden;
+}
+.sidebar-logo-text {
+  flex: 1; overflow: hidden;
+  transition: opacity 0.15s, width 0.2s;
+}
+.app-layout.collapsed .sidebar-logo-text { opacity: 0; width: 0; }
+
+/* Toggle button */
+.sidebar-toggle {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-3); padding: 4px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.15s, background 0.15s; flex-shrink: 0;
+}
+.sidebar-toggle:hover { color: var(--text); background: var(--surface-2); }
+.app-layout.collapsed .sidebar-toggle { transform: rotate(180deg); }
+
+/* Nav */
+.sidebar-nav {
+  padding: 0 8px; flex: 1;
+  display: flex; flex-direction: column; gap: 1px;
+  overflow-y: auto; overflow-x: hidden;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: var(--r-sm);
+  font-size: 14px; font-weight: 400; color: var(--text-2);
+  cursor: pointer; transition: all 0.15s; text-decoration: none;
+  letter-spacing: -0.01em; white-space: nowrap; overflow: hidden;
+}
+.nav-item:hover { background: var(--surface-2); color: var(--text); }
+.nav-item.active { background: var(--surface-2); color: var(--text); font-weight: 500; }
+.nav-icon {
+  width: 18px; height: 18px; flex-shrink: 0;
+  opacity: 0.4; transition: opacity 0.15s;
+}
+.nav-item.active .nav-icon, .nav-item:hover .nav-icon { opacity: 0.8; }
+.nav-label { transition: opacity 0.15s; }
+.app-layout.collapsed .nav-label { opacity: 0; width: 0; overflow: hidden; }
+.nav-divider { height: 1px; background: var(--border); margin: 4px 8px; }
+
+/* Bottom */
+.sidebar-bottom {
+  padding: 10px 8px 0;
+  border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.sidebar-user {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; overflow: hidden;
+}
+.sidebar-user-info { flex: 1; overflow: hidden; min-width: 0; }
+.sidebar-user-name {
+  font-size: 13px; font-weight: 500; letter-spacing: -0.01em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sidebar-user-plan {
+  font-size: 11px; color: var(--text-3);
+}
+.app-layout.collapsed .sidebar-user-info { opacity: 0; width: 0; }
+
+/* Theme & Logout buttons */
+.sidebar-action {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: var(--r-sm);
+  font-size: 13px; font-weight: 400; color: var(--text-2);
+  cursor: pointer; transition: all 0.15s;
+  background: none; border: none; text-align: left;
+  width: 100%; white-space: nowrap; overflow: hidden;
+}
+.sidebar-action:hover { background: var(--surface-2); color: var(--text); }
+.sidebar-action-icon {
+  width: 18px; height: 18px; flex-shrink: 0;
+  opacity: 0.4; transition: opacity 0.15s;
+}
+.sidebar-action:hover .sidebar-action-icon { opacity: 0.8; }
+.sidebar-action-label { transition: opacity 0.15s; }
+.app-layout.collapsed .sidebar-action-label { opacity: 0; width: 0; overflow: hidden; }
+
+/* ── MAIN CONTENT ── */
+.main-content {
+  min-width: 0;
+  padding: 32px 36px;
+  max-width: 900px;
+}
+
+/* Page header */
+.page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 28px; gap: 16px;
+}
+.page-title { font-size: 22px; font-weight: 700; letter-spacing: -0.025em; }
+.page-subtitle { font-size: 13px; color: var(--text-2); margin-top: 3px; }
+
+/* ── FILTER BAR ── */
+.filter-bar {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 20px; flex-wrap: wrap;
+}
+.tab-group { display: flex; gap: 2px; background: var(--surface-2); border-radius: var(--r-sm); padding: 3px; border: 1px solid var(--border); }
+.tab-btn {
+  padding: 6px 14px; border-radius: 7px; border: none;
+  font-size: 13px; font-weight: 400; color: var(--text-2);
+  background: none; cursor: pointer; transition: all 0.15s;
+  letter-spacing: -0.01em; white-space: nowrap;
+}
+.tab-btn.active { background: var(--surface); color: var(--text); font-weight: 500; box-shadow: var(--shadow-sm); }
+.tab-btn:hover:not(.active) { color: var(--text); }
+
+.filter-select {
+  padding: 7px 12px; border-radius: var(--r-sm);
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--text-2); font-family: var(--sans); font-size: 13px;
+  cursor: pointer; outline: none;
+}
+.filter-select:focus { border-color: var(--accent-green); }
+
+.search-input {
+  flex: 1; min-width: 160px; max-width: 280px;
+  padding: 7px 12px; border-radius: var(--r-sm);
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--text); font-family: var(--sans); font-size: 13px;
+  outline: none; transition: border-color 0.15s;
+}
+.search-input::placeholder { color: var(--text-3); }
+.search-input:focus { border-color: var(--accent-green); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .app-layout { grid-template-columns: 56px 1fr; }
+  .app-layout .sidebar { width: 56px; }
+  .app-layout .sidebar-logo-text,
+  .app-layout .nav-label,
+  .app-layout .sidebar-user-info,
+  .app-layout .sidebar-action-label { opacity: 0; width: 0; overflow: hidden; }
+  .main-content { padding: 24px 20px; }
+}
+
+@media (max-width: 600px) {
+  .app-layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .main-content { padding: 16px; }
+}

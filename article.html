@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Статья — SmartSpend</title>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/sidebar.css">
+  <style>
+    .article-container { max-width: 720px; }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); text-decoration: none; margin-bottom: 20px; transition: color 0.15s; }
+    .back-link:hover { color: var(--text); }
+
+    .article-cover { height: 180px; border-radius: var(--r); display: flex; align-items: center; justify-content: center; font-size: 64px; margin-bottom: 28px; border: 1px solid var(--border); }
+
+    .article-header { margin-bottom: 28px; }
+    .article-category { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 100px; display: inline-block; margin-bottom: 12px; }
+    .article-title { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.2; margin-bottom: 12px; }
+    .article-meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+    .article-author { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .article-author-name { font-weight: 500; }
+    .article-date { font-size: 13px; color: var(--text-3); }
+    .article-read-time { font-size: 13px; color: var(--text-3); }
+    .article-stats { margin-left: auto; display: flex; gap: 14px; }
+    .article-stat { font-size: 13px; color: var(--text-3); display: flex; align-items: center; gap: 5px; }
+    .article-stat svg { width: 14px; height: 14px; }
+
+    /* Article body */
+    .article-body { font-size: 15px; line-height: 1.75; color: var(--text); }
+    .article-body p { margin-bottom: 20px; }
+    .article-body h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.025em; margin: 32px 0 14px; }
+    .article-body blockquote {
+      border-left: 3px solid var(--accent-green); padding: 14px 20px; margin: 24px 0;
+      background: var(--accent-green-light); border-radius: 0 var(--r-sm) var(--r-sm) 0;
+      font-style: italic; color: var(--text-2); font-size: 15px; line-height: 1.6;
+    }
+    .article-body ul { padding-left: 20px; margin-bottom: 20px; }
+    .article-body ul li { margin-bottom: 8px; line-height: 1.6; }
+    .article-body ul li::marker { color: var(--accent-green); }
+
+    /* Author bio */
+    .author-bio { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; margin-top: 36px; display: flex; align-items: flex-start; gap: 14px; }
+    .author-bio-text h4 { font-size: 14px; font-weight: 600; margin-bottom: 5px; }
+    .author-bio-text p { font-size: 13px; color: var(--text-2); line-height: 1.55; }
+
+    /* Related sets */
+    .related-set { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); text-decoration: none; color: inherit; transition: all 0.15s; margin-bottom: 8px; }
+    .related-set:hover { background: var(--surface-2); }
+    .related-set-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .related-set-title { font-size: 13px; font-weight: 500; }
+    .related-set-meta { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+    .section-title { font-size: 13px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; margin: 32px 0 14px; display: flex; align-items: center; gap: 8px; }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* Like button */
+    .like-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 9px 18px; border-radius: var(--r-sm);
+      border: 1px solid var(--border); background: var(--surface-2);
+      font-size: 13px; font-weight: 500; color: var(--text-2);
+      cursor: pointer; transition: all 0.15s; margin-top: 24px;
+    }
+    .like-btn:hover { border-color: var(--accent-green-border); color: var(--accent-green); background: var(--accent-green-light); }
+    .like-btn.liked { border-color: var(--accent-green-border); color: var(--accent-green); background: var(--accent-green-light); }
+  </style>
+</head>
+<body>
+
+<div class="app-layout" id="appLayout">
+  <main class="main-content">
+    <a href="feed.html" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
+      Назад в ленту
+    </a>
+    <div class="article-container" id="articleContainer">
+      <div style="text-align:center;padding:48px;color:var(--text-3)">
+        <div class="spinner" style="margin:0 auto 12px"></div>
+        Загружаем статью…
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/theme.js"></script>
+<script src="assets/js/sidebar-component.js"></script>
+<script>
+  if (localStorage.getItem('smartspend_auth') !== 'true') location.href = 'index.html';
+  initSidebarPage('feed');
+  Theme.init();
+
+  const params = new URLSearchParams(location.search);
+  const articleId = params.get('id') || 'a1';
+  let liked = false;
+
+  const categoryEmoji = { 'Финансы': '📊', 'Философия': '🧠', 'Инвентарь': '📦', 'Потребление': '🛒', 'Психология': '🧘' };
+  const setEmoji = { 'Уход': '🧴', 'Спорт': '💪', 'Продукты': '☕', 'Здоровье': '💊', 'Одежда': '👕', 'Техника': '💻' };
+
+  fetch('data/articles.json')
+    .then(r => r.json())
+    .then(data => {
+      const article = data.articles.find(a => a.id === articleId) || data.articles[0];
+      document.title = `${article.title} — SmartSpend`;
+      renderArticle(article);
+      if (article.relatedSets?.length) loadRelatedSets(article.relatedSets);
+    })
+    .catch(() => renderArticle(mockArticle()));
+
+  function mockArticle() {
+    return {
+      id: 'a1', title: 'Как перестать покупать ненужное', category: 'Философия', categoryColor: '#4E8268',
+      coverColor: '#E8F4EE', author: 'Команда SmartSpend', authorInitials: 'SS',
+      authorBio: 'Редакция SmartSpend — команда финансистов.',
+      publishedAt: '2026-02-15', readTime: 8, likesCount: 342, commentsCount: 28,
+      content: [
+        { type: 'paragraph', text: 'Каждый раз, когда вы открываете маркетплейс «просто посмотреть», алгоритмы уже знают, что вы купите.' },
+        { type: 'heading', text: 'Как работает ловушка' },
+        { type: 'paragraph', text: 'Наш мозг плохо приспособлен к современным маркетплейсам. Таймеры, дефицит, срочность — всё это искусственно созданные триггеры.' },
+        { type: 'quote', text: 'Покупка ради покупки — это не потребление. Это способ управлять тревогой.' }
+      ],
+      relatedSets: ['s1', 's5']
+    };
+  }
+
+  function renderArticle(a) {
+    const emoji = categoryEmoji[a.category] || '📖';
+    const catStyle = `background:${a.categoryColor}18;color:${a.categoryColor};border:1px solid ${a.categoryColor}30;`;
+
+    const contentHTML = (a.content || []).map(block => {
+      if (block.type === 'paragraph') return `<p>${block.text}</p>`;
+      if (block.type === 'heading') return `<h2>${block.text}</h2>`;
+      if (block.type === 'quote') return `<blockquote>${block.text}</blockquote>`;
+      if (block.type === 'list') return `<ul>${block.items.map(i => `<li>${i}</li>`).join('')}</ul>`;
+      return '';
+    }).join('');
+
+    const pubDate = new Date(a.publishedAt).toLocaleDateString('ru', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    document.getElementById('articleContainer').innerHTML = `
+      <div class="article-cover" style="background:${a.coverColor || '#F2F7F4'}">${emoji}</div>
+
+      <div class="article-header">
+        <span class="article-category" style="${catStyle}">${a.category}</span>
+        <div class="article-title">${a.title}</div>
+        <div class="article-meta">
+          <div class="article-author">
+            <div class="avatar avatar-sm">${a.authorInitials}</div>
+            <div>
+              <div class="article-author-name">${a.author}</div>
+            </div>
+          </div>
+          <span class="article-date">${pubDate}</span>
+          <span class="article-read-time">${a.readTime} мин чтения</span>
+          <div class="article-stats">
+            <span class="article-stat">
+              <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 7s2-5 6-5 6 5 6 5-2 5-6 5-6-5-6-5z"/><circle cx="7" cy="7" r="2"/></svg>
+              ${a.likesCount}
+            </span>
+            <span class="article-stat">
+              <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 2h12a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H4L1 14V3a1 1 0 0 1 0-1z"/></svg>
+              ${a.commentsCount}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="article-body">${contentHTML}</div>
+
+      <button class="like-btn" id="likeBtn" onclick="toggleLike(${a.likesCount})">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 13.5S2 9.5 2 5.5a3.5 3.5 0 0 1 6-2.4A3.5 3.5 0 0 1 14 5.5c0 4-6 8-6 8z"/></svg>
+        <span id="likeCount">${a.likesCount}</span>
+      </button>
+
+      <div class="author-bio">
+        <div class="avatar avatar-md">${a.authorInitials}</div>
+        <div class="author-bio-text">
+          <h4>${a.author}</h4>
+          <p>${a.authorBio || ''}</p>
+        </div>
+      </div>
+
+      <div id="relatedSetsSection"></div>
+    `;
+  }
+
+  function toggleLike(base) {
+    liked = !liked;
+    const btn = document.getElementById('likeBtn');
+    const count = document.getElementById('likeCount');
+    btn.classList.toggle('liked', liked);
+    count.textContent = liked ? base + 1 : base;
+  }
+
+  function loadRelatedSets(ids) {
+    fetch('data/sets.json')
+      .then(r => r.json())
+      .then(data => {
+        const sets = data.sets.filter(s => ids.includes(s.id));
+        const el = document.getElementById('relatedSetsSection');
+        if (!el || !sets.length) return;
+        el.innerHTML = `
+          <div class="section-title">Связанные наборы</div>
+          ${sets.map(s => {
+            const emoji = setEmoji[s.category] || '📦';
+            return `
+              <a class="related-set" href="set-detail.html?id=${s.id}">
+                <div class="related-set-icon" style="background:${s.categoryColor}14">${emoji}</div>
+                <div>
+                  <div class="related-set-title">${s.title}</div>
+                  <div class="related-set-meta">${s.itemsCount} позиций · ${s.monthlyBudget?.toLocaleString('ru')} ₽/мес</div>
+                </div>
+              </a>`;
+          }).join('')}`;
+      }).catch(() => {});
+  }
+</script>
+</body>
+</html>

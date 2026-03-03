@@ -1,0 +1,27 @@
+{
+  "id": "u1",
+  "name": "Никита Орлов",
+  "email": "nikita@example.com",
+  "avatar": null,
+  "initials": "НО",
+  "joinDate": "2024-03-15",
+  "plan": "Pro",
+  "capital": 186400,
+  "capitalGrowth": 4.2,
+  "passiveIncome": 4400,
+  "emoSpend": 8200,
+  "smartBase": 22000,
+  "investCore": 40000,
+  "stats": {
+    "inventoryCount": 24,
+    "setsCreated": 3,
+    "articlesPublished": 1,
+    "totalSaved": 47200
+  },
+  "achievements": [
+    { "id": "a1", "title": "Первый набор", "description": "Добавил первый набор в инвентарь", "icon": "🎯", "unlocked": true },
+    { "id": "a2", "title": "Месяц без лишних трат", "description": "30 дней без импульсивных покупок", "icon": "🏆", "unlocked": true },
+    { "id": "a3", "title": "Автор", "description": "Опубликовал первую статью", "icon": "✍️", "unlocked": true },
+    { "id": "a4", "title": "Safety Point", "description": "Пассивный доход покрывает Smart-базу", "icon": "🛡️", "unlocked": false }
+  ]
+}

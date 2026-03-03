@@ -1,0 +1,153 @@
+{
+  "items": [
+    {
+      "id": "i1",
+      "name": "Протеин Whey",
+      "category": "Спорт и питание",
+      "type": "consumable",
+      "quantity": 200,
+      "unit": "г",
+      "dailyUse": 100,
+      "daysLeft": 2,
+      "status": "urgent",
+      "price": 2800,
+      "buyDate": "2025-02-01",
+      "nextBuy": "2026-03-05",
+      "history": [
+        { "date": "2025-12-01", "qty": 1000, "price": 2800 },
+        { "date": "2026-01-15", "qty": 1000, "price": 2900 },
+        { "date": "2026-02-01", "qty": 1000, "price": 2800 }
+      ]
+    },
+    {
+      "id": "i2",
+      "name": "Шампунь Head&Shoulders",
+      "category": "Уход",
+      "type": "consumable",
+      "quantity": 120,
+      "unit": "мл",
+      "dailyUse": 15,
+      "daysLeft": 8,
+      "status": "soon",
+      "price": 380,
+      "buyDate": "2026-02-10",
+      "nextBuy": "2026-03-11",
+      "history": [
+        { "date": "2025-12-10", "qty": 400, "price": 360 },
+        { "date": "2026-02-10", "qty": 400, "price": 380 }
+      ]
+    },
+    {
+      "id": "i3",
+      "name": "Кроссовки Nike Air",
+      "category": "Одежда",
+      "type": "wear",
+      "quantity": null,
+      "unit": null,
+      "dailyUse": null,
+      "daysLeft": 42,
+      "monthsLeft": 5,
+      "totalMonths": 18,
+      "status": "ok",
+      "price": 8900,
+      "buyDate": "2025-10-15",
+      "nextBuy": "2026-04-15",
+      "history": [
+        { "date": "2024-04-10", "qty": 1, "price": 8200 },
+        { "date": "2025-10-15", "qty": 1, "price": 8900 }
+      ]
+    },
+    {
+      "id": "i4",
+      "name": "Зубная паста Splat",
+      "category": "Гигиена",
+      "type": "consumable",
+      "quantity": 75,
+      "unit": "мл",
+      "dailyUse": 5,
+      "daysLeft": 15,
+      "status": "soon",
+      "price": 240,
+      "buyDate": "2026-02-15",
+      "nextBuy": "2026-03-18",
+      "history": [
+        { "date": "2026-01-01", "qty": 100, "price": 220 },
+        { "date": "2026-02-15", "qty": 100, "price": 240 }
+      ]
+    },
+    {
+      "id": "i5",
+      "name": "Гель для душа",
+      "category": "Уход",
+      "type": "consumable",
+      "quantity": 400,
+      "unit": "мл",
+      "dailyUse": 20,
+      "daysLeft": 20,
+      "status": "ok",
+      "price": 290,
+      "buyDate": "2026-02-20",
+      "nextBuy": "2026-03-23",
+      "history": [
+        { "date": "2026-01-10", "qty": 400, "price": 270 },
+        { "date": "2026-02-20", "qty": 400, "price": 290 }
+      ]
+    },
+    {
+      "id": "i6",
+      "name": "Рабочий ноутбук",
+      "category": "Техника",
+      "type": "wear",
+      "quantity": null,
+      "unit": null,
+      "dailyUse": null,
+      "daysLeft": 730,
+      "monthsLeft": 24,
+      "totalMonths": 48,
+      "status": "ok",
+      "price": 89000,
+      "buyDate": "2024-03-01",
+      "nextBuy": "2028-03-01",
+      "history": [
+        { "date": "2024-03-01", "qty": 1, "price": 89000 }
+      ]
+    },
+    {
+      "id": "i7",
+      "name": "Витамин D3",
+      "category": "Здоровье",
+      "type": "consumable",
+      "quantity": 5,
+      "unit": "шт",
+      "dailyUse": 1,
+      "daysLeft": 5,
+      "status": "urgent",
+      "price": 680,
+      "buyDate": "2026-01-15",
+      "nextBuy": "2026-03-08",
+      "history": [
+        { "date": "2025-11-01", "qty": 90, "price": 650 },
+        { "date": "2026-01-15", "qty": 90, "price": 680 }
+      ]
+    },
+    {
+      "id": "i8",
+      "name": "Кофе молотый",
+      "category": "Продукты",
+      "type": "consumable",
+      "quantity": 450,
+      "unit": "г",
+      "dailyUse": 30,
+      "daysLeft": 15,
+      "status": "soon",
+      "price": 890,
+      "buyDate": "2026-02-18",
+      "nextBuy": "2026-03-18",
+      "history": [
+        { "date": "2026-01-05", "qty": 500, "price": 850 },
+        { "date": "2026-02-18", "qty": 500, "price": 890 }
+      ]
+    }
+  ],
+  "categories": ["Все", "Уход", "Здоровье", "Одежда", "Продукты", "Техника", "Спорт и питание", "Гигиена"]
+}
