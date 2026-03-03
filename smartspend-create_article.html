@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartSpend — Создание статьи</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Базовые стили — полная копия из страницы создания набора */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #EEEDE9;
+    --surface: #FFFFFF;
+    --surface-2: #F6F5F2;
+    --surface-3: #EFEEE9;
+    --border: rgba(0,0,0,0.07);
+    --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.03);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --text: #1A1916;
+    --text-2: #6B6860;
+    --text-3: #AEACA5;
+    --accent-green: #4E8268;
+    --accent-green-light: #F2F7F4;
+    --accent-green-border: #C8DDD3;
+    --error: #E05252;
+    --error-light: #FDECEC;
+    --mono: 'Geist Mono', monospace;
+    --sans: 'Geist', sans-serif;
+    --r: 16px;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+  }
+
+  body.dark {
+    --bg: #141412;
+    --surface: #1E1D1B;
+    --surface-2: #252422;
+    --surface-3: #2C2B28;
+    --border: rgba(255,255,255,0.07);
+    --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+    --text: #F0EEE8;
+    --text-2: #9A9890;
+    --text-3: #5A5854;
+    --accent-green-light: #1A2820;
+    --accent-green-border: #2A4035;
+    --error: #E05252;
+    --error-light: #2A1010;
+  }
+
+  body.dark .logo-mark { background: var(--surface-3); }
+  body.dark .logo-mark rect { fill: #9A9890; }
+
+  body.sidebar-collapsed { grid-template-columns: 56px 1fr; }
+  body.sidebar-collapsed .logo-text,
+  body.sidebar-collapsed .nav-label,
+  body.sidebar-collapsed .nav-label-block,
+  body.sidebar-collapsed .theme-label { display: none; }
+  body.sidebar-collapsed .logo-mark { display: none; }
+  body.sidebar-collapsed aside { padding: 20px 0; }
+  body.sidebar-collapsed .logo { padding: 4px 12px 20px; justify-content: center; }
+  body.sidebar-collapsed nav { padding: 4px 8px; }
+  body.sidebar-collapsed .nav-item { justify-content: center; padding: 10px; }
+  body.sidebar-collapsed .nav-icon { opacity: 0.5; width: 18px; height: 18px; }
+  body.sidebar-collapsed .nav-item.active .nav-icon,
+  body.sidebar-collapsed .nav-item:hover .nav-icon { opacity: 0.9; }
+  body.sidebar-collapsed .sidebar-bottom { padding: 10px 8px; align-items: center; }
+  body.sidebar-collapsed .theme-toggle { justify-content: center; padding: 10px; }
+  body.sidebar-collapsed .nav-divider { margin: 6px 8px; }
+  body.sidebar-collapsed .sidebar-user { justify-content: center; padding: 8px 0; }
+  
+  /* Стили сайдбара */
+  aside {
+    background: var(--surface);
+    display: flex; flex-direction: column;
+    padding: 24px 0;
+    position: sticky; top: 0; height: 100vh;
+    box-shadow: 1px 0 0 var(--border);
+  }
+  .logo {
+    font-size: 17px; font-weight: 700; letter-spacing: -0.02em;
+    padding: 4px 16px 24px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo-text { flex: 1; white-space: nowrap; overflow: hidden; }
+  .sidebar-toggle {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-3); padding: 4px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    transition: color 0.15s, background 0.15s; flex-shrink: 0;
+  }
+  .sidebar-toggle:hover { color: var(--text); background: var(--surface-2); }
+  .logo-mark {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: var(--text); display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  nav { padding: 8px 12px; flex: 1; display: flex; flex-direction: column; gap: 1px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 10px;
+    font-size: 14px; font-weight: 400; color: var(--text-2);
+    cursor: pointer; transition: all 0.15s; text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+  .nav-item:hover { background: var(--surface-2); color: var(--text); }
+  .nav-item.active { background: var(--surface-2); color: var(--text); font-weight: 500; }
+  .nav-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.4; }
+  .nav-divider { height: 1px; background: var(--border); margin: 6px 12px; }
+
+  .sidebar-bottom {
+    padding: 12px; border-top: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 8px; }
+  .avatar-sm {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--surface-3); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: var(--text-2); flex-shrink: 0;
+  }
+  .sidebar-user-name { font-size: 13px; font-weight: 500; letter-spacing: -0.01em; }
+  .sidebar-user-plan { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+  .nav-label-block { min-width: 0; overflow: hidden; }
+  .sidebar-user { cursor: default; text-decoration: none; color: inherit; }
+  .theme-toggle {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 10px;
+    font-size: 14px; color: var(--text-2);
+    cursor: pointer; border: none; background: none;
+    width: 100%; text-align: left; letter-spacing: -0.01em;
+    transition: all 0.15s; font-family: var(--sans);
+  }
+  .theme-toggle:hover { background: var(--surface-2); color: var(--text); }
+  .theme-label { white-space: nowrap; overflow: hidden; }
+
+  /* Основной контент */
+  main {
+    padding: 32px 36px;
+    display: flex; flex-direction: column; gap: 24px;
+    min-width: 0; max-width: 900px;
+  }
+
+  .breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text-3); letter-spacing: -0.01em;
+  }
+  .breadcrumb a { color: var(--text-3); text-decoration: none; transition: color 0.12s; }
+  .breadcrumb a:hover { color: var(--text-2); }
+  .bc-sep { opacity: 0.4; }
+  .bc-cur { color: var(--text-2); }
+
+  /* Hero Card */
+  .hero-card {
+    background: var(--surface); border-radius: var(--r);
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .hero-body { padding: 28px 32px; }
+
+  /* Переключатель публичности */
+  .field-group {
+    margin-bottom: 20px;
+  }
+  .field-group-label {
+    font-size: 11px; font-weight: 600; color: var(--text-3);
+    letter-spacing: 0.05em; text-transform: uppercase;
+    margin-bottom: 8px; display: block;
+  }
+  .visibility-toggle {
+    display: flex; gap: 8px;
+  }
+  .visibility-option {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 30px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    font-size: 13px; font-weight: 500; color: var(--text-2);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .visibility-option:hover { background: var(--surface-3); }
+  .visibility-option.active {
+    background: var(--accent-green-light); border-color: var(--accent-green-border); color: var(--accent-green);
+  }
+
+  /* Выбор категории */
+  .category-selector {
+    margin-bottom: 24px;
+  }
+  .category-label {
+    font-size: 11px; font-weight: 600; color: var(--text-3);
+    letter-spacing: 0.05em; text-transform: uppercase;
+    margin-bottom: 8px; display: block;
+  }
+  .category-grid {
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .category-chip {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 30px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    font-size: 13px; color: var(--text-2);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .category-chip:hover { background: var(--surface-3); }
+  .category-chip.active {
+    background: var(--accent-green-light); border-color: var(--accent-green-border); color: var(--accent-green);
+  }
+  .color-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+
+  /* Hero divider between sections */
+  .hero-divider {
+    height: 1px; background: var(--border);
+    margin: 20px 0;
+  }
+
+  /* Поля ввода */
+  .edit-field {
+    width: 100%;
+    padding: 8px 12px; border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .edit-field:focus {
+    outline: none;
+    border-color: var(--accent-green);
+    background: var(--surface);
+  }
+  .edit-field.large {
+    font-size: 24px; font-weight: 700; padding: 10px 12px;
+    letter-spacing: -0.02em;
+  }
+  .edit-field.error {
+    border-color: var(--error);
+    background: var(--error-light);
+  }
+
+  /* Кнопки */
+  .btn-primary {
+    display: flex; align-items: center; gap: 7px;
+    padding: 10px 20px; border-radius: 10px;
+    background: var(--text); color: var(--surface);
+    font-family: var(--sans); font-size: 14px; font-weight: 600;
+    cursor: pointer; border: none; transition: opacity 0.15s;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Кнопка публикации — зелёный акцент */
+  .btn-publish {
+    display: flex; align-items: center; gap: 7px;
+    padding: 10px 22px; border-radius: 10px;
+    background: var(--accent-green); color: #fff;
+    font-family: var(--sans); font-size: 14px; font-weight: 600;
+    cursor: pointer; border: none; transition: opacity 0.15s;
+    letter-spacing: -0.01em;
+  }
+  .btn-publish:hover { opacity: 0.88; }
+  .btn-publish:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-accent { display: none; }
+
+  /* Markdown editor */
+  .md-editor-wrap { position: relative; }
+  .md-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border); border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    gap: 8px;
+  }
+  .md-hints {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-size: 11px; color: var(--text-3); font-family: var(--mono);
+  }
+  .md-hints span { display: flex; align-items: center; gap: 3px; cursor: default; }
+  .md-hints code {
+    background: var(--surface-3); padding: 1px 5px; border-radius: 4px;
+    border: 1px solid var(--border); font-size: 10px;
+    font-family: var(--mono);
+  }
+  .md-counter {
+    font-size: 11px; font-family: var(--mono); color: var(--text-3);
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .md-counter.warn { color: #C8882A; }
+  .edit-field.md-textarea {
+    font-family: var(--mono); font-size: 13px; line-height: 1.75;
+    border-radius: 0 0 8px 8px; resize: vertical; min-height: 240px;
+    color: var(--text);
+  }
+  /* Simple syntax highlighting via line coloring */
+  .edit-field.md-textarea::placeholder { color: var(--text-3); opacity: 1; }
+
+  .btn-secondary {
+    display: flex; align-items: center; gap: 7px;
+    padding: 10px 16px; border-radius: 10px;
+    background: var(--surface-2); color: var(--text-2);
+    font-family: var(--sans); font-size: 14px; font-weight: 500;
+    cursor: pointer; border: 1px solid var(--border); transition: all 0.15s;
+  }
+  .btn-secondary:hover { background: var(--surface-3); color: var(--text); }
+  .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-link {
+    background: none; border: none; color: var(--text-3);
+    font-size: 14px; cursor: pointer; padding: 8px 12px;
+    border-radius: 30px; transition: background 0.15s, color 0.15s;
+    font-family: var(--sans);
+  }
+  .btn-link:hover { background: var(--surface-2); color: var(--text); }
+
+  .btn-sm {
+    display: flex; align-items: center; gap: 5px;
+    padding: 5px 11px; border-radius: 7px;
+    background: transparent; border: 1px solid var(--border);
+    font-family: var(--sans); font-size: 12px; font-weight: 500;
+    color: var(--text-2); cursor: pointer; transition: all 0.12s;
+  }
+  .btn-sm:hover { background: var(--surface-2); color: var(--text); }
+
+  /* Image upload section */
+  .section-card {
+    background: var(--surface); border-radius: var(--r);
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .section-header {
+    padding: 15px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-title {
+    font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;
+    letter-spacing: -0.01em;
+  }
+  .section-count {
+    font-family: var(--mono); font-size: 11px; color: var(--text-3);
+    background: var(--surface-2); border: 1px solid var(--border);
+    padding: 1px 6px; border-radius: 5px;
+  }
+
+  /* Drop zone */
+  .upload-area {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .drop-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: 10px;
+    padding: 28px 20px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    cursor: pointer; transition: border-color 0.15s, background 0.15s;
+    background: var(--surface-2);
+    text-align: center;
+  }
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: var(--accent-green);
+    background: var(--accent-green-light);
+  }
+  .drop-zone-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--surface-3); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-3); transition: all 0.15s;
+  }
+  .drop-zone:hover .drop-zone-icon, .drop-zone.drag-over .drop-zone-icon {
+    background: var(--accent-green-light); border-color: var(--accent-green-border);
+    color: var(--accent-green);
+  }
+  .drop-zone-title {
+    font-size: 13px; font-weight: 600; color: var(--text-2); letter-spacing: -0.01em;
+  }
+  .drop-zone-sub {
+    font-size: 11px; color: var(--text-3);
+  }
+  .drop-zone-sub span {
+    color: var(--accent-green); font-weight: 500; cursor: pointer;
+  }
+
+  .image-list {
+    display: flex; flex-direction: column; gap: 12px;
+    padding: 16px 24px;
+  }
+  .image-list:empty { padding: 0; }
+
+  .image-item {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 12px; background: var(--surface-2);
+    border-radius: 10px; border: 1px solid var(--border);
+  }
+  .image-preview {
+    width: 72px; height: 72px; border-radius: 6px;
+    background: var(--surface-3);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; flex-shrink: 0;
+  }
+  .image-preview img { width: 100%; height: 100%; object-fit: cover; }
+  .image-details { flex: 1; min-width: 0; }
+  .image-caption-input { width: 100%; margin-bottom: 8px; }
+  .image-url {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 4px 8px;
+    font-family: var(--mono); font-size: 12px; color: var(--text-2);
+  }
+  .image-url input {
+    flex: 1; border: none; background: transparent;
+    font-family: inherit; font-size: inherit; color: inherit; outline: none;
+  }
+  .copy-btn {
+    background: none; border: none; color: var(--text-3);
+    cursor: pointer; padding: 4px; border-radius: 4px; transition: all 0.12s;
+    display: flex; align-items: center;
+  }
+  .copy-btn:hover { color: var(--accent-green); background: var(--accent-green-light); }
+
+  /* Linked sets — catalog-card style (from article page) */
+  .catalog-card {
+    background: var(--surface); border-radius: var(--r);
+    box-shadow: var(--shadow); overflow: hidden;
+    cursor: pointer; transition: box-shadow 0.15s, transform 0.15s;
+    display: flex; flex-direction: column;
+  }
+  .catalog-card:hover {
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08), 0 8px 32px rgba(0,0,0,0.05);
+    transform: translateY(-1px);
+  }
+  .card-accent-bar { height: 3px; background: #9AB8A8; flex-shrink: 0; }
+  .card-body { padding: 16px 18px 14px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+  .card-badges { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .source-badge {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; padding: 2px 7px; border-radius: 5px; white-space: nowrap;
+  }
+  .source-badge.ss { background: var(--accent-green-light); color: var(--accent-green); }
+  body.dark .source-badge.ss { background: #1A2820; color: #7AAF96; }
+  .base-badge {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.03em;
+    padding: 2px 7px; border-radius: 5px; white-space: nowrap;
+    background: var(--accent-green-light); color: var(--accent-green);
+    border: 1px solid var(--accent-green-border);
+  }
+  .card-title { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+  .card-desc { font-size: 12px; color: var(--text-2); line-height: 1.45; margin-top: 2px; }
+  .card-footer {
+    border-top: 1px solid var(--border); padding: 11px 18px;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .card-amount-left { display: flex; flex-direction: column; gap: 1px; }
+  .card-amount {
+    font-family: var(--mono); font-size: 16px; font-weight: 500;
+    letter-spacing: -0.02em; line-height: 1;
+  }
+  .card-amount-label { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+  .card-meta-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+  .users-count {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 11px; color: var(--text-3); font-family: var(--mono);
+  }
+  .users-count svg { opacity: 0.4; }
+  .card-date { font-size: 10px; color: var(--text-3); font-family: var(--mono); }
+
+  /* Linked sets section wrapper */
+  .linked-sets-section {
+    background: var(--surface); border-radius: var(--r);
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .linked-sets-body {
+    padding: 0 20px 20px;
+  }
+  .linked-sets-body:empty,
+  .linked-sets-body:has(.linked-cards-grid:empty):not(:has(.add-set-panel[style*="block"])) {
+    padding: 0;
+  }
+  .linked-cards-grid {
+    display: flex; flex-direction: column; gap: 10px;
+    margin-top: 14px;
+  }
+  .linked-cards-grid .catalog-card {
+    box-shadow: none;
+    border: 1px solid var(--border);
+  }
+  .linked-cards-grid .catalog-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .add-set-panel {
+    margin-top: 12px;
+    padding: 16px;
+    background: var(--surface-2);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .set-select {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .filter-note {
+    font-size: 12px;
+    color: var(--text-3);
+    margin-bottom: 8px;
+  }
+
+  /* Action buttons row */
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  .action-buttons .btn-link { margin-right: auto; }
+
+  /* Индикатор ошибки */
+  .error-message {
+    color: var(--error);
+    font-size: 11px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Подсказка для обязательных полей */
+  .required-hint {
+    font-size: 10px;
+    color: var(--text-3);
+    margin-left: 4px;
+  }
+  .required-hint::before {
+    content: '*';
+    color: var(--error);
+    margin-right: 2px;
+  }
+</style>
+</head>
+<body>
+
+<!-- САЙДБАР (аналогично странице набора) -->
+<aside id="sidebar">
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 16 16" fill="none">
+        <rect x="2" y="2" width="5" height="5" rx="1.5" fill="white" opacity="0.9"/>
+        <rect x="9" y="2" width="5" height="5" rx="1.5" fill="white" opacity="0.5"/>
+        <rect x="2" y="9" width="5" height="5" rx="1.5" fill="white" opacity="0.5"/>
+        <rect x="9" y="9" width="5" height="5" rx="1.5" fill="white" opacity="0.9"/>
+      </svg>
+    </div>
+    <span class="logo-text">SmartSpend</span>
+    <button class="sidebar-toggle" id="sidebarToggle">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+    </button>
+  </div>
+  <nav>
+    <a class="nav-item active" href="#">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+      <span class="nav-label">Профиль</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+      <span class="nav-label">Лента</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+      <span class="nav-label">Инвентарь</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+      <span class="nav-label">Каталог наборов</span>
+    </a>
+    <div class="nav-divider"></div>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+      <span class="nav-label">Уведомления</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <span class="nav-label">Настройки</span>
+    </a>
+  </nav>
+  <div class="sidebar-bottom">
+    <button class="theme-toggle" id="themeToggle">
+      <svg class="theme-icon-light" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <svg class="theme-icon-dark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <span class="nav-label theme-label">Тёмная тема</span>
+    </button>
+    <div class="sidebar-user">
+      <div class="avatar-sm">Н</div>
+      <div class="nav-label-block">
+        <div class="sidebar-user-name">Никита Орлов</div>
+        <div class="sidebar-user-plan">Базовый план</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<main>
+  <!-- Хлебные крошки -->
+  <div class="breadcrumb">
+    <a href="#">Лента</a>
+    <span class="bc-sep">›</span>
+    <span class="bc-cur">Создание статьи</span>
+  </div>
+
+  <!-- Hero card с формой -->
+  <div class="hero-card">
+    <div class="hero-body">
+      <!-- Публичность -->
+      <div class="field-group">
+        <span class="field-group-label">Видимость</span>
+        <div class="visibility-toggle">
+          <div class="visibility-option active" data-visibility="public">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M22 12c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2s10 4.48 10 10z"/></svg>
+            Публичная
+          </div>
+          <div class="visibility-option" data-visibility="private">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Личная (черновик)
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-divider"></div>
+
+      <!-- Категория -->
+      <div class="category-selector">
+        <span class="category-label">Категория <span class="required-hint"></span></span>
+        <div class="category-grid" id="categoryGrid">
+          <div class="category-chip active" data-cat="food">
+            <span class="color-dot" style="background: #8DBFA8;"></span>Еда и продукты
+          </div>
+          <div class="category-chip" data-cat="clothes">
+            <span class="color-dot" style="background: #B8A0C8;"></span>Одежда
+          </div>
+          <div class="category-chip" data-cat="home">
+            <span class="color-dot" style="background: #C8B87E;"></span>Дом и техника
+          </div>
+          <div class="category-chip" data-cat="health">
+            <span class="color-dot" style="background: #C88A8A;"></span>Здоровье и уход
+          </div>
+          <div class="category-chip" data-cat="transport">
+            <span class="color-dot" style="background: #8AB0C8;"></span>Авто и транспорт
+          </div>
+          <div class="category-chip" data-cat="leisure">
+            <span class="color-dot" style="background: #C8A87A;"></span>Досуг и подписки
+          </div>
+          <div class="category-chip" data-cat="work">
+            <span class="color-dot" style="background: #A8B8A0;"></span>Работа и офис
+          </div>
+          <div class="category-chip" data-cat="gifts">
+            <span class="color-dot" style="background: #E0A0B0;"></span>Подарки
+          </div>
+          <div class="category-chip" data-cat="pets">
+            <span class="color-dot" style="background: #B8A87A;"></span>Животные
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-divider"></div>
+
+      <!-- Заголовок -->
+      <input type="text" class="edit-field large" placeholder="Заголовок статьи *" id="title" style="margin-bottom: 12px;">
+
+      <!-- Краткое описание -->
+      <div style="margin-bottom: 4px; font-size: 11px; font-weight: 600; color: var(--text-3); letter-spacing: 0.05em; text-transform: uppercase;">Краткое описание <span class="required-hint"></span></div>
+      <textarea class="edit-field" placeholder="Будет отображаться в ленте под заголовком" id="excerpt" rows="2" style="margin-bottom: 16px;"></textarea>
+
+      <!-- Основной контент (markdown) -->
+      <div style="margin-bottom: 4px; font-size: 11px; font-weight: 600; color: var(--text-3); letter-spacing: 0.05em; text-transform: uppercase;">Текст статьи <span class="required-hint"></span></div>
+      <div class="md-editor-wrap">
+        <div class="md-toolbar">
+          <div class="md-hints">
+            <span><code>## Заголовок</code></span>
+            <span><code>**жирный**</code></span>
+            <span><code>*курсив*</code></span>
+            <span><code>- список</code></span>
+            <span><code>![alt](#image-1)</code></span>
+          </div>
+          <span class="md-counter" id="mdCounter">0 симв.</span>
+        </div>
+        <textarea class="edit-field md-textarea" placeholder="Пишите в формате Markdown…" id="content" rows="12"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Секция загрузки изображений -->
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L7 21"/></svg>
+        Изображения
+      </div>
+      <span class="section-count" id="imageCount">0</span>
+    </div>
+    <div class="upload-area" id="dropZoneWrap">
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-zone-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div class="drop-zone-title">Перетащите изображения сюда</div>
+        <div class="drop-zone-sub">или <span id="browseLink">выберите файлы</span> · PNG, JPG, WebP до 10 МБ</div>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" style="display: none;">
+    </div>
+    <div class="image-list" id="imageList"></div>
+  </div>
+
+  <!-- Секция связанных наборов -->
+  <div class="linked-sets-section">
+    <div class="section-header">
+      <div class="section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Связанные наборы
+        <span class="section-count" id="linkedSetsCount">0</span>
+      </div>
+      <button class="btn-sm" id="addSetBtn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Добавить набор
+      </button>
+    </div>
+    <div class="linked-sets-body">
+      <!-- Панель выбора набора (изначально скрыта) -->
+      <div class="add-set-panel" id="addSetPanel" style="display: none;">
+        <div class="filter-note" id="filterNote"></div>
+        <select class="set-select" id="setSelect"></select>
+        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button class="btn-sm" id="cancelAddSet">Отмена</button>
+          <button class="btn-sm" id="confirmAddSet">Добавить</button>
+        </div>
+      </div>
+      <!-- Карточки наборов -->
+      <div class="linked-cards-grid" id="selectedSetsContainer"></div>
+    </div>
+  </div>
+
+  <!-- Кнопки действий -->
+  <div class="action-buttons">
+    <button class="btn-link" id="cancelBtn">Отмена</button>
+    <button class="btn-secondary" id="draftBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Сохранить черновик
+    </button>
+    <button class="btn-secondary" id="previewBtn" disabled>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Предпросмотр
+    </button>
+    <button class="btn-publish" id="publishBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Опубликовать
+    </button>
+  </div>
+</main>
+
+<script>
+  // ── СОСТОЯНИЕ ──────────────────────────────────
+
+  // Данные пользовательских наборов (для демо)
+  const userSets = [
+    { id: 'base-food', name: 'Базовое питание', cat: 'food', color: '#8DBFA8', desc: 'Фитнес-ориентированный рацион с упором на белок и нутриенты', price: '16 500 ₽', users: '4.1k', date: 'мар 2024' },
+    { id: 'base-wardrobe', name: 'Базовый гардероб', cat: 'clothes', color: '#B8A0C8', desc: 'Капсульные вещи на каждый день — базовый и универсальный выбор', price: '28 000 ₽', users: '2.8k', date: 'янв 2024' },
+    { id: 'cat-care', name: 'Базовый уход за кошкой', cat: 'pets', color: '#C8B87E', desc: 'Корм, наполнитель, лакомства — всё необходимое для питомца', price: '4 200 ₽', users: '1.2k', date: 'фев 2024' },
+    { id: 'office', name: 'Хоум-офис для удалёнки', cat: 'work', color: '#8AB0C8', desc: 'Кофе, канцелярия, техника — комфортное рабочее место дома', price: '9 800 ₽', users: '3.5k', date: 'апр 2024' },
+    { id: 'first-aid', name: 'Аптечка путешественника', cat: 'health', color: '#C88A8A', desc: 'Компактный набор для поездок — всё самое необходимое', price: '3 600 ₽', users: '890', date: 'май 2024' },
+    { id: 'sport', name: 'Фитнес-питание', cat: 'food', color: '#A8D8A8', desc: 'Протеины, батончики, изотоники — поддержка тренировок', price: '11 200 ₽', users: '2.1k', date: 'июн 2024' }
+  ];
+
+  let selectedSets = []; // выбранные наборы (объекты из userSets)
+  let images = []; // загруженные изображения { id, file, caption, url? } — url больше не храним как data URL, только ID
+
+  let nextImageId = 1;
+
+  // ── ФУНКЦИИ ВАЛИДАЦИИ ─────────────────────────
+  function validateForm() {
+    const title = document.getElementById('title').value.trim();
+    const excerpt = document.getElementById('excerpt').value.trim();
+    const content = document.getElementById('content').value.trim();
+    const categorySelected = document.querySelector('.category-chip.active') !== null;
+    
+    const isValid = title && excerpt && content && categorySelected;
+    
+    document.getElementById('previewBtn').disabled = !isValid;
+    return isValid;
+  }
+
+  // ── ПЕРЕКЛЮЧЕНИЕ ВИДИМОСТИ ─────────────────────
+  document.querySelectorAll('.visibility-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.visibility-option').forEach(o => o.classList.remove('active'));
+      opt.classList.add('active');
+      validateForm();
+    });
+  });
+
+  // ── ВЫБОР КАТЕГОРИИ ───────────────────────────
+  document.querySelectorAll('.category-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      validateForm();
+      // При смене категории обновляем доступные наборы в выпадающем списке
+      updateSetSelect();
+      // Также обновляем placeholder для подписи изображения
+      updateCaptionPlaceholder();
+    });
+  });
+
+  // ── ПОЛЯ ВВОДА (валидация) ─────────────────────
+  ['title', 'excerpt'].forEach(id => {
+    document.getElementById(id).addEventListener('input', validateForm);
+  });
+
+  // ── ПРИМЕР ДЛЯ ПОДПИСИ (зависит от категории) ──
+  function getCaptionExampleByCategory(cat) {
+    const examples = {
+      food: 'Закупаем свежие овощи',
+      clothes: 'Летний гардероб 2025',
+      home: 'Новая техника для кухни',
+      health: 'Витамины на месяц',
+      transport: 'Автомобильные мелочи',
+      leisure: 'Подписки на стриминг',
+      work: 'Офисные принадлежности',
+      gifts: 'Идеи для подарков',
+      pets: 'Корм и игрушки'
+    };
+    return examples[cat] || 'Опишите изображение';
+  }
+
+  function updateCaptionPlaceholder() {
+    const activeCat = document.querySelector('.category-chip.active')?.dataset.cat;
+    const example = getCaptionExampleByCategory(activeCat);
+    // Обновляем placeholder у всех полей подписи
+    document.querySelectorAll('.image-caption-input').forEach(input => {
+      input.placeholder = `Подпись (Пример: ${example})`;
+    });
+  }
+
+  // ── СЧЁТЧИК СИМВОЛОВ ─────────────────────────
+  const contentArea = document.getElementById('content');
+  const mdCounter = document.getElementById('mdCounter');
+  contentArea.addEventListener('input', () => {
+    const len = contentArea.value.length;
+    mdCounter.textContent = len.toLocaleString('ru') + ' симв.';
+    mdCounter.classList.toggle('warn', len > 8000);
+    validateForm();
+  });
+
+  // ── ЗАГРУЗКА ИЗОБРАЖЕНИЙ ───────────────────────
+  const dropZone = document.getElementById('dropZone');
+  const browseLink = document.getElementById('browseLink');
+  const fileInput = document.getElementById('fileInput');
+  const imageList = document.getElementById('imageList');
+  const imageCount = document.getElementById('imageCount');
+
+  // Browse click
+  browseLink.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('click', (e) => {
+    if (e.target !== browseLink) fileInput.click();
+  });
+
+  // Drag events
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+  });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    files.forEach(addImage);
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    Array.from(e.target.files).forEach(addImage);
+    fileInput.value = '';
+  });
+
+  function addImage(file) {
+    images.push({ id: nextImageId++, file, caption: '' });
+    renderImages();
+  }
+
+  function renderImages() {
+    if (images.length === 0) {
+      imageList.innerHTML = '';
+      imageCount.textContent = '0';
+      return;
+    }
+
+    const activeCat = document.querySelector('.category-chip.active')?.dataset.cat;
+    let html = '';
+    images.forEach(img => {
+      const previewUrl = URL.createObjectURL(img.file);
+      const markdown = img.caption ? `![${img.caption}](#image-${img.id})` : `![](#image-${img.id})`;
+      html += `
+        <div class="image-item" data-id="${img.id}">
+          <div class="image-preview">
+            <img src="${previewUrl}" alt="preview" onload="URL.revokeObjectURL('${previewUrl}')">
+          </div>
+          <div class="image-details">
+            <input type="text" class="edit-field image-caption-input" placeholder="Подпись (Пример: ${getCaptionExampleByCategory(activeCat)})" value="${img.caption}" onchange="updateImageCaption(${img.id}, this.value)">
+            <div class="image-url">
+              <input type="text" value="${markdown}" readonly id="url-${img.id}">
+              <button class="copy-btn" onclick="copyToClipboard('url-${img.id}')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </button>
+            </div>
+          </div>
+          <button class="btn-link" onclick="removeImage(${img.id})" style="padding: 6px; font-size: 16px; line-height: 1;">✕</button>
+        </div>
+      `;
+    });
+    imageList.innerHTML = html;
+    imageCount.textContent = images.length;
+  }
+
+  window.updateImageCaption = (id, caption) => {
+    const img = images.find(i => i.id === id);
+    if (img) {
+      img.caption = caption;
+      // Обновляем отображение URL (перерендерим секцию)
+      renderImages();
+    }
+  };
+
+  window.copyToClipboard = (elementId) => {
+    const input = document.getElementById(elementId);
+    input.select();
+    document.execCommand('copy');
+    // Можно показать уведомление (для демо просто alert)
+    alert('Ссылка скопирована!');
+  };
+
+  window.removeImage = (id) => {
+    images = images.filter(i => i.id !== id);
+    renderImages();
+  };
+
+  // ── СВЯЗАННЫЕ НАБОРЫ ───────────────────────────
+  const selectedSetsContainer = document.getElementById('selectedSetsContainer');
+  const linkedSetsCount = document.getElementById('linkedSetsCount');
+  const addSetBtn = document.getElementById('addSetBtn');
+  const addSetPanel = document.getElementById('addSetPanel');
+  const cancelAddSet = document.getElementById('cancelAddSet');
+  const confirmAddSet = document.getElementById('confirmAddSet');
+  const setSelect = document.getElementById('setSelect');
+  const filterNote = document.getElementById('filterNote');
+
+  function updateSetSelect() {
+    const activeCat = document.querySelector('.category-chip.active')?.dataset.cat;
+    if (!activeCat) {
+      setSelect.innerHTML = '<option value="">Сначала выберите категорию</option>';
+      return;
+    }
+
+    const filtered = userSets.filter(set => set.cat === activeCat && !selectedSets.some(s => s.id === set.id));
+    
+    if (filtered.length === 0) {
+      setSelect.innerHTML = '<option value="">Нет доступных наборов в этой категории</option>';
+    } else {
+      let options = '<option value="">— Выберите набор —</option>';
+      filtered.forEach(set => {
+        options += `<option value="${set.id}">${set.name}</option>`;
+      });
+      setSelect.innerHTML = options;
+    }
+    filterNote.textContent = `Наборы в категории «${activeCat}»:`;
+  }
+
+  function renderSelectedSets() {
+    const container = document.getElementById('selectedSetsContainer');
+    linkedSetsCount.textContent = selectedSets.length;
+
+    if (selectedSets.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    container.innerHTML = selectedSets.map(set => `
+      <div class="catalog-card">
+        <div class="card-accent-bar" style="background: ${set.color};"></div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="source-badge ss">SmartSpend</span>
+          </div>
+          <div>
+            <div class="card-title">${set.name}</div>
+            <div class="card-desc">${set.desc}</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-amount-left">
+            <div class="card-amount">${set.price}</div>
+            <div class="card-amount-label">в месяц</div>
+          </div>
+          <div class="card-meta-right">
+            <div class="users-count">
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              ${set.users}
+            </div>
+            <div class="card-date">${set.date}</div>
+            <button class="btn-sm" style="margin-top:4px; color: var(--error); border-color: transparent;" onclick="removeSet('${set.id}')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              Удалить
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  window.removeSet = (setId) => {
+    selectedSets = selectedSets.filter(s => s.id !== setId);
+    renderSelectedSets();
+    updateSetSelect(); // обновить выпадающий список, чтобы удалённый снова стал доступен
+  };
+
+  addSetBtn.addEventListener('click', () => {
+    updateSetSelect();
+    addSetPanel.style.display = 'block';
+  });
+
+  cancelAddSet.addEventListener('click', () => {
+    addSetPanel.style.display = 'none';
+  });
+
+  confirmAddSet.addEventListener('click', () => {
+    const selectedId = setSelect.value;
+    if (!selectedId) {
+      alert('Выберите набор');
+      return;
+    }
+    const set = userSets.find(s => s.id === selectedId);
+    if (set) {
+      selectedSets.push(set);
+      renderSelectedSets();
+      addSetPanel.style.display = 'none';
+    }
+  });
+
+  // ── КНОПКИ (демо-действия) ─────────────────────
+  document.getElementById('publishBtn').addEventListener('click', () => {
+    if (!validateForm()) {
+      alert('Заполните все обязательные поля');
+      return;
+    }
+    alert('Статья опубликована (демо)');
+  });
+
+  document.getElementById('draftBtn').addEventListener('click', () => {
+    alert('Черновик сохранён (демо)');
+  });
+
+  document.getElementById('previewBtn').addEventListener('click', () => {
+    if (!validateForm()) {
+      alert('Заполните все обязательные поля');
+      return;
+    }
+    const title = document.getElementById('title').value;
+    const excerpt = document.getElementById('excerpt').value;
+    const contentPreview = document.getElementById('content').value.substring(0, 100) + '…';
+    const category = document.querySelector('.category-chip.active')?.textContent.trim() || '—';
+    const visibility = document.querySelector('.visibility-option.active')?.textContent.trim() || 'Публичная';
+    const linkedSets = selectedSets.map(s => s.name).join(', ') || '—';
+    const imageCount = images.length;
+    
+    alert(`🔍 Предпросмотр статьи\n\n` +
+          `Заголовок: ${title}\n` +
+          `Категория: ${category}\n` +
+          `Видимость: ${visibility}\n` +
+          `Связанные наборы: ${linkedSets}\n` +
+          `Загружено изображений: ${imageCount}\n` +
+          `Кратко: ${excerpt}\n` +
+          `Текст (начало): ${contentPreview}`);
+  });
+
+  document.getElementById('cancelBtn').addEventListener('click', () => {
+    if (confirm('Вернуться в профиль? Все несохранённые данные будут потеряны.')) {
+      window.location.href = '#'; // сюда можно подставить ссылку на профиль
+    }
+  });
+
+  // ── САЙДБАР / ТЕМА ────────────────────────────
+  document.getElementById('sidebarToggle').addEventListener('click', () => {
+    document.body.classList.toggle('sidebar-collapsed');
+  });
+
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const isDark = document.body.classList.toggle('dark');
+    document.querySelector('.theme-icon-light').style.display = isDark ? 'none' : '';
+    document.querySelector('.theme-icon-dark').style.display = isDark ? '' : 'none';
+    document.querySelector('.theme-label').textContent = isDark ? 'Светлая тема' : 'Тёмная тема';
+  });
+
+  // ── ИНИЦИАЛИЗАЦИЯ ─────────────────────────────
+  validateForm(); // кнопка предпросмотра изначально неактивна
+  renderImages();
+  renderSelectedSets();
+  updateSetSelect();
+  updateCaptionPlaceholder(); // установить начальный placeholder
+</script>
+</body>
+</html>

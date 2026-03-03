@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartSpend — Никита Орлов</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ────────────────────────────────────────────────────────────────── */
+  /* СТИЛИ ПОЛНОСТЬЮ ПОВТОРЯЮТ ОРИГИНАЛ + ДОПОЛНЕНИЯ */
+  /* ────────────────────────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #EEEDE9;
+    --surface: #FFFFFF;
+    --surface-2: #F6F5F2;
+    --surface-3: #EFEEE9;
+    --border: rgba(0,0,0,0.07);
+    --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.03);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --text: #1A1916;
+    --text-2: #6B6860;
+    --text-3: #AEACA5;
+    --accent: #1A1916;
+    --accent-green: #6A9E84;
+    --accent-green-light: #F2F7F4;
+    --accent-green-border: #C8DDD3;
+    --mono: 'Geist Mono', monospace;
+    --sans: 'Geist', sans-serif;
+    --r: 16px;
+    --r-sm: 10px;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+  }
+
+  body.dark {
+    --bg: #141412;
+    --surface: #1E1D1B;
+    --surface-2: #252422;
+    --surface-3: #2C2B28;
+    --border: rgba(255,255,255,0.07);
+    --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+    --text: #F0EEE8;
+    --text-2: #9A9890;
+    --text-3: #5A5854;
+    --accent: #F0EEE8;
+    --accent-green-light: #1A2820;
+    --accent-green-border: #2A4035;
+  }
+  body.dark .sidebar-toggle { color: var(--text-2); }
+  body.dark .sidebar-toggle:hover { color: var(--text); background: var(--surface-3); }
+  body.dark .logo-mark { background: var(--surface-3); }
+  body.dark .logo-mark rect { fill: #9A9890; }
+
+  body.sidebar-collapsed {
+    grid-template-columns: 56px 1fr;
+  }
+  body.sidebar-collapsed .logo-text,
+  body.sidebar-collapsed .nav-label,
+  body.sidebar-collapsed .nav-label-block,
+  body.sidebar-collapsed .theme-label { display: none; }
+  body.sidebar-collapsed .logo-mark { display: none; }
+  body.sidebar-collapsed aside { padding: 20px 0; }
+  body.sidebar-collapsed .logo { padding: 4px 12px 20px; justify-content: center; }
+  body.sidebar-collapsed .sidebar-toggle { margin-left: 0; }
+  body.sidebar-collapsed nav { padding: 4px 8px; }
+  body.sidebar-collapsed .nav-item { justify-content: center; padding: 10px; }
+  body.sidebar-collapsed .nav-icon { opacity: 0.5; width: 18px; height: 18px; }
+  body.sidebar-collapsed .nav-item.active .nav-icon,
+  body.sidebar-collapsed .nav-item:hover .nav-icon { opacity: 0.9; }
+  body.sidebar-collapsed .sidebar-bottom { padding: 10px 8px; align-items: center; }
+  body.sidebar-collapsed .theme-toggle { justify-content: center; padding: 10px; }
+  body.sidebar-collapsed .nav-divider { margin: 6px 8px; }
+  body.sidebar-collapsed .sidebar-user { justify-content: center; padding: 8px 0; }
+
+  /* САЙДБАР */
+  aside {
+    background: var(--surface);
+    display: flex; flex-direction: column;
+    padding: 24px 0;
+    position: sticky; top: 0; height: 100vh;
+    box-shadow: 1px 0 0 var(--border);
+  }
+  .logo {
+    font-size: 17px; font-weight: 700; letter-spacing: -0.02em;
+    padding: 4px 16px 24px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo-text { flex: 1; white-space: nowrap; overflow: hidden; }
+  .sidebar-toggle {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-3); padding: 4px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    transition: color 0.15s, background 0.15s; flex-shrink: 0;
+  }
+  .sidebar-toggle:hover { color: var(--text); background: var(--surface-2); }
+  .logo-mark {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: var(--text); display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .logo-mark svg { width: 16px; height: 16px; }
+  nav { padding: 8px 12px; flex: 1; display: flex; flex-direction: column; gap: 1px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 10px;
+    font-size: 14px; font-weight: 400; color: var(--text-2);
+    cursor: pointer; transition: all 0.15s; text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+  .nav-item:hover { background: var(--surface-2); color: var(--text); }
+  .nav-item.active {
+    background: var(--surface-2); color: var(--text); font-weight: 500;
+  }
+  .nav-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.4; }
+  .nav-item.active .nav-icon, .nav-item:hover .nav-icon { opacity: 0.8; }
+  .nav-divider { height: 1px; background: var(--border); margin: 6px 12px; }
+
+  .sidebar-bottom {
+    padding: 12px; border-top: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .sidebar-user {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px; cursor: pointer;
+    border-radius: 10px; transition: background 0.15s;
+    text-decoration: none; color: inherit;
+  }
+  .sidebar-user:hover { background: var(--surface-2); }
+  .avatar-sm {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--surface-3); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: var(--text-2); flex-shrink: 0;
+  }
+  .sidebar-user-name { font-size: 13px; font-weight: 500; letter-spacing: -0.01em; }
+  .sidebar-user-plan { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+
+  .theme-toggle {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 10px;
+    font-size: 14px; font-weight: 400; color: var(--text-2);
+    cursor: pointer; border: none; background: none;
+    width: 100%; text-align: left; letter-spacing: -0.01em;
+    transition: all 0.15s; font-family: var(--sans);
+  }
+  .theme-toggle:hover { background: var(--surface-2); color: var(--text); }
+  .theme-label { white-space: nowrap; overflow: hidden; }
+
+  /* ОСНОВНОЙ КОНТЕНТ */
+  main {
+    padding: 32px 36px;
+    display: flex; flex-direction: column; gap: 36px;
+    max-width: 1120px;
+  }
+
+  /* Шапка профиля */
+  .user-header {
+    display: flex; gap: 28px;
+    background: var(--surface);
+    border-radius: var(--r);
+    padding: 28px 32px;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  .user-avatar-large {
+    width: 90px; height: 90px; border-radius: 50%;
+    background: var(--surface-3); border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; font-weight: 500; color: var(--text-2); flex-shrink: 0;
+    position: relative;
+  }
+  .avatar-edit-btn {
+    position: absolute; bottom: 0; right: 0;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--surface); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; opacity: 0; transition: opacity 0.15s;
+    box-shadow: var(--shadow-sm);
+  }
+  .user-avatar-large:hover .avatar-edit-btn { opacity: 1; }
+  .user-info { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  
+  /* Три строки в шапке */
+  .user-name-line {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .user-display-name {
+    font-size: 26px; font-weight: 700; letter-spacing: -0.03em;
+  }
+  .user-nickname-line {
+    display: flex; align-items: center; gap: 8px; color: var(--text-2);
+    font-size: 15px;
+  }
+  .user-pseudonym {
+    color: var(--text-2);
+  }
+  .user-username {
+    font-family: var(--mono); color: var(--text-3);
+  }
+  
+  /* Поля ввода для редактирования */
+  .edit-field {
+    width: 100%; max-width: 400px;
+    padding: 8px 12px; border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  .edit-field.large {
+    font-size: 26px; font-weight: 700; padding: 4px 8px;
+  }
+  .user-bio {
+    font-size: 14px; color: var(--text-2);
+    max-width: 550px; line-height: 1.5;
+    margin-top: 4px;
+  }
+  .user-bio-input {
+    width: 100%; max-width: 550px;
+    padding: 8px 12px; border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    resize: vertical;
+  }
+  .profile-edit-actions {
+    display: flex; gap: 8px; margin-top: 8px;
+  }
+  .btn-edit-profile {
+    position: absolute; top: 28px; right: 32px;
+    background: none; border: 1px solid var(--border);
+    padding: 6px 14px; border-radius: 30px;
+    font-size: 13px; font-weight: 500; color: var(--text-2);
+    cursor: pointer; display: flex; align-items: center; gap: 5px;
+    transition: all 0.15s;
+  }
+  .btn-edit-profile:hover {
+    background: var(--surface-2); color: var(--text);
+  }
+  .btn-save, .btn-cancel {
+    padding: 6px 14px; border-radius: 30px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    border: none; transition: opacity 0.15s;
+  }
+  .btn-save {
+    background: var(--text); color: var(--surface);
+  }
+  .btn-cancel {
+    background: var(--surface-2); color: var(--text-2);
+    border: 1px solid var(--border);
+  }
+  .user-meta {
+    display: flex; flex-wrap: wrap; gap: 20px;
+    color: var(--text-2); font-size: 13px;
+    margin-top: 4px;
+  }
+  .user-meta-item {
+    display: flex; align-items: center; gap: 5px;
+  }
+
+  /* Вкладки */
+  .tabs {
+    display: flex; gap: 4px; border-bottom: 1px solid var(--border);
+    padding-bottom: 2px;
+  }
+  .tab {
+    padding: 10px 20px; font-size: 14px; font-weight: 500;
+    color: var(--text-2); cursor: pointer;
+    border-bottom: 2px solid transparent; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--text); border-bottom-color: var(--text);
+  }
+
+  /* Панели контента */
+  .content-panel { display: none; flex-direction: column; gap: 20px; }
+  .content-panel.active { display: flex; }
+
+  .panel-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 8px;
+  }
+  .panel-title {
+    font-size: 14px; font-weight: 600; color: var(--text-2);
+    letter-spacing: -0.01em;
+  }
+  .btn-primary {
+    background: var(--text); color: var(--surface);
+    border: none; padding: 8px 14px; border-radius: 30px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 5px;
+    transition: opacity 0.15s; font-family: var(--sans);
+  }
+  .btn-primary:hover { opacity: 0.8; }
+  body.dark .btn-primary { background: var(--surface-3); color: var(--text); }
+
+  /* Карточки */
+  .comment-card, .article-card, .subscription-card {
+    background: var(--surface);
+    border-radius: var(--r);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+  }
+  .comment-header, .article-header, .subscription-header {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+  }
+  .comment-meta, .article-meta, .subscription-meta {
+    font-size: 12px; color: var(--text-3);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .comment-text, .article-excerpt {
+    font-size: 14px; color: var(--text-2); line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  
+  /* Стили для ссылки на пост (исправленный дизайн) */
+  .comment-post-link {
+    font-size: 12px;
+    color: var(--text-3);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.15s;
+    padding: 2px 0;
+  }
+  .comment-post-link:hover {
+    color: var(--text);
+  }
+  .comment-post-link svg {
+    opacity: 0.5;
+    width: 12px;
+    height: 12px;
+  }
+  .comment-post-link:hover svg {
+    opacity: 0.8;
+  }
+
+  /* Новый стиль для меток внизу статей */
+  .article-footer-meta {
+    display: flex; gap: 16px; font-size: 12px; color: var(--text-3);
+    border-top: 1px solid var(--border); padding-top: 12px;
+    margin-top: 8px;
+  }
+
+  /* Бейдж публичности */
+  .visibility-badge {
+    font-size: 10px; font-weight: 600; padding: 2px 8px;
+    border-radius: 30px; background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .visibility-badge.public {
+    background: var(--accent-green-light);
+    border-color: var(--accent-green-border);
+    color: #4E8268;
+  }
+  .visibility-badge.private {
+    background: var(--surface-3);
+    color: var(--text-3);
+  }
+
+  /* Сетка для наборов */
+  .user-sets-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+
+  /* Карточка подписки (без кнопок) */
+  .subscription-avatar {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--surface-3); display: flex;
+    align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 600; color: var(--text-2);
+  }
+  .subscription-name {
+    font-size: 16px; font-weight: 600;
+  }
+  .subscription-description {
+    font-size: 13px; color: var(--text-3); margin: 8px 0;
+  }
+  .subscription-stats {
+    display: flex; gap: 16px; font-size: 12px; color: var(--text-2);
+    border-top: 1px solid var(--border); padding-top: 12px;
+    margin-top: 8px;
+  }
+
+  /* заглушки */
+  .empty-state {
+    text-align: center; padding: 48px 20px;
+    background: var(--surface); border-radius: var(--r);
+    color: var(--text-3); font-size: 14px;
+    border: 1px dashed var(--border);
+  }
+
+  /* карточка набора */
+  .set-card {
+    position: relative;
+    width: 100%;
+    border: 1px solid var(--border); border-radius: 12px;
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+    display: flex; flex-direction: column;
+  }
+  .set-card-accent { height: 3px; flex-shrink: 0; border-radius: 12px 12px 0 0; }
+  .set-card-top { padding: 12px 14px 10px; display: flex; flex-direction: column; gap: 5px; }
+  .set-source { display: flex; align-items: center; gap: 5px; }
+  .set-source-icon { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.5; }
+  .set-source-label { font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-3); }
+  .set-source-label.smartspend { color: #5A8A70; }
+  .set-source-label.community  { color: #7A6E9E; }
+  .set-card-name { font-size: 13px; font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; color: var(--text); margin-top: 2px; }
+  .set-card-meta { display: flex; align-items: center; gap: 5px; margin-top: 4px; flex-direction: column; align-items: flex-start; }
+  .set-meta-tag { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; color: var(--text-3); background: var(--surface-2); border: 1px solid var(--border); border-radius: 5px; padding: 2px 6px; white-space: nowrap; }
+  .set-card-bottom { border-top: 1px solid var(--border); padding: 10px 14px; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .set-card-amount { font-family: var(--mono); font-size: 15px; font-weight: 400; letter-spacing: -0.01em; color: var(--text); }
+  .set-card-period { font-size: 10px; color: var(--text-3); white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<!-- САЙДБАР -->
+<aside id="sidebar">
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="5" height="5" rx="1.5" fill="white" opacity="0.9"/>
+        <rect x="9" y="2" width="5" height="5" rx="1.5" fill="white" opacity="0.5"/>
+        <rect x="2" y="9" width="5" height="5" rx="1.5" fill="white" opacity="0.5"/>
+        <rect x="9" y="9" width="5" height="5" rx="1.5" fill="white" opacity="0.9"/>
+      </svg>
+    </div>
+    <span class="logo-text">SmartSpend</span>
+    <button class="sidebar-toggle" id="sidebarToggle" title="Свернуть меню">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/>
+      </svg>
+    </button>
+  </div>
+  <nav>
+    <a class="nav-item active" href="#">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+      <span class="nav-label">Профиль</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+      <span class="nav-label">Лента</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+      <span class="nav-label">Инвентарь</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+      <span class="nav-label">Каталог наборов</span>
+    </a>
+    <div class="nav-divider"></div>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+      <span class="nav-label">Уведомления</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <span class="nav-label">Настройки</span>
+    </a>
+  </nav>
+  <div class="sidebar-bottom">
+    <button class="theme-toggle" id="themeToggle" title="Сменить тему">
+      <svg class="theme-icon theme-icon-light" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <svg class="theme-icon theme-icon-dark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <span class="nav-label theme-label">Тёмная тема</span>
+    </button>
+    <a href="#user" class="sidebar-user" id="userProfileLink">
+      <div class="avatar-sm">Н</div>
+      <div class="nav-label-block">
+        <div class="sidebar-user-name">Никита Орлов</div>
+        <div class="sidebar-user-plan">Базовый план</div>
+      </div>
+    </a>
+  </div>
+</aside>
+
+<main>
+  <!-- ЛИЧНАЯ СТРАНИЦА ПОЛЬЗОВАТЕЛЯ -->
+  <div id="userPage">
+
+    <!-- Шапка профиля с тремя строками -->
+    <div class="user-header" id="profileHeader">
+      <div class="user-avatar-large" id="avatarContainer">
+        <span id="avatarText">Н</span>
+        <div class="avatar-edit-btn" id="editAvatarBtn" title="Изменить аватар">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
+      </div>
+      
+      <div class="user-info">
+        <!-- Первая строка: имя -->
+        <div class="user-name-line">
+          <span class="user-display-name" id="userDisplayName">Никита Орлов</span>
+          <input type="text" id="userDisplayNameInput" class="edit-field large" value="Никита Орлов" style="display: none;">
+        </div>
+        
+        <!-- Вторая строка: псевдоним -->
+        <div class="user-nickname-line">
+          <span class="user-pseudonym" id="userPseudonym">nicky_finance</span>
+          <input type="text" id="userPseudonymInput" class="edit-field" value="nicky_finance" style="display: none; width: 200px;">
+        </div>
+        
+        <!-- Третья строка: @username -->
+        <div class="user-nickname-line">
+          <span class="user-username" id="userUsername">@nicky_orlov</span>
+          <input type="text" id="userUsernameInput" class="edit-field" value="nicky_orlov" style="display: none; width: 200px;">
+        </div>
+
+        <div class="user-meta">
+          <span class="user-meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M5 20v-2a7 7 0 0 1 14 0v2"/></svg>
+            Зарегистрирован: март 2024
+          </span>
+          <span class="user-meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14"/><path d="M22 3h-6a4 4 0 0 0-4 4v14"/></svg>
+            12 подписчиков
+          </span>
+        </div>
+
+        <!-- Описание -->
+        <div id="userBioDisplay" class="user-bio">
+          Интересуюсь личными финансами, инвестициями и оптимизацией бюджета. Создаю наборы для разных жизненных сценариев.
+        </div>
+        <textarea id="userBioInput" class="user-bio-input" style="display: none;" rows="3">Интересуюсь личными финансами, инвестициями и оптимизацией бюджета. Создаю наборы для разных жизненных сценариев.</textarea>
+        
+        <div class="profile-edit-actions" id="profileEditActions" style="display: none;">
+          <button class="btn-save" id="saveProfileBtn">Сохранить</button>
+          <button class="btn-cancel" id="cancelProfileBtn">Отмена</button>
+        </div>
+      </div>
+      
+      <button class="btn-edit-profile" id="editProfileBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Редактировать профиль
+      </button>
+    </div>
+
+    <!-- Вкладки -->
+    <div class="tabs">
+      <div class="tab active" data-tab="comments">Комментарии · 4</div>
+      <div class="tab" data-tab="articles">Статьи · 2</div>
+      <div class="tab" data-tab="sets">Наборы · 5</div>
+      <div class="tab" data-tab="subscriptions">Подписки · 3</div>
+    </div>
+
+    <!-- Панель Комментарии (исправленный дизайн ссылки) -->
+    <div id="commentsPanel" class="content-panel active">
+      <div class="comment-card">
+        <div class="comment-header">
+          <div class="avatar-sm" style="width:28px;height:28px;">Н</div>
+          <div class="comment-meta">
+            <span>Никита Орлов</span> · <span>2 дня назад</span>
+          </div>
+        </div>
+        <div class="comment-text">
+          Отличный подход к учёту! Я тоже использую конверты для категории «Еда» — очень дисциплинирует. А как вы учитываете незапланированные траты?
+        </div>
+        <a href="#" class="comment-post-link">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          К посту «Мой бюджет на август»
+        </a>
+      </div>
+      
+      <div class="comment-card">
+        <div class="comment-header">
+          <div class="avatar-sm" style="width:28px;height:28px;">Н</div>
+          <div class="comment-meta">
+            <span>Никита Орлов</span> · <span>5 дней назад</span>
+          </div>
+        </div>
+        <div class="comment-text">
+          Спасибо за статью! Очень полезно про EmoSpend. Я раньше не задумывался, что можно тратить доход от капитала, не трогая тело.
+        </div>
+        <a href="#" class="comment-post-link">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          К статье «Что такое EmoSpend»
+        </a>
+      </div>
+    </div>
+
+    <!-- Панель Статьи -->
+    <div id="articlesPanel" class="content-panel">
+      <div class="panel-header">
+        <span class="panel-title">Статьи, которые вы написали</span>
+        <button class="btn-primary" id="createArticleBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          Создать статью
+        </button>
+      </div>
+
+      <div class="article-card">
+        <div style="font-size: 17px; font-weight: 600; margin-bottom: 8px;">Как я перестал бояться и полюбил EmoSpend</div>
+        <div class="article-excerpt">
+          Многие боятся тратить деньги, даже когда капитал уже позволяет. В этой статье я рассказываю, как концепция EmoSpend помогла мне перестать чувствовать вину за траты на удовольствия...
+        </div>
+        <div class="article-footer-meta">
+          <span>Опубликовано · 15 июля 2025</span>
+          <span>1 240 просмотров</span>
+          <span class="visibility-badge public">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M22 12c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2s10 4.48 10 10z"/></svg>
+            Публичный
+          </span>
+        </div>
+      </div>
+
+      <div class="article-card">
+        <div style="font-size: 17px; font-weight: 600; margin-bottom: 8px;">Почему я веду бюджет в конвертах (и вам советую)</div>
+        <div class="article-excerpt">
+          Система конвертов — это не просто «раскидать деньги по папкам». Это психологический трюк, который помогает видеть реальные лимиты...
+        </div>
+        <div class="article-footer-meta">
+          <span>Черновик · 2 июня 2025</span>
+          <span class="visibility-badge private">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Личный
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Панель Наборы -->
+    <div id="setsPanel" class="content-panel">
+      <div class="panel-header">
+        <span class="panel-title">Наборы, которые вы создали</span>
+        <button class="btn-primary" id="createSetBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          Создать новый набор
+        </button>
+      </div>
+
+      <div class="user-sets-grid">
+        <div class="set-card">
+          <div class="set-card-accent" style="background:#8DBFA8"></div>
+          <div class="set-card-top">
+            <div style="display: flex; justify-content: space-between; width: 100%;">
+              <div class="set-source">
+                <svg class="set-source-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="1.5" width="4" height="4" rx="1"/><rect x="8.5" y="1.5" width="4" height="4" rx="1"/><rect x="1.5" y="8.5" width="4" height="4" rx="1"/><rect x="8.5" y="8.5" width="4" height="4" rx="1"/></svg>
+                <span class="set-source-label smartspend">SmartSpend</span>
+              </div>
+              <span class="visibility-badge public" style="font-size: 9px;">Публичный</span>
+            </div>
+            <div class="set-card-name">Базовое питание</div>
+            <div class="set-card-meta">
+              <span class="set-meta-tag">18 поз.</span>
+              <span class="set-meta-tag">еженедельно</span>
+            </div>
+          </div>
+          <div class="set-card-bottom">
+            <span class="set-card-amount">7 500 ₽</span>
+            <span class="set-card-period">/ мес</span>
+          </div>
+        </div>
+
+        <div class="set-card">
+          <div class="set-card-accent" style="background:#8DBFA8"></div>
+          <div class="set-card-top">
+            <div style="display: flex; justify-content: space-between; width: 100%;">
+              <div class="set-source">
+                <svg class="set-source-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 1.5l1.5 3 3.5.5-2.5 2.5.5 3.5L7 9.5l-3 1.5.5-3.5L2 5l3.5-.5z"/></svg>
+                <span class="set-source-label">Мой набор</span>
+              </div>
+              <span class="visibility-badge private" style="font-size: 9px;">Личный</span>
+            </div>
+            <div class="set-card-name">Вкусняшки</div>
+            <div class="set-card-meta">
+              <span class="set-meta-tag">6 поз.</span>
+              <span class="set-meta-tag">еженедельно</span>
+            </div>
+          </div>
+          <div class="set-card-bottom">
+            <span class="set-card-amount">2 500 ₽</span>
+            <span class="set-card-period">/ мес</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Панель Подписки (без кнопки "Найти авторов") -->
+    <div id="subscriptionsPanel" class="content-panel">
+      <div class="panel-header">
+        <span class="panel-title">Авторы и блоги, на которые вы подписаны</span>
+      </div>
+
+      <div class="subscription-card">
+        <div class="subscription-header">
+          <div class="subscription-avatar">Ф</div>
+          <div style="flex:1">
+            <div class="subscription-name">Финансовый психолог</div>
+            <div class="subscription-meta">@finance_psy · 2.4K подписчиков</div>
+          </div>
+        </div>
+        <div class="subscription-description">
+          Как перестать бояться денег, начать копить и при этом жить хорошо. Разбираем психологические ловушки в финансах.
+        </div>
+        <div class="subscription-stats">
+          <span>15 статей</span>
+          <span>8 наборов</span>
+        </div>
+      </div>
+
+      <div class="subscription-card">
+        <div class="subscription-header">
+          <div class="subscription-avatar">И</div>
+          <div style="flex:1">
+            <div class="subscription-name">Инвестор на пенсии</div>
+            <div class="subscription-meta">@pension_invest · 5.1K подписчиков</div>
+          </div>
+        </div>
+        <div class="subscription-description">
+          Личный опыт выхода на пенсию в 45. Показываю реальные цифры, портфели и ошибки. Только практика.
+        </div>
+        <div class="subscription-stats">
+          <span>43 статьи</span>
+          <span>12 наборов</span>
+        </div>
+      </div>
+
+      <div class="subscription-card">
+        <div class="subscription-header">
+          <div class="subscription-avatar">Б</div>
+          <div style="flex:1">
+            <div class="subscription-name">Бюджет для жизни</div>
+            <div class="subscription-meta">@budget_life · 890 подписчиков</div>
+          </div>
+        </div>
+        <div class="subscription-description">
+          Простые шаги к финансовой свободе. Конверты, наборы, планирование — для тех кто устал жить от зарплаты до зарплаты.
+        </div>
+        <div class="subscription-stats">
+          <span>24 статьи</span>
+          <span>5 наборов</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  // Сворачивание сайдбара
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  sidebarToggle.addEventListener('click', () => {
+    document.body.classList.toggle('sidebar-collapsed');
+  });
+
+  // Тёмная тема
+  const themeToggle = document.getElementById('themeToggle');
+  const iconLight = themeToggle.querySelector('.theme-icon-light');
+  const iconDark = themeToggle.querySelector('.theme-icon-dark');
+  const themeLabel = themeToggle.querySelector('.theme-label');
+  themeToggle.addEventListener('click', () => {
+    const isDark = document.body.classList.toggle('dark');
+    iconLight.style.display = isDark ? 'none' : '';
+    iconDark.style.display = isDark ? '' : 'none';
+    themeLabel.textContent = isDark ? 'Светлая тема' : 'Тёмная тема';
+  });
+
+  // Переключение вкладок
+  const tabs = document.querySelectorAll('.tab');
+  const panels = {
+    comments: document.getElementById('commentsPanel'),
+    articles: document.getElementById('articlesPanel'),
+    sets: document.getElementById('setsPanel'),
+    subscriptions: document.getElementById('subscriptionsPanel')
+  };
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      Object.values(panels).forEach(p => p.classList.remove('active'));
+      const tabName = tab.dataset.tab;
+      if (panels[tabName]) panels[tabName].classList.add('active');
+    });
+  });
+
+  // РЕДАКТИРОВАНИЕ ПРОФИЛЯ
+  const editBtn = document.getElementById('editProfileBtn');
+  const saveBtn = document.getElementById('saveProfileBtn');
+  const cancelBtn = document.getElementById('cancelProfileBtn');
+  
+  const userDisplayName = document.getElementById('userDisplayName');
+  const userPseudonym = document.getElementById('userPseudonym');
+  const userUsername = document.getElementById('userUsername');
+  const userBioDisplay = document.getElementById('userBioDisplay');
+  
+  const userDisplayNameInput = document.getElementById('userDisplayNameInput');
+  const userPseudonymInput = document.getElementById('userPseudonymInput');
+  const userUsernameInput = document.getElementById('userUsernameInput');
+  const userBioInput = document.getElementById('userBioInput');
+  
+  const profileEditActions = document.getElementById('profileEditActions');
+  const avatarUpload = document.getElementById('avatarUpload');
+  const avatarText = document.getElementById('avatarText');
+  const editAvatarBtn = document.getElementById('editAvatarBtn');
+
+  // Сохраняем оригинальные значения
+  let originalDisplayName = userDisplayName.textContent;
+  let originalPseudonym = userPseudonym.textContent;
+  let originalUsername = userUsername.textContent;
+  let originalBio = userBioDisplay.textContent;
+
+  editBtn.addEventListener('click', () => {
+    userDisplayName.style.display = 'none';
+    userDisplayNameInput.style.display = 'inline-block';
+    
+    userPseudonym.style.display = 'none';
+    userPseudonymInput.style.display = 'inline-block';
+    
+    userUsername.style.display = 'none';
+    userUsernameInput.style.display = 'inline-block';
+    
+    userBioDisplay.style.display = 'none';
+    userBioInput.style.display = 'block';
+    
+    profileEditActions.style.display = 'flex';
+    editBtn.style.display = 'none';
+
+    userDisplayNameInput.value = userDisplayName.textContent;
+    userPseudonymInput.value = userPseudonym.textContent;
+    userUsernameInput.value = userUsername.textContent.replace('@', '');
+    userBioInput.value = userBioDisplay.textContent;
+  });
+
+  saveBtn.addEventListener('click', () => {
+    userDisplayName.textContent = userDisplayNameInput.value;
+    userPseudonym.textContent = userPseudonymInput.value;
+    userUsername.textContent = '@' + userUsernameInput.value.replace('@', '');
+    userBioDisplay.textContent = userBioInput.value;
+
+    userDisplayName.style.display = 'inline';
+    userDisplayNameInput.style.display = 'none';
+    
+    userPseudonym.style.display = 'inline';
+    userPseudonymInput.style.display = 'none';
+    
+    userUsername.style.display = 'inline';
+    userUsernameInput.style.display = 'none';
+    
+    userBioDisplay.style.display = 'block';
+    userBioInput.style.display = 'none';
+    
+    profileEditActions.style.display = 'none';
+    editBtn.style.display = 'flex';
+  });
+
+  cancelBtn.addEventListener('click', () => {
+    userDisplayNameInput.value = originalDisplayName;
+    userPseudonymInput.value = originalPseudonym;
+    userUsernameInput.value = originalUsername.replace('@', '');
+    userBioInput.value = originalBio;
+
+    userDisplayName.style.display = 'inline';
+    userDisplayNameInput.style.display = 'none';
+    
+    userPseudonym.style.display = 'inline';
+    userPseudonymInput.style.display = 'none';
+    
+    userUsername.style.display = 'inline';
+    userUsernameInput.style.display = 'none';
+    
+    userBioDisplay.style.display = 'block';
+    userBioInput.style.display = 'none';
+    
+    profileEditActions.style.display = 'none';
+    editBtn.style.display = 'flex';
+  });
+
+  // Редактирование аватарки
+  editAvatarBtn.addEventListener('click', () => {
+    avatarUpload.click();
+  });
+
+  avatarUpload.addEventListener('change', (e) => {
+    if (e.target.files && e.target.files[0]) {
+      avatarText.textContent = '✎';
+      setTimeout(() => alert('Аватарка будет обновлена после загрузки на сервер'), 100);
+    }
+  });
+
+  // Кнопки действий
+  document.getElementById('createArticleBtn')?.addEventListener('click', () => {
+    alert('Здесь откроется редактор статей');
+  });
+
+  document.getElementById('createSetBtn')?.addEventListener('click', () => {
+    alert('Здесь откроется конструктор наборов');
+  });
+</script>
+</body>
+</html>

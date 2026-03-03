@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartSpend — Инвентарь</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #EEEDE9;
+    --surface: #FFFFFF;
+    --surface-2: #F6F5F2;
+    --surface-3: #EFEEE9;
+    --border: rgba(0,0,0,0.07);
+    --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.03);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --text: #1A1916;
+    --text-2: #6B6860;
+    --text-3: #AEACA5;
+    --accent: #4E8268;
+    --accent-light: #F2F7F4;
+    --accent-border: #C8DDD3;
+    --mono: 'Geist Mono', monospace;
+    --sans: 'Geist', sans-serif;
+    --r: 16px;
+    --status-ok: #5E9478;
+    --status-soon: #B08840;
+    --status-soon-bg: #FDFAF2;
+    --status-soon-border: #EAD898;
+    --status-urgent: #B85555;
+    --status-urgent-bg: #FDF5F5;
+    --status-urgent-border: #E8C8C8;
+    --status-over: #7B5EA7;
+    --status-over-bg: #F7F3FD;
+    --status-over-border: #D8C8EE;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+  }
+
+  /* ── SIDEBAR ── */
+  aside {
+    background: var(--surface);
+    display: flex; flex-direction: column;
+    padding: 24px 0;
+    position: sticky; top: 0; height: 100vh;
+    box-shadow: 1px 0 0 var(--border);
+  }
+  .logo {
+    font-size: 17px; font-weight: 700; letter-spacing: -0.02em;
+    padding: 4px 16px 24px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo-text { flex: 1; white-space: nowrap; overflow: hidden; }
+  .sidebar-toggle {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-3); padding: 4px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    transition: color 0.15s, background 0.15s; flex-shrink: 0;
+  }
+  .sidebar-toggle:hover { color: var(--text); background: var(--surface-2); }
+  .logo-mark {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: var(--text); display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .logo-mark svg { width: 16px; height: 16px; }
+  nav { padding: 8px 12px; flex: 1; display: flex; flex-direction: column; gap: 1px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 10px;
+    font-size: 14px; font-weight: 400; color: var(--text-2);
+    cursor: pointer; transition: all 0.15s; text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+  .nav-item:hover { background: var(--surface-2); color: var(--text); }
+  .nav-item.active { background: var(--surface-2); color: var(--text); font-weight: 500; }
+  .nav-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.4; }
+  .nav-item.active .nav-icon, .nav-item:hover .nav-icon { opacity: 0.8; }
+  .nav-divider { height: 1px; background: var(--border); margin: 6px 12px; }
+  .sidebar-bottom {
+    padding: 12px; border-top: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 8px; }
+  .avatar-sm {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--surface-3); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: var(--text-2); flex-shrink: 0;
+  }
+  .sidebar-user-name { font-size: 13px; font-weight: 500; letter-spacing: -0.01em; }
+  .sidebar-user-plan { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+  .theme-toggle {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 10px;
+    font-size: 14px; color: var(--text-2);
+    cursor: pointer; border: none; background: none;
+    width: 100%; text-align: left; letter-spacing: -0.01em;
+    transition: all 0.15s; font-family: var(--sans);
+  }
+  .theme-toggle:hover { background: var(--surface-2); color: var(--text); }
+  .theme-label { white-space: nowrap; overflow: hidden; }
+  body.sidebar-collapsed { grid-template-columns: 56px 1fr; }
+  body.sidebar-collapsed .logo-text,
+  body.sidebar-collapsed .nav-label,
+  body.sidebar-collapsed .nav-label-block,
+  body.sidebar-collapsed .theme-label { display: none; }
+  body.sidebar-collapsed .logo-mark { display: none; }
+  body.sidebar-collapsed aside { padding: 20px 0; }
+  body.sidebar-collapsed .logo { padding: 4px 12px 20px; justify-content: center; }
+  body.sidebar-collapsed nav { padding: 4px 8px; }
+  body.sidebar-collapsed .nav-item { justify-content: center; padding: 10px; }
+  body.sidebar-collapsed .nav-icon { opacity: 0.5; width: 18px; height: 18px; }
+  body.sidebar-collapsed .nav-item.active .nav-icon,
+  body.sidebar-collapsed .nav-item:hover .nav-icon { opacity: 0.9; }
+  body.sidebar-collapsed .sidebar-bottom { padding: 10px 8px; align-items: center; }
+  body.sidebar-collapsed .theme-toggle { justify-content: center; padding: 10px; }
+  body.sidebar-collapsed .nav-divider { margin: 6px 8px; }
+  body.sidebar-collapsed .sidebar-user { justify-content: center; padding: 8px 0; }
+
+  body.dark {
+    --bg: #141412; --surface: #1E1D1B; --surface-2: #252422; --surface-3: #2C2B28;
+    --border: rgba(255,255,255,0.07);
+    --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+    --text: #F0EEE8; --text-2: #9A9890; --text-3: #5A5854;
+    --accent: #6AAF8E; --accent-light: #1A2820; --accent-border: #2A4035;
+    --status-ok: #6AAF8E;
+    --status-soon: #C4A050; --status-soon-bg: #221A00; --status-soon-border: #3A2E00;
+    --status-urgent: #C86868; --status-urgent-bg: #221010; --status-urgent-border: #3A2020;
+    --status-over: #9B7EC8; --status-over-bg: #1E1628; --status-over-border: #3A2A50;
+  }
+  body.dark .logo-mark { background: var(--surface-3); }
+  body.dark .inv-inline-form { background: var(--surface-3); }
+  body.dark .inv-input { background: var(--surface-2); color: var(--text); }
+  body.dark .modal-input,
+  body.dark .modal-select { background: var(--surface-3); color: var(--text); }
+
+  /* ── MAIN ── */
+  main {
+    padding: 32px 36px;
+    display: flex; flex-direction: column; gap: 24px;
+    min-width: 0; max-width: 960px;
+  }
+
+  .page-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .page-title { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; }
+  .page-subtitle { font-size: 13px; color: var(--text-3); margin-top: 4px; letter-spacing: -0.01em; }
+
+  .btn-primary {
+    display: flex; align-items: center; gap: 7px;
+    padding: 10px 18px; border-radius: 10px;
+    background: var(--text); color: var(--surface);
+    font-family: var(--sans); font-size: 14px; font-weight: 600;
+    letter-spacing: -0.01em; cursor: pointer; border: none;
+    transition: opacity 0.15s; white-space: nowrap; flex-shrink: 0;
+  }
+  .btn-primary:hover { opacity: 0.82; }
+
+  /* ── SUMMARY ROW ── */
+  .summary-row {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 12px;
+  }
+  .summary-card.value-card {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 20px;
+    padding: 14px 20px;
+  }
+  .value-card-lbl {
+    font-size: 13px; color: var(--text-3); letter-spacing: -0.01em; flex-shrink: 0;
+  }
+  .value-card-val {
+    font-family: var(--mono); font-size: 20px; font-weight: 600;
+    letter-spacing: -0.03em; color: var(--text);
+  }
+  .value-card-burn {
+    font-family: var(--mono); font-size: 13px; font-weight: 400;
+    color: var(--text-3); letter-spacing: -0.01em; white-space: nowrap;
+  }
+  .value-card-breakdown {
+    display: flex; gap: 16px; margin-left: auto; flex-shrink: 0;
+  }
+  .value-card-item {
+    display: flex; flex-direction: column; align-items: flex-end; gap: 1px;
+  }
+  .value-card-item-val {
+    font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--text-2);
+    letter-spacing: -0.02em;
+  }
+  .value-card-item-lbl {
+    font-size: 10px; color: var(--text-3); letter-spacing: -0.01em;
+  }
+
+  /* Обычная карточка */
+  .summary-card {
+    background: var(--surface); border-radius: 14px;
+    box-shadow: var(--shadow); padding: 18px 20px;
+  }
+
+  /* Большая акцентная карточка "срочно" */
+  .summary-card.urgent-card {
+    background: var(--status-urgent-bg);
+    border: 1.5px solid var(--status-urgent-border);
+    border-radius: 14px; box-shadow: var(--shadow);
+    padding: 20px 24px;
+    cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .summary-card.urgent-card:hover {
+    box-shadow: var(--shadow), 0 0 0 2px var(--status-urgent-border);
+  }
+  .summary-card.urgent-card.active-filter {
+    border-color: var(--status-urgent);
+    box-shadow: var(--shadow), 0 0 0 2px var(--status-urgent);
+  }
+  .urgent-card-top { display: flex; align-items: flex-start; justify-content: space-between; }
+  .urgent-card-num {
+    font-family: var(--mono); font-size: 40px; font-weight: 600;
+    letter-spacing: -0.04em; line-height: 1; color: var(--status-urgent);
+  }
+  .urgent-card-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--status-urgent); display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .urgent-card-icon svg { width: 18px; height: 18px; color: white; }
+  .urgent-card-lbl {
+    font-size: 13px; font-weight: 600; color: var(--status-urgent);
+    margin-top: 10px; letter-spacing: -0.01em;
+  }
+  .urgent-card-hint {
+    font-size: 11px; color: var(--status-urgent); opacity: 0.6;
+    margin-top: 2px; letter-spacing: -0.01em;
+  }
+  .urgent-card-cost {
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    color: var(--status-urgent); letter-spacing: -0.02em;
+    margin-top: 4px;
+  }
+
+  .sum-val {
+    font-family: var(--mono); font-size: 22px; font-weight: 500;
+    letter-spacing: -0.02em; color: var(--accent);
+  }
+  .sum-val.neutral { color: var(--text); }
+  .sum-val.warn    { color: var(--status-soon); }
+  .summary-card.soon-card {
+    cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s;
+    border: 1.5px solid transparent;
+  }
+  .summary-card.soon-card:hover {
+    box-shadow: var(--shadow), 0 0 0 1px var(--status-soon-border);
+  }
+  .summary-card.soon-card.active-filter {
+    border-color: var(--status-soon);
+    box-shadow: var(--shadow), 0 0 0 2px var(--status-soon);
+  }
+  .sum-hint { font-size: 10px; color: var(--text-3); margin-top: 3px; letter-spacing: -0.01em; }
+
+  #inventoryList {
+    display: flex; flex-direction: column; gap: 28px;
+  }
+  .inv-section { display: flex; flex-direction: column; gap: 8px; }
+
+  .section-heading {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .section-title {
+    font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+    color: var(--text-2);
+  }
+
+  /* env-bar style left stripe on card */
+  .inv-section-card {
+    background: var(--surface);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  /* group header inside card — like bl-group-header in profile */
+  .inv-cat-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .inv-cat-bar { width: 3px; height: 18px; border-radius: 2px; flex-shrink: 0; }
+  .inv-cat-name {
+    font-size: 13px; font-weight: 600; color: var(--text); flex: 1;
+    letter-spacing: -0.01em;
+  }
+  .inv-cat-urgent {
+    font-size: 10px; font-weight: 600; color: var(--status-urgent);
+    background: var(--status-urgent-bg); border: 1px solid var(--status-urgent-border);
+    padding: 2px 7px; border-radius: 5px; letter-spacing: 0.01em;
+  }
+  .inv-cat-count {
+    font-size: 11px; color: var(--text-3); font-family: var(--mono);
+  }
+
+  /* items inside card — separated by border like bl-row */
+  .inv-section-items { display: flex; flex-direction: column; }
+  .inv-item + .inv-item { border-top: 1px solid var(--border); }
+
+  /* ── ITEM (flat row inside section card) ── */
+  .inv-item {
+    background: var(--surface);
+    border: none;
+    overflow: hidden;
+    transition: background 0.12s;
+  }
+  .inv-item:hover { background: var(--surface-2); }
+  .inv-item.open  {
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1.5px var(--accent-border);
+    position: relative; z-index: 2;
+  }
+  .inv-item.open .inv-item-main { background: var(--surface-2); }
+  /* first and last open items get corner radius */
+  .inv-section-card .inv-item:first-child.open { border-radius: 0; }
+  .inv-section-card .inv-item:last-child.open  { border-radius: 0 0 var(--r) var(--r); }
+  .inv-item.status-urgent .inv-item-main { border-left: 3px solid var(--status-urgent); }
+  .inv-item.status-soon   .inv-item-main { border-left: 3px solid var(--status-soon); }
+  .inv-item:not(.status-urgent):not(.status-soon) .inv-item-main { border-left: 3px solid transparent; }
+
+  .inv-item-main {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 16px; cursor: pointer; user-select: none;
+  }
+
+  /* LEFT: ring */
+  .ring-wrap {
+    flex-shrink: 0; position: relative;
+    width: 44px; height: 44px;
+  }
+  .ring-wrap svg { width: 44px; height: 44px; transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: var(--surface-2); stroke-width: 3.5; }
+  .ring-fg { fill: none; stroke-width: 3.5; stroke-linecap: round; }
+  .ring-ok   .ring-fg { stroke: var(--status-ok); }
+  .ring-soon .ring-fg { stroke: var(--status-soon); }
+  .ring-urgent .ring-fg { stroke: var(--status-urgent); }
+  .ring-label {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; line-height: 1;
+  }
+  .ring-num { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--text); }
+  .ring-unit { font-family: var(--mono); font-size: 8px; color: var(--text-3); margin-top: 1px; }
+  .ring-urgent .ring-num { color: var(--status-urgent); }
+  .ring-soon   .ring-num { color: var(--status-soon); }
+
+  /* CENTER: name + remainder */
+  .inv-info { flex: 1; min-width: 0; }
+  .inv-name {
+    font-size: 14px; font-weight: 600; letter-spacing: -0.02em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .inv-remainder {
+    font-size: 12px; color: var(--text-3); letter-spacing: -0.01em; margin-top: 3px;
+  }
+  .inv-remainder.urgent      { color: var(--status-urgent); font-weight: 600; }
+  .inv-remainder.soon        { color: var(--status-soon);   font-weight: 500; }
+  .inv-remainder.overexploit { color: var(--status-over); font-weight: 600; }
+
+  /* ring overexploit — purple */
+  .ring-overexploit .ring-fg  { stroke: var(--status-over); }
+  .ring-overexploit .ring-num { color: var(--status-over); }
+
+  /* item left border for overexploit */
+  .inv-item.status-overexploit .inv-item-main { border-left: 3px solid var(--status-over); }
+
+  /* monthly block overexploit */
+  .inv-monthly {
+    margin: 12px 16px 4px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .inv-monthly-header {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.05em;
+    text-transform: uppercase; color: var(--text-3);
+    padding: 8px 12px 6px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .inv-monthly-body {
+    padding: 10px 12px;
+    display: flex; align-items: baseline; gap: 10px;
+    flex-wrap: wrap;
+  }
+  .inv-monthly-body.deficit   { background: var(--status-urgent-bg); }
+  .inv-monthly-body.surplus   { background: #F2F7F4; }
+  .inv-monthly-body.overexploit { background: var(--status-over-bg); }
+  .inv-monthly-val {
+    font-family: var(--mono); font-size: 16px; font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .inv-monthly-val.deficit    { color: var(--status-urgent); }
+  .inv-monthly-val.surplus    { color: var(--status-ok); }
+  .inv-monthly-val.overexploit { color: var(--status-over); }
+  .inv-monthly-sub {
+    font-size: 12px; color: var(--text-3); letter-spacing: -0.01em;
+  }
+  .inv-monthly-sub strong { color: var(--text-2); font-weight: 600; }
+
+  /* chevron */
+  .inv-chev {
+    width: 14px; height: 14px; color: var(--text-3); flex-shrink: 0;
+    transition: transform 0.22s;
+  }
+  .inv-item.open .inv-chev { transform: rotate(180deg); }
+
+  /* ── EXPANDED ── */
+  .inv-expanded {
+    border-top: 1px solid var(--border);
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.28s ease;
+  }
+  .inv-item.open .inv-expanded { max-height: 700px; }
+
+  .inv-progress-wrap { padding: 14px 16px 0; }
+  .inv-progress-header {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--text-3); margin-bottom: 6px; letter-spacing: -0.01em;
+  }
+  .inv-progress-bar { height: 5px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+  .inv-progress-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+  .fill-ok     { background: var(--status-ok); }
+  .fill-soon   { background: var(--status-soon); }
+  .fill-urgent { background: var(--status-urgent); }
+
+  .inv-detail { display: flex; flex-direction: column; gap: 2px; }
+  .inv-detail-lbl { font-size: 10px; color: var(--text-3); letter-spacing: 0.03em; text-transform: uppercase; }
+  .inv-detail-val { font-size: 13px; font-weight: 500; letter-spacing: -0.01em; }
+  .inv-detail-val.mono { font-family: var(--mono); font-size: 12px; }
+
+  /* Inline forms */
+  .inv-inline-form {
+    padding: 13px 16px 15px;
+    background: var(--surface-2);
+    border-top: 1px solid var(--border);
+  }
+  .inv-form-title { font-size: 12px; font-weight: 600; color: var(--text-2); letter-spacing: -0.01em; margin-bottom: 10px; }
+  .inv-form-row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+  .inv-field { display: flex; flex-direction: column; gap: 4px; }
+  .inv-field-lbl { font-size: 11px; color: var(--text-3); letter-spacing: -0.01em; }
+  .inv-input {
+    padding: 7px 11px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface);
+    font-family: var(--sans); font-size: 13px; color: var(--text);
+    outline: none; transition: border-color 0.14s; letter-spacing: -0.01em; width: 130px;
+  }
+  .inv-input.wide { width: 165px; }
+  .inv-input:focus { border-color: var(--accent-border); }
+  .inv-input::placeholder { color: var(--text-3); }
+  .btn-confirm {
+    padding: 7px 15px; border-radius: 8px;
+    background: var(--accent); color: white; border: none;
+    font-family: var(--sans); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: opacity 0.15s; letter-spacing: -0.01em; height: 34px;
+  }
+  .btn-confirm:hover { opacity: 0.85; }
+  .btn-cancel-sm {
+    padding: 7px 10px; border-radius: 8px;
+    background: transparent; color: var(--text-3); border: 1px solid var(--border);
+    font-family: var(--sans); font-size: 13px;
+    cursor: pointer; transition: all 0.14s; height: 34px;
+  }
+  .btn-cancel-sm:hover { color: var(--text-2); }
+
+  /* Action tabs → single button */
+  .inv-action-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 16px 12px;
+    border-top: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+  .inv-act-btn {
+    padding: 7px 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface);
+    font-family: var(--sans); font-size: 12px; font-weight: 500;
+    color: var(--text-2); cursor: pointer; transition: all 0.14s;
+    letter-spacing: -0.01em;
+  }
+  .inv-act-btn:hover { background: var(--surface-3); color: var(--text); }
+  .inv-act-btn.primary {
+    background: var(--text); color: var(--surface); border-color: var(--text);
+  }
+  .inv-act-btn.primary:hover { opacity: 0.82; }
+  .inv-act-btn.urgent {
+    background: var(--status-urgent-bg); color: var(--status-urgent);
+    border-color: var(--status-urgent-border);
+  }
+  .inv-act-btn.urgent:hover { opacity: 0.8; }
+
+  /* set label row in expanded */
+  .inv-set-row {
+    display: flex; align-items: center; gap: 6px;
+    padding: 10px 16px;
+    font-size: 12px; color: var(--text-3); letter-spacing: -0.01em;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+  .inv-set-row strong { color: var(--text-2); font-weight: 600; }
+  .inv-set-link {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 12px; font-weight: 600; color: var(--accent);
+    text-decoration: none; letter-spacing: -0.01em;
+    transition: opacity 0.14s;
+  }
+  .inv-set-link:hover { opacity: 0.7; }
+
+  /* inline replenish button in collapsed row */
+  .rep-btn {
+    padding: 6px 12px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface-2);
+    font-family: var(--sans); font-size: 12px; font-weight: 500;
+    color: var(--text-2); cursor: pointer; transition: all 0.14s;
+    letter-spacing: -0.01em; white-space: nowrap; flex-shrink: 0;
+  }
+  .rep-btn:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent-border); }
+  .rep-btn-urgent {
+    padding: 6px 12px; border-radius: 8px;
+    border: 1px solid var(--status-urgent-border);
+    background: var(--status-urgent-bg);
+    font-family: var(--sans); font-size: 12px; font-weight: 600;
+    color: var(--status-urgent); cursor: pointer; transition: opacity 0.14s;
+    letter-spacing: -0.01em; white-space: nowrap; flex-shrink: 0;
+  }
+  .rep-btn-ok {
+    padding: 6px 12px; border-radius: 8px;
+    border: 1px solid var(--status-over-border); background: var(--status-over-bg);
+    font-family: var(--sans); font-size: 12px; font-weight: 600;
+    color: var(--status-over); cursor: pointer; transition: opacity 0.14s;
+    letter-spacing: -0.01em; white-space: nowrap; flex-shrink: 0;
+  }
+  .rep-btn-ok:hover { opacity: 0.75; }
+  .fill-overexploit { background: var(--status-over); }
+
+  /* expanded body: details + stepper side by side */
+  .inv-body {
+    display: flex; align-items: flex-start; gap: 0;
+    padding: 0;
+  }
+  .inv-detail-row {
+    flex: 1; display: flex; gap: 20px; padding: 14px 16px; flex-wrap: wrap;
+    border-right: 1px solid var(--border);
+  }
+  .inv-stepper-wrap {
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 14px 16px; flex-shrink: 0; width: 200px;
+  }
+  .inv-stepper-actions {
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .inv-date-input {
+    padding: 7px 10px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface);
+    font-family: var(--sans); font-size: 13px; color: var(--text);
+    outline: none; transition: border-color 0.14s; letter-spacing: -0.01em;
+    width: 100%; cursor: pointer;
+  }
+  .inv-date-input:focus { border-color: var(--accent-border); }
+
+  /* replenish button */
+  .btn-replenish {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%; padding: 9px 14px; border-radius: 10px;
+    background: var(--accent); color: white; border: none;
+    font-family: var(--sans); font-size: 13px; font-weight: 600;
+    letter-spacing: -0.01em; cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn-replenish:hover { opacity: 0.82; }
+  .btn-replenish:active { opacity: 0.65; }
+
+  /* date parts */
+  .inv-date-fields {
+    display: flex; align-items: center; gap: 0;
+    border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+    background: var(--surface);
+  }
+  .inv-date-field-wrap { display: flex; align-items: center; flex: 1; }
+  .inv-date-part {
+    flex: 1; min-width: 0; padding: 7px 6px; text-align: center;
+    border: none; background: none; outline: none;
+    font-family: var(--mono); font-size: 13px; color: var(--text);
+    -moz-appearance: textfield;
+  }
+  .inv-date-part::-webkit-inner-spin-button,
+  .inv-date-part::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .inv-date-part:focus { background: var(--accent-light); }
+  .inv-date-year { max-width: 56px; }
+  .inv-date-sep { color: var(--text-3); font-size: 14px; flex-shrink: 0; }
+  .inv-price-diff {
+    font-size: 11px; font-weight: 500; padding: 1px 5px; border-radius: 4px;
+  }
+  .inv-price-diff.over  { color: var(--status-urgent); background: var(--status-urgent-bg); }
+  .inv-price-diff.under { color: var(--status-ok);     background: var(--accent-light); }
+  .btn-reset-wear {
+    background: var(--surface-2) !important;
+    color: var(--text-2) !important;
+    font-weight: 500 !important;
+    font-size: 12px !important;
+  }
+  .btn-reset-wear:hover { background: var(--surface-3) !important; }
+
+  /* empty state when filter active */
+  .inv-empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 48px 24px; gap: 12px; text-align: center;
+    background: var(--surface); border-radius: var(--r);
+    box-shadow: var(--shadow);
+  }
+  .inv-empty-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--surface-2);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-3);
+  }
+  .inv-empty-title {
+    font-size: 14px; font-weight: 600; letter-spacing: -0.02em; color: var(--text);
+  }
+  .inv-empty-sub {
+    font-size: 13px; color: var(--text-3); letter-spacing: -0.01em;
+  }
+  .inv-empty-reset {
+    margin-top: 4px; padding: 8px 18px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--surface-2);
+    font-family: var(--sans); font-size: 13px; font-weight: 500; color: var(--text-2);
+    cursor: pointer; transition: all 0.14s; letter-spacing: -0.01em;
+  }
+  .inv-empty-reset:hover { background: var(--surface-3); color: var(--text); }
+  .inv-stepper {
+    display: flex; align-items: center; gap: 0;
+    border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden; background: var(--surface);
+    height: 36px;
+  }
+  .stepper-btn {
+    width: 40px; height: 36px; display: flex; align-items: center; justify-content: center;
+    border: none; background: var(--accent); cursor: pointer;
+    color: white; font-size: 20px; font-weight: 400;
+    transition: opacity 0.12s;
+    user-select: none; -webkit-user-select: none;
+    flex-shrink: 0;
+  }
+  .stepper-btn:hover { opacity: 0.82; }
+  .stepper-btn:active { opacity: 0.65; }
+  .stepper-val {
+    flex: 1; text-align: center;
+    font-family: var(--mono); font-size: 14px; font-weight: 500;
+    color: var(--text); min-width: 60px;
+    border: none; border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+    background: none; outline: none; letter-spacing: -0.01em;
+    padding: 0 8px; height: 100%;
+  }
+  .stepper-unit {
+    font-size: 11px; color: var(--text-3); padding: 0 10px 0 4px;
+    white-space: nowrap; line-height: 36px;
+  }
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.28);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface); border-radius: 20px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.14); width: 460px; padding: 28px 32px;
+    transform: translateY(10px); transition: transform 0.2s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-title { font-size: 18px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 20px; }
+  .modal-field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+  .modal-field-lbl { font-size: 12px; color: var(--text-2); letter-spacing: -0.01em; }
+  .modal-hint { font-size: 11px; color: var(--text-3); margin-top: 3px; }
+  .modal-input {
+    padding: 9px 13px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--surface-2);
+    font-family: var(--sans); font-size: 14px; color: var(--text);
+    outline: none; transition: border-color 0.14s; letter-spacing: -0.01em; width: 100%;
+  }
+  .modal-input:focus { border-color: var(--accent-border); background: var(--surface); }
+  .modal-input::placeholder { color: var(--text-3); }
+  .modal-select {
+    padding: 9px 32px 9px 13px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--surface-2);
+    font-family: var(--sans); font-size: 14px; color: var(--text);
+    outline: none; width: 100%; appearance: none; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23AEACA5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+    transition: border-color 0.14s; letter-spacing: -0.01em;
+  }
+  .modal-select:focus { border-color: var(--accent-border); }
+  .modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+  .modal-cancel {
+    flex: 1; padding: 10px; border-radius: 10px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    font-family: var(--sans); font-size: 14px; font-weight: 500;
+    color: var(--text-2); cursor: pointer; transition: all 0.14s;
+  }
+  .modal-cancel:hover { background: var(--surface-3); }
+  .modal-submit {
+    flex: 2; padding: 10px; border-radius: 10px;
+    background: var(--text); border: none;
+    font-family: var(--sans); font-size: 14px; font-weight: 600;
+    color: var(--surface); cursor: pointer; transition: opacity 0.14s;
+  }
+  .modal-submit:hover { opacity: 0.82; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(12px);
+    background: var(--text); color: var(--surface);
+    padding: 10px 16px 10px 20px; border-radius: 10px;
+    font-size: 13px; font-weight: 500; letter-spacing: -0.01em;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s; z-index: 200;
+    display: flex; align-items: center; gap: 12px;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: all; }
+  .toast-undo {
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+    color: white; padding: 4px 10px; border-radius: 6px;
+    font-family: var(--sans); font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: background 0.14s; flex-shrink: 0;
+  }
+  .toast-undo:hover { background: rgba(255,255,255,0.25); }
+</style>
+</head>
+<body>
+
+<aside id="sidebar">
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 16 16" fill="none">
+        <rect x="2" y="2" width="5" height="5" rx="1.5" fill="white" opacity="0.9"/>
+        <rect x="9" y="2" width="5" height="5" rx="1.5" fill="white" opacity="0.5"/>
+        <rect x="2" y="9" width="5" height="5" rx="1.5" fill="white" opacity="0.5"/>
+        <rect x="9" y="9" width="5" height="5" rx="1.5" fill="white" opacity="0.9"/>
+      </svg>
+    </div>
+    <span class="logo-text">SmartSpend</span>
+    <button class="sidebar-toggle" id="sidebarToggle">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+    </button>
+  </div>
+  <nav>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+      <span class="nav-label">Профиль</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+      <span class="nav-label">Лента</span>
+    </a>
+    <a class="nav-item active" href="#">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+      <span class="nav-label">Инвентарь</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+      <span class="nav-label">Каталог наборов</span>
+    </a>
+    <div class="nav-divider"></div>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+      <span class="nav-label">Уведомления</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <span class="nav-label">Настройки</span>
+    </a>
+  </nav>
+  <div class="sidebar-bottom">
+    <button class="theme-toggle" id="themeToggle">
+      <svg class="theme-icon-light" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <svg class="theme-icon-dark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <span class="nav-label theme-label">Тёмная тема</span>
+    </button>
+    <div class="sidebar-user">
+      <div class="avatar-sm">Н</div>
+      <div class="nav-label-block">
+        <div class="sidebar-user-name">Никита Орлов</div>
+        <div class="sidebar-user-plan">Базовый план</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<main>
+  <div class="page-header">
+    <div>
+      <div class="page-title">Инвентарь</div>
+      <div class="page-subtitle" id="pageSubtitle">24 позиции</div>
+    </div>
+  </div>
+
+  <div class="summary-row">
+    <div class="summary-card urgent-card" id="urgentCard">
+      <div class="urgent-card-top">
+        <div class="urgent-card-num" id="sumUrgent">3</div>
+        <div class="urgent-card-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+        </div>
+      </div>
+      <div>
+        <div class="urgent-card-lbl">нужно купить сейчас</div>
+        <div class="urgent-card-cost" id="sumUrgentCost"></div>
+        <div class="urgent-card-hint" id="urgentHint">нажмите для фильтра</div>
+      </div>
+    </div>
+    <div class="summary-card soon-card" id="soonCard">
+      <div class="sum-val warn" id="sumSoon">5</div>
+      <div class="sum-lbl">заканчиваются скоро</div>
+      <div class="sum-hint" id="soonHint">нажмите для фильтра</div>
+    </div>
+    <div class="summary-card value-card" id="valueCard">
+      <div class="value-card-lbl">стоимость инвентаря</div>
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
+        <div class="value-card-val" id="sumValue">—</div>
+        <div class="value-card-burn" id="sumBurn"></div>
+      </div>
+      <div class="value-card-breakdown">
+        <div class="value-card-item">
+          <div class="value-card-item-val" id="sumValueConsumable">—</div>
+          <div class="value-card-item-lbl">расходники</div>
+        </div>
+        <div class="value-card-item">
+          <div class="value-card-item-val" id="sumValueWear">—</div>
+          <div class="value-card-item-lbl">вещи</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="inventoryList"></div>
+</main>
+
+<!-- Add Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-title">Добавить позицию</div>
+    <div class="modal-field">
+      <div class="modal-field-lbl">Название</div>
+      <input class="modal-input" placeholder="Например: Зубная паста" id="newName">
+    </div>
+    <div class="modal-row">
+      <div class="modal-field">
+        <div class="modal-field-lbl">Категория</div>
+        <select class="modal-select" id="newCat">
+          <option value="food">Еда и напитки</option>
+          <option value="hygiene">Гигиена</option>
+          <option value="clothes">Одежда и обувь</option>
+          <option value="home">Дом</option>
+          <option value="health">Здоровье</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <div class="modal-field-lbl">Тип учёта</div>
+        <select class="modal-select" id="newType" onchange="updateModalLabels()">
+          <option value="consumable">Расходник (г/мл)</option>
+          <option value="wear">Вещь (износ)</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-row">
+      <div class="modal-field">
+        <div class="modal-field-lbl">Конверт-источник</div>
+        <select class="modal-select" id="newEnv">
+          <option value="food">Продукты</option>
+          <option value="hygiene">Гигиена</option>
+          <option value="clothes">Одежда</option>
+          <option value="home">Дом</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <div class="modal-field-lbl">Цена, руб.</div>
+        <input class="modal-input" type="number" placeholder="0" id="newPrice">
+      </div>
+    </div>
+    <div class="modal-row">
+      <div class="modal-field">
+        <div class="modal-field-lbl" id="newQtyLabel">Объём/масса упаковки (г)</div>
+        <input class="modal-input" type="number" placeholder="500" id="newQty">
+      </div>
+      <div class="modal-field">
+        <div class="modal-field-lbl" id="newRateLabel">Расход в день (г)</div>
+        <input class="modal-input" type="number" placeholder="10" id="newRate" step="0.1">
+      </div>
+    </div>
+    <div class="modal-field">
+      <div class="modal-field-lbl">Дата последней покупки / начала использования</div>
+      <input class="modal-input" type="date" id="newDate">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" id="cancelModal">Отмена</button>
+      <button class="modal-submit" id="submitModal">Добавить</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CATS = {
+  food:    { name: 'Еда и напитки',  color: '#7EB88A', envLabel: 'Продукты' },
+  hygiene: { name: 'Гигиена',        color: '#8AB0C8', envLabel: 'Гигиена' },
+  clothes: { name: 'Одежда и обувь', color: '#B8A0C8', envLabel: 'Одежда' },
+  home:    { name: 'Дом',            color: '#C8B87E', envLabel: 'Дом' },
+  health:  { name: 'Здоровье',       color: '#C88A8A', envLabel: 'Здоровье' },
+};
+
+function daysAgo(n) {
+  const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0,10);
+}
+
+// Items: consumable has {qty, dailyUse, unit?}, wear has {wearLifeWeeks, weeksUsed}
+// setName: название набора к которому относится позиция
+let items = [
+  { id:1,  cat:'food',    type:'consumable', name:'Гречка',              price:180,   qty:1000, dailyUse:70,  lastBought:daysAgo(13), setName:'Базовое питание' },
+  { id:2,  cat:'food',    type:'consumable', name:'Оливковое масло',     price:650,   qty:750,  dailyUse:16,  lastBought:daysAgo(42), setName:'Базовое питание' },
+  { id:3,  cat:'food',    type:'consumable', name:'Кофе в зёрнах',       price:1100,  qty:500,  dailyUse:16,  lastBought:daysAgo(5),  setName:'Базовое питание' },
+  { id:4,  cat:'food',    type:'consumable', name:'Протеин',             price:2800,  qty:2000, dailyUse:33,  lastBought:daysAgo(58), setName:'Спорт и питание' },
+  { id:5,  cat:'food',    type:'consumable', name:'Овсянка',             price:120,   qty:900,  dailyUse:43,  lastBought:daysAgo(10), setName:'Базовое питание' },
+  { id:6,  cat:'hygiene', type:'consumable', name:'Зубная паста',        price:290,   qty:100,  dailyUse:3,   lastBought:daysAgo(29), setName:'Гигиена' },
+  { id:7,  cat:'hygiene', type:'consumable', name:'Шампунь',             price:450,   qty:400,  dailyUse:9,   lastBought:daysAgo(20), setName:'Гигиена' },
+  { id:8,  cat:'hygiene', type:'consumable', name:'Дезодорант',          price:380,   qty:150,  dailyUse:2,   lastBought:daysAgo(55), unit:'мл', setName:'Гигиена' },
+  { id:9,  cat:'hygiene', type:'consumable', name:'Бритвенные картриджи',price:620,   qty:8,    dailyUse:0.27,lastBought:daysAgo(25), unit:'шт', setName:'Гигиена' },
+  { id:10, cat:'hygiene', type:'consumable', name:'Гель для душа',       price:350,   qty:300,  dailyUse:7,   lastBought:daysAgo(8),  setName:'Гигиена' },
+  { id:11, cat:'clothes', type:'wear', name:'Белые футболки',  price:7500,  expectedPrice:6000, wearLifeWeeks:104, purchaseDate:daysAgo(120), setName:'Капсульный гардероб' },
+  { id:12, cat:'clothes', type:'wear', name:'Джинсы',          price:11000, expectedPrice:5000, wearLifeWeeks:156, purchaseDate:daysAgo(400), setName:'Капсульный гардероб' },
+  { id:13, cat:'clothes', type:'wear', name:'Кроссовки',       price:7000,  expectedPrice:5000, wearLifeWeeks:104, purchaseDate:daysAgo(600), setName:'Капсульный гардероб' },
+  { id:14, cat:'clothes', type:'wear', name:'Носки (10 пар)',  price:1200,  expectedPrice:1200, wearLifeWeeks:52,  purchaseDate:daysAgo(300), setName:'Капсульный гардероб' },
+  { id:15, cat:'home',    type:'consumable', name:'Стиральный порошок',  price:480,   qty:2000, dailyUse:33,  lastBought:daysAgo(50), setName:'Бытовая химия' },
+  { id:16, cat:'home',    type:'consumable', name:'Средство для посуды', price:220,   qty:500,  dailyUse:16,  lastBought:daysAgo(12), setName:'Бытовая химия' },
+  { id:17, cat:'home',    type:'consumable', name:'Туалетная бумага',    price:350,   qty:12,   dailyUse:0.4, lastBought:daysAgo(28), unit:'рул', setName:'Бытовая химия' },
+  { id:18, cat:'home',    type:'consumable', name:'Фильтр для воды',     price:800,   qty:1,    dailyUse:0.011,lastBought:daysAgo(85),unit:'шт', setName:'Бытовая химия' },
+  { id:19, cat:'health',  type:'consumable', name:'Витамин D',           price:650,   qty:90,   dailyUse:1,   lastBought:daysAgo(20), unit:'кап', setName:'Здоровье' },
+  { id:20, cat:'health',  type:'consumable', name:'Омега-3',             price:900,   qty:90,   dailyUse:1,   lastBought:daysAgo(70), unit:'кап', setName:'Здоровье' },
+  { id:21, cat:'health',  type:'consumable', name:'Магний B6',           price:550,   qty:60,   dailyUse:1,   lastBought:daysAgo(55), unit:'кап', setName:'Здоровье' },
+  { id:22, cat:'health',  type:'consumable', name:'Контактные линзы',    price:1800,  qty:30,   dailyUse:1,   lastBought:daysAgo(32), unit:'шт', setName:'Здоровье' },
+  { id:23, cat:'health',  type:'consumable', name:'Раствор для линз',    price:480,   qty:360,  dailyUse:12,  lastBought:daysAgo(27), unit:'мл', setName:'Здоровье' },
+  { id:24, cat:'health',  type:'consumable', name:'Крем SPF50',          price:700,   qty:50,   dailyUse:0.8, lastBought:daysAgo(5),  unit:'мл', setName:'Уход за кожей' },
+];
+
+items.forEach(i => { if (i.type === 'consumable') i.baseQty = i.qty; });
+
+let activeUrgentFilter = false;
+let activeSoonFilter = false;
+let openItemId = null;
+let openFormItemId = null; // 'replenish' | 'edit' | null
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function daysSince(dateStr) {
+  return Math.floor((Date.now() - new Date(dateStr)) / 86400000);
+}
+
+function getItemInfo(item) {
+  let pct, status, remainderText, ringNum, ringUnit;
+  let monthlyBlock = null; // { type: 'consumable'|'wear', ... }
+
+  if (item.type === 'consumable') {
+    const ds = daysSince(item.lastBought);
+    const unit = item.unit || 'г';
+    const totalDays = item.qty / item.dailyUse;
+    const remaining = Math.max(0, item.qty - ds * item.dailyUse);
+    const daysLeft  = item.dailyUse > 0 ? Math.round(remaining / item.dailyUse) : 0;
+    pct = Math.min(100, Math.round((ds / totalDays) * 100));
+
+    // Remainder string + days hint
+    const daysHint = daysLeft > 0 ? ` (~\u00a0${daysLeft}\u00a0дн.)` : '';
+    if (unit === 'г' || unit === 'мл') {
+      const r = Math.round(remaining);
+      remainderText = r > 0 ? `осталось ${r}\u00a0${unit}${daysHint}` : 'закончилось';
+    } else {
+      const r = parseFloat(remaining.toFixed(1));
+      remainderText = r > 0 ? `осталось ${r}\u00a0${unit}${daysHint}` : 'закончилось';
+    }
+
+    // Ring: time left
+    if (daysLeft <= 0) { ringNum = '0'; ringUnit = 'дн'; }
+    else if (daysLeft < 7)  { ringNum = String(daysLeft); ringUnit = 'дн'; }
+    else if (daysLeft < 30) { ringNum = String(Math.floor(daysLeft / 7)); ringUnit = 'нед'; }
+    else { ringNum = String(Math.floor(daysLeft / 30)); ringUnit = 'мес'; }
+
+    // Monthly block: deficit / surplus
+    const monthlyNeed = item.dailyUse * 30; // сколько нужно за месяц
+    const deficit = monthlyNeed - remaining; // >0 = дефицит, <0 = профицит
+    const pricePerUnit = item.price / (item.baseQty || item.qty);
+    if (deficit > 0) {
+      // Нужно докупить
+      const deficitRub = Math.round(deficit * pricePerUnit);
+      const deficitAmt = unit === 'г' || unit === 'мл'
+        ? Math.round(deficit) + '\u00a0' + unit
+        : parseFloat(deficit.toFixed(1)) + '\u00a0' + unit;
+      monthlyBlock = { type: 'deficit', deficitAmt, deficitRub };
+    } else {
+      // Запаса хватит, ещё и останется
+      const surplusDays = Math.round(-deficit / item.dailyUse);
+      const surplusAmt = -deficit; // граммы сверх месяца
+      const surplusRub = Math.round(surplusAmt * pricePerUnit);
+      monthlyBlock = { type: 'surplus', surplusDays, surplusRub };
+    }
+
+  } else {
+    // wear — compute weeksUsed from purchaseDate
+    const weeksUsed = item.weeksUsed !== undefined
+      ? item.weeksUsed
+      : Math.floor(daysSince(item.purchaseDate) / 7);
+    const overExploit = weeksUsed > item.wearLifeWeeks;
+    const weeksOver = weeksUsed - item.wearLifeWeeks; // >0 если переэксплуатация
+    const weeksLeft = Math.max(0, item.wearLifeWeeks - weeksUsed);
+    pct = Math.min(100, Math.round((weeksUsed / item.wearLifeWeeks) * 100));
+
+    // residual value = remaining fraction of purchase price
+    const residualValue = Math.max(0, Math.round(item.price * (1 - weeksUsed / item.wearLifeWeeks)));
+
+    if (overExploit) {
+      remainderText = `+${weeksOver}\u00a0нед. сверх нормы`;
+      ringNum = '+' + weeksOver;
+      ringUnit = 'нед';
+      const weeklyAmort = item.price / item.wearLifeWeeks;
+      const bonusIncome = Math.round(weeklyAmort * weeksOver);
+      monthlyBlock = { type: 'overexploit', weeksOver, bonusIncome, weeksUsed };
+    } else {
+      remainderText = weeksLeft > 0
+        ? `осталось ${weeksLeft}\u00a0нед. до замены`
+        : 'требует замены';
+      if (weeksLeft === 0) { ringNum = '0'; ringUnit = 'нед'; }
+      else if (weeksLeft < 52) { ringNum = String(weeksLeft); ringUnit = 'нед'; }
+      else { ringNum = String(Math.floor(weeksLeft / 52)); ringUnit = 'лет'; }
+      monthlyBlock = null;
+    }
+  }
+
+  if (item.type === 'wear' && (item.weeksUsed !== undefined ? item.weeksUsed : Math.floor(daysSince(item.purchaseDate) / 7)) > item.wearLifeWeeks) {
+    status = 'overexploit';
+  } else if (pct >= 90) {
+    status = 'urgent';
+  } else if (pct >= 70) {
+    status = 'soon';
+  } else {
+    status = 'ok';
+  }
+
+  // filterStatus: overexploit counts as urgent for filters/counters
+  const filterStatus = status === 'overexploit' ? 'urgent' : status;
+
+  return { pct, status, filterStatus, remainderText, ringNum, ringUnit, monthlyBlock };
+}
+
+function ringDasharray(pct) {
+  const r = 17, circ = 2 * Math.PI * r;
+  return `${(pct / 100) * circ} ${circ}`;
+}
+
+function monthlyAmort(item) {
+  if (item.type !== 'wear') return 0;
+  return Math.round(item.price / (item.wearLifeWeeks / 4.33));
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function render() {
+  const list = document.getElementById('inventoryList');
+  list.innerHTML = '';
+
+  Object.keys(CATS).forEach(catKey => {
+    let catItems = items.filter(i => i.cat === catKey);
+    if (activeUrgentFilter) catItems = catItems.filter(i => getItemInfo(i).filterStatus === 'urgent');
+    if (activeSoonFilter)   catItems = catItems.filter(i => getItemInfo(i).filterStatus === 'soon');
+    if (!catItems.length) return;
+
+    catItems.sort((a, b) => {
+      const ord = { urgent:0, soon:1, ok:2 };
+      return ord[getItemInfo(a).filterStatus] - ord[getItemInfo(b).filterStatus];
+    });
+
+    const cat = CATS[catKey];
+    const urgentCount = catItems.filter(i => getItemInfo(i).filterStatus === 'urgent').length;
+
+    // Section wrapper
+    const section = document.createElement('div');
+    section.className = 'inv-section';
+
+    // Card with group header + items
+    const card = document.createElement('div');
+    card.className = 'inv-section-card';
+
+    // Cat header (profile bl-group-header style)
+    const catHeader = document.createElement('div');
+    catHeader.className = 'inv-cat-header';
+    catHeader.innerHTML = `
+      <div class="inv-cat-bar" style="background:${cat.color}"></div>
+      <span class="inv-cat-name">${cat.name}</span>
+      ${urgentCount ? `<span class="inv-cat-urgent">${urgentCount} срочно</span>` : ''}
+      <span class="inv-cat-count">${catItems.length}</span>
+    `;
+    card.appendChild(catHeader);
+
+    // Items container
+    const itemsWrap = document.createElement('div');
+    itemsWrap.className = 'inv-section-items';
+    catItems.forEach(item => itemsWrap.appendChild(buildItem(item)));
+    card.appendChild(itemsWrap);
+
+    section.appendChild(card);
+    list.appendChild(section);
+  });
+
+  // Empty state when filter is active but no results
+  if ((activeUrgentFilter || activeSoonFilter) && list.children.length === 0) {
+    const filterLabel = activeUrgentFilter ? 'срочных покупок' : 'позиций заканчивающихся скоро';
+    const filterColor = activeUrgentFilter ? 'var(--status-urgent)' : 'var(--status-soon)';
+    const empty = document.createElement('div');
+    empty.className = 'inv-empty-state';
+    empty.innerHTML = `
+      <div class="inv-empty-icon">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <div class="inv-empty-title" style="color:${filterColor}">Всё в порядке</div>
+      <div class="inv-empty-sub">Нет ${filterLabel}</div>
+      <button class="inv-empty-reset" onclick="resetFilters()">Сбросить фильтр</button>
+    `;
+    list.appendChild(empty);
+  }
+}
+
+function buildItem(item) {
+  const { pct, status, remainderText, ringNum, ringUnit, monthlyBlock } = getItemInfo(item);
+  const isOpen = openItemId === item.id;
+  const remClass = status !== 'ok' ? status : '';
+  const unit = item.type === 'consumable' ? (item.unit || 'г') : 'нед';
+  const isOverexploit = status === 'overexploit';
+
+  // Stepper value
+  let stepperVal, stepperMin, stepperMax;
+  if (item.type === 'consumable') {
+    const ds = daysSince(item.lastBought);
+    stepperVal = Math.max(0, Math.round(item.qty - ds * item.dailyUse));
+    stepperMin = 0; stepperMax = 999999;
+  } else {
+    stepperVal = item.weeksUsed !== undefined ? item.weeksUsed : Math.floor(daysSince(item.purchaseDate) / 7);
+    stepperMin = 0; stepperMax = item.wearLifeWeeks * 2;
+  }
+
+  const stepperLabel = item.type === 'consumable'
+    ? `Укажите текущий остаток (${unit})`
+    : `Дата покупки`;
+
+  let expanded = '';
+  if (isOpen) {
+
+    // ── MONTHLY BLOCK ──
+    if (monthlyBlock) {
+      if (monthlyBlock.type === 'deficit') {
+        expanded += `
+          <div class="inv-monthly">
+            <div class="inv-monthly-header">Этот месяц</div>
+            <div class="inv-monthly-body deficit">
+              <span class="inv-monthly-val deficit">${monthlyBlock.deficitRub.toLocaleString('ru')}&thinsp;руб.</span>
+              <span class="inv-monthly-sub">нужно пополнить на <strong>${monthlyBlock.deficitAmt}</strong></span>
+            </div>
+          </div>`;
+      } else if (monthlyBlock.type === 'surplus') {
+        expanded += `
+          <div class="inv-monthly">
+            <div class="inv-monthly-header">Этот месяц</div>
+            <div class="inv-monthly-body surplus">
+              <span class="inv-monthly-val surplus">${monthlyBlock.surplusRub.toLocaleString('ru')}&thinsp;руб.</span>
+              <span class="inv-monthly-sub">хватит ещё на <strong>+${monthlyBlock.surplusDays}&thinsp;дн.</strong> после конца месяца</span>
+            </div>
+          </div>`;
+      } else if (monthlyBlock.type === 'overexploit') {
+        expanded += `
+          <div class="inv-monthly">
+            <div class="inv-monthly-header">Переэксплуатация</div>
+            <div class="inv-monthly-body overexploit">
+              <span class="inv-monthly-val overexploit">+${monthlyBlock.bonusIncome.toLocaleString('ru')}&thinsp;руб.</span>
+              <span class="inv-monthly-sub">бонусный доход за <strong>${monthlyBlock.weeksOver}&thinsp;нед. сверх нормы</strong></span>
+            </div>
+          </div>`;
+      }
+    }
+
+    // ── DETAILS + STEPPER side by side ──
+    let stats = '';
+    if (item.type === 'wear') {
+      const weeksUsedCalc = item.weeksUsed !== undefined
+        ? item.weeksUsed
+        : Math.floor(daysSince(item.purchaseDate) / 7);
+      const monthlyAmort = Math.round((item.price / item.wearLifeWeeks) * 4.33);
+      const residualVal = Math.max(0, Math.round(item.price * (1 - weeksUsedCalc / item.wearLifeWeeks)));
+      const purchaseDateVal = (item.purchaseDate || item.lastBought || '').slice(0,10);
+      const expectedPrice = item.expectedPrice;
+      const lifeYears = (item.wearLifeWeeks / 52).toFixed(1).replace('.0','');
+      stats = `
+        ${expectedPrice ? `<div class="inv-detail">
+          <div class="inv-detail-lbl">Плановая стоимость</div>
+          <div class="inv-detail-val mono">${expectedPrice.toLocaleString('ru')}&thinsp;руб.</div>
+        </div>` : ''}
+        <div class="inv-detail">
+          <div class="inv-detail-lbl">Срок эксплуатации</div>
+          <div class="inv-detail-val">${item.wearLifeWeeks}&thinsp;нед. (${lifeYears}&thinsp;г.)</div>
+        </div>
+        <div class="inv-detail">
+          <div class="inv-detail-lbl">Остаточная стоимость</div>
+          <div class="inv-detail-val mono">${residualVal.toLocaleString('ru')}&thinsp;руб.</div>
+        </div>
+        <div class="inv-detail">
+          <div class="inv-detail-lbl">Бюджет/мес.</div>
+          <div class="inv-detail-val mono">${monthlyAmort}&thinsp;руб.</div>
+        </div>`;
+    } else {
+      const monthlyQty = Math.round(item.dailyUse * 30);
+      const bQty = item.baseQty || item.qty;
+      const monthlyBudget = Math.round((item.price / bQty) * monthlyQty);
+      const pricePerUnit = (item.price / bQty).toFixed(2);
+      stats = `
+        <div class="inv-detail">
+          <div class="inv-detail-lbl">Расход/день</div>
+          <div class="inv-detail-val mono">${item.dailyUse}&thinsp;${unit}</div>
+        </div>
+        <div class="inv-detail">
+          <div class="inv-detail-lbl">Потребность/мес.</div>
+          <div class="inv-detail-val mono">${monthlyQty}&thinsp;${unit}</div>
+        </div>
+        <div class="inv-detail">
+          <div class="inv-detail-lbl">Бюджет/мес.</div>
+          <div class="inv-detail-val mono">${monthlyBudget}&thinsp;руб.</div>
+        </div>
+        <div class="inv-detail">
+          <div class="inv-detail-lbl">Цена за ${unit}</div>
+          <div class="inv-detail-val mono">${pricePerUnit}&thinsp;руб.</div>
+        </div>`;
+    }
+
+    const purchaseDateCurrent = (item.purchaseDate || item.lastBought || new Date().toISOString().slice(0,10)).slice(0,10);
+    const stepperBlock = item.type === 'wear' ? `
+      <div class="inv-stepper-wrap">
+        <div class="inv-field-lbl">${stepperLabel}</div>
+        <input class="inv-date-input" type="date"
+          id="sv-${item.id}"
+          value="${purchaseDateCurrent}"
+          max="${new Date().toISOString().slice(0,10)}"
+          onchange="confirmDateEdit(${item.id})">
+      </div>` : `
+      <div class="inv-stepper-wrap">
+        <div class="inv-field-lbl">Текущий остаток (${unit})</div>
+        <div class="inv-stepper" id="stepper-${item.id}">
+          <button class="stepper-btn"
+            onmousedown="startStep(${item.id},-1)"
+            onmouseup="stopStep()" onmouseleave="stopStep()"
+            ontouchstart="startStep(${item.id},-1)" ontouchend="stopStep()">−</button>
+          <input class="stepper-val" type="number"
+            id="sv-${item.id}" value="${stepperVal}"
+            min="${stepperMin}" max="${stepperMax}"
+            onchange="confirmEdit(${item.id})">
+          <span class="stepper-unit">${unit}</span>
+          <button class="stepper-btn"
+            onmousedown="startStep(${item.id},1)"
+            onmouseup="stopStep()" onmouseleave="stopStep()"
+            ontouchstart="startStep(${item.id},1)" ontouchend="stopStep()">+</button>
+        </div>
+      </div>`;
+
+    // ── SET ROW (bottom) ──
+    const setRow = `
+      <div class="inv-set-row">
+        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.4;flex-shrink:0"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+        <span style="color:var(--text-3)">Набор:</span>
+        <a class="inv-set-link" href="#" onclick="event.stopPropagation()">${item.setName}
+          <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+        </a>
+      </div>`;
+
+    expanded += `
+      <div class="inv-body">
+        <div class="inv-detail-row">${stats}</div>
+        ${stepperBlock}
+      </div>
+      ${setRow}`;
+  }
+
+  const el = document.createElement('div');
+  el.className = `inv-item status-${status}${isOpen ? ' open' : ''}`;
+  el.id = `item-${item.id}`;
+  el.innerHTML = `
+    <div class="inv-item-main" onclick="toggleItem(${item.id})">
+      <div class="ring-wrap ring-${status}">
+        <svg viewBox="0 0 44 44">
+          <circle class="ring-bg" cx="22" cy="22" r="17"/>
+          <circle class="ring-fg" cx="22" cy="22" r="17" stroke-dasharray="${ringDasharray(pct)}"/>
+        </svg>
+        <div class="ring-label">
+          <span class="ring-num">${ringNum}</span>
+          <span class="ring-unit">${ringUnit}</span>
+        </div>
+      </div>
+      <div class="inv-info">
+        <div class="inv-name">${item.name}</div>
+        <div class="inv-remainder ${remClass}">${remainderText}</div>
+      </div>
+      <svg class="inv-chev" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 9l-7 7-7-7"/></svg>
+    </div>
+    <div class="inv-expanded">${expanded}</div>
+  `;
+  return el;
+}
+
+
+// ─── INTERACTIONS ────────────────────────────────────────────────────────────
+function toggleItem(id) {
+  if (openItemId === id) {
+    openItemId = null; openFormItemId = null;
+  } else {
+    openItemId = id;
+    openFormItemId = null;
+  }
+  render();
+}
+function openReplenish(id) { openItemId = id; openFormItemId = 'replenish'; render(); scrollToForm(id); }
+function openEdit(id, type) { openItemId = id; openFormItemId = type || 'edit'; render(); scrollToForm(id); }
+function closeForm()       { openFormItemId = null; render(); }
+function scrollToForm(id) {
+  requestAnimationFrame(() => {
+    document.getElementById(`form-${id}`)?.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  });
+}
+
+// ─── STEPPER ─────────────────────────────────────────────────────────────────
+let stepTimer = null;
+let stepHoldStart = 0;
+
+function getStepSize(elapsed) {
+  if (elapsed < 800)  return 1;
+  if (elapsed < 1800) return 10;
+  if (elapsed < 3000) return 100;
+  return 1000;
+}
+
+function startStep(id, dir) {
+  stopStep();
+  stepHoldStart = Date.now();
+
+  // find min/max from input attrs
+  const el = document.getElementById(`sv-${id}`);
+  const min = parseFloat(el?.min) || 0;
+  const max = parseFloat(el?.max) || 999999;
+
+  function tick() {
+    const el = document.getElementById(`sv-${id}`);
+    if (!el) { stopStep(); return; }
+    const elapsed = Date.now() - stepHoldStart;
+    const step = getStepSize(elapsed);
+    let val = parseFloat(el.value) || 0;
+    val = Math.max(min, Math.min(max, val + dir * step));
+    el.value = Math.round(val);
+    scheduleAutoSave(id, min, max);
+    stepTimer = setTimeout(tick, elapsed < 500 ? 400 : 80);
+  }
+  tick();
+}
+
+function stopStep() {
+  if (stepTimer) { clearTimeout(stepTimer); stepTimer = null; }
+}
+
+function clampStepper(id, min, max) {
+  const el = document.getElementById(`sv-${id}`);
+  if (!el) return;
+  let v = parseFloat(el.value) || 0;
+  if (v < min) v = min;
+  if (v > max) v = max;
+  el.value = v;
+}
+
+// ─── CONFIRM HANDLERS ────────────────────────────────────────────────────────
+function confirmReplenish(id) {
+  const item = items.find(i => i.id === id);
+  // Reset: set lastBought to today, qty stays the same (full pack)
+  item.lastBought = new Date().toISOString().slice(0,10);
+  done(item.name);
+}
+
+function confirmWearReset(id) {
+  const item = items.find(i => i.id === id);
+  item.purchaseDate = new Date().toISOString().slice(0,10);
+  delete item.weeksUsed;
+  done(item.name);
+}
+
+function confirmDateEdit(id) {
+  const item = items.find(i => i.id === id);
+  const val = document.getElementById(`sv-${id}`)?.value;
+  if (!val) return;
+  item.purchaseDate = val;
+  delete item.weeksUsed;
+  updateSummary(); render();
+  showToast(`«${item.name}» обновлено`);
+}
+
+
+function confirmEdit(id) {
+  const item = items.find(i => i.id === id);
+  const val = parseFloat(document.getElementById(`sv-${id}`)?.value);
+  if (isNaN(val)) return;
+  if (item.type === 'consumable') {
+    // Set remaining: adjust lastBought so that qty - daysSince*dailyUse = val
+    // Simplest: set qty = val and lastBought = today
+    if (!item.baseQty) item.baseQty = item.qty;
+    item.qty = Math.max(0, val);
+    item.lastBought = new Date().toISOString().slice(0,10);
+  } else {
+    const newWeeks = Math.max(0, Math.round(val));
+    // store as weeksUsed override, clear purchaseDate-based calc
+    item.weeksUsed = newWeeks;
+    delete item.purchaseDate;
+  }
+  done(item.name);
+}
+
+function done(name) {
+  openFormItemId = null;
+  updateSummary(); render();
+  showToast(`«${name}» обновлено`);
+}
+
+// ─── URGENT FILTER ───────────────────────────────────────────────────────────
+function resetFilters() {
+  activeUrgentFilter = false;
+  activeSoonFilter = false;
+  document.getElementById('urgentCard').classList.remove('active-filter');
+  document.getElementById('soonCard').classList.remove('active-filter');
+  document.getElementById('urgentHint').textContent = 'нажмите для фильтра';
+  document.getElementById('soonHint').textContent = 'нажмите для фильтра';
+  render();
+}
+document.getElementById('urgentCard').addEventListener('click', () => {
+  activeUrgentFilter = !activeUrgentFilter;
+  if (activeUrgentFilter) { activeSoonFilter = false; document.getElementById('soonCard').classList.remove('active-filter'); document.getElementById('soonHint').textContent = 'нажмите для фильтра'; }
+  document.getElementById('urgentCard').classList.toggle('active-filter', activeUrgentFilter);
+  document.getElementById('urgentHint').textContent = activeUrgentFilter ? 'нажмите чтобы сбросить' : 'нажмите для фильтра';
+  render();
+});
+
+document.getElementById('soonCard').addEventListener('click', () => {
+  activeSoonFilter = !activeSoonFilter;
+  if (activeSoonFilter) { activeUrgentFilter = false; document.getElementById('urgentCard').classList.remove('active-filter'); document.getElementById('urgentHint').textContent = 'нажмите для фильтра'; }
+  document.getElementById('soonCard').classList.toggle('active-filter', activeSoonFilter);
+  document.getElementById('soonHint').textContent = activeSoonFilter ? 'нажмите чтобы сбросить' : 'нажмите для фильтра';
+  render();
+});
+
+// ─── SUMMARY ─────────────────────────────────────────────────────────────────
+function urgentCost(item) {
+  const info = getItemInfo(item);
+  if (info.filterStatus !== 'urgent') return 0;
+  if (item.type === 'consumable') {
+    return info.monthlyBlock && info.monthlyBlock.type === 'deficit'
+      ? info.monthlyBlock.deficitRub : 0;
+  } else {
+    return item.price;
+  }
+}
+
+function fmtRub(n) { return n.toLocaleString('ru') + '\u2009руб.'; }
+
+function inventoryValue() {
+  let consumable = 0, wear = 0;
+  items.forEach(item => {
+    if (item.type === 'consumable') {
+      const ds = daysSince(item.lastBought);
+      const remaining = Math.max(0, item.qty - ds * item.dailyUse);
+      const bq = item.baseQty || item.qty;
+      consumable += bq > 0 ? (remaining / bq) * item.price : 0;
+    } else {
+      const weeksUsed = item.weeksUsed !== undefined
+        ? item.weeksUsed
+        : Math.floor(daysSince(item.purchaseDate) / 7);
+      const ratio = Math.max(0, 1 - weeksUsed / item.wearLifeWeeks);
+      wear += ratio * item.price;
+    }
+  });
+  return { consumable: Math.round(consumable), wear: Math.round(wear), total: Math.round(consumable + wear) };
+}
+
+function dailyBurn() {
+  return Math.round(items.reduce((sum, item) => {
+    if (item.type === 'consumable') {
+      return sum + (item.dailyUse / item.qty) * item.price;
+    } else {
+      return sum + item.price / (item.wearLifeWeeks * 7);
+    }
+  }, 0));
+}
+
+function updateSummary() {
+  const urgentItems = items.filter(i => getItemInfo(i).filterStatus === 'urgent');
+  const soon   = items.filter(i => getItemInfo(i).filterStatus === 'soon').length;
+  const total  = items.length;
+  const urgentSum = urgentItems.reduce((s, i) => s + urgentCost(i), 0);
+  const val = inventoryValue();
+  const burn = dailyBurn();
+
+  document.getElementById('sumUrgent').textContent = urgentItems.length;
+  document.getElementById('sumSoon').textContent   = soon;
+  document.getElementById('pageSubtitle').textContent = total + ' позиций';
+  document.getElementById('sumValue').textContent = fmtRub(val.total);
+  document.getElementById('sumValueConsumable').textContent = fmtRub(val.consumable);
+  document.getElementById('sumValueWear').textContent = fmtRub(val.wear);
+  document.getElementById('sumBurn').textContent = `стоимость дня ${burn}\u2009руб.`;
+
+  const sumEl = document.getElementById('sumUrgentCost');
+  if (sumEl) {
+    sumEl.textContent = urgentSum > 0
+      ? '~\u2009' + urgentSum.toLocaleString('ru') + '\u2009руб.'
+      : '';
+    sumEl.style.display = urgentSum > 0 ? '' : 'none';
+  }
+}
+
+// ─── SIDEBAR / THEME ─────────────────────────────────────────────────────────
+document.getElementById('sidebarToggle').onclick = () =>
+  document.body.classList.toggle('sidebar-collapsed');
+const themeBtn = document.getElementById('themeToggle');
+themeBtn.onclick = () => {
+  document.body.classList.toggle('dark');
+  const isDark = document.body.classList.contains('dark');
+  themeBtn.querySelector('.theme-icon-light').style.display = isDark ? 'none' : '';
+  themeBtn.querySelector('.theme-icon-dark').style.display  = isDark ? '' : 'none';
+  themeBtn.querySelector('.theme-label').textContent = isDark ? 'Светлая тема' : 'Тёмная тема';
+};
+
+// ─── UNDO HISTORY ────────────────────────────────────────────────────────────
+const undoHistory = []; // [{itemId, snapshot}]
+
+function snapshotItem(item) {
+  return JSON.parse(JSON.stringify(item));
+}
+
+function pushUndo(item) {
+  undoHistory.push({ itemId: item.id, snapshot: snapshotItem(item) });
+  if (undoHistory.length > 20) undoHistory.shift();
+}
+
+function undoLast() {
+  if (!undoHistory.length) return;
+  const { itemId, snapshot } = undoHistory.pop();
+  const idx = items.findIndex(i => i.id === itemId);
+  if (idx === -1) return;
+  Object.assign(items[idx], snapshot);
+  updateSummary(); render();
+  showToast(`«${snapshot.name}» — восстановлено`, null);
+}
+
+// ─── AUTOSAVE (debounce) ─────────────────────────────────────────────────────
+let autoSaveTimers = {};
+
+function scheduleAutoSave(id, min, max) {
+  clampStepper(id, min, max);
+  if (autoSaveTimers[id]) clearTimeout(autoSaveTimers[id]);
+  autoSaveTimers[id] = setTimeout(() => {
+    autoSaveTimers[id] = null;
+    applyEdit(id);
+  }, 1000);
+}
+
+function applyEdit(id) {
+  const item = items.find(i => i.id === id);
+  const el = document.getElementById(`sv-${id}`);
+  if (!item || !el) return;
+  const val = parseFloat(el.value);
+  if (isNaN(val)) return;
+
+  pushUndo(item);
+
+  if (item.type === 'consumable') {
+    if (!item.baseQty) item.baseQty = item.qty;
+    item.qty = Math.max(0, val);
+    item.lastBought = new Date().toISOString().slice(0,10);
+  } else {
+    const newWeeks = Math.max(0, Math.round(val));
+    // store as weeksUsed override, clear purchaseDate-based calc
+    item.weeksUsed = newWeeks;
+    delete item.purchaseDate;
+  }
+
+  updateSummary(); render();
+  showToast(`«${item.name}» обновлено`, undoLast);
+}
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, undoFn) {
+  const t = document.getElementById('toast');
+  t.innerHTML = undoFn
+    ? `${msg} <button class="toast-undo" onclick="undoLast()">Отменить</button>`
+    : msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+updateSummary();
+render();
+</script>
+</body>
+</html>
