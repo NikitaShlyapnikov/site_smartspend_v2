@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(wc -l /c/Users/Administrator/Desktop/site_smartspend_v2/raw_sample_page/*.html)"
+      "Bash(wc -l /c/Users/Administrator/Desktop/site_smartspend_v2/raw_sample_page/*.html)",
+      "Bash(node --version)",
+      "Bash(npm --version)",
+      "Bash(npm create vite@latest app -- --template react)",
+      "Bash(npm install)",
+      "Bash(npm install react-router-dom)",
+      "Bash(npm run build)"
     ]
   }
 }
