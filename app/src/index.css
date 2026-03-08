@@ -2238,7 +2238,7 @@ body.dark .profile-tab.active { background: var(--surface-3); }
   }
   .mobile-logo-mark {
     width: 28px; height: 28px; border-radius: 7px;
-    background: var(--text);
+    background: #1A1916;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
@@ -2277,8 +2277,8 @@ body.dark .profile-tab.active { background: var(--surface-3); }
   }
   .mobile-nav-item {
     display: flex; flex-direction: column; align-items: center; gap: 3px;
-    flex: 1; padding: 8px 0;
-    color: var(--text-3); text-decoration: none;
+    flex: 1; padding: 8px 0; min-width: 0;
+    color: var(--text-2); text-decoration: none;
     transition: color 0.12s;
     font-size: 10px; font-weight: 500; letter-spacing: -0.01em;
   }
