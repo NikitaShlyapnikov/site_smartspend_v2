@@ -158,7 +158,7 @@ function FinancialModal({ open, initialData, onSave, onClose }) {
                   disabled={!isValid}
                   style={{ opacity: isValid ? 1 : 0.4, cursor: isValid ? 'pointer' : 'default' }}
                 >
-                  {step < FINANCE_STEPS.length - 1 ? 'Далее →' : 'Завершить'}
+                  {step < steps.length - 1 ? 'Далее →' : 'Завершить'}
                 </button>
               </div>
             </>
