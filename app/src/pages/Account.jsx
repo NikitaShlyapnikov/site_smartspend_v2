@@ -1,11 +1,18 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { useApp } from '../context/AppContext'
 
 export default function Account() {
   const { username, setUsername } = useApp()
+  const navigate = useNavigate()
   const [editing, setEditing] = useState(false)
   const [nameVal, setNameVal] = useState(username)
+
+  function logout() {
+    localStorage.removeItem('ss_auth')
+    navigate('/', { replace: true })
+  }
 
   function saveName() {
     const trimmed = nameVal.trim()
@@ -81,6 +88,17 @@ export default function Account() {
               <div className="account-row-value" style={{ fontSize: 13, color: 'var(--text-2)' }}>Не включена</div>
             </div>
             <button className="btn-sm">Включить</button>
+          </div>
+        </div>
+
+        <div className="account-section">
+          <div className="account-section-title">Сессия</div>
+          <div className="account-row">
+            <div>
+              <div className="account-row-label">Выход из аккаунта</div>
+              <div className="account-row-value" style={{ fontSize: 13, color: 'var(--text-2)' }}>Вы будете перенаправлены на страницу входа</div>
+            </div>
+            <button className="btn-sm btn-logout" onClick={logout}>Выйти</button>
           </div>
         </div>
 

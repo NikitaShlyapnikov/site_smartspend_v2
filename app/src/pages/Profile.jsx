@@ -9,6 +9,7 @@ const DEFAULT_FINANCE = {
   income: 80000,
   housing: 25000,
   credit: 11700,
+  creditMonths: 24,
   capital: 1240000,
   updatedAt: '3 августа 2025',
 }
@@ -25,49 +26,39 @@ function saveFinance(data) {
   localStorage.setItem('ss_finance', JSON.stringify(data))
 }
 
-const FINANCE_STEPS = [
-  {
-    id: 'income',
-    q: 'Ваш ежемесячный доход',
-    hint: 'Укажите сумму после вычета налогов, которую вы получаете на руки',
-    icon: '💰',
-    unit: '₽ / мес',
-  },
-  {
-    id: 'housing',
-    q: 'Расходы на жильё в месяц',
-    hint: 'Аренда или ипотека + коммунальные услуги (свет, вода, интернет)',
-    icon: '🏠',
-    unit: '₽ / мес',
-  },
-  {
-    id: 'credit',
-    q: 'Кредитные выплаты в месяц',
-    hint: 'Все кредиты, ипотека (если не учтена выше), кредитные карты',
-    icon: '💳',
-    unit: '₽ / мес',
-  },
-  {
-    id: 'capital',
-    q: 'Ваш общий капитал',
-    hint: 'Накопления, вклады, инвестиции, брокерский счёт — всё вместе',
-    icon: '📈',
-    unit: '₽',
-  },
+const BASE_STEPS = [
+  { id: 'income',  q: 'Ваш ежемесячный доход',        hint: 'Укажите сумму после вычета налогов, которую вы получаете на руки', icon: '💰', unit: '₽ / мес' },
+  { id: 'housing', q: 'Расходы на жильё в месяц',      hint: 'Аренда или ипотека + коммунальные услуги (свет, вода, интернет)', icon: '🏠', unit: '₽ / мес' },
+  { id: 'credit',  q: 'Кредитные выплаты в месяц',     hint: 'Все кредиты, ипотека (если не учтена выше), кредитные карты',    icon: '💳', unit: '₽ / мес' },
+  { id: 'capital', q: 'Ваш общий капитал',              hint: 'Накопления, вклады, инвестиции, брокерский счёт — всё вместе',   icon: '📈', unit: '₽' },
 ]
+const CREDIT_MONTHS_STEP = {
+  id: 'creditMonths',
+  q: 'Сколько месяцев осталось платить?',
+  hint: 'Когда кредит закроется, эта сумма начнёт пополнять ваши накопления — прогноз учтёт это',
+  icon: '📅',
+  unit: 'мес',
+}
 
 function FinancialModal({ open, initialData, onSave, onClose }) {
   const [step, setStep] = useState(0)
   const [values, setValues] = useState({
-    income: String(initialData.income),
-    housing: String(initialData.housing),
-    credit: String(initialData.credit),
-    capital: String(initialData.capital),
+    income:       String(initialData.income),
+    housing:      String(initialData.housing),
+    credit:       String(initialData.credit),
+    creditMonths: String(initialData.creditMonths ?? 0),
+    capital:      String(initialData.capital),
   })
   const [done, setDone] = useState(false)
 
-  const current = FINANCE_STEPS[step]
-  const progress = ((step + 1) / FINANCE_STEPS.length) * 100
+  // Dynamically build steps: insert creditMonths after credit if credit > 0
+  const hasCredit = parseInt(values.credit) > 0
+  const steps = hasCredit
+    ? [BASE_STEPS[0], BASE_STEPS[1], BASE_STEPS[2], CREDIT_MONTHS_STEP, BASE_STEPS[3]]
+    : BASE_STEPS
+
+  const current = steps[step]
+  const progress = ((step + 1) / steps.length) * 100
   const rawVal = values[current?.id] || ''
   const numVal = parseInt(rawVal.replace(/\s/g, ''), 10)
   const isValid = !isNaN(numVal) && numVal >= 0
@@ -79,7 +70,7 @@ function FinancialModal({ open, initialData, onSave, onClose }) {
 
   function next() {
     if (!isValid) return
-    if (step < FINANCE_STEPS.length - 1) {
+    if (step < steps.length - 1) {
       setStep(s => s + 1)
     } else {
       setDone(true)
@@ -94,12 +85,14 @@ function FinancialModal({ open, initialData, onSave, onClose }) {
     const now = new Date()
     const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря']
     const dateStr = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`
+    const credit = parseInt(values.credit) || 0
     const result = {
-      income: parseInt(values.income) || 0,
-      housing: parseInt(values.housing) || 0,
-      credit: parseInt(values.credit) || 0,
-      capital: parseInt(values.capital) || 0,
-      updatedAt: dateStr,
+      income:       parseInt(values.income) || 0,
+      housing:      parseInt(values.housing) || 0,
+      credit,
+      creditMonths: credit > 0 ? (parseInt(values.creditMonths) || 0) : 0,
+      capital:      parseInt(values.capital) || 0,
+      updatedAt:    dateStr,
     }
     saveFinance(result)
     onSave(result)
@@ -110,10 +103,11 @@ function FinancialModal({ open, initialData, onSave, onClose }) {
     setStep(0)
     setDone(false)
     setValues({
-      income: String(initialData.income),
-      housing: String(initialData.housing),
-      credit: String(initialData.credit),
-      capital: String(initialData.capital),
+      income:       String(initialData.income),
+      housing:      String(initialData.housing),
+      credit:       String(initialData.credit),
+      creditMonths: String(initialData.creditMonths ?? 0),
+      capital:      String(initialData.capital),
     })
     onClose()
   }
@@ -198,18 +192,45 @@ const CATEGORIES = [
   { id: 'travel',    name: 'Путешествия и Отдых',    color: '#C0B898' },
 ]
 
+// Map profile envelope category → catalog category filter
+const CAT_TO_CATALOG = {
+  food:      'food',
+  cafe:      'food',
+  clothes:   'clothes',
+  home:      'home',
+  auto:      'transport',
+  beauty:    'health',
+  fun:       'leisure',
+  education: 'all',
+  travel:    'leisure',
+  other:     'all',
+  all:       'all',
+}
+
 const INITIAL_ENVELOPES = {
   food: [
-    { source: 'smartspend', name: 'Базовое питание', items: 18, amount: 7500, type: 'consumable', period: 'еженедельно' },
-    { source: 'custom', name: 'Вкусняшки', items: 6, amount: 2500, type: 'consumable', period: 'еженедельно' },
+    { id: 's2', source: 'smartspend', name: 'Базовое питание', items: 18, amount: 7500, type: 'consumable', period: 'еженедельно' },
+    { id: null, source: 'custom', name: 'Вкусняшки', items: 6, amount: 2500, type: 'consumable', period: 'еженедельно' },
   ],
   clothes: [
-    { source: 'smartspend', name: 'Базовый гардероб', items: 7, amount: 5000, type: 'depreciation', period: 'раз в 2–5 лет' },
+    { id: 's1', source: 'smartspend', name: 'Базовый гардероб', items: 7, amount: 5000, type: 'depreciation', period: 'раз в 2–5 лет' },
   ],
   beauty: [
-    { source: 'smartspend', name: 'Гигиена', items: 12, amount: 2000, type: 'consumable', period: 'ежемесячно' },
-    { source: 'custom', name: 'Уход за кожей', items: 4, amount: 1000, type: 'consumable', period: 'ежемесячно' },
+    { id: 's5', source: 'smartspend', name: 'Гигиена', items: 12, amount: 2000, type: 'consumable', period: 'ежемесячно' },
+    { id: null, source: 'custom', name: 'Уход за кожей', items: 4, amount: 1000, type: 'consumable', period: 'ежемесячно' },
   ],
+}
+
+function loadEnvelopes() {
+  try {
+    const raw = localStorage.getItem('ss_envelopes')
+    if (raw) return JSON.parse(raw)
+  } catch {}
+  return INITIAL_ENVELOPES
+}
+
+function saveEnvelopes(data) {
+  localStorage.setItem('ss_envelopes', JSON.stringify(data))
 }
 
 const SOURCE_META = {
@@ -257,10 +278,10 @@ function TypeTag({ type, period }) {
   )
 }
 
-function SetCard({ set, catColor, onDelete, editMode }) {
+function SetCard({ set, catColor, onDelete, onOpen, editMode }) {
   const sm = SOURCE_META[set.source] || SOURCE_META.custom
   return (
-    <div className="set-card">
+    <div className="set-card" onClick={!editMode && set.id ? onOpen : undefined} style={!editMode && set.id ? { cursor: 'pointer' } : {}}>
       <div className="set-card-accent" style={{ background: catColor }} />
       <div className="set-card-top">
         <div className="set-source">
@@ -340,13 +361,16 @@ function fmt(n) {
   return Math.round(n / 1000) + ' тыс'
 }
 
-function calcTrajectory(emoRate, monthlyInvest, capital) {
+function calcTrajectory(emoRate, monthlyInvest, capital, creditPayment = 0, creditMonths = 0) {
   const points = []
   let cap = capital
   for (let m = 1; m <= 120; m++) {
+    // After credit is paid off, the freed payment is added to monthly investment
+    const freed = creditPayment > 0 && creditMonths > 0 && m > creditMonths ? creditPayment : 0
+    const invest = monthlyInvest + freed
     const growth = cap * BASE_RETURN / 12
     const spending = cap * emoRate / 12
-    cap = cap + growth - spending + monthlyInvest
+    cap = cap + growth - spending + invest
     if (m % 12 === 0) {
       points.push({ year: m / 12, cap: Math.round(cap), emo: Math.round(cap * emoRate / 12) })
     }
@@ -354,7 +378,7 @@ function calcTrajectory(emoRate, monthlyInvest, capital) {
   return points
 }
 
-function ForecastChart({ emoRate, dark, monthlyInvest, capital }) {
+function ForecastChart({ emoRate, dark, monthlyInvest, capital, creditPayment, creditMonths }) {
   const canvasRef = useRef(null)
 
   const draw = useCallback(() => {
@@ -370,8 +394,8 @@ function ForecastChart({ emoRate, dark, monthlyInvest, capital }) {
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio)
     ctx.clearRect(0, 0, W, H)
 
-    const data = calcTrajectory(emoRate, monthlyInvest, capital)
-    const dataBase = calcTrajectory(BASE_RETURN, monthlyInvest, capital)
+    const data = calcTrajectory(emoRate, monthlyInvest, capital, creditPayment, creditMonths)
+    const dataBase = calcTrajectory(BASE_RETURN, monthlyInvest, capital, creditPayment, creditMonths)
 
     const padL = 68, padR = 16, padT = 20, padB = 28
     const chartW = W - padL - padR
@@ -433,7 +457,7 @@ function ForecastChart({ emoRate, dark, monthlyInvest, capital }) {
         ctx.fillText(fmt(d.emo), gx + barW + 2, padT + chartH - emoH - 4)
       })
     }
-  }, [emoRate, dark, monthlyInvest, capital])
+  }, [emoRate, dark, monthlyInvest, capital, creditPayment, creditMonths])
 
   useEffect(() => {
     draw()
@@ -441,8 +465,8 @@ function ForecastChart({ emoRate, dark, monthlyInvest, capital }) {
     return () => window.removeEventListener('resize', draw)
   }, [draw])
 
-  const data = calcTrajectory(emoRate, monthlyInvest, capital)
-  const dataBase = calcTrajectory(BASE_RETURN, monthlyInvest, capital)
+  const data = calcTrajectory(emoRate, monthlyInvest, capital, creditPayment, creditMonths)
+  const dataBase = calcTrajectory(BASE_RETURN, monthlyInvest, capital, creditPayment, creditMonths)
   const last = data[data.length - 1]
   const lastBase = dataBase[dataBase.length - 1]
   const diff = last.cap - lastBase.cap
@@ -474,6 +498,11 @@ function ForecastChart({ emoRate, dark, monthlyInvest, capital }) {
         <div className="fc-sum-item">
           <span className="fc-sum-label">Пополнение за 10 лет</span>
           <span className="fc-sum-value">+{(monthlyInvest * 120).toLocaleString('ru')} ₽</span>
+          {creditPayment > 0 && creditMonths > 0 && creditMonths <= 120 && (
+            <span className="fc-sum-delta fc-credit-hint">
+              +{creditPayment.toLocaleString('ru')} ₽/мес после закрытия кредита через {creditMonths} мес.
+            </span>
+          )}
         </div>
       </div>
     </div>
@@ -482,13 +511,14 @@ function ForecastChart({ emoRate, dark, monthlyInvest, capital }) {
 
 export default function Profile() {
   const { username, dark } = useApp()
+  const navigate = useNavigate()
   const [emoRate, setEmoRate] = useState(0.05)
-  const [envelopes, setEnvelopes] = useState(INITIAL_ENVELOPES)
+  const [envelopes, setEnvelopes] = useState(loadEnvelopes)
   const [editMode, setEditMode] = useState(false)
   const [finOpen, setFinOpen] = useState(false)
   const [finance, setFinance] = useState(loadFinance)
 
-  const { income, housing, credit, capital, updatedAt } = finance
+  const { income, housing, credit, creditMonths = 0, capital, updatedAt } = finance
 
   // Суммируем конверты по категориям
   const grandTotal = CATEGORIES.reduce((sum, cat) => {
@@ -544,19 +574,39 @@ export default function Profile() {
   const emoAnnual = Math.round(capital * emoRate)
   const emoMonthly = Math.round(emoAnnual / 12)
 
+  const savingsPct = Math.round((savings / income) * 100)
+  const greetingSubtitle = (() => {
+    if (savings < 0) {
+      const deficit = Math.abs(savings).toLocaleString('ru')
+      return <>Расходы превышают доход на <strong>{deficit} ₽</strong> — самое время пересмотреть конверты и найти, где можно сократить.</>
+    }
+    if (savingsPct < 5) {
+      return <>Откладывается совсем немного — <strong>{savingsPct}% дохода</strong>. Попробуй найти статью расходов, которую можно сократить хотя бы на пару тысяч.</>
+    }
+    if (savingsPct < 15) {
+      return <>В этом месяце откладываешь <strong>{savingsPct}% дохода</strong> — есть куда расти. Постепенно стремись к 20%, и капитал начнёт работать заметнее.</>
+    }
+    if (savingsPct < 25) {
+      return <>В этом месяце откладываешь <strong>{savingsPct}% дохода</strong> — хороший темп накопления. Держи курс.</>
+    }
+    if (savingsPct < 40) {
+      return <>Откладываешь <strong>{savingsPct}% дохода</strong> — отличный результат. Такой темп позволяет капиталу расти быстрее инфляции.</>
+    }
+    return <>Откладываешь <strong>{savingsPct}% дохода</strong> — впечатляющая дисциплина. При таком темпе финансовая независимость ближе, чем кажется.</>
+  })()
+
   function deleteSet(catId, idx) {
     setEnvelopes(prev => {
       const next = { ...prev, [catId]: [...(prev[catId] || [])] }
       next[catId].splice(idx, 1)
+      saveEnvelopes(next)
       return next
     })
   }
 
-  function addSet(catId) {
-    setEnvelopes(prev => ({
-      ...prev,
-      [catId]: [...(prev[catId] || []), { source: 'custom', name: 'Новый набор', items: 0, amount: 0, type: 'consumable', period: '—' }],
-    }))
+  function goToCatalog(catId) {
+    const catalogCat = CAT_TO_CATALOG[catId] || 'all'
+    navigate(`/catalog?cat=${catalogCat}`)
   }
 
   const visibleCats = CATEGORIES.filter(cat => {
@@ -571,9 +621,7 @@ export default function Profile() {
         <div className="entry-header">
           <div className="entry-greeting">
             <div className="entry-title">Привет, {username.split(' ')[0]}</div>
-            <div className="entry-subtitle">
-              В этом месяце ты откладываешь <strong>{Math.round((savings / income) * 100)}% дохода</strong> — хороший темп накопления.
-            </div>
+            <div className="entry-subtitle">{greetingSubtitle}</div>
           </div>
           <div className="entry-tiles">
             <div className="entry-tile">
@@ -669,7 +717,7 @@ export default function Profile() {
               </div>
             </div>
 
-            <ForecastChart emoRate={emoRate} dark={dark} monthlyInvest={monthlyInvest} capital={capital} />
+            <ForecastChart emoRate={emoRate} dark={dark} monthlyInvest={monthlyInvest} capital={capital} creditPayment={credit} creditMonths={creditMonths} />
           </div>
         </div>
 
@@ -718,10 +766,11 @@ export default function Profile() {
                           catColor={cat.color}
                           editMode={editMode}
                           onDelete={() => deleteSet(cat.id, idx)}
+                          onOpen={() => navigate(`/set/${set.id}`)}
                         />
                       ))}
                       {editMode && (
-                        <div className="set-card-add" onClick={() => addSet(cat.id)}>
+                        <div className="set-card-add" onClick={() => goToCatalog(cat.id)}>
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
                           <span className="set-card-add-label">Добавить набор</span>
                         </div>
@@ -737,7 +786,7 @@ export default function Profile() {
                           <span>Например, <strong>«Подарки близким»</strong> — незапланированные праздничные траты часто ломают бюджет</span>
                         </div>
                       )}
-                      <button className="env-add-only" onClick={() => addSet(cat.id)}>
+                      <button className="env-add-only" onClick={() => goToCatalog(cat.id)}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
                         Добавить первый набор в этот конверт
                       </button>

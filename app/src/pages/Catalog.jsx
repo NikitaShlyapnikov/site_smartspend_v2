@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { catalogSets } from '../data/mock'
 
@@ -13,9 +13,13 @@ const CATEGORIES = [
   { id: 'leisure', label: 'Досуг', count: 1 },
 ]
 
+const VALID_CATS = ['all', 'clothes', 'food', 'home', 'transport', 'health', 'leisure']
+
 export default function Catalog() {
   const navigate = useNavigate()
-  const [cat, setCat] = useState('all')
+  const [searchParams] = useSearchParams()
+  const initCat = VALID_CATS.includes(searchParams.get('cat')) ? searchParams.get('cat') : 'all'
+  const [cat, setCat] = useState(initCat)
   const [typeFilter, setTypeFilter] = useState('all')
   const [sourceFilter, setSourceFilter] = useState('all')
 

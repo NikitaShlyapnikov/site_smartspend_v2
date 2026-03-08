@@ -736,6 +736,11 @@ body.dark .inv-status-badge.planning { background: #2A2010; color: #C89A50; bord
 }
 .btn-danger:hover { background: #FFE4E0; }
 body.dark .btn-danger { background: #2A1010; color: #E87070; border-color: #4A2020; }
+.btn-logout {
+  background: #FFF0EE; color: #C0392B; border: 1px solid #F9D0CC;
+}
+.btn-logout:hover { background: #FFE4E0; }
+body.dark .btn-logout { background: #2A1010; color: #E87070; border-color: #4A2020; }
 
 /* ── NOTIFICATIONS PAGE ── */
 .notif-main {
@@ -1579,6 +1584,7 @@ body.dark .ctx-hint.info { background: #0A1A2A; border-top-color: #1A3050; color
 .fc-sum-value.cap { color: #4E8268; }
 .fc-sum-value.emo { color: #4E8268; }
 .fc-sum-delta { font-size: 10px; font-family: var(--mono); color: #C05050; margin-top: 2px; font-weight: 500; }
+.fc-credit-hint { color: #4E8268; }
 
 /* Envelopes & set cards */
 .envelopes-list { display: flex; flex-direction: column; gap: 12px; }
