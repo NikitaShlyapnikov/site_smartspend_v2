@@ -1138,6 +1138,40 @@ body.landing-body { display: block; }
 }
 .quiz-result-btn:hover { opacity: 0.88; }
 
+/* ── Financial modal overrides ── */
+.fin-modal { position: relative; }
+.fin-step-icon { font-size: 32px; margin-bottom: 12px; }
+.quiz-q { margin-bottom: 8px; }
+.fin-step-hint {
+  font-size: 13px; color: var(--text-3); line-height: 1.5;
+  margin-bottom: 20px;
+}
+.fin-input-wrap {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 16px;
+  transition: border-color 0.15s; margin-bottom: 4px;
+}
+.fin-input-wrap:focus-within { border-color: var(--accent-green); }
+.fin-input {
+  flex: 1; background: none; border: none; outline: none;
+  font-family: var(--mono); font-size: 22px; font-weight: 500;
+  color: var(--text); letter-spacing: -0.02em; min-width: 0;
+}
+.fin-input::placeholder { color: var(--text-3); }
+.fin-input-unit {
+  font-size: 13px; color: var(--text-3); white-space: nowrap; flex-shrink: 0;
+}
+.fin-modal-close {
+  position: absolute; top: 14px; right: 14px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--surface-2); border: 1px solid var(--border);
+  font-size: 13px; color: var(--text-3); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.12s;
+}
+.fin-modal-close:hover { background: var(--surface-3); color: var(--text); }
+
 /* ══════════════════════════════════════════
    INVENTORY — Ring progress & urgency
 ══════════════════════════════════════════ */
@@ -1600,7 +1634,7 @@ body.dark .ctx-hint.info { background: #0A1A2A; border-top-color: #1A3050; color
 
 /* Delete button (edit mode) */
 .set-delete {
-  display: none; position: absolute; top: -7px; right: -7px;
+  display: flex; position: absolute; top: -7px; right: -7px;
   width: 20px; height: 20px; border-radius: 50%;
   background: #E05252; color: #fff; border: 2px solid var(--surface);
   align-items: center; justify-content: center;

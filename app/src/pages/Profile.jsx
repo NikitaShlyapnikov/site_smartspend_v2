@@ -3,47 +3,178 @@ import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { useApp } from '../context/AppContext'
 
-// ── Финансовая картина ──
-const BUDGET_GROUPS = [
+const BASE_RETURN = 0.04
+
+const DEFAULT_FINANCE = {
+  income: 80000,
+  housing: 25000,
+  credit: 11700,
+  capital: 1240000,
+  updatedAt: '3 августа 2025',
+}
+
+function loadFinance() {
+  try {
+    const raw = localStorage.getItem('ss_finance')
+    if (raw) return { ...DEFAULT_FINANCE, ...JSON.parse(raw) }
+  } catch {}
+  return DEFAULT_FINANCE
+}
+
+function saveFinance(data) {
+  localStorage.setItem('ss_finance', JSON.stringify(data))
+}
+
+const FINANCE_STEPS = [
   {
-    id: 'housing', label: 'Жильё', total: -25000, pct: 31,
-    rows: [
-      { label: 'Аренда квартиры', value: -20000 },
-      { label: 'Коммунальные услуги', value: -5000 },
-    ],
-    hint: '31% дохода на жильё — выше рекомендуемых 25–30%. Если аренда выросла, возможно стоит пересмотреть бюджет.',
-    hintType: 'warn',
+    id: 'income',
+    q: 'Ваш ежемесячный доход',
+    hint: 'Укажите сумму после вычета налогов, которую вы получаете на руки',
+    icon: '💰',
+    unit: '₽ / мес',
   },
   {
-    id: 'credit', label: 'Кредитные обязательства', total: -11700, pct: 15,
-    rows: [
-      { label: 'Кредит — автомобиль', value: -8500 },
-      { label: 'Кредитная карта', value: -3200 },
-    ],
-    hint: 'Кредитная нагрузка 15% дохода — в норме. При досрочном погашении карты высвободится 3 200 ₽ / мес для инвестиций.',
-    hintType: 'info',
+    id: 'housing',
+    q: 'Расходы на жильё в месяц',
+    hint: 'Аренда или ипотека + коммунальные услуги (свет, вода, интернет)',
+    icon: '🏠',
+    unit: '₽ / мес',
   },
   {
-    id: 'envelopes', label: 'Конверты', total: -20000, pct: 25,
-    rows: [
-      { label: 'Еда и продукты', value: -10000 },
-      { label: 'Одежда', value: -5000 },
-      { label: 'Бытовая химия и гигиена', value: -3000 },
-      { label: 'Прочие конверты', value: -2000 },
-    ],
+    id: 'credit',
+    q: 'Кредитные выплаты в месяц',
+    hint: 'Все кредиты, ипотека (если не учтена выше), кредитные карты',
+    icon: '💳',
+    unit: '₽ / мес',
   },
   {
-    id: 'other', label: 'Прочие расходы', total: null, pct: null,
-    rows: [],
+    id: 'capital',
+    q: 'Ваш общий капитал',
+    hint: 'Накопления, вклады, инвестиции, брокерский счёт — всё вместе',
+    icon: '📈',
+    unit: '₽',
   },
 ]
 
-const INCOME = 80000
-const TOTAL_EXPENSES = 56700
-const SAVINGS = INCOME - TOTAL_EXPENSES
-const CAPITAL = 1240000
-const MONTHLY_INVEST = SAVINGS
-const BASE_RETURN = 0.04
+function FinancialModal({ open, initialData, onSave, onClose }) {
+  const [step, setStep] = useState(0)
+  const [values, setValues] = useState({
+    income: String(initialData.income),
+    housing: String(initialData.housing),
+    credit: String(initialData.credit),
+    capital: String(initialData.capital),
+  })
+  const [done, setDone] = useState(false)
+
+  const current = FINANCE_STEPS[step]
+  const progress = ((step + 1) / FINANCE_STEPS.length) * 100
+  const rawVal = values[current?.id] || ''
+  const numVal = parseInt(rawVal.replace(/\s/g, ''), 10)
+  const isValid = !isNaN(numVal) && numVal >= 0
+
+  function handleInput(e) {
+    const digits = e.target.value.replace(/\D/g, '')
+    setValues(v => ({ ...v, [current.id]: digits }))
+  }
+
+  function next() {
+    if (!isValid) return
+    if (step < FINANCE_STEPS.length - 1) {
+      setStep(s => s + 1)
+    } else {
+      setDone(true)
+    }
+  }
+
+  function back() {
+    if (step > 0) setStep(s => s - 1)
+  }
+
+  function handleSave() {
+    const now = new Date()
+    const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря']
+    const dateStr = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`
+    const result = {
+      income: parseInt(values.income) || 0,
+      housing: parseInt(values.housing) || 0,
+      credit: parseInt(values.credit) || 0,
+      capital: parseInt(values.capital) || 0,
+      updatedAt: dateStr,
+    }
+    saveFinance(result)
+    onSave(result)
+    handleClose()
+  }
+
+  function handleClose() {
+    setStep(0)
+    setDone(false)
+    setValues({
+      income: String(initialData.income),
+      housing: String(initialData.housing),
+      credit: String(initialData.credit),
+      capital: String(initialData.capital),
+    })
+    onClose()
+  }
+
+  if (!open) return null
+
+  return (
+    <div className="quiz-overlay open" onClick={e => e.target === e.currentTarget && handleClose()}>
+      <div className="quiz-modal fin-modal">
+        <div className="quiz-progress-bar" style={{ width: `${progress}%` }} />
+        <div className="quiz-inner">
+          {done ? (
+            <div className="quiz-result">
+              <div className="quiz-result-icon">✅</div>
+              <div className="quiz-result-title">Данные обновлены</div>
+              <div className="quiz-result-desc">
+                Финансовая картина и прогноз накоплений пересчитаны с новыми данными
+              </div>
+              <button className="quiz-result-btn" onClick={handleSave}>
+                Сохранить →
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="fin-step-icon">{current.icon}</div>
+              <div className="quiz-q">{current.q}</div>
+              <div className="fin-step-hint">{current.hint}</div>
+              <div className="fin-input-wrap">
+                <input
+                  className="fin-input"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={rawVal ? parseInt(rawVal).toLocaleString('ru') : ''}
+                  onChange={handleInput}
+                  onKeyDown={e => e.key === 'Enter' && next()}
+                  autoFocus
+                />
+                <span className="fin-input-unit">{current.unit}</span>
+              </div>
+              <div className="quiz-actions">
+                {step > 0 && (
+                  <button className="quiz-btn-skip" onClick={back}>← Назад</button>
+                )}
+                <button
+                  className="quiz-btn-next"
+                  onClick={next}
+                  disabled={!isValid}
+                  style={{ opacity: isValid ? 1 : 0.4, cursor: isValid ? 'pointer' : 'default' }}
+                >
+                  {step < FINANCE_STEPS.length - 1 ? 'Далее →' : 'Завершить'}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+        <button className="fin-modal-close" onClick={handleClose} title="Закрыть">✕</button>
+      </div>
+    </div>
+  )
+}
 
 const EMO_RATES = [
   { rate: 0.04, label: '4%', level: 'low' },
@@ -209,13 +340,13 @@ function fmt(n) {
   return Math.round(n / 1000) + ' тыс'
 }
 
-function calcTrajectory(emoRate) {
+function calcTrajectory(emoRate, monthlyInvest, capital) {
   const points = []
-  let cap = CAPITAL
+  let cap = capital
   for (let m = 1; m <= 120; m++) {
     const growth = cap * BASE_RETURN / 12
     const spending = cap * emoRate / 12
-    cap = cap + growth - spending + MONTHLY_INVEST
+    cap = cap + growth - spending + monthlyInvest
     if (m % 12 === 0) {
       points.push({ year: m / 12, cap: Math.round(cap), emo: Math.round(cap * emoRate / 12) })
     }
@@ -223,7 +354,7 @@ function calcTrajectory(emoRate) {
   return points
 }
 
-function ForecastChart({ emoRate, dark }) {
+function ForecastChart({ emoRate, dark, monthlyInvest, capital }) {
   const canvasRef = useRef(null)
 
   const draw = useCallback(() => {
@@ -239,8 +370,8 @@ function ForecastChart({ emoRate, dark }) {
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio)
     ctx.clearRect(0, 0, W, H)
 
-    const data = calcTrajectory(emoRate)
-    const dataBase = calcTrajectory(BASE_RETURN)
+    const data = calcTrajectory(emoRate, monthlyInvest, capital)
+    const dataBase = calcTrajectory(BASE_RETURN, monthlyInvest, capital)
 
     const padL = 68, padR = 16, padT = 20, padB = 28
     const chartW = W - padL - padR
@@ -302,7 +433,7 @@ function ForecastChart({ emoRate, dark }) {
         ctx.fillText(fmt(d.emo), gx + barW + 2, padT + chartH - emoH - 4)
       })
     }
-  }, [emoRate, dark])
+  }, [emoRate, dark, monthlyInvest, capital])
 
   useEffect(() => {
     draw()
@@ -310,8 +441,8 @@ function ForecastChart({ emoRate, dark }) {
     return () => window.removeEventListener('resize', draw)
   }, [draw])
 
-  const data = calcTrajectory(emoRate)
-  const dataBase = calcTrajectory(BASE_RETURN)
+  const data = calcTrajectory(emoRate, monthlyInvest, capital)
+  const dataBase = calcTrajectory(BASE_RETURN, monthlyInvest, capital)
   const last = data[data.length - 1]
   const lastBase = dataBase[dataBase.length - 1]
   const diff = last.cap - lastBase.cap
@@ -342,7 +473,7 @@ function ForecastChart({ emoRate, dark }) {
         </div>
         <div className="fc-sum-item">
           <span className="fc-sum-label">Пополнение за 10 лет</span>
-          <span className="fc-sum-value">+{(MONTHLY_INVEST * 120).toLocaleString('ru')} ₽</span>
+          <span className="fc-sum-value">+{(monthlyInvest * 120).toLocaleString('ru')} ₽</span>
         </div>
       </div>
     </div>
@@ -350,19 +481,68 @@ function ForecastChart({ emoRate, dark }) {
 }
 
 export default function Profile() {
-  const navigate = useNavigate()
   const { username, dark } = useApp()
   const [emoRate, setEmoRate] = useState(0.05)
   const [envelopes, setEnvelopes] = useState(INITIAL_ENVELOPES)
   const [editMode, setEditMode] = useState(false)
+  const [finOpen, setFinOpen] = useState(false)
+  const [finance, setFinance] = useState(loadFinance)
 
-  const emoAnnual = Math.round(CAPITAL * emoRate)
-  const emoMonthly = Math.round(emoAnnual / 12)
+  const { income, housing, credit, capital, updatedAt } = finance
 
+  // Суммируем конверты по категориям
   const grandTotal = CATEGORIES.reduce((sum, cat) => {
-    const sets = envelopes[cat.id] || []
-    return sum + sets.reduce((s, x) => s + x.amount, 0)
+    return sum + (envelopes[cat.id] || []).reduce((s, x) => s + x.amount, 0)
   }, 0)
+
+  // Динамический перерасчёт
+  const totalExpenses = housing + credit + grandTotal
+  const savings = income - totalExpenses
+  const monthlyInvest = Math.max(0, savings)
+
+  // Строим группы финансовой картины из актуальных данных
+  const housingPct = Math.round(housing / income * 100)
+  const creditPct = Math.round(credit / income * 100)
+  const staticGroups = [
+    {
+      id: 'housing', label: 'Жильё', total: -housing, pct: housingPct,
+      rows: [{ label: 'Аренда / ипотека + ЖКХ', value: -housing }],
+      hint: housingPct > 30
+        ? `${housingPct}% дохода на жильё — выше рекомендуемых 25–30%. Если аренда выросла, возможно стоит пересмотреть бюджет.`
+        : `${housingPct}% дохода на жильё — в норме.`,
+      hintType: housingPct > 30 ? 'warn' : 'info',
+    },
+    {
+      id: 'credit', label: 'Кредитные обязательства', total: -credit, pct: creditPct,
+      rows: credit > 0 ? [{ label: 'Кредиты и кредитные карты', value: -credit }] : [],
+      hint: credit > 0
+        ? `Кредитная нагрузка ${creditPct}% дохода — ${creditPct <= 20 ? 'в норме.' : 'выше рекомендуемых 20%. Рассмотрите досрочное погашение.'}`
+        : null,
+      hintType: creditPct <= 20 ? 'info' : 'warn',
+    },
+  ]
+
+  const envelopesGroup = {
+    id: 'envelopes',
+    label: 'Конверты',
+    total: -grandTotal,
+    pct: Math.round(grandTotal / income * 100),
+    rows: CATEGORIES
+      .filter(cat => (envelopes[cat.id] || []).length > 0)
+      .map(cat => ({
+        label: cat.name,
+        value: -(envelopes[cat.id] || []).reduce((s, x) => s + x.amount, 0),
+      })),
+  }
+
+  const budgetGroups = [
+    ...staticGroups,
+    envelopesGroup,
+    { id: 'other', label: 'Прочие расходы', total: null, pct: null, rows: [] },
+  ]
+
+  const emoAnnual = Math.round(capital * emoRate)
+  const emoMonthly = Math.round(emoAnnual / 12)
 
   function deleteSet(catId, idx) {
     setEnvelopes(prev => {
@@ -392,25 +572,25 @@ export default function Profile() {
           <div className="entry-greeting">
             <div className="entry-title">Привет, {username.split(' ')[0]}</div>
             <div className="entry-subtitle">
-              В этом месяце ты откладываешь <strong>{Math.round((SAVINGS / INCOME) * 100)}% дохода</strong> — хороший темп накопления.
+              В этом месяце ты откладываешь <strong>{Math.round((savings / income) * 100)}% дохода</strong> — хороший темп накопления.
             </div>
           </div>
           <div className="entry-tiles">
             <div className="entry-tile">
               <div className="entry-tile-label">Доход</div>
-              <div className="entry-tile-value">{INCOME.toLocaleString('ru')} ₽</div>
+              <div className="entry-tile-value">{income.toLocaleString('ru')} ₽</div>
             </div>
             <div className="entry-tile-divider" />
             <div className="entry-tile">
               <div className="entry-tile-label">Расходы</div>
-              <div className="entry-tile-value">{TOTAL_EXPENSES.toLocaleString('ru')} ₽</div>
-              <div className="entry-tile-sub">{Math.round((TOTAL_EXPENSES / INCOME) * 100)}% дохода</div>
+              <div className="entry-tile-value">{totalExpenses.toLocaleString('ru')} ₽</div>
+              <div className="entry-tile-sub">{Math.round((totalExpenses / income) * 100)}% дохода</div>
             </div>
             <div className="entry-tile-divider" />
             <div className="entry-tile highlight">
               <div className="entry-tile-label">Откладывается</div>
-              <div className="entry-tile-value">{SAVINGS.toLocaleString('ru')} ₽</div>
-              <div className="entry-tile-sub">{Math.round((SAVINGS / INCOME) * 100)}% дохода</div>
+              <div className="entry-tile-value">{savings.toLocaleString('ru')} ₽</div>
+              <div className="entry-tile-sub">{Math.round((savings / income) * 100)}% дохода</div>
             </div>
           </div>
         </div>
@@ -418,22 +598,22 @@ export default function Profile() {
         {/* Финансовая картина */}
         <div>
           <div className="section-heading">
-            <span className="section-title">Финансовая картина · Август 2025</span>
-            <a className="section-link" href="#">Редактировать</a>
+            <span className="section-title">Финансовая картина · {updatedAt}</span>
+            <button className="section-link" onClick={() => setFinOpen(true)}>Редактировать</button>
           </div>
           <div className="profile-card">
             <div className="bl-row income">
               <span className="bl-label">Доход</span>
-              <span className="bl-value">{INCOME.toLocaleString('ru')} ₽</span>
+              <span className="bl-value">{income.toLocaleString('ru')} ₽</span>
             </div>
-            {BUDGET_GROUPS.map(g => <BudgetGroup key={g.id} group={g} />)}
+            {budgetGroups.map(g => <BudgetGroup key={g.id} group={g} />)}
             <div className="bl-row total-expenses">
               <span className="bl-label">Итого расходов</span>
-              <span className="bl-value">−{TOTAL_EXPENSES.toLocaleString('ru')} ₽ <span className="bl-tag-neutral">{Math.round((TOTAL_EXPENSES / INCOME) * 100)}% дохода</span></span>
+              <span className="bl-value">−{totalExpenses.toLocaleString('ru')} ₽ <span className="bl-tag-neutral">{Math.round((totalExpenses / income) * 100)}% дохода</span></span>
             </div>
             <div className="bl-row remainder">
               <span className="bl-label">Остаток — к инвестированию</span>
-              <span className="bl-value">{SAVINGS.toLocaleString('ru')} ₽ <span className="bl-tag">{Math.round((SAVINGS / INCOME) * 100)}%</span></span>
+              <span className="bl-value">{savings.toLocaleString('ru')} ₽ <span className="bl-tag">{Math.round((savings / income) * 100)}%</span></span>
             </div>
           </div>
         </div>
@@ -447,13 +627,12 @@ export default function Profile() {
             <div className="combined-top">
               <div>
                 <div className="cap-label">Общий капитал</div>
-                <div className="cap-value">{CAPITAL.toLocaleString('ru')} ₽</div>
+                <div className="cap-value">{capital.toLocaleString('ru')} ₽</div>
                 <div className="cap-meta">
-                  <span className="cap-period">Обновлено: 3 августа 2025</span>
+                  <span className="cap-period">Обновлено: {updatedAt}</span>
                   <span className="cap-hint">Рекомендуется обновлять раз в год</span>
                 </div>
               </div>
-              <button className="btn-sm" onClick={() => navigate('/account')}>Обновить</button>
             </div>
 
             <div className="combined-bottom">
@@ -490,7 +669,7 @@ export default function Profile() {
               </div>
             </div>
 
-            <ForecastChart emoRate={emoRate} dark={dark} />
+            <ForecastChart emoRate={emoRate} dark={dark} monthlyInvest={monthlyInvest} capital={capital} />
           </div>
         </div>
 
@@ -575,6 +754,12 @@ export default function Profile() {
           </div>
         </div>
       </main>
+      <FinancialModal
+        open={finOpen}
+        initialData={finance}
+        onSave={f => setFinance(f)}
+        onClose={() => setFinOpen(false)}
+      />
     </Layout>
   )
 }
