@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 
 const navItems = [
@@ -71,6 +71,7 @@ const bottomNavItems = [
 export default function Sidebar() {
   const { dark, collapsed, username, toggleTheme, toggleSidebar } = useApp()
   const location = useLocation()
+  const navigate = useNavigate()
 
   const initials = username.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
 
@@ -134,7 +135,14 @@ export default function Sidebar() {
           <span className="nav-label theme-label">{dark ? 'Светлая тема' : 'Тёмная тема'}</span>
         </button>
 
-        <div className="sidebar-user">
+        <div
+          className="sidebar-user"
+          style={{ cursor: 'pointer', borderRadius: 10, transition: 'background 0.12s' }}
+          onClick={() => navigate('/account')}
+          onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-2)'}
+          onMouseLeave={e => e.currentTarget.style.background = ''}
+          title="Аккаунт и безопасность"
+        >
           <div className="avatar-sm">{initials}</div>
           <div className="nav-label-block">
             <div className="sidebar-user-name">{username}</div>
