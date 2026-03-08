@@ -138,97 +138,61 @@ export const setDetails = {
   },
 }
 
-// status: 'ok' | 'soon' | 'urgent' | 'overexploit'
+function daysAgo(n) {
+  const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10);
+}
+
+// type: 'consumable' — fields: price, qty, dailyUse, unit?, lastBought, set?, setId?
+// type: 'wear'       — fields: price, expectedPrice?, wearLifeWeeks, purchaseDate, set?, setId?
 export const inventoryGroups = [
   {
     id: 'g1', name: 'Одежда', color: '#4E8268',
     items: [
-      {
-        id: 'i1', name: 'Зимняя куртка', status: 'ok',
-        ringVal: 78, ringMax: 100, ringUnit: '%',
-        remainder: 'Износ 22% — в хорошем состоянии',
-        amount: 12000, amountLabel: 'стоимость',
-        type: 'wear', date: 'куплено: окт 2023',
-        set: 'Базовый гардероб на сезон', setId: 's1',
-      },
-      {
-        id: 'i2', name: 'Кроссовки Nike', status: 'soon',
-        ringVal: 6, ringMax: 12, ringUnit: 'мес',
-        remainder: 'Замена через ~2 месяца',
-        amount: 8500, amountLabel: 'стоимость',
-        type: 'wear', date: 'куплено: авг 2024',
-        set: 'Базовый гардероб на сезон', setId: 's1',
-      },
-      {
-        id: 'i3', name: 'Базовые футболки', status: 'urgent',
-        ringVal: 1, ringMax: 12, ringUnit: 'мес',
-        remainder: 'Срочно требует замены',
-        amount: 1500, amountLabel: 'стоимость',
-        type: 'wear', date: 'куплено: янв 2023',
-        set: 'Базовый гардероб на сезон', setId: 's1',
-      },
+      { id: 'i1', name: 'Зимняя куртка', type: 'wear',
+        price: 12000, expectedPrice: 10000, wearLifeWeeks: 156, purchaseDate: daysAgo(120),
+        set: 'Базовый гардероб на сезон', setId: 's1' },
+      { id: 'i2', name: 'Кроссовки Nike', type: 'wear',
+        price: 8500, expectedPrice: 7000, wearLifeWeeks: 78, purchaseDate: daysAgo(490),
+        set: 'Базовый гардероб на сезон', setId: 's1' },
+      { id: 'i3', name: 'Базовые футболки', type: 'wear',
+        price: 4500, expectedPrice: 3000, wearLifeWeeks: 104, purchaseDate: daysAgo(800),
+        set: 'Базовый гардероб на сезон', setId: 's1' },
     ],
   },
   {
     id: 'g2', name: 'Питание', color: '#8268A0',
     items: [
-      {
-        id: 'i4', name: 'Продукты на месяц', status: 'ok',
-        ringVal: 18, ringMax: 30, ringUnit: 'дн',
-        remainder: 'Осталось 12 дней запасов',
-        amount: 18000, amountLabel: 'в месяц',
-        type: 'consumable', date: 'обновлено: мар 2025',
-        set: 'Здоровое питание — базовый набор', setId: 's2',
-      },
-      {
-        id: 'i5', name: 'Витамины', status: 'soon',
-        ringVal: 8, ringMax: 30, ringUnit: 'дн',
-        remainder: 'Заканчиваются через 8 дней',
-        amount: 1200, amountLabel: 'в месяц',
-        type: 'consumable', date: 'обновлено: фев 2025',
-      },
+      { id: 'i4', name: 'Гречка', type: 'consumable',
+        price: 180, qty: 1000, dailyUse: 70, unit: 'г', lastBought: daysAgo(12),
+        set: 'Здоровое питание — базовый набор', setId: 's2' },
+      { id: 'i5', name: 'Витамин D', type: 'consumable',
+        price: 650, qty: 90, dailyUse: 1, unit: 'кап', lastBought: daysAgo(20),
+        set: 'Здоровое питание — базовый набор', setId: 's2' },
+      { id: 'i10', name: 'Протеин', type: 'consumable',
+        price: 2800, qty: 2000, dailyUse: 33, unit: 'г', lastBought: daysAgo(58),
+        set: 'Здоровое питание — базовый набор', setId: 's2' },
     ],
   },
   {
     id: 'g3', name: 'Техника', color: '#6888A0',
     items: [
-      {
-        id: 'i6', name: 'Ноутбук MacBook', status: 'ok',
-        ringVal: 85, ringMax: 100, ringUnit: '%',
-        remainder: 'Износ 15% — отличное состояние',
-        amount: 120000, amountLabel: 'стоимость',
-        type: 'wear', date: 'куплено: янв 2024',
-        set: 'Домашний офис — всё необходимое', setId: 's3',
-      },
-      {
-        id: 'i7', name: 'Наушники Sony', status: 'overexploit',
-        ringVal: 100, ringMax: 100, ringUnit: '%',
-        remainder: 'Переэксплуатация — замена просрочена',
-        amount: 15000, amountLabel: 'стоимость',
-        type: 'wear', date: 'куплено: дек 2021',
-        set: 'Домашний офис — всё необходимое', setId: 's3',
-      },
+      { id: 'i6', name: 'Ноутбук MacBook', type: 'wear',
+        price: 120000, expectedPrice: 90000, wearLifeWeeks: 260, purchaseDate: daysAgo(60),
+        set: 'Домашний офис — всё необходимое', setId: 's3' },
+      { id: 'i7', name: 'Наушники Sony', type: 'wear',
+        price: 15000, expectedPrice: 12000, wearLifeWeeks: 104, purchaseDate: daysAgo(900),
+        set: 'Домашний офис — всё необходимое', setId: 's3' },
     ],
   },
   {
     id: 'g4', name: 'Гигиена и уход', color: '#A08268',
     items: [
-      {
-        id: 'i8', name: 'Шампунь и гель', status: 'urgent',
-        ringVal: 2, ringMax: 30, ringUnit: 'дн',
-        remainder: 'Заканчиваются через 2 дня!',
-        amount: 800, amountLabel: 'в месяц',
-        type: 'consumable', date: 'обновлено: мар 2025',
-        set: 'Забота о себе — базовый уход', setId: 's5',
-      },
-      {
-        id: 'i9', name: 'Зубная паста', status: 'ok',
-        ringVal: 20, ringMax: 30, ringUnit: 'дн',
-        remainder: 'Запас на 20 дней',
-        amount: 300, amountLabel: 'в месяц',
-        type: 'consumable', date: 'обновлено: мар 2025',
-        set: 'Забота о себе — базовый уход', setId: 's5',
-      },
+      { id: 'i8', name: 'Шампунь', type: 'consumable',
+        price: 450, qty: 400, dailyUse: 10, unit: 'мл', lastBought: daysAgo(37),
+        set: 'Забота о себе — базовый уход', setId: 's5' },
+      { id: 'i9', name: 'Зубная паста', type: 'consumable',
+        price: 290, qty: 100, dailyUse: 3, unit: 'г', lastBought: daysAgo(10),
+        set: 'Забота о себе — базовый уход', setId: 's5' },
     ],
   },
 ]
