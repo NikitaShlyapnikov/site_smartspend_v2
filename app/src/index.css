@@ -23,6 +23,10 @@
   --r-sm: 10px;
 }
 
+html, body {
+  height: 100%;
+}
+
 body {
   font-family: var(--sans);
   background: var(--bg);
@@ -32,10 +36,18 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* app pages have grid layout applied via class */
-body.app-body {
+/* #root stretches full height */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* app pages: grid is on #root, not body */
+body.app-body #root {
   display: grid;
   grid-template-columns: 240px 1fr;
+  min-height: 100vh;
 }
 
 /* ── DARK MODE ── */
@@ -55,7 +67,7 @@ body.dark {
 }
 
 /* ── COLLAPSED SIDEBAR ── */
-body.sidebar-collapsed.app-body { grid-template-columns: 56px 1fr; }
+body.sidebar-collapsed.app-body #root { grid-template-columns: 56px 1fr; }
 body.sidebar-collapsed .logo-text,
 body.sidebar-collapsed .nav-label,
 body.sidebar-collapsed .nav-label-block,
