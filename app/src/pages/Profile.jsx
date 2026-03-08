@@ -450,7 +450,7 @@ export default function Profile() {
                 <div className="cap-value">{CAPITAL.toLocaleString('ru')} ₽</div>
                 <div className="cap-meta">
                   <span className="cap-period">Обновлено: 3 августа 2025</span>
-                  <span className="cap-hint"> · Рекомендуется обновлять раз в год</span>
+                  <span className="cap-hint">Рекомендуется обновлять раз в год</span>
                 </div>
               </div>
               <button className="btn-sm" onClick={() => navigate('/account')}>Обновить</button>
