@@ -138,43 +138,98 @@ export const setDetails = {
   },
 }
 
+// status: 'ok' | 'soon' | 'urgent' | 'overexploit'
+export const inventoryGroups = [
+  {
+    id: 'g1', name: 'Одежда', color: '#4E8268',
+    items: [
+      {
+        id: 'i1', name: 'Зимняя куртка', status: 'ok',
+        ringVal: 78, ringMax: 100, ringUnit: '%',
+        remainder: 'Износ 22% — в хорошем состоянии',
+        amount: 12000, amountLabel: 'стоимость',
+        type: 'wear', date: 'куплено: окт 2023',
+      },
+      {
+        id: 'i2', name: 'Кроссовки Nike', status: 'soon',
+        ringVal: 6, ringMax: 12, ringUnit: 'мес',
+        remainder: 'Замена через ~2 месяца',
+        amount: 8500, amountLabel: 'стоимость',
+        type: 'wear', date: 'куплено: авг 2024',
+      },
+      {
+        id: 'i3', name: 'Базовые футболки', status: 'urgent',
+        ringVal: 1, ringMax: 12, ringUnit: 'мес',
+        remainder: 'Срочно требует замены',
+        amount: 1500, amountLabel: 'стоимость',
+        type: 'wear', date: 'куплено: янв 2023',
+      },
+    ],
+  },
+  {
+    id: 'g2', name: 'Питание', color: '#8268A0',
+    items: [
+      {
+        id: 'i4', name: 'Продукты на месяц', status: 'ok',
+        ringVal: 18, ringMax: 30, ringUnit: 'дн',
+        remainder: 'Осталось 12 дней запасов',
+        amount: 18000, amountLabel: 'в месяц',
+        type: 'consumable', date: 'обновлено: мар 2025',
+      },
+      {
+        id: 'i5', name: 'Витамины', status: 'soon',
+        ringVal: 8, ringMax: 30, ringUnit: 'дн',
+        remainder: 'Заканчиваются через 8 дней',
+        amount: 1200, amountLabel: 'в месяц',
+        type: 'consumable', date: 'обновлено: фев 2025',
+      },
+    ],
+  },
+  {
+    id: 'g3', name: 'Техника', color: '#6888A0',
+    items: [
+      {
+        id: 'i6', name: 'Ноутбук MacBook', status: 'ok',
+        ringVal: 85, ringMax: 100, ringUnit: '%',
+        remainder: 'Износ 15% — отличное состояние',
+        amount: 120000, amountLabel: 'стоимость',
+        type: 'wear', date: 'куплено: янв 2024',
+      },
+      {
+        id: 'i7', name: 'Наушники Sony', status: 'overexploit',
+        ringVal: 100, ringMax: 100, ringUnit: '%',
+        remainder: 'Переэксплуатация — замена просрочена',
+        amount: 15000, amountLabel: 'стоимость',
+        type: 'wear', date: 'куплено: дек 2021',
+      },
+    ],
+  },
+  {
+    id: 'g4', name: 'Гигиена и уход', color: '#A08268',
+    items: [
+      {
+        id: 'i8', name: 'Шампунь и гель', status: 'urgent',
+        ringVal: 2, ringMax: 30, ringUnit: 'дн',
+        remainder: 'Заканчиваются через 2 дня!',
+        amount: 800, amountLabel: 'в месяц',
+        type: 'consumable', date: 'обновлено: мар 2025',
+      },
+      {
+        id: 'i9', name: 'Зубная паста', status: 'ok',
+        ringVal: 20, ringMax: 30, ringUnit: 'дн',
+        remainder: 'Запас на 20 дней',
+        amount: 300, amountLabel: 'в месяц',
+        type: 'consumable', date: 'обновлено: мар 2025',
+      },
+    ],
+  },
+]
+
 export const inventoryItems = [
-  {
-    id: 'i1', title: 'Базовый гардероб на сезон',
-    set: 'Набор "Одежда"', status: 'owned',
-    amount: 42000, amountLabel: 'куплено',
-    date: 'янв 2025', progress: 100,
-  },
-  {
-    id: 'i2', title: 'Кофемашина',
-    set: 'Набор "Кухня"', status: 'owned',
-    amount: 15000, amountLabel: 'куплено',
-    date: 'фев 2025', progress: 100,
-  },
-  {
-    id: 'i3', title: 'Домашний офис',
-    set: 'Набор "Работа"', status: 'planning',
-    amount: 65000, amountLabel: 'планирую потратить',
-    date: 'апр 2025', progress: 40,
-  },
-  {
-    id: 'i4', title: 'Велосипед',
-    set: 'Набор "Спорт"', status: 'wishlist',
-    amount: 35000, amountLabel: 'в желаниях',
-    date: null, progress: 0,
-  },
-  {
-    id: 'i5', title: 'Здоровое питание',
-    set: 'Набор "Продукты"', status: 'owned',
-    amount: 18000, amountLabel: 'месячный бюджет',
-    date: 'мар 2025', progress: 100,
-  },
-  {
-    id: 'i6', title: 'Подписки и досуг',
-    set: 'Собственный набор', status: 'owned',
-    amount: 5200, amountLabel: 'в месяц',
-    date: 'янв 2025', progress: 100,
-  },
+  { id: 'i1', title: 'Базовый гардероб на сезон', set: 'Набор "Одежда"', status: 'owned', amount: 42000, amountLabel: 'куплено', date: 'янв 2025', progress: 100 },
+  { id: 'i2', title: 'Кофемашина', set: 'Набор "Кухня"', status: 'owned', amount: 15000, amountLabel: 'куплено', date: 'фев 2025', progress: 100 },
+  { id: 'i3', title: 'Домашний офис', set: 'Набор "Работа"', status: 'planning', amount: 65000, amountLabel: 'планирую потратить', date: 'апр 2025', progress: 40 },
+  { id: 'i4', title: 'Велосипед', set: 'Набор "Спорт"', status: 'wishlist', amount: 35000, amountLabel: 'в желаниях', date: null, progress: 0 },
 ]
 
 export const articles = [
@@ -182,10 +237,11 @@ export const articles = [
     id: 'a1',
     title: '7 правил осознанных покупок, которые изменят ваш бюджет',
     author: 'Анна Смирнова', authorColor: '#6B8EA8', authorInitials: 'АС',
+    authorBio: 'Финансовый консультант, автор блога об осознанном потреблении. Помогаю людям тратить меньше без потери качества жизни.',
     date: '28 фев 2025', readTime: '5 мин', views: 3420, likes: 156,
+    category: 'Финансы',
     preview: 'Мы часто покупаем вещи импульсивно, поддавшись рекламе или просто плохому настроению. Но есть несколько простых правил, которые помогут тратить деньги осознаннее.',
-    content: `
-Мы часто покупаем вещи импульсивно, поддавшись рекламе или просто плохому настроению. Но есть несколько простых правил, которые помогут тратить деньги осознаннее и сохранить больше для важного.
+    content: `Мы часто покупаем вещи импульсивно, поддавшись рекламе или просто плохому настроению. Но есть несколько простых правил, которые помогут тратить деньги осознаннее и сохранить больше для важного.
 
 ## 1. Правило 24 часов
 
@@ -198,6 +254,8 @@ export const articles = [
 ## 3. Стоимость в часах работы
 
 Переводите стоимость вещи в часы работы. Если джинсы за 8000 ₽ стоят вам 10 часов работы — действительно ли они того стоят?
+
+> Каждая покупка — это обмен вашего времени на вещь. Убедитесь, что обмен честный.
 
 ## 4. Один заходит — один выходит
 
@@ -213,42 +271,24 @@ export const articles = [
 
 ## 7. Наборы как система
 
-Используйте готовые наборы вещей, как в SmartSpend. Это помогает не изобретать велосипед каждый раз и опираться на проверенный опыт других людей.
-    `.trim(),
-    setLink: { id: 's1', title: 'Набор "Умный шопинг"', color: '#8268A0' },
+Используйте готовые наборы вещей, как в SmartSpend. Это помогает не изобретать велосипед каждый раз и опираться на проверенный опыт других людей.`,
+    setLink: { id: 's1', title: 'Базовый гардероб на сезон', color: '#4E8268' },
   },
 ]
 
 export const notifications = [
-  {
-    id: 'n1', type: 'new-set', unread: true,
-    title: 'Новый набор в каталоге',
-    desc: 'Появился набор «Велосипедист: базовое снаряжение» от SmartSpend',
-    time: '10 мин назад',
-  },
-  {
-    id: 'n2', type: 'article', unread: true,
-    title: 'Новая статья от Анны Смирновой',
-    desc: '«Как не купить лишнего в чёрную пятницу» — 5 мин чтения',
-    time: '2 ч. назад',
-  },
-  {
-    id: 'n3', type: 'reminder', unread: false,
-    title: 'Напоминание об обновлении инвентаря',
-    desc: 'Вы не обновляли инвентарь уже 14 дней',
-    time: 'вчера',
-  },
-  {
-    id: 'n4', type: 'system', unread: false,
-    title: 'Добро пожаловать в SmartSpend!',
-    desc: 'Заполните профиль и добавьте первые наборы в инвентарь',
-    time: '3 дн. назад',
-  },
+  { id: 'n1', type: 'new-set', unread: true, title: 'Новый набор в каталоге', desc: 'Появился набор «Велосипедист: базовое снаряжение» от SmartSpend', time: '10 мин назад' },
+  { id: 'n2', type: 'article', unread: true, title: 'Новая статья от Анны Смирновой', desc: '«Как не купить лишнего в чёрную пятницу» — 5 мин чтения', time: '2 ч. назад' },
+  { id: 'n3', type: 'reminder', unread: false, title: 'Напоминание об обновлении инвентаря', desc: 'Вы не обновляли инвентарь уже 14 дней', time: 'вчера' },
+  { id: 'n4', type: 'system', unread: false, title: 'Добро пожаловать в SmartSpend!', desc: 'Заполните профиль и добавьте первые наборы в инвентарь', time: '3 дн. назад' },
 ]
 
 export const userData = {
   name: 'Никита Орлов',
+  nickname: '@n.orlov',
+  bio: 'Осознанно трачу деньги с 2022 года. Веду учёт всего имущества и стараюсь покупать только нужное.',
   plan: 'Базовый план',
+  joined: 'янв 2025',
   capital: 187400,
   budgets: [
     { name: 'Продукты', spent: 14200, limit: 18000, color: '#4E8268' },

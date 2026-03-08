@@ -7,7 +7,18 @@
       "Bash(npm create vite@latest app -- --template react)",
       "Bash(npm install)",
       "Bash(npm install react-router-dom)",
-      "Bash(npm run build)"
+      "Bash(npm run build)",
+      "Bash(for f in Account Article Catalog CreateArticle CreateSet Inventory Profile Settings Notifications SetDetail)",
+      "Bash(do echo \"=== $f ===\")",
+      "Read(//c/Users/Administrator/Desktop/site_smartspend_v2/app/src/pages/**)",
+      "Bash(done)",
+      "Bash(wc -l \"c:/Users/Administrator/Desktop/site_smartspend_v2/app/src/pages/\"*.jsx)",
+      "Bash(wc -l \"c:/Users/Administrator/Desktop/site_smartspend_v2/raw_sample_page/\"*.html)",
+      "Bash(cat \"c:/Users/Administrator/Desktop/site_smartspend_v2/raw_sample_page/smartspend-profile-v6 \\(1\\).html\")",
+      "Read(//c/Users/Administrator/.claude/projects/c--Users-Administrator-Desktop-site-smartspend-v2/memory/**)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\Administrator\\.claude\\projects\\c--Users-Administrator-Desktop-site-smartspend-v2\\memory"
     ]
   }
 }
