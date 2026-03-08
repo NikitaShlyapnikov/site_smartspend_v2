@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import Sidebar from './Sidebar'
+import MobileNav from './MobileNav'
 
 export default function Layout({ children }) {
   const { collapsed } = useApp()
@@ -26,6 +27,7 @@ export default function Layout({ children }) {
   return (
     <>
       <Sidebar />
+      <MobileNav />
       {children}
     </>
   )

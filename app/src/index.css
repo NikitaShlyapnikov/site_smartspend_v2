@@ -2187,3 +2187,159 @@ body.dark .profile-tab.active { background: var(--surface-3); }
   padding: 8px 0; text-align: right;
 }
 .editor-char-count.warn { color: var(--status-urgent); }
+
+/* ══════════════════════════════════════════
+   MOBILE LAYOUT
+══════════════════════════════════════════ */
+:root {
+  --top-bar-h: 56px;
+  --bottom-nav-h: 64px;
+}
+
+/* Hide mobile nav on desktop */
+.mobile-top-bar,
+.mobile-bottom-nav { display: none; }
+
+@media (max-width: 768px) {
+  /* Hide sidebar, show mobile nav */
+  body.app-body aside { display: none; }
+  .mobile-top-bar,
+  .mobile-bottom-nav { display: flex; }
+
+  /* Full-width single column */
+  body.app-body #root {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow: visible;
+  }
+
+  body.app-body #root > main {
+    height: auto;
+    overflow-y: visible;
+    padding-top: calc(var(--top-bar-h) + 8px);
+    padding-bottom: calc(var(--bottom-nav-h) + 16px);
+    min-height: 100vh;
+  }
+
+  /* ── TOP BAR ── */
+  .mobile-top-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    height: var(--top-bar-h);
+    background: var(--surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    align-items: center; justify-content: space-between;
+    padding: 0 16px;
+  }
+
+  .mobile-top-logo {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .mobile-logo-mark {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: var(--text);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .mobile-logo-text {
+    font-size: 16px; font-weight: 700; letter-spacing: -0.02em;
+  }
+  .mobile-top-actions {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .mobile-top-btn {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: none; border: none; cursor: pointer;
+    color: var(--text-2);
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.12s, color 0.12s;
+  }
+  .mobile-top-btn:hover { background: var(--surface-2); color: var(--text); }
+  .mobile-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--surface-3); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: var(--text-2);
+    cursor: pointer; flex-shrink: 0;
+    transition: background 0.12s;
+  }
+  .mobile-avatar:hover { background: var(--surface-2); }
+
+  /* ── BOTTOM NAV ── */
+  .mobile-bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+    height: var(--bottom-nav-h);
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    align-items: center; justify-content: space-around;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .mobile-nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    flex: 1; padding: 8px 0;
+    color: var(--text-3); text-decoration: none;
+    transition: color 0.12s;
+    font-size: 10px; font-weight: 500; letter-spacing: -0.01em;
+  }
+  .mobile-nav-item.active { color: var(--accent-green); }
+  .mobile-nav-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+  .mobile-nav-label { white-space: nowrap; }
+
+  /* ── PAGE-SPECIFIC MOBILE TWEAKS ── */
+  .profile-main,
+  .inventory-main,
+  .catalog-main,
+  .feed-main,
+  .set-detail-main,
+  .article-main,
+  .settings-main,
+  .account-main {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .profile-main { padding-top: 20px; }
+  .inventory-main { padding-top: 20px; }
+  .catalog-main { padding-top: 20px; }
+  .feed-main { padding-top: 20px; }
+
+  /* Catalog grid → single column on mobile */
+  .catalog-grid { grid-template-columns: 1fr; }
+
+  /* Feed cards */
+  .feed-card { border-radius: 12px; }
+
+  /* Horizontal scroll sets */
+  .sets-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    overflow-x: auto;
+  }
+
+  /* Profile budget line items */
+  .bl-row { gap: 8px; }
+
+  /* Inventory summary row: stack on mobile */
+  .inv-summary-row { grid-template-columns: 1fr; }
+
+  /* Page header flex wrap */
+  .catalog-page-header,
+  .inv-page-header { flex-wrap: wrap; gap: 10px; }
+
+  /* Page title smaller */
+  .page-title { font-size: 22px; }
+
+  /* Entry tiles grid 2-col on mobile */
+  .entry-tiles { grid-template-columns: repeat(2, 1fr); }
+
+  /* Forecast chart slightly shorter */
+  .fc-canvas { height: 160px !important; }
+
+  /* Editor scroll full-width */
+  .editor-scroll { padding: 0 16px 40px; }
+
+  /* Item row stack on mobile */
+  .item-row { grid-template-columns: 1fr auto; }
+  .item-row > :nth-child(2),
+  .item-row > :nth-child(3) { font-size: 12px; }
+}
