@@ -149,6 +149,7 @@ export const inventoryGroups = [
         remainder: 'Износ 22% — в хорошем состоянии',
         amount: 12000, amountLabel: 'стоимость',
         type: 'wear', date: 'куплено: окт 2023',
+        set: 'Базовый гардероб на сезон', setId: 's1',
       },
       {
         id: 'i2', name: 'Кроссовки Nike', status: 'soon',
@@ -156,6 +157,7 @@ export const inventoryGroups = [
         remainder: 'Замена через ~2 месяца',
         amount: 8500, amountLabel: 'стоимость',
         type: 'wear', date: 'куплено: авг 2024',
+        set: 'Базовый гардероб на сезон', setId: 's1',
       },
       {
         id: 'i3', name: 'Базовые футболки', status: 'urgent',
@@ -163,6 +165,7 @@ export const inventoryGroups = [
         remainder: 'Срочно требует замены',
         amount: 1500, amountLabel: 'стоимость',
         type: 'wear', date: 'куплено: янв 2023',
+        set: 'Базовый гардероб на сезон', setId: 's1',
       },
     ],
   },
@@ -175,6 +178,7 @@ export const inventoryGroups = [
         remainder: 'Осталось 12 дней запасов',
         amount: 18000, amountLabel: 'в месяц',
         type: 'consumable', date: 'обновлено: мар 2025',
+        set: 'Здоровое питание — базовый набор', setId: 's2',
       },
       {
         id: 'i5', name: 'Витамины', status: 'soon',
@@ -194,6 +198,7 @@ export const inventoryGroups = [
         remainder: 'Износ 15% — отличное состояние',
         amount: 120000, amountLabel: 'стоимость',
         type: 'wear', date: 'куплено: янв 2024',
+        set: 'Домашний офис — всё необходимое', setId: 's3',
       },
       {
         id: 'i7', name: 'Наушники Sony', status: 'overexploit',
@@ -201,6 +206,7 @@ export const inventoryGroups = [
         remainder: 'Переэксплуатация — замена просрочена',
         amount: 15000, amountLabel: 'стоимость',
         type: 'wear', date: 'куплено: дек 2021',
+        set: 'Домашний офис — всё необходимое', setId: 's3',
       },
     ],
   },
@@ -213,6 +219,7 @@ export const inventoryGroups = [
         remainder: 'Заканчиваются через 2 дня!',
         amount: 800, amountLabel: 'в месяц',
         type: 'consumable', date: 'обновлено: мар 2025',
+        set: 'Забота о себе — базовый уход', setId: 's5',
       },
       {
         id: 'i9', name: 'Зубная паста', status: 'ok',
@@ -220,6 +227,7 @@ export const inventoryGroups = [
         remainder: 'Запас на 20 дней',
         amount: 300, amountLabel: 'в месяц',
         type: 'consumable', date: 'обновлено: мар 2025',
+        set: 'Забота о себе — базовый уход', setId: 's5',
       },
     ],
   },
