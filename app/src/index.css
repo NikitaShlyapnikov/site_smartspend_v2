@@ -1374,7 +1374,7 @@ body.dark {
   display: inline-flex; align-items: center; gap: 3px;
   font-size: 12px; font-weight: 600; color: var(--accent-green);
   text-decoration: none; letter-spacing: -0.01em;
-  transition: opacity 0.14s; margin-left: auto;
+  transition: opacity 0.14s;
 }
 .inv-set-link:hover { opacity: 0.7; }
 
@@ -1528,6 +1528,170 @@ body.dark .inv-date-input { background: var(--surface-2); color: var(--text); }
 }
 .inv-empty-reset:hover { background: var(--surface-3); color: var(--text); }
 body.dark .inv-stepper { background: var(--surface-3); }
+
+/* Edit mode button */
+.btn-edit-mode {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface);
+  font-family: var(--sans); font-size: 13px; font-weight: 500;
+  color: var(--text-2); cursor: pointer; transition: all 0.15s;
+  letter-spacing: -0.01em;
+}
+.btn-edit-mode:hover { background: var(--surface-2); color: var(--text); }
+.btn-edit-mode.active {
+  background: var(--accent-green); color: #fff;
+  border-color: var(--accent-green);
+}
+.btn-edit-mode.active:hover { opacity: 0.85; }
+
+/* Delete icon on item row */
+.inv-item-delete {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--status-urgent-border);
+  background: var(--status-urgent-bg); color: var(--status-urgent);
+  cursor: pointer; font-size: 16px; line-height: 1;
+  transition: opacity 0.12s; margin-left: 4px;
+}
+.inv-item-delete:hover { opacity: 0.7; }
+
+/* Unlink / link buttons in set-row */
+.inv-unlink-btn {
+  padding: 3px 10px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--surface-2);
+  font-family: var(--sans); font-size: 11px; font-weight: 500;
+  color: var(--text-2); cursor: pointer; transition: all 0.13s;
+  letter-spacing: -0.01em; white-space: nowrap;
+}
+.inv-unlink-btn:hover { background: var(--status-urgent-bg); color: var(--status-urgent); border-color: var(--status-urgent-border); }
+.inv-link-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 6px;
+  border: 1px solid var(--accent-green-border); background: var(--accent-green-light);
+  font-family: var(--sans); font-size: 11px; font-weight: 500;
+  color: var(--accent-green); cursor: pointer; transition: opacity 0.13s;
+  letter-spacing: -0.01em; white-space: nowrap;
+}
+.inv-link-btn:hover { opacity: 0.75; }
+
+/* Empty group hint in edit mode */
+.inv-group-empty {
+  padding: 14px 16px; font-size: 13px; color: var(--text-3);
+  letter-spacing: -0.01em; text-align: center;
+}
+
+/* Add item toggle button */
+.inv-add-toggle {
+  display: flex; align-items: center; gap: 6px;
+  width: 100%; padding: 11px 16px;
+  border: none; background: none; cursor: pointer;
+  font-family: var(--sans); font-size: 13px; font-weight: 500;
+  color: var(--accent-green); letter-spacing: -0.01em;
+  border-top: 1px solid var(--border); transition: opacity 0.13s;
+}
+.inv-add-toggle:hover { opacity: 0.7; }
+
+/* Add item form */
+.inv-add-form {
+  border-top: 1px solid var(--border);
+  padding: 16px; background: var(--surface-2);
+}
+.inv-add-form-title {
+  font-size: 12px; font-weight: 600; color: var(--text-2);
+  letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 12px;
+}
+.inv-add-form-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.inv-add-form-field { display: flex; flex-direction: column; gap: 4px; }
+.inv-add-form-field.full { grid-column: 1 / -1; }
+.inv-add-form-lbl {
+  font-size: 10px; font-weight: 600; color: var(--text-3);
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+.inv-add-form-input,
+.inv-add-form-select {
+  padding: 8px 10px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface);
+  font-family: var(--sans); font-size: 13px; color: var(--text);
+  outline: none; transition: border-color 0.14s; letter-spacing: -0.01em;
+  width: 100%; box-sizing: border-box;
+}
+.inv-add-form-input:focus,
+.inv-add-form-select:focus { border-color: var(--accent-green-border); }
+body.dark .inv-add-form-input,
+body.dark .inv-add-form-select { background: var(--surface-3); }
+.inv-add-form-actions {
+  display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end;
+}
+.inv-add-cancel {
+  padding: 8px 16px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface);
+  font-family: var(--sans); font-size: 13px; font-weight: 500;
+  color: var(--text-2); cursor: pointer; transition: all 0.13s;
+  letter-spacing: -0.01em;
+}
+.inv-add-cancel:hover { background: var(--surface-3); color: var(--text); }
+.inv-add-submit {
+  padding: 8px 16px; border-radius: 8px;
+  border: none; background: var(--accent-green); color: #fff;
+  font-family: var(--sans); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: opacity 0.13s; letter-spacing: -0.01em;
+}
+.inv-add-submit:hover { opacity: 0.85; }
+
+/* Modal overlay */
+.inv-modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(2px);
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.inv-modal {
+  background: var(--surface); border-radius: var(--r);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+  max-width: 400px; width: 100%; padding: 24px;
+}
+.inv-modal-title {
+  font-size: 16px; font-weight: 700; letter-spacing: -0.02em;
+  margin-bottom: 10px;
+}
+.inv-modal-body {
+  font-size: 13px; color: var(--text-2); line-height: 1.55;
+  letter-spacing: -0.01em; margin-bottom: 20px;
+}
+.inv-modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.inv-modal-btn {
+  padding: 9px 18px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface-2);
+  font-family: var(--sans); font-size: 13px; font-weight: 500;
+  color: var(--text-2); cursor: pointer; transition: all 0.13s;
+  letter-spacing: -0.01em;
+}
+.inv-modal-btn:hover { background: var(--surface-3); color: var(--text); }
+.inv-modal-btn.danger {
+  background: var(--status-urgent); color: #fff; border-color: var(--status-urgent);
+}
+.inv-modal-btn.danger:hover { opacity: 0.85; }
+
+/* Set picker list (inside modal) */
+.inv-set-picker-list {
+  display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px;
+}
+.inv-set-picker-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface-2);
+  cursor: pointer; transition: all 0.13s; text-align: left; width: 100%;
+  font-family: var(--sans); letter-spacing: -0.01em;
+}
+.inv-set-picker-item:hover { background: var(--surface-3); border-color: var(--accent-green-border); }
+.inv-set-picker-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.inv-set-picker-name {
+  font-size: 13px; font-weight: 500; color: var(--text);
+}
 
 /* ══════════════════════════════════════════
    PROFILE — Financial dashboard

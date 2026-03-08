@@ -1,9 +1,20 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
-import { inventoryGroups } from '../data/mock'
+import { inventoryGroups, catalogSets } from '../data/mock'
 
-// ── HELPERS ──────────────────────────────────────────────────────────────────
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
+
+const ALL_GROUPS = [
+  { id: 'g1', name: 'Одежда', color: '#4E8268' },
+  { id: 'g2', name: 'Питание', color: '#8268A0' },
+  { id: 'g3', name: 'Техника', color: '#6888A0' },
+  { id: 'g4', name: 'Гигиена и уход', color: '#A08268' },
+  { id: 'g5', name: 'Здоровье', color: '#A06870' },
+  { id: 'g6', name: 'Дом', color: '#688870' },
+]
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
 
 function daysSince(dateStr) {
   return Math.floor((Date.now() - new Date(dateStr)) / 86400000)
@@ -102,16 +113,46 @@ function Ring({ pct, ringNum, ringUnit, status }) {
   )
 }
 
-function InventoryItem({ item, open, onToggle, override, onOverrideChange }) {
+function getStepSize(elapsed) {
+  if (elapsed < 800) return 1
+  if (elapsed < 1800) return 10
+  if (elapsed < 3000) return 100
+  return 1000
+}
+
+function InventoryItem({ item, open, onToggle, override, onOverrideChange, editMode, onDelete, onUnlink, onLinkSet }) {
   const info = getItemInfo(item, override)
   const { pct, status, remainderText, ringNum, ringUnit, monthlyBlock } = info
   const unit = item.type === 'consumable' ? (item.unit || 'г') : 'нед'
   const remCls = status !== 'ok' ? ` ${status}` : ''
 
-  const fillCls = status === 'urgent' ? 'fill-urgent'
-    : status === 'soon' ? 'fill-soon'
-    : status === 'overexploit' ? 'fill-overexploit'
-    : 'fill-ok'
+  const stepTimerRef = useRef(null)
+  const stepHoldRef = useRef(0)
+  const stepValRef = useRef(null)
+
+  function stopStep() {
+    if (stepTimerRef.current) { clearTimeout(stepTimerRef.current); stepTimerRef.current = null }
+  }
+
+  const stepperVal = override !== null
+    ? (item.type === 'consumable' ? Math.max(0, Math.round(override)) : override)
+    : (item.type === 'consumable'
+        ? Math.max(0, Math.round(item.qty - daysSince(item.lastBought) * item.dailyUse))
+        : item.purchaseDate)
+
+  function startStep(dir) {
+    stopStep()
+    stepHoldRef.current = Date.now()
+    stepValRef.current = stepperVal
+    function tick() {
+      const elapsed = Date.now() - stepHoldRef.current
+      const step = getStepSize(elapsed)
+      stepValRef.current = Math.max(0, stepValRef.current + dir * step)
+      onOverrideChange(stepValRef.current)
+      stepTimerRef.current = setTimeout(tick, elapsed < 500 ? 400 : 80)
+    }
+    tick()
+  }
 
   // Type-specific details
   let details = null
@@ -119,11 +160,16 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange }) {
     const monthlyQty = Math.round(item.dailyUse * 30)
     const monthlyBudget = Math.round((item.price / item.qty) * monthlyQty)
     const pricePerUnit = (item.price / item.qty).toFixed(2)
+    const dailyCost = Math.round(item.dailyUse * item.price / item.qty)
     details = (
       <>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Расход/день</div>
           <div className="inv-detail-val mono">{item.dailyUse}&thinsp;{unit}</div>
+        </div>
+        <div className="inv-detail">
+          <div className="inv-detail-lbl">Стоимость/день</div>
+          <div className="inv-detail-val mono">{dailyCost}&thinsp;руб.</div>
         </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Потребность/мес.</div>
@@ -144,6 +190,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange }) {
     const weeksUsed = Math.floor(daysSince(purchaseDate) / 7)
     const residualVal = Math.max(0, Math.round(item.price * (1 - weeksUsed / item.wearLifeWeeks)))
     const monthlyAmort = Math.round((item.price / item.wearLifeWeeks) * 4.33)
+    const dailyCost = Math.round(item.price / (item.wearLifeWeeks * 7))
     const lifeYears = (item.wearLifeWeeks / 52).toFixed(1).replace('.0', '')
     details = (
       <>
@@ -153,6 +200,10 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange }) {
             <div className="inv-detail-val mono">{item.expectedPrice.toLocaleString('ru')}&thinsp;руб.</div>
           </div>
         )}
+        <div className="inv-detail">
+          <div className="inv-detail-lbl">Стоимость/день</div>
+          <div className="inv-detail-val mono">{dailyCost}&thinsp;руб.</div>
+        </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Срок эксплуатации</div>
           <div className="inv-detail-val">{item.wearLifeWeeks}&thinsp;нед. ({lifeYears}&thinsp;г.)</div>
@@ -169,12 +220,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange }) {
     )
   }
 
-  // Current stepper value for consumable
-  const stepperVal = override !== null
-    ? (item.type === 'consumable' ? Math.max(0, Math.round(override)) : override)
-    : (item.type === 'consumable'
-        ? Math.max(0, Math.round(item.qty - daysSince(item.lastBought) * item.dailyUse))
-        : item.purchaseDate)
+  const hasSet = item.set && item.setId
 
   return (
     <div className={`inv-item status-${status}${open ? ' open' : ''}`}>
@@ -184,6 +230,14 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange }) {
           <div className="inv-name">{item.name}</div>
           <div className={`inv-remainder${remCls}`}>{remainderText}</div>
         </div>
+        {editMode && (
+          <button className="inv-item-delete" onClick={e => { e.stopPropagation(); onDelete() }} title="Удалить">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"
+              strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        )}
         <svg className="inv-chevron" width="14" height="14" fill="none" stroke="currentColor"
           viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
           style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.22s' }}>
@@ -219,19 +273,6 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange }) {
           </div>
         )}
 
-        {/* Progress bar */}
-        {open && (
-          <div className="inv-progress-wrap">
-            <div className="inv-progress-header">
-              <span>{item.type === 'consumable' ? 'Израсходовано' : 'Износ'}</span>
-              <span>{pct}%</span>
-            </div>
-            <div className="inv-progress-bar">
-              <div className={`inv-progress-fill ${fillCls}`} style={{ width: `${pct}%` }} />
-            </div>
-          </div>
-        )}
-
         {/* Body: details + stepper/date */}
         {open && (
           <div className="inv-body">
@@ -242,38 +283,27 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange }) {
                   <div className="inv-field-lbl">Текущий остаток ({unit})</div>
                   <div className="inv-stepper">
                     <button className="stepper-btn"
-                      onClick={() => onOverrideChange(Math.max(0, stepperVal - 1))}>−</button>
+                      onMouseDown={() => startStep(-1)} onMouseUp={stopStep}
+                      onMouseLeave={stopStep} onTouchStart={() => startStep(-1)} onTouchEnd={stopStep}>−</button>
                     <input
-                      className="stepper-val"
-                      type="number"
-                      value={stepperVal}
+                      className="stepper-val" type="number" value={stepperVal}
                       onChange={e => onOverrideChange(Math.max(0, parseInt(e.target.value) || 0))}
                     />
                     <span className="stepper-unit">{unit}</span>
                     <button className="stepper-btn"
-                      onClick={() => onOverrideChange(stepperVal + 1)}>+</button>
+                      onMouseDown={() => startStep(1)} onMouseUp={stopStep}
+                      onMouseLeave={stopStep} onTouchStart={() => startStep(1)} onTouchEnd={stopStep}>+</button>
                   </div>
-                  <button className="btn-replenish"
-                    onClick={() => onOverrideChange(item.qty)}>
-                    <svg width="13" height="13" fill="none" stroke="currentColor"
-                      viewBox="0 0 24 24" strokeWidth="2.5"><path d="M12 20V4m-7 7l7-7 7 7" /></svg>
-                    Пополнить
-                  </button>
                 </>
               ) : (
                 <>
                   <div className="inv-field-lbl">Дата покупки</div>
                   <input
-                    className="inv-date-input"
-                    type="date"
+                    className="inv-date-input" type="date"
                     value={typeof stepperVal === 'string' ? stepperVal : item.purchaseDate}
                     max={new Date().toISOString().slice(0, 10)}
                     onChange={e => onOverrideChange(e.target.value)}
                   />
-                  <button className="btn-replenish btn-reset-wear"
-                    onClick={() => onOverrideChange(new Date().toISOString().slice(0, 10))}>
-                    Сбросить износ
-                  </button>
                 </>
               )}
             </div>
@@ -281,40 +311,143 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange }) {
         )}
 
         {/* Set row — bottom */}
-        {open && item.set && (
+        {open && (
           <div className="inv-set-row">
             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
               strokeWidth="2" style={{ opacity: 0.4, flexShrink: 0 }}>
               <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>
-            <span>Набор:</span>
-            {item.setId ? (
-              <Link to={`/set/${item.setId}`} className="inv-set-link"
-                onClick={e => e.stopPropagation()}>
-                {item.set}
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                  strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M7 17L17 7M17 7H7M17 7v10" />
-                </svg>
-              </Link>
+            {hasSet ? (
+              <>
+                <span style={{ color: 'var(--text-3)' }}>Набор:</span>
+                <Link to={`/set/${item.setId}`} className="inv-set-link" onClick={e => e.stopPropagation()}>
+                  {item.set}
+                  <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M7 17L17 7M17 7H7M17 7v10" />
+                  </svg>
+                </Link>
+                {editMode && (
+                  <button className="inv-unlink-btn" onClick={e => { e.stopPropagation(); onUnlink() }}>
+                    Отвязать
+                  </button>
+                )}
+              </>
             ) : (
-              <strong>{item.set}</strong>
+              <>
+                <span style={{ color: 'var(--text-3)' }}>Личное</span>
+                <button className="inv-link-btn" onClick={e => { e.stopPropagation(); onLinkSet() }}>
+                  <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"
+                    strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+                    <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+                  </svg>
+                  Привязать к набору
+                </button>
+              </>
             )}
           </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function AddItemForm({ groupId, onAdd, onCancel }) {
+  const today = new Date().toISOString().slice(0, 10)
+  const [form, setForm] = useState({
+    name: '', type: 'consumable', price: '', qty: '', dailyUse: '', unit: 'г',
+    lastBought: today, wearLifeWeeks: '', purchaseDate: today, expectedPrice: '', setId: '',
+  })
+  const set = k => v => setForm(p => ({ ...p, [k]: v }))
+
+  function handleSubmit() {
+    if (!form.name.trim() || !form.price) return
+    onAdd(groupId, form)
+  }
+
+  return (
+    <div className="inv-add-form">
+      <div className="inv-add-form-title">Новая позиция</div>
+      <div className="inv-add-form-grid">
+        <div className="inv-add-form-field" style={{ gridColumn: '1/-1' }}>
+          <div className="inv-add-form-lbl">Название</div>
+          <input className="inv-add-form-input" value={form.name}
+            onChange={e => set('name')(e.target.value)} placeholder="Например: Оливковое масло" />
+        </div>
+        <div className="inv-add-form-field">
+          <div className="inv-add-form-lbl">Тип</div>
+          <select className="inv-add-form-select" value={form.type} onChange={e => set('type')(e.target.value)}>
+            <option value="consumable">Расходник</option>
+            <option value="wear">Вещь (износ)</option>
+          </select>
+        </div>
+        <div className="inv-add-form-field">
+          <div className="inv-add-form-lbl">Цена, руб.</div>
+          <input className="inv-add-form-input" type="number" value={form.price}
+            onChange={e => set('price')(e.target.value)} placeholder="0" />
+        </div>
+
+        {form.type === 'consumable' ? (
+          <>
+            <div className="inv-add-form-field">
+              <div className="inv-add-form-lbl">Объём / масса</div>
+              <input className="inv-add-form-input" type="number" value={form.qty}
+                onChange={e => set('qty')(e.target.value)} placeholder="500" />
+            </div>
+            <div className="inv-add-form-field">
+              <div className="inv-add-form-lbl">Единица</div>
+              <select className="inv-add-form-select" value={form.unit} onChange={e => set('unit')(e.target.value)}>
+                <option value="г">г</option>
+                <option value="мл">мл</option>
+                <option value="шт">шт</option>
+                <option value="кап">кап</option>
+                <option value="рул">рул</option>
+              </select>
+            </div>
+            <div className="inv-add-form-field">
+              <div className="inv-add-form-lbl">Расход в день</div>
+              <input className="inv-add-form-input" type="number" value={form.dailyUse}
+                onChange={e => set('dailyUse')(e.target.value)} placeholder="10" step="0.1" />
+            </div>
+            <div className="inv-add-form-field">
+              <div className="inv-add-form-lbl">Дата покупки</div>
+              <input className="inv-add-form-input" type="date" value={form.lastBought}
+                onChange={e => set('lastBought')(e.target.value)} max={today} />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="inv-add-form-field">
+              <div className="inv-add-form-lbl">Срок службы, нед.</div>
+              <input className="inv-add-form-input" type="number" value={form.wearLifeWeeks}
+                onChange={e => set('wearLifeWeeks')(e.target.value)} placeholder="52" />
+            </div>
+            <div className="inv-add-form-field">
+              <div className="inv-add-form-lbl">Плановая цена, руб.</div>
+              <input className="inv-add-form-input" type="number" value={form.expectedPrice}
+                onChange={e => set('expectedPrice')(e.target.value)} placeholder="необязательно" />
+            </div>
+            <div className="inv-add-form-field">
+              <div className="inv-add-form-lbl">Дата покупки</div>
+              <input className="inv-add-form-input" type="date" value={form.purchaseDate}
+                onChange={e => set('purchaseDate')(e.target.value)} max={today} />
+            </div>
+          </>
         )}
 
-        {/* Action bar */}
-        {open && (
-          <div className="inv-action-bar">
-            {(status === 'urgent' || status === 'overexploit') && (
-              <button className="inv-act-btn urgent">
-                {status === 'overexploit' ? 'Заменить' : '🛒 Купить срочно'}
-              </button>
-            )}
-            <button className="inv-act-btn">Изменить</button>
-            <button className="inv-act-btn delete">Удалить</button>
-          </div>
-        )}
+        <div className="inv-add-form-field" style={{ gridColumn: '1/-1' }}>
+          <div className="inv-add-form-lbl">Привязать к набору (необязательно)</div>
+          <select className="inv-add-form-select" value={form.setId} onChange={e => set('setId')(e.target.value)}>
+            <option value="">Личное — без набора</option>
+            {catalogSets.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
+          </select>
+        </div>
+      </div>
+      <div className="inv-add-form-actions">
+        <button className="inv-add-cancel" onClick={onCancel}>Отмена</button>
+        <button className="inv-add-submit" onClick={handleSubmit}
+          disabled={!form.name.trim() || !form.price}>Добавить</button>
       </div>
     </div>
   )
@@ -324,8 +457,20 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange }) {
 
 export default function Inventory() {
   const navigate = useNavigate()
+
+  // Mutable flat items state
+  const [items, setItems] = useState(() =>
+    inventoryGroups.flatMap(g => g.items.map(item => ({ ...item, groupId: g.id })))
+  )
   const [openItem, setOpenItem] = useState(null)
   const [statusFilter, setStatusFilter] = useState(null)
+  const [editMode, setEditMode] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState(null)   // {id, name, set}
+  const [unlinkConfirm, setUnlinkConfirm] = useState(null)   // {id, name, set}
+  const [linkToSetItem, setLinkToSetItem] = useState(null)   // item id
+  const [addFormGroup, setAddFormGroup] = useState(null)     // group id
+  const nextIdRef = useRef(1000)
+
   const [overrides, setOverrides] = useState(() => {
     const map = {}
     inventoryGroups.forEach(g => g.items.forEach(item => {
@@ -338,15 +483,13 @@ export default function Inventory() {
     return map
   })
 
-  const allItems = inventoryGroups.flatMap(g => g.items)
-
   // Compute info for all items
   const infoMap = {}
-  allItems.forEach(item => { infoMap[item.id] = getItemInfo(item, overrides[item.id] ?? null) })
+  items.forEach(item => { infoMap[item.id] = getItemInfo(item, overrides[item.id] ?? null) })
 
-  const urgentItems = allItems.filter(i => infoMap[i.id].filterStatus === 'urgent')
-  const soonItems = allItems.filter(i => infoMap[i.id].filterStatus === 'soon')
-  const urgentCost = urgentItems.reduce((s, i) => {
+  const urgentItems = items.filter(i => infoMap[i.id].filterStatus === 'urgent')
+  const soonItems   = items.filter(i => infoMap[i.id].filterStatus === 'soon')
+  const urgentCost  = urgentItems.reduce((s, i) => {
     if (i.type === 'consumable') {
       const mb = infoMap[i.id].monthlyBlock
       return s + (mb?.type === 'deficit' ? mb.deficitRub : 0)
@@ -354,50 +497,121 @@ export default function Inventory() {
     return s + i.price
   }, 0)
 
-  // Inventory value: consumable (current stock value) + wear (residual value)
-  const consumableVal = allItems
-    .filter(i => i.type === 'consumable')
-    .reduce((s, item) => {
-      const ov = overrides[item.id]
-      const remaining = ov !== null ? Math.max(0, ov) : Math.max(0, item.qty - daysSince(item.lastBought) * item.dailyUse)
-      return s + (item.qty > 0 ? (remaining / item.qty) * item.price : 0)
-    }, 0)
-  const wearVal = allItems
-    .filter(i => i.type === 'wear')
-    .reduce((s, item) => {
-      const purchaseDate = overrides[item.id] ?? item.purchaseDate
-      const weeksUsed = Math.floor(daysSince(purchaseDate) / 7)
-      return s + Math.max(0, Math.round(item.price * (1 - weeksUsed / item.wearLifeWeeks)))
-    }, 0)
+  const consumableVal = items.filter(i => i.type === 'consumable').reduce((s, item) => {
+    const ov = overrides[item.id]
+    const rem = ov !== null ? Math.max(0, ov) : Math.max(0, item.qty - daysSince(item.lastBought) * item.dailyUse)
+    return s + (item.qty > 0 ? (rem / item.qty) * item.price : 0)
+  }, 0)
+  const wearVal = items.filter(i => i.type === 'wear').reduce((s, item) => {
+    const pd = overrides[item.id] ?? item.purchaseDate
+    const wu = Math.floor(daysSince(pd) / 7)
+    return s + Math.max(0, Math.round(item.price * (1 - wu / item.wearLifeWeeks)))
+  }, 0)
   const totalValue = Math.round(consumableVal + wearVal)
 
-  const filteredGroups = inventoryGroups.map(g => ({
-    ...g,
-    items: statusFilter ? g.items.filter(i => infoMap[i.id].filterStatus === statusFilter) : g.items,
-  })).filter(g => g.items.length > 0)
+  // Groups to show
+  const visibleGroups = editMode
+    ? ALL_GROUPS
+    : ALL_GROUPS.filter(g => {
+        const gi = items.filter(i => i.groupId === g.id)
+        return statusFilter ? gi.some(i => infoMap[i.id]?.filterStatus === statusFilter) : gi.length > 0
+      })
+
+  // Handlers
+  function doDelete(id) {
+    setItems(prev => prev.filter(i => i.id !== id))
+    if (openItem === id) setOpenItem(null)
+    setDeleteConfirm(null)
+  }
+
+  function doUnlink(id) {
+    setItems(prev => prev.map(i => i.id === id ? { ...i, set: null, setId: null } : i))
+    setUnlinkConfirm(null)
+  }
+
+  function doLinkSet(itemId, pickedSet) {
+    setItems(prev => prev.map(i => i.id === itemId
+      ? { ...i, set: pickedSet.title, setId: pickedSet.id }
+      : i))
+    setLinkToSetItem(null)
+  }
+
+  function doAddItem(groupId, form) {
+    const id = 'i' + nextIdRef.current++
+    const pickedSet = form.setId ? catalogSets.find(s => s.id === form.setId) : null
+    const base = {
+      id, name: form.name.trim(), type: form.type, groupId,
+      price: Number(form.price) || 0,
+      set: pickedSet?.title || null, setId: pickedSet?.id || null,
+    }
+    if (form.type === 'consumable') {
+      Object.assign(base, {
+        qty: Number(form.qty) || 100,
+        dailyUse: Number(form.dailyUse) || 1,
+        unit: form.unit || 'г',
+        lastBought: form.lastBought || new Date().toISOString().slice(0, 10),
+      })
+      setOverrides(p => ({ ...p, [id]: Number(form.qty) || 100 }))
+    } else {
+      Object.assign(base, {
+        wearLifeWeeks: Number(form.wearLifeWeeks) || 52,
+        purchaseDate: form.purchaseDate || new Date().toISOString().slice(0, 10),
+        expectedPrice: form.expectedPrice ? Number(form.expectedPrice) : undefined,
+      })
+      setOverrides(p => ({ ...p, [id]: base.purchaseDate }))
+    }
+    setItems(prev => [...prev, base])
+    setAddFormGroup(null)
+  }
+
+  function toggleEditMode() {
+    setEditMode(m => !m)
+    if (editMode) setAddFormGroup(null)
+  }
 
   return (
     <Layout>
       <main className="inventory-main">
+        {/* Header */}
         <div className="inv-page-header">
           <div>
             <div className="page-title">Инвентарь</div>
-            <div className="page-subtitle">{allItems.length} позиций</div>
+            <div className="page-subtitle">{items.length} позиций</div>
           </div>
-          <button className="btn-primary-action" onClick={() => navigate('/catalog')}>
-            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Добавить
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className={`btn-edit-mode${editMode ? ' active' : ''}`} onClick={toggleEditMode}>
+              {editMode ? (
+                <>
+                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"
+                    strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                  Готово
+                </>
+              ) : (
+                <>
+                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"
+                    strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                  Редактировать
+                </>
+              )}
+            </button>
+            <button className="btn-primary-action" onClick={() => navigate('/catalog')}>
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Добавить
+            </button>
+          </div>
         </div>
 
         {/* Summary row */}
         <div className="inv-summary-row">
-          <div
-            className={`inv-urgent-card${statusFilter === 'urgent' ? ' active-filter' : ''}`}
-            onClick={() => setStatusFilter(f => f === 'urgent' ? null : 'urgent')}
-          >
+          <div className={`inv-urgent-card${statusFilter === 'urgent' ? ' active-filter' : ''}`}
+            onClick={() => setStatusFilter(f => f === 'urgent' ? null : 'urgent')}>
             <div className="inv-urgent-top">
               <div className="inv-urgent-num">{urgentItems.length}</div>
               <div className="inv-urgent-icon">
@@ -413,10 +627,8 @@ export default function Inventory() {
             </div>
           </div>
 
-          <div
-            className={`inv-soon-card${statusFilter === 'soon' ? ' active-filter' : ''}`}
-            onClick={() => setStatusFilter(f => f === 'soon' ? null : 'soon')}
-          >
+          <div className={`inv-soon-card${statusFilter === 'soon' ? ' active-filter' : ''}`}
+            onClick={() => setStatusFilter(f => f === 'soon' ? null : 'soon')}>
             <div className="inv-soon-val">{soonItems.length}</div>
             <div className="inv-soon-lbl">заканчиваются скоро</div>
             <div className="inv-soon-hint">{statusFilter === 'soon' ? 'нажмите чтобы сбросить' : 'нажмите для фильтра'}</div>
@@ -455,33 +667,67 @@ export default function Inventory() {
           </div>
         )}
 
+        {/* Groups */}
         <div className="inv-groups">
-          {filteredGroups.map(group => (
-            <div key={group.id} className="inv-section-card">
-              <div className="inv-cat-header">
-                <div className="inv-cat-bar" style={{ background: group.color }} />
-                <div className="inv-cat-name">{group.name}</div>
-                {group.items.some(i => infoMap[i.id].filterStatus === 'urgent') && (
-                  <span className="inv-cat-urgent">Срочно</span>
-                )}
-                <span className="inv-cat-count">{group.items.length} поз.</span>
-              </div>
-              <div className="inv-section-items">
-                {group.items.map(item => (
-                  <InventoryItem
-                    key={item.id}
-                    item={item}
-                    open={openItem === item.id}
-                    onToggle={() => setOpenItem(prev => prev === item.id ? null : item.id)}
-                    override={overrides[item.id] ?? null}
-                    onOverrideChange={v => setOverrides(prev => ({ ...prev, [item.id]: v }))}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
+          {visibleGroups.map(group => {
+            const groupItems = items.filter(i => i.groupId === group.id)
+            const displayItems = statusFilter
+              ? groupItems.filter(i => infoMap[i.id]?.filterStatus === statusFilter)
+              : groupItems
+            const hasUrgent = displayItems.some(i => infoMap[i.id]?.filterStatus === 'urgent')
 
-          {filteredGroups.length === 0 && (
+            return (
+              <div key={group.id} className="inv-section-card">
+                <div className="inv-cat-header">
+                  <div className="inv-cat-bar" style={{ background: group.color }} />
+                  <div className="inv-cat-name">{group.name}</div>
+                  {hasUrgent && <span className="inv-cat-urgent">Срочно</span>}
+                  <span className="inv-cat-count">{groupItems.length} поз.</span>
+                </div>
+
+                <div className="inv-section-items">
+                  {displayItems.map(item => (
+                    <InventoryItem
+                      key={item.id}
+                      item={item}
+                      open={openItem === item.id}
+                      onToggle={() => setOpenItem(prev => prev === item.id ? null : item.id)}
+                      override={overrides[item.id] ?? null}
+                      onOverrideChange={v => setOverrides(prev => ({ ...prev, [item.id]: v }))}
+                      editMode={editMode}
+                      onDelete={() => setDeleteConfirm({ id: item.id, name: item.name, set: item.set })}
+                      onUnlink={() => setUnlinkConfirm({ id: item.id, name: item.name, set: item.set })}
+                      onLinkSet={() => setLinkToSetItem(item.id)}
+                    />
+                  ))}
+
+                  {displayItems.length === 0 && (
+                    <div className="inv-group-empty">
+                      {editMode ? 'Нет позиций — добавьте первую' : 'Нет позиций с таким статусом'}
+                    </div>
+                  )}
+                </div>
+
+                {editMode && (
+                  addFormGroup === group.id
+                    ? <AddItemForm groupId={group.id} onAdd={doAddItem} onCancel={() => setAddFormGroup(null)} />
+                    : (
+                      <button className="inv-add-toggle" onClick={() => {
+                        setAddFormGroup(group.id)
+                      }}>
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                          strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        Добавить позицию
+                      </button>
+                    )
+                )}
+              </div>
+            )
+          })}
+
+          {!editMode && visibleGroups.length === 0 && statusFilter && (
             <div className="inv-empty-state">
               <div className="inv-empty-icon">
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
@@ -495,6 +741,66 @@ export default function Inventory() {
           )}
         </div>
       </main>
+
+      {/* Delete confirmation modal */}
+      {deleteConfirm && (
+        <div className="inv-modal-overlay" onClick={() => setDeleteConfirm(null)}>
+          <div className="inv-modal" onClick={e => e.stopPropagation()}>
+            <div className="inv-modal-title">Удалить позицию?</div>
+            <div className="inv-modal-body">
+              Удаление <strong>«{deleteConfirm.name}»</strong> приведёт к созданию новой версии набора
+              {deleteConfirm.set && <> <strong>«{deleteConfirm.set}»</strong></>} без этого ингредиента.
+              Все параметры будут пересчитаны.
+            </div>
+            <div className="inv-modal-actions">
+              <button className="inv-modal-btn" onClick={() => setDeleteConfirm(null)}>Отмена</button>
+              <button className="inv-modal-btn danger" onClick={() => doDelete(deleteConfirm.id)}>Удалить</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Unlink confirmation modal */}
+      {unlinkConfirm && (
+        <div className="inv-modal-overlay" onClick={() => setUnlinkConfirm(null)}>
+          <div className="inv-modal" onClick={e => e.stopPropagation()}>
+            <div className="inv-modal-title">Отвязать от набора?</div>
+            <div className="inv-modal-body">
+              Отвязка <strong>«{unlinkConfirm.name}»</strong> от набора
+              <strong> «{unlinkConfirm.set}»</strong> приведёт к созданию новой версии набора без этого ингредиента.
+              Позиция перейдёт в раздел <strong>«Личное»</strong>.
+            </div>
+            <div className="inv-modal-actions">
+              <button className="inv-modal-btn" onClick={() => setUnlinkConfirm(null)}>Отмена</button>
+              <button className="inv-modal-btn danger" onClick={() => doUnlink(unlinkConfirm.id)}>Отвязать</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Set picker modal */}
+      {linkToSetItem && (
+        <div className="inv-modal-overlay" onClick={() => setLinkToSetItem(null)}>
+          <div className="inv-modal" onClick={e => e.stopPropagation()}>
+            <div className="inv-modal-title">Привязать к набору</div>
+            <div className="inv-set-picker-list">
+              {catalogSets.map(s => (
+                <button key={s.id} className="inv-set-picker-item" onClick={() => doLinkSet(linkToSetItem, s)}>
+                  <div className="inv-set-picker-dot" style={{ background: s.color }} />
+                  <div className="inv-set-picker-name">{s.title}</div>
+                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)' }}>
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                </button>
+              ))}
+            </div>
+            <div className="inv-modal-actions" style={{ marginTop: 16 }}>
+              <button className="inv-modal-btn" onClick={() => setLinkToSetItem(null)}>Отмена</button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   )
 }
