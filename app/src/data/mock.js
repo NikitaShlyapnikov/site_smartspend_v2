@@ -8,17 +8,6 @@ export const feedAuthors = {
 
 export const feedItems = [
   {
-    id: 'f1', type: 'set',
-    ts: 20260307, pop: 9800,
-    title: 'Корейский уход за кожей',
-    desc: 'Полный базовый уход по K-beauty методике: двойное очищение, тонер, эссенция, крем и SPF',
-    amount: 5800, amountLabel: 'руб / месяц',
-    source: 'ss', badge: 'base', color: '#96B8A0',
-    category: 'health',
-    items: ['Гидрофильное масло', 'Пенка для умывания', 'Тонер', 'Эссенция'], more: 3,
-    users: 1240, time: '2 ч назад',
-  },
-  {
     id: 'f2', type: 'article',
     ts: 20260307, pop: 8700,
     title: 'Боул с киноа и запечёнными овощами',
@@ -27,17 +16,6 @@ export const feedItems = [
     views: 3200, likes: 87, comments: 12,
     setLink: { title: 'Правильное питание', color: '#9AB8A8' },
     category: 'food',
-  },
-  {
-    id: 'f3', type: 'set',
-    ts: 20260306, pop: 5600,
-    title: 'Хоум-офис для удалёнки',
-    desc: 'Расходники для комфортной работы из дома: кофе, блокноты, канцелярия и мелкая техника',
-    amount: 3200, amountLabel: 'руб / месяц',
-    source: 'community', badge: 'extra', color: '#B89AAE',
-    category: 'home',
-    items: ['Кофе в зёрнах', 'Блокноты А5', 'Канцелярия'], more: 2,
-    users: 560, authorId: 'a2', time: '1 д назад',
   },
   {
     id: 'f4', type: 'article',
@@ -70,17 +48,6 @@ export const feedItems = [
     category: 'clothes',
   },
   {
-    id: 'f7', type: 'set',
-    ts: 20260303, pop: 3200,
-    title: 'Аптечка путешественника',
-    desc: 'Компактный набор для поездок: от пластыря до противодиарейных и средств от укусов',
-    amount: 1800, amountLabel: 'руб',
-    source: 'community', badge: 'extra', color: '#C4B496',
-    category: 'health',
-    items: ['Пластыри', 'Обезболивающие', 'Противодиарейные', 'Репеллент'], more: 2,
-    users: 890, authorId: 'a4', time: '5 д назад',
-  },
-  {
     id: 'f8', type: 'article',
     ts: 20260302, pop: 6700,
     title: 'Бытовая химия: что покупать оптом, а что раз в полгода',
@@ -89,17 +56,6 @@ export const feedItems = [
     views: 5400, likes: 98, comments: 19,
     setLink: { title: 'Бытовая химия', color: '#B8A87A' },
     category: 'home',
-  },
-  {
-    id: 'f9', type: 'set',
-    ts: 20260228, pop: 7100,
-    title: 'Базовый уход за кошкой',
-    desc: 'Ежемесячный набор для кошки: корм, наполнитель, лакомства, средства гигиены',
-    amount: 4200, amountLabel: 'руб / месяц',
-    source: 'ss', badge: 'base', color: '#A8B8A0',
-    category: 'health',
-    items: ['Сухой корм', 'Наполнитель', 'Лакомства', 'Когтеточка'], more: 2,
-    users: 3100, time: '1 нед назад',
   },
   {
     id: 'f10', type: 'article',
@@ -119,17 +75,6 @@ export const feedItems = [
     authorId: 'a2', time: '2 нед назад',
     views: 4100, likes: 77, comments: 14,
     category: 'food',
-  },
-  {
-    id: 'f12', type: 'set',
-    ts: 20260220, pop: 4400,
-    title: 'Базовый гардероб на сезон',
-    desc: 'Минимальный, но функциональный гардероб для повседневной жизни',
-    amount: 42000, amountLabel: 'руб / сезон',
-    source: 'ss', badge: 'base', color: '#4E8268',
-    category: 'clothes',
-    items: ['Джинсы', 'Футболки ×3', 'Куртка', 'Кроссовки', 'Рубашка'], more: 0,
-    users: 9300, time: '2 нед назад',
   },
 ]
 

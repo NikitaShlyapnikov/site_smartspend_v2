@@ -6,28 +6,16 @@ import { feedItems, feedAuthors } from '../data/mock'
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: 'all', label: 'Все' },
-  { id: 'sets', label: 'Наборы' },
+  { id: 'all',      label: 'Все' },
+  { id: 'coupons',  label: 'Купоны' },
   { id: 'articles', label: 'Статьи' },
 ]
 
 const MODES = [
-  {
-    id: 'unread', label: 'Непрочитанное',
-    icon: <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-  },
-  {
-    id: 'subscriptions', label: 'Подписки',
-    icon: <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
-  },
-  {
-    id: 'my-sets', label: 'Мои наборы',
-    icon: <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
-  },
-  {
-    id: 'liked', label: 'Понравившиеся',
-    icon: <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
-  },
+  { id: 'unread',        label: 'Непрочитанное' },
+  { id: 'subscriptions', label: 'Подписки' },
+  { id: 'my-sets',       label: 'Мои наборы' },
+  { id: 'liked',         label: 'Понравившиеся' },
 ]
 
 const CATEGORIES = [
@@ -256,7 +244,7 @@ export default function Feed() {
     if (mode === 'my-sets')       return item.type === 'article' && item.setLink && MY_SET_TITLES.has(item.setLink.title)
     if (mode === 'unread')        { if (readIds.has(item.id)) return false }
 
-    if (tab === 'sets'     && item.type !== 'set')     return false
+    if (tab === 'coupons'  && item.type !== 'coupon')  return false
     if (tab === 'articles' && item.type !== 'article') return false
     if (cat !== 'all' && item.category !== cat)        return false
     return true
@@ -288,7 +276,15 @@ export default function Feed() {
 
         <div className="filters-sticky">
           <div className="filters-block">
-            {/* Row 1: type tabs + sort dropdown */}
+            {/* Row 1: categories */}
+            <div className="cats-scroll">
+              {CATEGORIES.map(c => (
+                <button key={c.id} className={`cat-pill${cat === c.id ? ' active' : ''}`}
+                  onClick={() => setCat(c.id)}>{c.label}</button>
+              ))}
+            </div>
+
+            {/* Row 2: type tabs + sort dropdown */}
             <div className="filters-row1">
               <div className="tab-group">
                 {TABS.map(t => (
@@ -300,22 +296,14 @@ export default function Feed() {
               <SortDropdown sort={sort} onSort={setSort} />
             </div>
 
-            {/* Row 2: mode pills */}
+            {/* Row 3: mode as segmented control */}
             <div className="filters-row2">
-              {MODES.map(m => (
-                <button key={m.id} className={`mode-pill${mode === m.id ? ' active' : ''}`}
-                  onClick={() => toggleMode(m.id)}>
-                  {m.icon}{m.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Row 3: category pills */}
-            <div className="cats-scroll">
-              {CATEGORIES.map(c => (
-                <button key={c.id} className={`cat-pill${cat === c.id ? ' active' : ''}`}
-                  onClick={() => setCat(c.id)}>{c.label}</button>
-              ))}
+              <div className="tab-group">
+                {MODES.map(m => (
+                  <button key={m.id} className={`tab-btn${mode === m.id ? ' active' : ''}`}
+                    onClick={() => toggleMode(m.id)}>{m.label}</button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -335,16 +323,14 @@ export default function Feed() {
                 <div className="empty-title">Ничего не найдено</div>
                 <div className="empty-desc">Попробуйте изменить фильтры</div>
               </div>
-            ) : filtered.map(item =>
-              item.type === 'set'
-                ? <SetCard key={item.id} item={item} isRead={readIds.has(item.id)} onClick={handleItemClick} />
-                : <ArticleCard key={item.id} item={item}
-                    isRead={readIds.has(item.id)}
-                    isLiked={likedIds.has(item.id)}
-                    onLikeToggle={toggleLike}
-                    onClick={handleItemClick}
-                  />
-            )}
+            ) : filtered.map(item => (
+              <ArticleCard key={item.id} item={item}
+                isRead={readIds.has(item.id)}
+                isLiked={likedIds.has(item.id)}
+                onLikeToggle={toggleLike}
+                onClick={handleItemClick}
+              />
+            ))}
           </div>
         </div>
       </main>
