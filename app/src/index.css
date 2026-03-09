@@ -2875,6 +2875,38 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
 .item-amount-input { flex: 1 !important; }
 .item-period-select { flex: 1 !important; }
 
+/* ── CreateSet: items table ─────────────────────────────────────────────── */
+.items-table-wrap { overflow-x: auto; margin-bottom: 10px; border: 1px solid var(--border); border-radius: var(--r-sm); }
+.cs-items-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+}
+.cs-items-table thead th {
+  padding: 8px 10px; text-align: left; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3);
+  background: var(--surface-2); border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.cs-item-row td { padding: 5px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.cs-item-row:last-child td { border-bottom: none; }
+.cs-cell-input {
+  width: 100%; border: 1px solid transparent; border-radius: 6px;
+  background: transparent; font-family: inherit; font-size: 13px;
+  color: var(--text); padding: 5px 7px; outline: none; box-sizing: border-box;
+  transition: border-color 0.15s, background 0.15s;
+}
+.cs-cell-input:focus { border-color: var(--accent-green-border); background: var(--accent-green-light); }
+.cs-name-input { min-width: 140px; }
+.cs-num-input { min-width: 64px; text-align: right; font-family: var(--mono); }
+.cs-unit-select { min-width: 64px; cursor: pointer; }
+.cs-pm-cell { font-family: var(--mono); font-size: 12px; color: var(--accent-green); font-weight: 600; white-space: nowrap; padding: 5px 10px; }
+.cs-formula-hint {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--text-3); padding: 4px 0 2px;
+}
+
+/* ── CreateSet: form extras ─────────────────────────────────────────────── */
+.form-label-hint { font-weight: 400; color: var(--text-3); font-size: 11px; }
+
 /* ══════════════════════════════════════════
    CREATE ARTICLE — Editor
 ══════════════════════════════════════════ */

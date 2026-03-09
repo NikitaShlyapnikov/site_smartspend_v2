@@ -20,27 +20,62 @@ const MY_SETS = [
   { id: 's5', name: 'Домашний офис',        color: '#8A9EB8', amount: '65 000 ₽',period: 'разово',   tags: ['8 поз.', 'разово']      },
 ]
 
+// ── Разбивает строку на части: текст + картинки ───────────────────────────────
+function inlineWithImages(text, imgMap) {
+  const parts = []
+  const re = /!\[([^\]]*)\]\(([^)]+)\)/g
+  let last = 0, m
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) parts.push({ type: 'text', value: text.slice(last, m.index) })
+    const img = imgMap[m[2]]
+    parts.push(img
+      ? { type: 'img', url: img.url, alt: m[1] }
+      : { type: 'text', value: `[изображение: ${m[1]}]` }
+    )
+    last = m.index + m[0].length
+  }
+  if (last < text.length) parts.push({ type: 'text', value: text.slice(last) })
+  return parts
+}
+
 // ── Markdown → JSX (для превью внутри hero) ───────────────────────────────────
 function renderMarkdown(text, images) {
   const imgMap = {}
   images.forEach(img => { imgMap[img.id] = img })
 
   return text.split('\n\n').filter(Boolean).map((block, i) => {
-    const imgMatch = block.match(/^!\[([^\]]*)\]\(([^)]+)\)$/)
-    if (imgMatch) {
-      const img = imgMap[imgMatch[2]]
+    if (block.startsWith('## '))  return <h2 key={i}>{block.slice(3)}</h2>
+    if (block.startsWith('> '))   return <blockquote key={i} className="content-note">{block.slice(2)}</blockquote>
+
+    // Если весь блок — одна картинка, рендерим по центру
+    const soloImg = block.match(/^!\[([^\]]*)\]\(([^)]+)\)$/)
+    if (soloImg) {
+      const img = imgMap[soloImg[2]]
       if (img) return (
         <div key={i} style={{ display: 'flex', justifyContent: 'center', margin: '16px 0' }}>
-          <img src={img.url} alt={imgMatch[1]}
+          <img src={img.url} alt={soloImg[1]}
             style={{ maxWidth: '100%', maxHeight: 400, borderRadius: 10, objectFit: 'contain' }} />
         </div>
       )
-      return <div key={i} className="preview-img-placeholder">[изображение: {imgMatch[1]}]</div>
+      return <div key={i} className="preview-img-placeholder">[изображение: {soloImg[1]}]</div>
     }
-    if (block.startsWith('## '))  return <h2 key={i}>{block.slice(3)}</h2>
-    if (block.startsWith('> '))   return <blockquote key={i} className="content-note">{block.slice(2)}</blockquote>
-    const inline = block.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>')
-    return <p key={i} dangerouslySetInnerHTML={{ __html: inline }} />
+
+    // Параграф с возможными инлайн-картинками
+    const parts = inlineWithImages(block, imgMap)
+    const hasImg = parts.some(p => p.type === 'img')
+    if (!hasImg) {
+      const inline = block.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>')
+      return <p key={i} dangerouslySetInnerHTML={{ __html: inline }} />
+    }
+    return (
+      <p key={i}>
+        {parts.map((p, j) => p.type === 'img'
+          ? <img key={j} src={p.url} alt={p.alt}
+              style={{ maxWidth: '100%', maxHeight: 400, borderRadius: 10, objectFit: 'contain', display: 'block', margin: '12px auto' }} />
+          : <span key={j} dangerouslySetInnerHTML={{ __html: p.value.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>') }} />
+        )}
+      </p>
+    )
   })
 }
 
@@ -143,7 +178,7 @@ export default function CreateArticle() {
 
           {preview ? (
             /* ══════════════════ PREVIEW MODE ══════════════════ */
-            <div className="editor-preview-article">
+            <div className="editor-preview-article" style={{ paddingTop: 24 }}>
 
               {/* Hero card */}
               <div className="hero-card">
@@ -208,7 +243,7 @@ export default function CreateArticle() {
                   <div className="author-avatar" style={{ background: '#4E8268' }}>НО</div>
                   <div className="author-info">
                     <div className="author-name">Никита Орлов</div>
-                    <div className="author-bio">Автор</div>
+                    <div className="author-bio">Интересуюсь личными финансами, инвестициями и оптимизацией бюджета. Создаю наборы для разных жизненных сценариев.</div>
                   </div>
                   <button className="btn-follow">Подписаться</button>
                 </div>
