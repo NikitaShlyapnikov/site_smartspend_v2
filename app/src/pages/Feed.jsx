@@ -7,8 +7,8 @@ import { feedItems, feedAuthors } from '../data/mock'
 
 const TABS = [
   { id: 'all',      label: 'Все' },
-  { id: 'coupons',  label: 'Купоны' },
   { id: 'articles', label: 'Статьи' },
+  { id: 'coupons',  label: 'Купоны' },
 ]
 
 const MODES = [
@@ -271,7 +271,6 @@ export default function Feed() {
       <main className="feed-main">
         <div className="page-header">
           <div className="page-title">Лента</div>
-          <div className="page-subtitle">Новые наборы и статьи от авторов</div>
         </div>
 
         <div className="filters-sticky">
