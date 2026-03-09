@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { setDetails, catalogSets } from '../data/mock'
@@ -20,9 +20,19 @@ export default function SetDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
 
+  const detail  = setDetails[id]
+  const catalog = catalogSets.find(s => s.id === id)
+  const set     = detail || catalog
+
+  // Mutable items state (for editing)
+  const defaultItems = useMemo(
+    () => (detail?.items || []).filter(i => 'basePrice' in i).map(i => ({ ...i })),
+    [detail]
+  )
+  const [items, setItems]         = useState(() => defaultItems.map(i => ({ ...i })))
   const [added, setAdded]         = useState(false)
   const [editMode, setEditMode]   = useState(false)
-  const [scale, setScale]         = useState(1.0)
+  const [scale, setScaleRaw]      = useState(1.0)
   const [expOpen, setExpOpen]     = useState(false)
   const [showAllArticles, setShowAllArticles] = useState(false)
   const [cmtExpanded, setCmtExpanded] = useState(false)
@@ -30,26 +40,55 @@ export default function SetDetail() {
   const [cmtText, setCmtText]     = useState('')
   const [likes, setLikes]         = useState({})
 
+  // Modified = scale changed OR any item differs from defaults
+  const isDefault = useMemo(() => {
+    if (scale !== 1.0) return false
+    return items.every(item => {
+      const d = defaultItems.find(x => x.id === item.id)
+      return d && d.qty === item.qty && d.basePrice === item.basePrice && d.period === item.period
+    })
+  }, [scale, items, defaultItems])
+
   // Scale hold-acceleration
   const scaleTimerRef = useRef(null)
   const scaleHoldRef  = useRef(0)
-  function stopScale() { if (scaleTimerRef.current) { clearTimeout(scaleTimerRef.current); scaleTimerRef.current = null } }
+  function stopScale() {
+    if (scaleTimerRef.current) { clearTimeout(scaleTimerRef.current); scaleTimerRef.current = null }
+  }
   function startScale(dir) {
     stopScale()
     scaleHoldRef.current = Date.now()
     function tick() {
       const elapsed = Date.now() - scaleHoldRef.current
       const step = elapsed < 1200 ? 0.05 : elapsed < 2500 ? 0.1 : 0.25
-      setScale(s => Math.max(0.25, Math.min(5, Math.round((s + dir * step) * 100) / 100)))
+      setScaleRaw(s => Math.max(0.25, Math.min(5, Math.round((s + dir * step) * 100) / 100)))
       scaleTimerRef.current = setTimeout(tick, elapsed < 400 ? 350 : 80)
     }
     tick()
   }
 
-  // Resolve set data
-  const detail = setDetails[id]
-  const catalog = catalogSets.find(s => s.id === id)
-  const set = detail || catalog
+  function handleReset() {
+    setItems(defaultItems.map(i => ({ ...i })))
+    setScaleRaw(1.0)
+    setEditMode(false)
+  }
+
+  // Item edit handlers
+  function chQty(itemId, delta) {
+    setItems(prev => prev.map(i => i.id === itemId ? { ...i, qty: Math.max(0, i.qty + delta) } : i))
+  }
+  function chPrice(itemId, v) {
+    const n = parseFloat(v)
+    if (!isNaN(n) && n >= 0) {
+      setItems(prev => prev.map(i => i.id === itemId ? { ...i, basePrice: n / scale } : i))
+    }
+  }
+  function chPeriod(itemId, v) {
+    const n = parseFloat(v)
+    if (!isNaN(n) && n > 0) {
+      setItems(prev => prev.map(i => i.id === itemId ? { ...i, period: n } : i))
+    }
+  }
 
   if (!set) return (
     <Layout>
@@ -63,25 +102,22 @@ export default function SetDetail() {
     </Layout>
   )
 
-  const richItems  = detail?.items?.length > 0 && typeof detail.items[0] === 'object' && 'basePrice' in detail.items[0]
-  const tableItems = richItems ? detail.items : null
-
+  const tableItems   = items.length > 0 ? items : null
   const totalMonthly = tableItems
     ? tableItems.reduce((s, i) => s + itemMonthly(i, scale), 0)
     : null
 
-  const color = set.color || '#4E8268'
+  const color    = set.color || '#4E8268'
   const srcLabel = { ss: 'SmartSpend', community: 'Сообщество', own: 'Мой набор' }[set.source] || 'SmartSpend'
-  const catLabel = set.categoryLabel || set.category || ''
 
   const authorArticles = detail?.authorArticles || []
-  const recArticles    = detail?.recArticles || []
-  const comments       = detail?.comments || []
+  const recArticles    = detail?.recArticles    || []
+  const comments       = detail?.comments       || []
   const SHOW_ART = 3
   const SHOW_CMT = 2
 
   const sortedComments = [...comments].sort(
-    cmtSort === 'popular' ? (a, b) => b.likes - a.likes : (a, b) => 0
+    cmtSort === 'popular' ? (a, b) => b.likes - a.likes : () => 0
   )
 
   return (
@@ -103,6 +139,14 @@ export default function SetDetail() {
               <span className={set.type === 'base' ? 'base-badge' : 'extra-badge'}>
                 {set.type === 'base' ? 'Основа' : 'Дополнение'}
               </span>
+              {!isDefault && (
+                <span className="sd-modified-badge">
+                  <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                  </svg>
+                  Под меня
+                </span>
+              )}
             </div>
             <div className="sd-hero-title">{set.title}</div>
             <div className="sd-hero-desc">{set.desc}</div>
@@ -144,19 +188,18 @@ export default function SetDetail() {
             <div className="sd-hero-actions">
               <button className={`sd-btn-primary${added ? ' added' : ''}`}
                 onClick={() => { setAdded(true); setTimeout(() => navigate('/inventory'), 700) }}>
-                {added ? (
-                  <><CheckIcon /> Добавлено</>
-                ) : (
-                  <><PlusIcon /> Добавить в конверт</>
-                )}
+                {added ? <><CheckIcon /> Добавлено</> : <><PlusIcon /> Добавить в конверт</>}
               </button>
-              <button className="sd-btn-secondary" style={{ display: added ? 'flex' : 'none' }}>
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"
-                  strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-                </svg>
-                Дублировать
-              </button>
+              {added && (
+                <button className="sd-btn-secondary">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"
+                    strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2"/>
+                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                  </svg>
+                  Дублировать
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -190,6 +233,15 @@ export default function SetDetail() {
                 <span className="sd-section-count">{tableItems.length} позиций</span>
               </div>
               <div className="sd-section-actions">
+                {!isDefault && (
+                  <button className="sd-btn-sm" onClick={handleReset}>
+                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                      <path d="M3 3v5h5"/>
+                    </svg>
+                    Сбросить
+                  </button>
+                )}
                 <button className={`sd-btn-sm${editMode ? ' active' : ''}`}
                   onClick={() => setEditMode(m => !m)}>
                   {editMode ? (
@@ -206,7 +258,7 @@ export default function SetDetail() {
               <thead>
                 <tr>
                   <th>Позиция</th>
-                  <th>Кол-во</th>
+                  <th>{editMode ? 'Кол-во' : 'Кол-во'}</th>
                   <th>Цена</th>
                   <th>Срок службы</th>
                   <th>₽/мес</th>
@@ -219,6 +271,40 @@ export default function SetDetail() {
                   const monthly = itemMonthly(item, scale)
                   const periodYears = item.period
                   const periodStr = (periodYears % 1 === 0) ? periodYears + '\u00a0лет' : (periodYears * 12) + '\u00a0мес'
+
+                  if (editMode) {
+                    return (
+                      <tr key={`${item.id}-e-${scale}`}>
+                        <td>
+                          <div className="sd-item-name">{item.name}</div>
+                          {item.note && <div className="sd-item-note">{item.note}</div>}
+                        </td>
+                        <td>
+                          <div className="sd-qty-ctrl">
+                            <button className="sd-qty-btn" onClick={() => chQty(item.id, -1)}>−</button>
+                            <span className="sd-qty-n">{item.qty}</span>
+                            <button className="sd-qty-btn" onClick={() => chQty(item.id, +1)}>+</button>
+                          </div>
+                        </td>
+                        <td>
+                          <input className="sd-inline-input" type="number"
+                            defaultValue={Math.round(effectivePrice)} min="0" step="100"
+                            onBlur={e => chPrice(item.id, e.target.value)}
+                            style={{ width: 80 }} />
+                        </td>
+                        <td>
+                          <div className="sd-period-row">
+                            <input className="sd-inline-input" type="number"
+                              defaultValue={item.period} min="0.25" step="0.5"
+                              onBlur={e => chPeriod(item.id, e.target.value)}
+                              style={{ width: 60 }} />
+                            <span className="sd-period-unit">лет</span>
+                          </div>
+                        </td>
+                        <td><span className="sd-mono-accent">{Math.round(monthly).toLocaleString('ru')}&thinsp;₽</span></td>
+                      </tr>
+                    )
+                  }
                   return (
                     <tr key={item.id}>
                       <td>

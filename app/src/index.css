@@ -2723,6 +2723,13 @@ body.dark .profile-tab.active { background: var(--surface-3); }
   display: flex; align-items: center; gap: 5px;
   flex-wrap: wrap; margin-bottom: 10px;
 }
+.sd-modified-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 5px;
+  background: #FFF8E6; color: #9A6800; border: 1px solid #E8D080;
+}
+body.dark .sd-modified-badge { background: #2A1E00; color: #C8940A; border-color: #4A3800; }
 
 .sd-hero-title {
   font-size: 24px; font-weight: 700; letter-spacing: -0.03em;
@@ -2855,6 +2862,30 @@ body.dark .profile-tab.active { background: var(--surface-3); }
   border-top: 1px solid var(--accent-green-border) !important; border-bottom: none !important;
 }
 .sd-total-amt { font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--accent-green); }
+
+/* Edit mode controls */
+.sd-qty-ctrl { display: flex; align-items: center; gap: 5px; }
+.sd-qty-btn {
+  width: 20px; height: 20px; border-radius: 4px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 12px; color: var(--text-2);
+  transition: all 0.1s; line-height: 1; font-family: var(--sans); flex-shrink: 0;
+}
+.sd-qty-btn:hover { background: var(--surface-3); color: var(--text); }
+.sd-qty-n { font-family: var(--mono); font-size: 12px; min-width: 16px; text-align: center; }
+.sd-inline-input {
+  font-family: var(--mono); font-size: 12px; color: var(--text);
+  background: var(--surface-2); border: 1px solid var(--accent-green-border);
+  border-radius: 5px; padding: 3px 7px;
+  outline: none; transition: border-color 0.12s; -moz-appearance: textfield;
+}
+.sd-inline-input:focus { border-color: var(--accent-green); background: var(--surface); }
+.sd-inline-input::-webkit-outer-spin-button,
+.sd-inline-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.sd-period-row { display: flex; align-items: center; gap: 5px; }
+.sd-period-unit { font-size: 11px; color: var(--text-3); font-family: var(--mono); }
+body.dark .sd-inline-input { background: var(--surface-3); color: var(--text); }
 
 /* Explainer accordion */
 .sd-explainer { border-top: 1px solid var(--border); }
