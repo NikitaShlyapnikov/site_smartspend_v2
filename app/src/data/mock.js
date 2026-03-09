@@ -12,7 +12,7 @@ export const feedAuthors = {
     desc: 'Этот пользователь ограничил доступ к своему профилю.',
   },
   ghost: {
-    name: 'Удалённый аккаунт', initials: '?', color: '#B0B0B0', following: false,
+    name: 'Привидение', initials: '?', color: '#B0B0B0', following: false,
     type: 'deleted',
     handle: '@deleted',
     followers: '—', articles: 0, sets: 0,

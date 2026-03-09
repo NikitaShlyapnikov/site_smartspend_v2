@@ -64,7 +64,6 @@ function AnonymousProfile({ navigate }) {
           <div className="user-info">
             <div className="user-name-line">
               <span className="user-display-name">Анонимный пользователь</span>
-              <span className="author-special-badge author-special-badge--anon">Скрытый профиль</span>
             </div>
             <div className="user-bio" style={{ marginTop: 8 }}>
               Этот пользователь ограничил доступ к своей странице. Профиль, статьи и наборы скрыты от посторонних.
@@ -117,8 +116,7 @@ function GhostProfile({ navigate }) {
           </div>
           <div className="user-info">
             <div className="user-name-line">
-              <span className="user-display-name author-ghost-name">Удалённый аккаунт</span>
-              <span className="author-special-badge author-special-badge--ghost">Аккаунт удалён</span>
+              <span className="user-display-name author-ghost-name">Привидение</span>
             </div>
             <div className="user-bio" style={{ marginTop: 8 }}>
               Этот аккаунт был удалён пользователем. Опубликованные материалы сохранены и переданы анонимному автору.
@@ -154,7 +152,7 @@ function GhostProfile({ navigate }) {
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{ opacity: 0.6 }}>
                       <path d="M12 2a8 8 0 0 0-8 8v10l3-3 3 3 3-3 3 3 3-3V10a8 8 0 0 0-8-8zm-2.5 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
                     </svg>
-                    Удалённый аккаунт
+                    Привидение
                   </span>
                 </div>
               </div>
@@ -174,7 +172,7 @@ function GhostProfile({ navigate }) {
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{ opacity: 0.6 }}>
                           <path d="M12 2a8 8 0 0 0-8 8v10l3-3 3 3 3-3 3 3 3-3V10a8 8 0 0 0-8-8zm-2.5 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
                         </svg>
-                        Удалённый аккаунт
+                        Привидение
                       </span>
                     </div>
                     <div className="acc-set-name">{s.name}</div>

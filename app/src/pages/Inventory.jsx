@@ -804,6 +804,7 @@ export default function Inventory() {
       id, name: form.name.trim(), type: form.type, groupId,
       price: Number(form.price) || 0,
       set: pickedSet?.title || null, setId: pickedSet?.id || null,
+      isExtra: true,
     }
     if (form.type === 'consumable') {
       Object.assign(base, {
@@ -820,7 +821,11 @@ export default function Inventory() {
       })
       setOverrides(p => ({ ...p, [id]: base.purchaseDate }))
     }
-    setItems(prev => [...prev, base])
+    setItems(prev => {
+      const next = [...prev, base]
+      syncExtra(next)
+      return next
+    })
     setAddFormGroup(null)
   }
 

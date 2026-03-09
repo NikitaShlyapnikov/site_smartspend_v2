@@ -141,7 +141,7 @@ function AuthorChip({ author, authorId, navigate }) {
             <path d="M12 2a8 8 0 0 0-8 8v10l3-3 3 3 3-3 3 3 3-3V10a8 8 0 0 0-8-8zm-2.5 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
           </svg>
         </span>
-        <span className="author-name-inline author-name--special author-name--deleted">Удалённый аккаунт</span>
+        <span className="author-name-inline author-name--special">Привидение</span>
       </button>
     )
   }

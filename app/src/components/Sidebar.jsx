@@ -22,22 +22,22 @@ const navItems = [
     ),
   },
   {
-    to: '/feed',
-    id: 'feed',
-    label: 'Лента',
-    icon: (
-      <svg className="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7"/>
-      </svg>
-    ),
-  },
-  {
     to: '/inventory',
     id: 'inventory',
     label: 'Инвентарь',
     icon: (
       <svg className="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+      </svg>
+    ),
+  },
+  {
+    to: '/feed',
+    id: 'feed',
+    label: 'Лента',
+    icon: (
+      <svg className="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7"/>
       </svg>
     ),
   },

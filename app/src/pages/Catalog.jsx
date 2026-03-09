@@ -64,9 +64,9 @@ export default function Catalog() {
 
   // Filter + sort
   let filtered = catalogSets.filter(s => {
-    if (cat === 'liked') return likedSets.has(s.id)
     if (cat !== 'all' && s.category !== cat) return false
     if (typeFilter !== 'all' && s.type !== typeFilter) return false
+    if (sourceFilter === 'liked') return likedSets.has(s.id)
     if (sourceFilter !== 'all' && s.source !== sourceFilter) return false
     return true
   })
@@ -100,13 +100,6 @@ export default function Catalog() {
                 <span className="cat-count">{catCounts[c.id]}</span>
               </button>
             ))}
-            <button className={`cat-btn cat-btn-liked${cat === 'liked' ? ' active' : ''}`} onClick={() => setCat(cat === 'liked' ? 'all' : 'liked')}>
-              <svg width="11" height="11" fill={cat === 'liked' ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-              Понравившиеся
-              <span className="cat-count">{likedSets.size}</span>
-            </button>
           </div>
 
           {/* Row 2: type · source · sort · count */}
@@ -118,12 +111,22 @@ export default function Catalog() {
                   onClick={() => setType(id)}>{label}</button>
               ))}
             </div>
-            {/* Источник */}
+            {/* Источник + Понравившиеся */}
             <div className="seg-ctrl">
               {[['all', 'Все источники'], ['ss', 'SmartSpend'], ['community', 'Сообщество'], ['own', 'Мои']].map(([id, label]) => (
                 <button key={id} className={`seg-btn${sourceFilter === id ? ' active' : ''}`}
                   onClick={() => setSrc(id)}>{label}</button>
               ))}
+              <button
+                className={`seg-btn seg-btn-liked${sourceFilter === 'liked' ? ' active' : ''}`}
+                onClick={() => setSrc(sourceFilter === 'liked' ? 'all' : 'liked')}
+              >
+                <svg width="11" height="11" fill={sourceFilter === 'liked' ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                Понравившиеся
+                {likedSets.size > 0 && <span className="seg-liked-count">{likedSets.size}</span>}
+              </button>
             </div>
 
             <span className="filters-spacer" />
@@ -151,15 +154,6 @@ export default function Catalog() {
             </div>
           ) : filtered.map(set => (
             <div key={set.id} className="catalog-card" onClick={() => navigate(`/set/${set.id}`)}>
-              <button
-                className={`card-like-btn${likedSets.has(set.id) ? ' liked' : ''}`}
-                onClick={e => toggleLike(set.id, e)}
-                title={likedSets.has(set.id) ? 'Убрать из понравившихся' : 'Добавить в понравившиеся'}
-              >
-                <svg width="14" height="14" fill={likedSets.has(set.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                </svg>
-              </button>
               <div className="card-accent-bar" style={{ background: set.color }} />
               <div className="card-body">
                 <div className="card-badges">
