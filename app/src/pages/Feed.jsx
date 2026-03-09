@@ -19,13 +19,17 @@ const MODES = [
 ]
 
 const CATEGORIES = [
-  { id: 'all',       label: 'Все' },
-  { id: 'food',      label: 'Еда и продукты' },
-  { id: 'clothes',   label: 'Одежда' },
-  { id: 'home',      label: 'Дом и техника' },
-  { id: 'health',    label: 'Здоровье и уход' },
-  { id: 'transport', label: 'Авто и транспорт' },
-  { id: 'leisure',   label: 'Досуг и подписки' },
+  { id: 'all',        label: 'Все'                   },
+  { id: 'food',       label: 'Еда и Супермаркеты'    },
+  { id: 'cafe',       label: 'Кафе, Бары, Рестораны' },
+  { id: 'transport',  label: 'Авто и Транспорт'      },
+  { id: 'home',       label: 'Дом и Техника'         },
+  { id: 'clothes',    label: 'Одежда и Обувь'        },
+  { id: 'leisure',    label: 'Развлечения и Хобби'   },
+  { id: 'health',     label: 'Красота и Здоровье'    },
+  { id: 'education',  label: 'Образование и Дети'    },
+  { id: 'travel',     label: 'Путешествия и Отдых'   },
+  { id: 'other',      label: 'Прочие расходы'        },
 ]
 
 const SORT_OPTIONS = [

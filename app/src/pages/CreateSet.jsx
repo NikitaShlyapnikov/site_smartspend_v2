@@ -3,15 +3,16 @@ import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 
 const CATEGORIES = [
-  { id: 'clothes',   label: 'Одежда'    },
-  { id: 'food',      label: 'Питание'   },
-  { id: 'home',      label: 'Дом'       },
-  { id: 'health',    label: 'Здоровье'  },
-  { id: 'transport', label: 'Транспорт' },
-  { id: 'leisure',   label: 'Досуг'     },
-  { id: 'finance',   label: 'Финансы'   },
-  { id: 'tech',      label: 'Техника'   },
-  { id: 'other',     label: 'Другое'    },
+  { id: 'other',      label: 'Прочие расходы'        },
+  { id: 'food',       label: 'Еда и Супермаркеты'    },
+  { id: 'cafe',       label: 'Кафе, Бары, Рестораны' },
+  { id: 'transport',  label: 'Авто и Транспорт'      },
+  { id: 'home',       label: 'Дом и Техника'         },
+  { id: 'clothes',    label: 'Одежда и Обувь'        },
+  { id: 'leisure',    label: 'Развлечения и Хобби'   },
+  { id: 'health',     label: 'Красота и Здоровье'    },
+  { id: 'education',  label: 'Образование и Дети'    },
+  { id: 'travel',     label: 'Путешествия и Отдых'   },
 ]
 
 function calcPerMonth(item) {

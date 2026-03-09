@@ -6,7 +6,7 @@ import { setDetails, catalogSets } from '../data/mock'
 // Category → envelope category (Profile)
 const CAT_TO_ENV = {
   clothes: 'clothes', food: 'food', home: 'home',
-  health: 'beauty', transport: 'auto', leisure: 'fun', gifts: 'other',
+  health: 'health', transport: 'transport', leisure: 'leisure', gifts: 'other',
 }
 // Category → inventory group ID
 const CAT_TO_GROUP = {
@@ -118,18 +118,22 @@ export default function SetDetail() {
     // 4. Save to ss_inventory_extra
     const groupId = CAT_TO_GROUP[set.category] || 'g1'
     const ts = Date.now()
-    const invItems = activeItems.map((item, idx) => ({
-      id: `inv_${set.id}_${item.id}_${ts + idx}`,
-      name: item.name,
-      type: 'wear',
-      price: Math.round(item.basePrice * scale),
-      wearLifeWeeks: Math.round(item.period * 52),
-      purchaseDate: now.toISOString().slice(0, 10),
-      set: setTitle,
-      setId: set.id,
-      groupId,
-      paused: true,
-    }))
+    const invItems = activeItems.flatMap((item, idx) => {
+      const count = Math.max(1, Math.round(item.qty))
+      return Array.from({ length: count }, (_, k) => ({
+        id: `inv_${set.id}_${item.id}_${ts + idx * 1000 + k}`,
+        name: count > 1 ? `${item.name} #${k + 1}` : item.name,
+        type: 'wear',
+        price: Math.round(item.basePrice * scale),
+        wearLifeWeeks: Math.round(item.period * 52),
+        purchaseDate: now.toISOString().slice(0, 10),
+        set: setTitle,
+        setId: set.id,
+        groupId,
+        paused: true,
+        isExtra: true,
+      }))
+    })
     try {
       const invData = JSON.parse(localStorage.getItem('ss_inventory_extra') || '[]')
       // Remove previous items from same set (re-add replaces)

@@ -3322,19 +3322,23 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
   .mobile-top-bar,
   .mobile-bottom-nav { display: flex; }
 
-  /* Full-width single column */
-  body.app-body #root {
+  /* Full-width single column — override both normal and collapsed-sidebar specificity */
+  body.app-body #root,
+  body.sidebar-collapsed.app-body #root {
     grid-template-columns: 1fr;
     height: auto;
     overflow: visible;
   }
 
-  body.app-body #root > main {
+  body.app-body #root > main,
+  body.sidebar-collapsed.app-body #root > main {
     height: auto;
     overflow-y: visible;
     padding-top: calc(var(--top-bar-h) + 8px);
     padding-bottom: calc(var(--bottom-nav-h) + 16px);
     min-height: 100vh;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   /* ── TOP BAR ── */
@@ -3385,22 +3389,28 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
   /* ── BOTTOM NAV ── */
   .mobile-bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+    width: 100%;
     height: var(--bottom-nav-h);
     background: var(--surface);
     border-top: 1px solid var(--border);
-    align-items: center; justify-content: space-around;
+    display: grid !important;
+    grid-template-columns: repeat(5, 1fr);
+    align-items: center;
     padding-bottom: env(safe-area-inset-bottom, 0px);
+    overflow: hidden;
+    box-sizing: border-box;
   }
   .mobile-nav-item {
-    display: flex; flex-direction: column; align-items: center; gap: 3px;
-    flex: 1; padding: 8px 0; min-width: 0;
+    display: flex !important; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    width: 100%; height: 100%; padding: 8px 0; min-width: 0;
     color: var(--text-2); text-decoration: none;
     transition: color 0.12s;
     font-size: 10px; font-weight: 500; letter-spacing: -0.01em;
+    overflow: hidden;
   }
   .mobile-nav-item.active { color: var(--accent-green); }
-  .mobile-nav-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
-  .mobile-nav-label { white-space: nowrap; }
+  .mobile-nav-icon { width: 20px; height: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .mobile-nav-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 
   /* ── PAGE-SPECIFIC MOBILE TWEAKS ── */
   .profile-main,

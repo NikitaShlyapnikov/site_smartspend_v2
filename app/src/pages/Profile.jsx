@@ -179,32 +179,32 @@ const EMO_RATES = [
 
 // ── Категории конвертов ──
 const CATEGORIES = [
-  { id: 'other',     name: 'Прочие расходы',        color: '#B0A898' },
-  { id: 'all',       name: 'Все покупки',            color: '#A8B8C8' },
-  { id: 'food',      name: 'Еда и Супермаркеты',     color: '#8DBFA8' },
-  { id: 'cafe',      name: 'Кафе, Бары, Рестораны',  color: '#C4A882' },
-  { id: 'auto',      name: 'Авто и Транспорт',       color: '#8AAFC8' },
-  { id: 'home',      name: 'Дом и Техника',          color: '#9EA8C0' },
-  { id: 'clothes',   name: 'Одежда и Обувь',         color: '#B8A0C8' },
-  { id: 'fun',       name: 'Развлечения и Хобби',    color: '#C8A8A0' },
-  { id: 'beauty',    name: 'Красота и Здоровье',     color: '#C4B0C0' },
-  { id: 'education', name: 'Образование и Дети',     color: '#A8C0B0' },
-  { id: 'travel',    name: 'Путешествия и Отдых',    color: '#C0B898' },
+  { id: 'other',      name: 'Прочие расходы',        color: '#B0A898' },
+  { id: 'all',        name: 'Все покупки',            color: '#A8B8C8' },
+  { id: 'food',       name: 'Еда и Супермаркеты',    color: '#8DBFA8' },
+  { id: 'cafe',       name: 'Кафе, Бары, Рестораны', color: '#C4A882' },
+  { id: 'transport',  name: 'Авто и Транспорт',      color: '#8AAFC8' },
+  { id: 'home',       name: 'Дом и Техника',         color: '#9EA8C0' },
+  { id: 'clothes',    name: 'Одежда и Обувь',        color: '#B8A0C8' },
+  { id: 'leisure',    name: 'Развлечения и Хобби',   color: '#C8A8A0' },
+  { id: 'health',     name: 'Красота и Здоровье',    color: '#C4B0C0' },
+  { id: 'education',  name: 'Образование и Дети',    color: '#A8C0B0' },
+  { id: 'travel',     name: 'Путешествия и Отдых',   color: '#C0B898' },
 ]
 
 // Map profile envelope category → catalog category filter
 const CAT_TO_CATALOG = {
-  food:      'food',
-  cafe:      'food',
-  clothes:   'clothes',
-  home:      'home',
-  auto:      'transport',
-  beauty:    'health',
-  fun:       'leisure',
-  education: 'all',
-  travel:    'leisure',
-  other:     'all',
-  all:       'all',
+  food:       'food',
+  cafe:       'food',
+  clothes:    'clothes',
+  home:       'home',
+  transport:  'transport',
+  health:     'health',
+  leisure:    'leisure',
+  education:  'all',
+  travel:     'leisure',
+  other:      'all',
+  all:        'all',
 }
 
 const INITIAL_ENVELOPES = {
@@ -215,7 +215,7 @@ const INITIAL_ENVELOPES = {
   clothes: [
     { id: 's1', source: 'smartspend', name: 'Базовый гардероб', items: 7, amount: 5000, type: 'depreciation', period: 'раз в 2–5 лет' },
   ],
-  beauty: [
+  health: [
     { id: 's5', source: 'smartspend', name: 'Гигиена', items: 12, amount: 2000, type: 'consumable', period: 'ежемесячно' },
     { id: null, source: 'custom', name: 'Уход за кожей', items: 4, amount: 1000, type: 'consumable', period: 'ежемесячно' },
   ],

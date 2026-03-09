@@ -4,14 +4,17 @@ import Layout from '../components/Layout'
 import { catalogSets } from '../data/mock'
 
 const CATEGORIES = [
-  { id: 'all',       label: 'Все' },
-  { id: 'food',      label: 'Питание' },
-  { id: 'clothes',   label: 'Одежда' },
-  { id: 'home',      label: 'Дом' },
-  { id: 'health',    label: 'Здоровье' },
-  { id: 'transport', label: 'Транспорт' },
-  { id: 'leisure',   label: 'Досуг' },
-  { id: 'gifts',     label: 'Подарки' },
+  { id: 'all',        label: 'Все'                   },
+  { id: 'food',       label: 'Еда и Супермаркеты'    },
+  { id: 'cafe',       label: 'Кафе, Бары, Рестораны' },
+  { id: 'transport',  label: 'Авто и Транспорт'      },
+  { id: 'home',       label: 'Дом и Техника'         },
+  { id: 'clothes',    label: 'Одежда и Обувь'        },
+  { id: 'leisure',    label: 'Развлечения и Хобби'   },
+  { id: 'health',     label: 'Красота и Здоровье'    },
+  { id: 'education',  label: 'Образование и Дети'    },
+  { id: 'travel',     label: 'Путешествия и Отдых'   },
+  { id: 'other',      label: 'Прочие расходы'        },
 ]
 
 const VALID_CATS = CATEGORIES.map(c => c.id)

@@ -2,7 +2,11 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 
-const CATEGORIES = ['Финансы', 'Одежда', 'Питание', 'Здоровье', 'Дом', 'Техника', 'Транспорт', 'Досуг']
+const CATEGORIES = [
+  'Прочие расходы', 'Еда и Супермаркеты', 'Кафе, Бары, Рестораны',
+  'Авто и Транспорт', 'Дом и Техника', 'Одежда и Обувь',
+  'Развлечения и Хобби', 'Красота и Здоровье', 'Образование и Дети', 'Путешествия и Отдых',
+]
 
 const FORMAT_BTNS = [
   { label: 'B',  title: 'Жирный',    wrap: ['**', '**'] },
