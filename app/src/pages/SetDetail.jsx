@@ -21,6 +21,7 @@ export default function SetDetail() {
   const navigate = useNavigate()
 
   const [added, setAdded]         = useState(false)
+  const [editMode, setEditMode]   = useState(false)
   const [scale, setScale]         = useState(1.0)
   const [expOpen, setExpOpen]     = useState(false)
   const [showAllArticles, setShowAllArticles] = useState(false)
@@ -90,11 +91,7 @@ export default function SetDetail() {
         <div className="breadcrumb">
           <span className="breadcrumb-item" onClick={() => navigate('/catalog')}>Каталог</span>
           <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
-          {catLabel && <>
-            <span className="breadcrumb-item" onClick={() => navigate(`/catalog?cat=${set.category}`)}>{catLabel}</span>
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
-          </>}
-          <span className="breadcrumb-item breadcrumb-current">{set.title}</span>
+          <span className="breadcrumb-current">{set.title}</span>
         </div>
 
         {/* ── HERO CARD ── */}
@@ -106,9 +103,6 @@ export default function SetDetail() {
               <span className={set.type === 'base' ? 'base-badge' : 'extra-badge'}>
                 {set.type === 'base' ? 'Основа' : 'Дополнение'}
               </span>
-              {catLabel && (
-                <span className="cat-badge" style={{ background: color }}>{catLabel}</span>
-              )}
             </div>
             <div className="sd-hero-title">{set.title}</div>
             <div className="sd-hero-desc">{set.desc}</div>
@@ -195,6 +189,16 @@ export default function SetDetail() {
                 Состав набора
                 <span className="sd-section-count">{tableItems.length} позиций</span>
               </div>
+              <div className="sd-section-actions">
+                <button className={`sd-btn-sm${editMode ? ' active' : ''}`}
+                  onClick={() => setEditMode(m => !m)}>
+                  {editMode ? (
+                    <><svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Готово</>
+                  ) : (
+                    <><svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> Редактировать</>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Table */}
@@ -209,24 +213,34 @@ export default function SetDetail() {
                 </tr>
               </thead>
               <tbody>
+                <tr className="sd-divider-row"><td colSpan={5}>Долгосрочные вещи — амортизация</td></tr>
                 {tableItems.map(item => {
                   const effectivePrice = item.basePrice * scale
                   const monthly = itemMonthly(item, scale)
+                  const periodYears = item.period
+                  const periodStr = (periodYears % 1 === 0) ? periodYears + '\u00a0лет' : (periodYears * 12) + '\u00a0мес'
                   return (
                     <tr key={item.id}>
                       <td>
                         <div className="sd-item-name">{item.name}</div>
                         {item.note && <div className="sd-item-note">{item.note}</div>}
                       </td>
-                      <td className="sd-mono-val">{item.qty}&thinsp;{item.unit}</td>
-                      <td className="sd-mono-val">{Math.round(effectivePrice).toLocaleString('ru')}&thinsp;₽</td>
-                      <td className="sd-mono-val">{item.period}&thinsp;г.</td>
-                      <td className="sd-mono-accent">{Math.round(monthly).toLocaleString('ru')}&thinsp;₽</td>
+                      <td><span className="sd-mono-val">{item.qty}&thinsp;{item.unit}</span></td>
+                      <td><span className="sd-mono-val">{Math.round(effectivePrice).toLocaleString('ru')}&thinsp;₽</span></td>
+                      <td><span className="amort-chip">{periodStr}</span></td>
+                      <td><span className="sd-mono-accent">{Math.round(monthly).toLocaleString('ru')}&thinsp;₽</span></td>
                     </tr>
                   )
                 })}
                 <tr className="sd-total-row">
-                  <td colSpan={4}>Итого в месяц</td>
+                  <td colSpan={4}>
+                    Итого в месяц
+                    {scale !== 1.0 && (
+                      <span style={{ fontFamily: 'var(--mono)', fontSize: 11, fontWeight: 400, color: 'var(--accent-green)', marginLeft: 6 }}>
+                        (×{scale.toFixed(2).replace(/\.?0+$/, '')})
+                      </span>
+                    )}
+                  </td>
                   <td className="sd-total-amt">{fmtRub(totalMonthly)}</td>
                 </tr>
               </tbody>
@@ -320,20 +334,13 @@ export default function SetDetail() {
             <div className="sd-articles-list">
               {(showAllArticles ? authorArticles : authorArticles.slice(0, SHOW_ART)).map((a, i) => (
                 <div key={i} className="sd-article-row" onClick={() => navigate('/article/a1')}>
-                  <div className="sd-article-ico">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5"
-                      strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                      <polyline points="14 2 14 8 20 8"/>
-                    </svg>
-                  </div>
+                  <div className="sd-article-ico"><DocIcon /></div>
                   <div className="sd-article-body">
                     <div className="sd-article-tag">{a.tag}</div>
                     <div className="sd-article-title">{a.title}</div>
-                    <div className="sd-article-meta">{a.views} просмотров</div>
+                    <div className="sd-article-meta"><EyeIcon /> {a.views} · {detail?.author?.name || ''}</div>
                   </div>
-                  <svg className="sd-article-arr" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                  <ArrIcon />
                 </div>
               ))}
             </div>
@@ -363,23 +370,16 @@ export default function SetDetail() {
             <div className="sd-articles-list">
               {recArticles.map((a, i) => (
                 <div key={i} className="sd-article-row" onClick={() => navigate('/article/a1')}>
-                  <div className="sd-article-ico">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5"
-                      strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                      <polyline points="14 2 14 8 20 8"/>
-                    </svg>
-                  </div>
+                  <div className="sd-article-ico"><DocIcon /></div>
                   <div className="sd-article-body">
                     <div className="sd-article-tag">{a.tag}</div>
                     <div className="sd-article-title">{a.title}</div>
                     <div className="sd-article-meta">
-                      {a.views} просмотров
-                      {a.source && <><span style={{ opacity: 0.4 }}>·</span> {a.source}</>}
+                      <EyeIcon /> {a.views}
+                      {a.source && <span className="article-source-tag">из «{a.source}»</span>}
                     </div>
                   </div>
-                  <svg className="sd-article-arr" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                  <ArrIcon />
                 </div>
               ))}
             </div>
@@ -453,4 +453,26 @@ function PlusIcon() {
 function CheckIcon() {
   return <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"
     strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+}
+function DocIcon() {
+  return <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+    <polyline points="14 2 14 8 20 8"/>
+    <line x1="16" y1="13" x2="8" y2="13"/>
+    <line x1="16" y1="17" x2="8" y2="17"/>
+  </svg>
+}
+function EyeIcon() {
+  return <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+}
+function ArrIcon() {
+  return <svg className="sd-article-arr" width="13" height="13" fill="none" stroke="currentColor"
+    viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 18l6-6-6-6"/>
+  </svg>
 }

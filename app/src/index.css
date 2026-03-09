@@ -2216,7 +2216,7 @@ body.dark .profile-tab.active { background: var(--surface-3); }
 /* Breadcrumb */
 .breadcrumb {
   display: flex; align-items: center; gap: 6px;
-  font-size: 13px; color: var(--text-3);
+  font-size: 12px; color: var(--text-3); letter-spacing: -0.01em;
 }
 .breadcrumb-item {
   cursor: pointer; transition: color 0.12s;
@@ -2706,7 +2706,7 @@ body.dark .profile-tab.active { background: var(--surface-3); }
 
 .sd-main {
   padding: 32px 36px;
-  display: flex; flex-direction: column; gap: 20px;
+  display: flex; flex-direction: column; gap: 24px;
   max-width: 900px; width: 100%; margin: 0 auto;
   scrollbar-width: none;
 }
@@ -2740,7 +2740,7 @@ body.dark .profile-tab.active { background: var(--surface-3); }
   border-top: 1px solid var(--border);
 }
 .sd-hstat {
-  flex: 1; display: flex; flex-direction: column; gap: 3px;
+  flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;
   padding: 0 20px;
   border-right: 1px solid var(--border);
 }
@@ -2775,7 +2775,7 @@ body.dark .profile-tab.active { background: var(--surface-3); }
 /* ── Section card ── */
 .sd-section-card {
   background: var(--surface); border-radius: var(--r);
-  box-shadow: var(--shadow); overflow: hidden;
+  box-shadow: var(--shadow);
 }
 .sd-section-header {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -2792,6 +2792,16 @@ body.dark .profile-tab.active { background: var(--surface-3); }
   padding: 1px 6px; border-radius: 5px;
 }
 .sd-section-subtitle { font-size: 11px; color: var(--text-3); margin-left: 4px; letter-spacing: -0.01em; }
+.sd-section-actions { display: flex; align-items: center; gap: 6px; }
+.sd-btn-sm {
+  display: flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--text-2);
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  letter-spacing: -0.01em; cursor: pointer; transition: all 0.12s;
+}
+.sd-btn-sm:hover { background: var(--surface-3); color: var(--text); }
+.sd-btn-sm.active { background: var(--accent-green-light); border-color: var(--accent-green-border); color: var(--accent-green); }
 
 /* Scale row */
 .sd-scale-row {
@@ -2835,7 +2845,7 @@ body.dark .profile-tab.active { background: var(--surface-3); }
 .sd-items-table td { padding: 11px 14px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 .sd-items-table td:first-child { padding-left: 24px; }
 .sd-items-table td:last-child { padding-right: 24px; text-align: right; }
-.sd-items-table tbody tr:not(.sd-total-row):hover td { background: var(--surface-2); }
+.sd-items-table tbody tr:not(.sd-total-row):not(.sd-divider-row):hover td { background: var(--surface-2); }
 .sd-item-name { font-weight: 500; letter-spacing: -0.01em; }
 .sd-item-note { font-size: 11px; color: var(--text-3); margin-top: 1px; }
 .sd-mono-val { font-family: var(--mono); font-size: 12px; color: var(--text-2); white-space: nowrap; }
@@ -3046,6 +3056,32 @@ body.dark .profile-tab.active { background: var(--surface-3); }
   letter-spacing: -0.01em;
 }
 .sd-c-submit:hover { background: var(--accent-green-light); color: var(--accent-green); border-color: var(--accent-green-border); }
+
+/* Amortization period chip */
+.amort-chip {
+  font-family: var(--mono); font-size: 10px; color: var(--text-3);
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 2px 6px; white-space: nowrap; display: inline-block;
+}
+
+/* Divider row in items table */
+.sd-divider-row td {
+  padding: 7px 14px;
+  background: var(--surface-2);
+  font-size: 10px; font-weight: 600; color: var(--text-3);
+  letter-spacing: 0.06em; text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.sd-divider-row td:first-child { padding-left: 24px; }
+
+/* Article source tag (rec articles) */
+.article-source-tag {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 10px; color: var(--text-3);
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1px 6px; white-space: nowrap;
+  font-family: var(--sans);
+}
 
 /* Dark mode for sd-* */
 body.dark .sd-sort-btn.active { background: var(--surface-3); box-shadow: none; }
