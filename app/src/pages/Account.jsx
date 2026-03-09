@@ -40,9 +40,9 @@ const SETS = [
 ]
 
 const SUBS = [
-  { ini: 'Ф', name: 'Финансовый психолог', handle: '@finance_psy', followers: '2.4K', desc: 'Как перестать бояться денег, начать копить и при этом жить хорошо. Разбираем психологические ловушки в финансах.', articles: 15, sets: 8 },
-  { ini: 'И', name: 'Инвестор на пенсии', handle: '@pension_invest', followers: '5.1K', desc: 'Личный опыт выхода на пенсию в 45. Показываю реальные цифры, портфели и ошибки. Только практика.', articles: 43, sets: 12 },
-  { ini: 'Б', name: 'Бюджет для жизни', handle: '@budget_life', followers: '890', desc: 'Простые шаги к финансовой свободе. Конверты, наборы, планирование — для тех, кто устал жить от зарплаты до зарплаты.', articles: 24, sets: 5 },
+  { ini: 'Ф', name: 'Финансовый психолог', handle: '@finance_psy', followers: '2.4K', desc: 'Как перестать бояться денег, начать копить и при этом жить хорошо. Разбираем психологические ловушки в финансах.', articles: 15, sets: 8, following: true },
+  { ini: 'И', name: 'Инвестор на пенсии', handle: '@pension_invest', followers: '5.1K', desc: 'Личный опыт выхода на пенсию в 45. Показываю реальные цифры, портфели и ошибки. Только практика.', articles: 43, sets: 12, following: true },
+  { ini: 'Б', name: 'Бюджет для жизни', handle: '@budget_life', followers: '890', desc: 'Простые шаги к финансовой свободе. Конверты, наборы, планирование — для тех, кто устал жить от зарплаты до зарплаты.', articles: 24, sets: 5, following: false },
 ]
 
 const TABS = [
@@ -256,7 +256,8 @@ export default function Account() {
               <span className="panel-title">Авторы и блоги, на которые вы подписаны</span>
             </div>
             {SUBS.map((s, i) => (
-              <div key={i} className="subscription-card">
+              <div key={i} className="subscription-card" style={{ cursor: 'pointer' }}
+                onClick={() => navigate('/author/' + s.handle.replace('@', ''), { state: s })}>
                 <div className="subscription-header">
                   <div className="subscription-avatar">{s.ini}</div>
                   <div style={{ flex: 1 }}>
