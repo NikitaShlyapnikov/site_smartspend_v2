@@ -2949,15 +2949,50 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
 }
 .editor-char-count.warn { color: var(--status-urgent); }
 
-/* ── CreateArticle: preview ─────────────────────────────────────────────── */
-.fmt-btn.preview-toggle { gap: 5px; display: flex; align-items: center; }
-.fmt-btn.preview-toggle.active { background: var(--accent-green-light); border-color: var(--accent-green-border); color: var(--accent-green); }
+/* ── CreateArticle: field blocks ────────────────────────────────────────── */
+.editor-field-block {
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.editor-field-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--text-3);
+  padding: 8px 14px 6px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.editor-field-block .editor-title-input,
+.editor-field-block .editor-excerpt-input,
+.editor-field-block .editor-body-input {
+  border: none; border-radius: 0; background: transparent;
+  padding: 12px 14px;
+}
 
-.preview-title {
-  font-size: 26px; font-weight: 700; letter-spacing: -0.02em;
+/* ── CreateArticle: toolbar preview button ──────────────────────────────── */
+.btn-preview-toggle {
+  display: flex; align-items: center; gap: 5px;
+  height: 30px; padding: 0 12px; border-radius: 7px;
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--text-2);
+  transition: all 0.15s;
+}
+.btn-preview-toggle:hover { background: var(--surface-3); color: var(--text); }
+.btn-preview-toggle.active { background: var(--accent-green-light); border-color: var(--accent-green-border); color: var(--accent-green); }
+
+/* ── CreateArticle: preview ─────────────────────────────────────────────── */
+.editor-preview-wrap { padding: 4px 0 32px; }
+.editor-preview-title {
+  font-size: 28px; font-weight: 700; letter-spacing: -0.02em;
   color: var(--text); line-height: 1.25; padding: 16px 0 8px;
 }
-.editor-preview-body { padding: 8px 0 24px; }
+.editor-preview-excerpt {
+  font-size: 16px; color: var(--text-2); line-height: 1.55;
+  padding-bottom: 16px; border-bottom: 1px solid var(--border); margin-bottom: 16px;
+}
+.editor-preview-body { padding: 4px 0 16px; }
 .preview-h2 { font-size: 18px; font-weight: 700; color: var(--text); margin: 20px 0 6px; }
 .preview-quote {
   border-left: 3px solid var(--accent-green); padding: 6px 14px;
