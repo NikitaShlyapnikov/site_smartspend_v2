@@ -2,318 +2,379 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 
-const COLORS = ['#4E8268', '#6888A0', '#8268A0', '#A08268', '#688870', '#A06870', '#70A088', '#6870A0']
-
 const CATEGORIES = [
-  { id: 'clothes',   label: 'Одежда',          icon: '👔' },
-  { id: 'food',      label: 'Еда и продукты',   icon: '🥦' },
-  { id: 'home',      label: 'Дом и техника',    icon: '🏠' },
-  { id: 'health',    label: 'Здоровье и уход',  icon: '💊' },
-  { id: 'transport', label: 'Авто и транспорт', icon: '🚗' },
-  { id: 'leisure',   label: 'Досуг и подписки', icon: '🎮' },
-  { id: 'other',     label: 'Другое',           icon: '📦' },
+  { id: 'clothes',   label: 'Одежда'    },
+  { id: 'food',      label: 'Питание'   },
+  { id: 'home',      label: 'Дом'       },
+  { id: 'health',    label: 'Здоровье'  },
+  { id: 'transport', label: 'Транспорт' },
+  { id: 'leisure',   label: 'Досуг'     },
+  { id: 'finance',   label: 'Финансы'   },
+  { id: 'tech',      label: 'Техника'   },
+  { id: 'other',     label: 'Другое'    },
 ]
 
-const UNITS = ['шт', 'пар', 'упак', 'кг', 'л', 'компл']
+const WEAR_UNITS   = ['шт', 'пар', 'компл']
+const CONS_UNITS   = ['г', 'мл', 'шт', 'упак', 'кг', 'л', 'рул']
 
-// Статьи автора для привязки (мок)
-const MY_ARTICLES = [
-  { id: 'f2', title: 'Как я перестал бояться и полюбил EmoSpend' },
-  { id: 'f4', title: 'Как сэкономить на авто без потери качества' },
-  { id: 'f5', title: 'Подписки, которые реально стоят своих денег' },
-  { id: 'f6', title: 'Гардероб на год: как я перестал покупать лишнее' },
-]
+function calcPerMonth(price, qty, period) {
+  if (!price || !qty || !period) return 0
+  return (parseFloat(price) * parseFloat(qty)) / parseFloat(period)
+}
 
-function calcPerMonth(price, qty, lifespanMonths) {
-  if (!price || !qty || !lifespanMonths) return 0
-  return (parseFloat(price) * parseFloat(qty)) / parseFloat(lifespanMonths)
+// ── Form добавления одной позиции (стиль из Inventory) ────────────────────────
+function SetItemForm({ type, onAdd, onCancel }) {
+  const [form, setForm] = useState({
+    name: '', qty: '1', price: '', unit: type === 'consumable' ? 'г' : 'шт', period: '',
+  })
+  const set = k => v => setForm(p => ({ ...p, [k]: v }))
+  const units = type === 'consumable' ? CONS_UNITS : WEAR_UNITS
+
+  const valid = form.name.trim() && form.price && form.period
+
+  return (
+    <div className="inv-add-form">
+      <div className="inv-add-form-title">Новая позиция</div>
+      <div className="inv-add-form-grid">
+
+        <div className="inv-add-form-field" style={{ gridColumn: '1/-1' }}>
+          <div className="inv-add-form-lbl">Название</div>
+          <input className="inv-add-form-input" value={form.name}
+            onChange={e => set('name')(e.target.value)}
+            placeholder={type === 'consumable' ? 'Например: Оливковое масло' : 'Например: Куртка'} />
+        </div>
+
+        <div className="inv-add-form-field">
+          <div className="inv-add-form-lbl">Количество</div>
+          <input className="inv-add-form-input" type="number" min="1" value={form.qty}
+            onChange={e => set('qty')(e.target.value)} placeholder="1" />
+        </div>
+
+        <div className="inv-add-form-field">
+          <div className="inv-add-form-lbl">Единица</div>
+          <select className="inv-add-form-select" value={form.unit} onChange={e => set('unit')(e.target.value)}>
+            {units.map(u => <option key={u}>{u}</option>)}
+          </select>
+        </div>
+
+        <div className="inv-add-form-field">
+          <div className="inv-add-form-lbl">Цена, руб.</div>
+          <input className="inv-add-form-input" type="number" min="0" value={form.price}
+            onChange={e => set('price')(e.target.value)} placeholder="0" />
+        </div>
+
+        <div className="inv-add-form-field">
+          <div className="inv-add-form-lbl">
+            {type === 'consumable' ? 'Расход, мес.' : 'Срок службы, мес.'}
+          </div>
+          <input className="inv-add-form-input" type="number" min="1" value={form.period}
+            onChange={e => set('period')(e.target.value)}
+            placeholder={type === 'consumable' ? '1' : '12'} />
+        </div>
+
+      </div>
+      <div className="inv-add-form-actions">
+        <button className="inv-add-cancel" onClick={onCancel}>Отмена</button>
+        <button className="inv-add-submit" onClick={() => valid && onAdd(form)} disabled={!valid}>
+          Добавить
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Строка добавленной позиции ────────────────────────────────────────────────
+function SetItemRow({ item, onDelete }) {
+  const pm = calcPerMonth(item.price, item.qty, item.period)
+  return (
+    <div className="cs-set-item-row">
+      <div className="cs-set-item-info">
+        <span className="cs-set-item-name">{item.name}</span>
+        <span className="cs-set-item-meta">
+          {item.qty} {item.unit} · {parseInt(item.price).toLocaleString('ru')} ₽
+          {item.period && ` · ${item.period} мес.`}
+        </span>
+      </div>
+      {pm > 0 && (
+        <span className="cs-set-item-pm">{Math.round(pm).toLocaleString('ru')} ₽/мес</span>
+      )}
+      <button className="inv-item-delete" onClick={onDelete} title="Удалить">
+        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  )
 }
 
 export default function CreateSet() {
   const navigate = useNavigate()
 
-  const [title,       setTitle]       = useState('')
-  const [shortDesc,   setShortDesc]   = useState('')
-  const [introTitle,  setIntroTitle]  = useState('')
-  const [introText,   setIntroText]   = useState('')
-  const [color,       setColor]       = useState(COLORS[0])
-  const [category,    setCategory]    = useState('clothes')
-  const [type,        setType]        = useState('wear')
-  const [isPublic,    setIsPublic]    = useState(true)
-  const [linkedArticle, setLinkedArticle] = useState(null)
-  const [articlePickerOpen, setArticlePickerOpen] = useState(false)
+  const [preview,    setPreview]   = useState(false)
+  const [title,      setTitle]     = useState('')
+  const [shortDesc,  setShortDesc] = useState('')
+  const [introText,  setIntroText] = useState('')
+  const [category,   setCategory]  = useState('clothes')
+  const [type,       setType]      = useState('wear')
+  const [isPublic,   setIsPublic]  = useState(true)
+  const [items,      setItems]     = useState([])
+  const [showForm,   setShowForm]  = useState(false)
 
-  const [items, setItems] = useState([
-    { name: '', qty: '1', price: '', unit: 'шт', lifespan: '' },
-  ])
+  const totalPerMonth = items.reduce((s, it) => s + calcPerMonth(it.price, it.qty, it.period), 0)
 
-  function addItem() {
-    setItems(prev => [...prev, { name: '', qty: '1', price: '', unit: 'шт', lifespan: '' }])
+  function addItem(form) {
+    setItems(prev => [...prev, { ...form, id: Date.now() }])
+    setShowForm(false)
   }
-  function removeItem(i) {
-    if (items.length === 1) return
-    setItems(prev => prev.filter((_, idx) => idx !== i))
+  function removeItem(id) {
+    setItems(prev => prev.filter(it => it.id !== id))
   }
-  function updateItem(i, field, value) {
-    setItems(prev => prev.map((item, idx) => idx === i ? { ...item, [field]: value } : item))
-  }
-
-  const totalPerMonth = items.reduce((s, it) =>
-    s + calcPerMonth(it.price, it.qty, it.lifespan), 0)
 
   return (
     <Layout>
-      <main className="create-main">
+      <main className="editor-main">
 
-        {/* Breadcrumb */}
-        <div className="breadcrumb">
-          <span className="breadcrumb-item" onClick={() => navigate('/catalog')}>Каталог</span>
-          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-          <span className="breadcrumb-current">Создать набор</span>
-        </div>
-
-        <div>
-          <div className="page-title">Создать набор</div>
-          <div className="page-subtitle">Опишите набор и поделитесь с сообществом</div>
-        </div>
-
-        {/* ── Видимость ── */}
-        <div className="form-section">
-          <div className="form-section-title">Видимость</div>
-          <div className="visibility-toggle">
-            <button className={`visibility-btn${isPublic ? ' active' : ''}`} onClick={() => setIsPublic(true)}>
-              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
-                <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+        {/* ── Toolbar ── */}
+        <div className="editor-toolbar">
+          <div className="editor-format-bar">
+            <span className="editor-toolbar-title">Создать набор</span>
+          </div>
+          <div className="editor-toolbar-right">
+            {(items.length > 0 || totalPerMonth > 0) && (
+              <span className="editor-counter">
+                {items.length} поз.{totalPerMonth > 0 && ` · ${totalPerMonth.toLocaleString('ru', { maximumFractionDigits: 0 })} ₽/мес`}
+              </span>
+            )}
+            <button className={`btn-preview-toggle${preview ? ' active' : ''}`} onClick={() => setPreview(p => !p)}>
+              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
               </svg>
-              Публичный
+              {preview ? 'Редактор' : 'Предпросмотр'}
             </button>
-            <button className={`visibility-btn${!isPublic ? ' active' : ''}`} onClick={() => setIsPublic(false)}>
-              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
-              </svg>
-              Приватный
+            <button className="btn-publish" onClick={() => navigate('/catalog')}>
+              {isPublic ? 'Опубликовать' : 'Сохранить'}
             </button>
           </div>
         </div>
 
-        {/* ── Основная информация ── */}
-        <div className="form-section">
-          <div className="form-section-title">Основная информация</div>
+        <div className="editor-scroll">
 
-          <div className="form-group">
-            <label className="form-label">Название набора</label>
-            <input className="form-input" placeholder="Например: Базовый гардероб на лето"
-              value={title} onChange={e => setTitle(e.target.value)} />
-          </div>
+          {preview ? (
+            /* ══════════════════ PREVIEW MODE ══════════════════ */
+            <div className="editor-preview-article" style={{ paddingTop: 24 }}>
 
-          <div className="form-group">
-            <label className="form-label">Краткое описание <span className="form-label-hint">— видно в карточке набора</span></label>
-            <textarea className="form-textarea" rows={2}
-              placeholder="Одно-два предложения: для кого набор и что в нём..."
-              value={shortDesc} onChange={e => setShortDesc(e.target.value)} />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Цвет акцента</label>
-            <div className="color-picker-row">
-              {COLORS.map(c => (
-                <div key={c} className={`color-dot${color === c ? ' selected' : ''}`}
-                  style={{ background: c }} onClick={() => setColor(c)} />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ── Категория ── */}
-        <div className="form-section">
-          <div className="form-section-title">Категория</div>
-          <div className="category-chips">
-            {CATEGORIES.map(cat => (
-              <button key={cat.id}
-                className={`category-chip${category === cat.id ? ' active' : ''}`}
-                onClick={() => setCategory(cat.id)}
-                style={category === cat.id ? { borderColor: color, background: color + '18', color } : {}}>
-                <span className="category-chip-icon">{cat.icon}</span>
-                {cat.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Тип набора ── */}
-        <div className="form-section">
-          <div className="form-section-title">Тип набора</div>
-          <div className="set-type-selector">
-            <div className={`set-type-option${type === 'wear' ? ' active' : ''}`} onClick={() => setType('wear')}>
-              <div className="set-type-radio">
-                <div className={`set-type-radio-dot${type === 'wear' ? ' filled' : ''}`}
-                  style={type === 'wear' ? { background: color } : {}} />
-              </div>
-              <div>
-                <div className="set-type-label">Износ</div>
-                <div className="set-type-desc">Предметы с ограниченным сроком службы (одежда, техника)</div>
-              </div>
-            </div>
-            <div className={`set-type-option${type === 'consumable' ? ' active' : ''}`} onClick={() => setType('consumable')}>
-              <div className="set-type-radio">
-                <div className={`set-type-radio-dot${type === 'consumable' ? ' filled' : ''}`}
-                  style={type === 'consumable' ? { background: color } : {}} />
-              </div>
-              <div>
-                <div className="set-type-label">Расходник</div>
-                <div className="set-type-desc">Регулярно заканчивающиеся товары (продукты, гигиена)</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Позиции набора ── */}
-        <div className="form-section">
-          <div className="form-section-title">
-            Позиции набора
-            {totalPerMonth > 0 && (
-              <span className="form-section-total">{totalPerMonth.toLocaleString('ru', { maximumFractionDigits: 0 })} ₽/мес</span>
-            )}
-          </div>
-
-          <div className="items-table-wrap">
-            <table className="cs-items-table">
-              <thead>
-                <tr>
-                  <th>Позиция</th>
-                  <th>Кол-во</th>
-                  <th>Ед.</th>
-                  <th>Цена, ₽</th>
-                  <th>Срок, мес.</th>
-                  <th>₽/мес</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, i) => {
-                  const pm = calcPerMonth(item.price, item.qty, item.lifespan)
-                  return (
-                    <tr key={i} className="cs-item-row">
-                      <td>
-                        <input className="cs-cell-input cs-name-input" placeholder="Название"
-                          value={item.name} onChange={e => updateItem(i, 'name', e.target.value)} />
-                      </td>
-                      <td>
-                        <input className="cs-cell-input cs-num-input" type="number" min="1" placeholder="1"
-                          value={item.qty} onChange={e => updateItem(i, 'qty', e.target.value)} />
-                      </td>
-                      <td>
-                        <select className="cs-cell-input cs-unit-select"
-                          value={item.unit} onChange={e => updateItem(i, 'unit', e.target.value)}>
-                          {UNITS.map(u => <option key={u}>{u}</option>)}
-                        </select>
-                      </td>
-                      <td>
-                        <input className="cs-cell-input cs-num-input" type="number" min="0" placeholder="0"
-                          value={item.price} onChange={e => updateItem(i, 'price', e.target.value)} />
-                      </td>
-                      <td>
-                        <input className="cs-cell-input cs-num-input" type="number" min="1" placeholder="12"
-                          value={item.lifespan} onChange={e => updateItem(i, 'lifespan', e.target.value)} />
-                      </td>
-                      <td className="cs-pm-cell">
-                        {pm > 0 ? Math.round(pm).toLocaleString('ru') : '—'}
-                      </td>
-                      <td>
-                        <button className="item-row-remove" onClick={() => removeItem(i)}
-                          disabled={items.length === 1}>
-                          <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          <button className="btn-add-item" onClick={addItem}>
-            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Добавить позицию
-          </button>
-
-          <div className="cs-formula-hint">
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
-            </svg>
-            ₽/мес = Цена × Кол-во ÷ Срок (мес.) — амортизация за месяц
-          </div>
-        </div>
-
-        {/* ── О наборе (подробное описание) ── */}
-        <div className="form-section">
-          <div className="form-section-title">О наборе</div>
-          <div className="form-group">
-            <label className="form-label">Заголовок раздела</label>
-            <input className="form-input" placeholder="Например: Как формируется капсульный гардероб"
-              value={introTitle} onChange={e => setIntroTitle(e.target.value)} />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Подробное описание</label>
-            <textarea className="form-textarea" rows={6}
-              placeholder="Расскажите подробнее: принципы подбора, расчёт стоимости, для кого подойдёт..."
-              value={introText} onChange={e => setIntroText(e.target.value)} />
-          </div>
-        </div>
-
-        {/* ── Привязать статью ── */}
-        <div className="form-section">
-          <div className="form-section-title">Связанная статья</div>
-          <div className="form-group">
-            {linkedArticle ? (
-              <div className="linked-set-chip">
-                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                  <path d="M4 6h16M4 12h16M4 18h7"/>
-                </svg>
-                <span className="linked-set-name">{linkedArticle.title}</span>
-                <button className="linked-set-remove" onClick={() => setLinkedArticle(null)} title="Открепить">
-                  <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                  </svg>
-                </button>
-              </div>
-            ) : (
-              <button className="linked-set-add" onClick={() => setArticlePickerOpen(p => !p)}>
-                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                  <path d="M12 5v14M5 12h14"/>
-                </svg>
-                Прикрепить статью
-              </button>
-            )}
-            {articlePickerOpen && (
-              <div className="set-picker-list" style={{ marginTop: 6 }}>
-                {MY_ARTICLES.map(a => (
-                  <div key={a.id} className="set-picker-item"
-                    onClick={() => { setLinkedArticle(a); setArticlePickerOpen(false) }}>
-                    <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" style={{ flexShrink: 0, color: 'var(--text-3)' }}>
-                      <path d="M4 6h16M4 12h16M4 18h7"/>
-                    </svg>
-                    <div className="set-picker-info">
-                      <span className="set-picker-name">{a.title}</span>
+              <div className="hero-card">
+                <div className="hero-body">
+                  <div className="hero-badges">
+                    <span className="source-badge community">{isPublic ? 'Сообщество' : 'Личный'}</span>
+                    <span className="base-badge">{type === 'wear' ? 'Износ' : 'Расходник'}</span>
+                    <span className="cat-badge">{CATEGORIES.find(c => c.id === category)?.label}</span>
+                  </div>
+                  <div className="hero-title">{title || 'Без названия'}</div>
+                  {shortDesc && <div className="hero-desc">{shortDesc}</div>}
+                  <div className="hero-stats">
+                    <div className="hstat">
+                      <div className="hstat-val">
+                        {totalPerMonth > 0 ? totalPerMonth.toLocaleString('ru', { maximumFractionDigits: 0 }) + ' ₽' : '— ₽'}
+                      </div>
+                      <div className="hstat-lbl">в месяц</div>
+                    </div>
+                    <div className="hstat">
+                      <div className="hstat-val">{items.length || '—'}</div>
+                      <div className="hstat-lbl">позиций в наборе</div>
                     </div>
                   </div>
-                ))}
+                  <div className="hero-actions">
+                    <button className="btn-liked">
+                      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <path d="M12 5v14M5 12h14"/>
+                      </svg>
+                      Добавить в конверт
+                    </button>
+                  </div>
+                </div>
+                <div className="hero-author">
+                  <div className="author-avatar" style={{ background: '#4E8268' }}>НО</div>
+                  <div className="author-info">
+                    <div className="author-name">Никита Орлов</div>
+                    <div className="author-bio">Интересуюсь личными финансами, инвестициями и оптимизацией бюджета.</div>
+                  </div>
+                  <button className="btn-follow">Подписаться</button>
+                </div>
               </div>
-            )}
-          </div>
-        </div>
 
-        {/* ── Действия ── */}
-        <div className="form-actions">
-          <button className="btn-publish" onClick={() => navigate('/catalog')}>
-            {isPublic ? 'Опубликовать набор' : 'Сохранить приватно'}
-          </button>
-          <button className="btn-cancel" onClick={() => navigate('/catalog')}>Отмена</button>
+              {items.length > 0 && (
+                <div className="section-card">
+                  <div className="section-header">
+                    <div className="section-title">
+                      Состав набора
+                      <span className="section-count">{items.length} позиций</span>
+                    </div>
+                  </div>
+                  <table className="cs-items-table">
+                    <thead>
+                      <tr>
+                        <th>Позиция</th>
+                        <th style={{ textAlign: 'right' }}>Кол-во</th>
+                        <th>Ед.</th>
+                        <th style={{ textAlign: 'right' }}>Цена, ₽</th>
+                        <th style={{ textAlign: 'right' }}>{type === 'consumable' ? 'Расход, мес.' : 'Срок, мес.'}</th>
+                        <th style={{ textAlign: 'right' }}>₽/мес</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {items.map((item) => {
+                        const pm = calcPerMonth(item.price, item.qty, item.period)
+                        return (
+                          <tr key={item.id} className="cs-item-row">
+                            <td style={{ padding: '9px 14px', fontWeight: 500 }}>{item.name}</td>
+                            <td style={{ padding: '9px 10px', textAlign: 'right', fontFamily: 'var(--mono)' }}>{item.qty}</td>
+                            <td style={{ padding: '9px 10px', color: 'var(--text-3)', fontSize: 12 }}>{item.unit}</td>
+                            <td style={{ padding: '9px 10px', textAlign: 'right', fontFamily: 'var(--mono)' }}>
+                              {parseInt(item.price).toLocaleString('ru')}
+                            </td>
+                            <td style={{ padding: '9px 10px', textAlign: 'right', fontFamily: 'var(--mono)', color: 'var(--text-2)' }}>
+                              {item.period}
+                            </td>
+                            <td style={{ padding: '9px 14px', textAlign: 'right', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent-green)' }}>
+                              {pm > 0 ? Math.round(pm).toLocaleString('ru') : '—'}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {introText && (
+                <div className="content-card">
+                  <div className="content-body">
+                    {introText.split('\n\n').filter(Boolean).map((p, i) => <p key={i}>{p}</p>)}
+                  </div>
+                </div>
+              )}
+            </div>
+
+          ) : (
+            /* ══════════════════ EDITOR MODE ══════════════════ */
+            <>
+              {/* Meta */}
+              <div className="editor-meta-block">
+                <div className="editor-meta-row">
+                  <div className="editor-meta-label">Категория</div>
+                  <div className="editor-cats">
+                    {CATEGORIES.map(cat => (
+                      <button key={cat.id}
+                        className={`editor-cat-btn${category === cat.id ? ' active' : ''}`}
+                        onClick={() => setCategory(cat.id)}>
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="editor-meta-row">
+                  <div className="editor-meta-label">Видимость</div>
+                  <div className="visibility-toggle">
+                    <button className={`visibility-btn${isPublic ? ' active' : ''}`} onClick={() => setIsPublic(true)}>
+                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                        <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+                      </svg>
+                      Публичный
+                    </button>
+                    <button className={`visibility-btn${!isPublic ? ' active' : ''}`} onClick={() => setIsPublic(false)}>
+                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                      </svg>
+                      Приватный
+                    </button>
+                  </div>
+                </div>
+                <div className="editor-meta-row">
+                  <div className="editor-meta-label">Тип</div>
+                  <div className="visibility-toggle">
+                    <button className={`visibility-btn${type === 'wear' ? ' active' : ''}`}
+                      onClick={() => { setType('wear'); setShowForm(false) }}>
+                      Износ
+                    </button>
+                    <button className={`visibility-btn${type === 'consumable' ? ' active' : ''}`}
+                      onClick={() => { setType('consumable'); setShowForm(false) }}>
+                      Расходник
+                    </button>
+                  </div>
+                  {type === 'consumable' && (
+                    <span style={{ fontSize: 11, color: 'var(--text-3)', marginLeft: 8 }}>
+                      «Расход, мес.» — за сколько мес. тратится 1 ед.
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Название */}
+              <div className="editor-field-block">
+                <div className="editor-field-label">Название набора</div>
+                <textarea className="editor-title-input" placeholder="Например: Базовый гардероб на лето"
+                  value={title} onChange={e => setTitle(e.target.value)} rows={1} />
+              </div>
+
+              {/* Краткое описание */}
+              <div className="editor-field-block">
+                <div className="editor-field-label">
+                  Краткое описание
+                  <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}> — видно в карточке</span>
+                </div>
+                <textarea className="editor-excerpt-input"
+                  placeholder="Одно-два предложения: для кого набор и что в нём..."
+                  value={shortDesc} onChange={e => setShortDesc(e.target.value)} rows={2} />
+              </div>
+
+              {/* Позиции */}
+              <div className="editor-field-block">
+                <div className="editor-field-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Позиции набора</span>
+                  {totalPerMonth > 0 && (
+                    <span style={{ fontWeight: 700, color: 'var(--accent-green)', fontFamily: 'var(--mono)', textTransform: 'none', letterSpacing: 0 }}>
+                      {totalPerMonth.toLocaleString('ru', { maximumFractionDigits: 0 })} ₽/мес
+                    </span>
+                  )}
+                </div>
+
+                {/* Список добавленных позиций */}
+                {items.length > 0 && (
+                  <div className="cs-set-items-list">
+                    {items.map(item => (
+                      <SetItemRow key={item.id} item={item} onDelete={() => removeItem(item.id)} />
+                    ))}
+                  </div>
+                )}
+
+                {/* Форма или кнопка добавления */}
+                {showForm ? (
+                  <SetItemForm type={type} onAdd={addItem} onCancel={() => setShowForm(false)} />
+                ) : (
+                  <div style={{ padding: '10px 14px' }}>
+                    <button className="inv-add-toggle" onClick={() => setShowForm(true)}>
+                      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                      </svg>
+                      Добавить позицию
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Подробное описание */}
+              <div className="editor-field-block editor-field-block--body">
+                <div className="editor-field-label">Подробное описание</div>
+                <textarea className="editor-body-input"
+                  placeholder="Расскажите подробнее: принципы подбора, расчёт стоимости, для кого подойдёт..."
+                  value={introText} onChange={e => setIntroText(e.target.value)} />
+              </div>
+            </>
+          )}
         </div>
 
       </main>
