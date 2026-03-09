@@ -43,7 +43,12 @@ export default function SetDetail() {
     [detail]
   )
   const [items, setItems]         = useState(() => defaultItems.map(i => ({ ...i })))
-  const [added, setAdded]         = useState(false)
+  const [added, setAdded]         = useState(() => {
+    try {
+      const envData = JSON.parse(localStorage.getItem('ss_envelopes') || '{}')
+      return Object.values(envData).some(list => list.some(e => e.id === id))
+    } catch { return false }
+  })
   const [editMode, setEditMode]   = useState(false)
   const [scale, setScaleRaw]      = useState(1.0)
   const [expOpen, setExpOpen]     = useState(false)
@@ -259,16 +264,6 @@ export default function SetDetail() {
                 onClick={!added ? handleAdd : undefined}>
                 {added ? <><CheckIcon /> Добавлено</> : <><PlusIcon /> Добавить в конверт</>}
               </button>
-              {added && (
-                <button className="sd-btn-secondary">
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"
-                    strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="9" y="9" width="13" height="13" rx="2"/>
-                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-                  </svg>
-                  Дублировать
-                </button>
-              )}
             </div>
           </div>
         </div>
