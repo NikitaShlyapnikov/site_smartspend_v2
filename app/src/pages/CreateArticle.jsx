@@ -11,8 +11,17 @@ const FORMAT_BTNS = [
   { label: '"',  title: 'Цитата',    wrap: ['> ', ''] },
 ]
 
-// ── Markdown → JSX preview ────────────────────────────────────────────────────
-function renderPreview(text, images) {
+// Наборы автора (мок)
+const MY_SETS = [
+  { id: 's1', name: 'Базовое питание',      color: '#8DBFA8', amount: '7 500 ₽', period: '/ мес',    tags: ['18 поз.', 'еженедельно'] },
+  { id: 's2', name: 'Вкусняшки',            color: '#C4A882', amount: '2 500 ₽', period: '/ мес',    tags: ['6 поз.',  'еженедельно'] },
+  { id: 's3', name: 'Домашняя аптечка',     color: '#B89AAE', amount: '1 200 ₽', period: '/ квартал',tags: ['12 поз.','квартально']  },
+  { id: 's4', name: 'Базовый уход за кошкой',color:'#9AB8A8', amount: '3 800 ₽', period: '/ мес',    tags: ['9 поз.', 'ежемесячно']  },
+  { id: 's5', name: 'Домашний офис',        color: '#8A9EB8', amount: '65 000 ₽',period: 'разово',   tags: ['8 поз.', 'разово']      },
+]
+
+// ── Markdown → JSX (для превью внутри hero) ───────────────────────────────────
+function renderMarkdown(text, images) {
   const imgMap = {}
   images.forEach(img => { imgMap[img.id] = img })
 
@@ -20,22 +29,18 @@ function renderPreview(text, images) {
     const imgMatch = block.match(/^!\[([^\]]*)\]\(([^)]+)\)$/)
     if (imgMatch) {
       const img = imgMap[imgMatch[2]]
-      if (img) {
-        return (
-          <div key={i} style={{ display: 'flex', justifyContent: 'center', margin: '8px 0' }}>
-            <img src={img.url} alt={imgMatch[1]}
-              style={{ maxWidth: '100%', maxHeight: 400, borderRadius: 10, objectFit: 'contain' }} />
-          </div>
-        )
-      }
+      if (img) return (
+        <div key={i} style={{ display: 'flex', justifyContent: 'center', margin: '16px 0' }}>
+          <img src={img.url} alt={imgMatch[1]}
+            style={{ maxWidth: '100%', maxHeight: 400, borderRadius: 10, objectFit: 'contain' }} />
+        </div>
+      )
       return <div key={i} className="preview-img-placeholder">[изображение: {imgMatch[1]}]</div>
     }
-
-    if (block.startsWith('## '))  return <h2 key={i} className="preview-h2">{block.slice(3)}</h2>
-    if (block.startsWith('> '))   return <blockquote key={i} className="preview-quote">{block.slice(2)}</blockquote>
-
+    if (block.startsWith('## '))  return <h2 key={i}>{block.slice(3)}</h2>
+    if (block.startsWith('> '))   return <blockquote key={i} className="content-note">{block.slice(2)}</blockquote>
     const inline = block.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>')
-    return <p key={i} className="preview-p" dangerouslySetInnerHTML={{ __html: inline }} />
+    return <p key={i} dangerouslySetInnerHTML={{ __html: inline }} />
   })
 }
 
@@ -45,18 +50,21 @@ export default function CreateArticle() {
   const bodyRef   = useRef(null)
   const fileInput = useRef(null)
 
-  const [title,    setTitle]    = useState('')
-  const [excerpt,  setExcerpt]  = useState('')
-  const [body,     setBody]     = useState('')
-  const [category, setCategory] = useState('Финансы')
-  const [isPublic, setIsPublic] = useState(true)
-  const [preview,  setPreview]  = useState(false)
-  const [images,   setImages]   = useState([])
-  const [dragOver, setDragOver] = useState(false)
-  const [toast,    setToast]    = useState(null)
+  const [title,     setTitle]     = useState('')
+  const [excerpt,   setExcerpt]   = useState('')
+  const [body,      setBody]      = useState('')
+  const [category,  setCategory]  = useState('Финансы')
+  const [isPublic,  setIsPublic]  = useState(true)
+  const [preview,   setPreview]   = useState(false)
+  const [images,    setImages]    = useState([])
+  const [dragOver,  setDragOver]  = useState(false)
+  const [toast,     setToast]     = useState(null)
+  const [linkedSet, setLinkedSet] = useState(null)   // выбранный набор
+  const [setPickerOpen, setSetPickerOpen] = useState(false)
 
   const wordCount = body.trim() ? body.trim().split(/\s+/).length : 0
   const readMin   = Math.max(1, Math.round(wordCount / 200))
+  const today = new Date().toLocaleDateString('ru', { day: 'numeric', month: 'long', year: 'numeric' })
 
   // ── Text formatting ──────────────────────────────────────────────────────────
   function insertFormat(wrap) {
@@ -87,32 +95,27 @@ export default function CreateArticle() {
   }
 
   function handleDrop(e) {
-    e.preventDefault()
-    setDragOver(false)
-    addFiles(e.dataTransfer.files)
+    e.preventDefault(); setDragOver(false); addFiles(e.dataTransfer.files)
   }
 
-  function removeImage(id) {
-    setImages(prev => prev.filter(img => img.id !== id))
-  }
+  function removeImage(id) { setImages(prev => prev.filter(img => img.id !== id)) }
 
   function copyImageCode(img) {
-    const code = `![${img.name}](${img.id})`
-    navigator.clipboard.writeText(code).catch(() => {})
+    navigator.clipboard.writeText(`![${img.name}](${img.id})`).catch(() => {})
     showToast('Код скопирован — вставьте в текст статьи')
   }
 
-  // ── Toast ────────────────────────────────────────────────────────────────────
-  function showToast(msg) {
-    setToast(msg)
-    setTimeout(() => setToast(null), 2200)
-  }
+  function showToast(msg) { setToast(msg); setTimeout(() => setToast(null), 2200) }
+
+  // ── Set picker ───────────────────────────────────────────────────────────────
+  function selectSet(s) { setLinkedSet(s); setSetPickerOpen(false) }
+  function clearSet()   { setLinkedSet(null) }
 
   return (
     <Layout>
       <main className="editor-main">
 
-        {/* Toolbar */}
+        {/* ── Toolbar ── */}
         <div className="editor-toolbar">
           <div className="editor-format-bar">
             {FORMAT_BTNS.map(btn => (
@@ -126,10 +129,7 @@ export default function CreateArticle() {
           </div>
           <div className="editor-toolbar-right">
             <span className="editor-counter">{wordCount} сл. · ~{readMin} мин</span>
-            <button
-              className={`btn-preview-toggle${preview ? ' active' : ''}`}
-              onClick={() => setPreview(p => !p)}
-            >
+            <button className={`btn-preview-toggle${preview ? ' active' : ''}`} onClick={() => setPreview(p => !p)}>
               <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
               </svg>
@@ -140,97 +140,202 @@ export default function CreateArticle() {
         </div>
 
         <div className="editor-scroll">
-          {/* Meta */}
-          {!preview && (
-            <div className="editor-meta-block">
-              <div className="editor-meta-row">
-                <div className="editor-meta-label">Категория</div>
-                <div className="editor-cats">
-                  {CATEGORIES.map(cat => (
-                    <button key={cat} className={`editor-cat-btn${category === cat ? ' active' : ''}`}
-                      onClick={() => setCategory(cat)}>{cat}</button>
-                  ))}
-                </div>
-              </div>
-              <div className="editor-meta-row">
-                <div className="editor-meta-label">Видимость</div>
-                <div className="visibility-toggle">
-                  <button className={`visibility-btn${isPublic ? ' active' : ''}`} onClick={() => setIsPublic(true)}>
-                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
-                    </svg>
-                    Публичная
-                  </button>
-                  <button className={`visibility-btn${!isPublic ? ' active' : ''}`} onClick={() => setIsPublic(false)}>
-                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
-                    </svg>
-                    Приватная
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
           {preview ? (
-            /* ── Preview mode ── */
-            <div className="editor-preview-wrap">
-              <div className="editor-preview-title">{title || 'Без заголовка'}</div>
-              {excerpt && <div className="editor-preview-excerpt">{excerpt}</div>}
-              <div className="editor-preview-body">
-                {body.trim()
-                  ? renderPreview(body, images)
-                  : <div className="preview-empty">Текст статьи пуст</div>
-                }
-              </div>
-              {images.length > 0 && (
-                <div className="photo-gallery" style={{ marginTop: 24 }}>
-                  {images.map(img => (
-                    <div key={img.id} className="photo-thumb" style={{ cursor: 'default' }}>
-                      <img src={img.url} alt={img.name} />
-                      <div className="photo-thumb-name">{img.name}</div>
+            /* ══════════════════ PREVIEW MODE ══════════════════ */
+            <div className="editor-preview-article">
+
+              {/* Hero card */}
+              <div className="hero-card">
+                <div className="hero-body">
+                  <div className="hero-badges">
+                    <span className="article-type-badge">Статья</span>
+                    <span className="cat-badge">{category}</span>
+                  </div>
+                  <div className="hero-title">{title || 'Без заголовка'}</div>
+                  {excerpt && <div className="hero-desc">{excerpt}</div>}
+
+                  <div className="hero-stats">
+                    <div className="hstat">
+                      <div className="hstat-val">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        0
+                      </div>
+                      <div className="hstat-lbl">просмотров</div>
                     </div>
-                  ))}
+                    <div className="hstat">
+                      <div className="hstat-val">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                        0
+                      </div>
+                      <div className="hstat-lbl">лайков</div>
+                    </div>
+                    <div className="hstat">
+                      <div className="hstat-val" style={{ fontSize: 15, color: 'var(--text-2)' }}>{today}</div>
+                      <div className="hstat-lbl">дата публикации</div>
+                    </div>
+                  </div>
+
+                  <div className="hero-actions">
+                    <button className="btn-liked">
+                      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                      </svg>
+                      Нравится
+                    </button>
+                    <button className="btn-secondary">
+                      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                      </svg>
+                      Поделиться
+                    </button>
+                    <button className="btn-secondary">
+                      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                      </svg>
+                      Сохранить
+                    </button>
+                  </div>
+                </div>
+
+                {/* Author */}
+                <div className="hero-author">
+                  <div className="author-avatar" style={{ background: '#4E8268' }}>НО</div>
+                  <div className="author-info">
+                    <div className="author-name">Никита Орлов</div>
+                    <div className="author-bio">Автор</div>
+                  </div>
+                  <button className="btn-follow">Подписаться</button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="content-card">
+                <div className="content-body">
+                  {body.trim()
+                    ? renderMarkdown(body, images)
+                    : <p style={{ color: 'var(--text-3)', fontStyle: 'italic' }}>Текст статьи пуст</p>
+                  }
+                </div>
+              </div>
+
+              {/* Linked set */}
+              {linkedSet && (
+                <div className="catalog-card" style={{ cursor: 'default' }}>
+                  <div className="card-accent-bar" style={{ background: linkedSet.color }} />
+                  <div className="card-body">
+                    <div className="card-badges">
+                      <span className="source-badge community">Моё</span>
+                    </div>
+                    <div className="card-title">{linkedSet.name}</div>
+                    <div className="card-desc">Прикреплённый набор</div>
+                  </div>
+                  <div className="card-footer">
+                    <div className="card-amount-left">
+                      <div className="card-amount">{linkedSet.amount}</div>
+                      <div className="card-amount-label">{linkedSet.period}</div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
+
           ) : (
-            /* ── Editor mode ── */
+            /* ══════════════════ EDITOR MODE ══════════════════ */
             <>
-              {/* Title block */}
+              {/* Meta */}
+              <div className="editor-meta-block">
+                <div className="editor-meta-row">
+                  <div className="editor-meta-label">Категория</div>
+                  <div className="editor-cats">
+                    {CATEGORIES.map(cat => (
+                      <button key={cat} className={`editor-cat-btn${category === cat ? ' active' : ''}`}
+                        onClick={() => setCategory(cat)}>{cat}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="editor-meta-row">
+                  <div className="editor-meta-label">Видимость</div>
+                  <div className="visibility-toggle">
+                    <button className={`visibility-btn${isPublic ? ' active' : ''}`} onClick={() => setIsPublic(true)}>
+                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                        <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+                      </svg>
+                      Публичная
+                    </button>
+                    <button className={`visibility-btn${!isPublic ? ' active' : ''}`} onClick={() => setIsPublic(false)}>
+                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                      </svg>
+                      Приватная
+                    </button>
+                  </div>
+                </div>
+                <div className="editor-meta-row" style={{ alignItems: 'flex-start' }}>
+                  <div className="editor-meta-label" style={{ paddingTop: 6 }}>Набор</div>
+                  <div style={{ flex: 1 }}>
+                    {linkedSet ? (
+                      <div className="linked-set-chip">
+                        <div className="linked-set-dot" style={{ background: linkedSet.color }} />
+                        <span className="linked-set-name">{linkedSet.name}</span>
+                        <span className="linked-set-amount">{linkedSet.amount} {linkedSet.period}</span>
+                        <button className="linked-set-remove" onClick={clearSet} title="Открепить">
+                          <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                          </svg>
+                        </button>
+                      </div>
+                    ) : (
+                      <button className="linked-set-add" onClick={() => setSetPickerOpen(p => !p)}>
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                          <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                        Прикрепить набор
+                      </button>
+                    )}
+                    {setPickerOpen && (
+                      <div className="set-picker-list">
+                        {MY_SETS.map(s => (
+                          <div key={s.id} className="set-picker-item" onClick={() => selectSet(s)}>
+                            <div className="set-picker-dot" style={{ background: s.color }} />
+                            <div className="set-picker-info">
+                              <span className="set-picker-name">{s.name}</span>
+                              <span className="set-picker-meta">{s.amount} {s.period} · {s.tags.join(', ')}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Title */}
               <div className="editor-field-block">
                 <div className="editor-field-label">Заголовок</div>
-                <textarea
-                  className="editor-title-input"
-                  placeholder="Введите заголовок статьи..."
-                  value={title}
-                  onChange={e => setTitle(e.target.value)}
-                  rows={2}
-                />
+                <textarea className="editor-title-input" placeholder="Введите заголовок статьи..."
+                  value={title} onChange={e => setTitle(e.target.value)} rows={2} />
               </div>
 
-              {/* Excerpt block */}
+              {/* Excerpt */}
               <div className="editor-field-block">
                 <div className="editor-field-label">Краткое описание</div>
-                <textarea
-                  className="editor-excerpt-input"
-                  placeholder="Короткий анонс статьи, который будет виден в ленте..."
-                  value={excerpt}
-                  onChange={e => setExcerpt(e.target.value)}
-                  rows={2}
-                />
+                <textarea className="editor-excerpt-input" placeholder="Короткий анонс статьи, который будет виден в ленте..."
+                  value={excerpt} onChange={e => setExcerpt(e.target.value)} rows={2} />
               </div>
 
-              {/* Body block */}
+              {/* Body */}
               <div className="editor-field-block editor-field-block--body">
                 <div className="editor-field-label">Текст статьи</div>
-                <textarea
-                  ref={bodyRef}
-                  className="editor-body-input"
+                <textarea ref={bodyRef} className="editor-body-input"
                   placeholder={`Начните писать статью...\n\nMarkdown: **жирный**, *курсив*, ## Заголовок, > Цитата\nФото: загрузите изображение, кликните по нему — код скопируется`}
-                  value={body}
-                  onChange={e => setBody(e.target.value)}
-                />
+                  value={body} onChange={e => setBody(e.target.value)} />
                 {body.length > 0 && (
                   <div className={`editor-char-count${body.length > 10000 ? ' warn' : ''}`}>
                     {body.length.toLocaleString('ru')} символов
@@ -239,7 +344,7 @@ export default function CreateArticle() {
                 )}
               </div>
 
-              {/* Photo upload section */}
+              {/* Photo section */}
               <div className="photo-section">
                 <div className="photo-section-title">
                   <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -248,14 +353,11 @@ export default function CreateArticle() {
                   </svg>
                   Фотографии{images.length > 0 && ` · ${images.length}`}
                 </div>
-
-                <div
-                  className={`photo-drop-zone${dragOver ? ' drag-over' : ''}`}
+                <div className={`photo-drop-zone${dragOver ? ' drag-over' : ''}`}
                   onDragOver={e => { e.preventDefault(); setDragOver(true) }}
                   onDragLeave={() => setDragOver(false)}
                   onDrop={handleDrop}
-                  onClick={() => fileInput.current?.click()}
-                >
+                  onClick={() => fileInput.current?.click()}>
                   <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
                     <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
                     <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
@@ -267,7 +369,6 @@ export default function CreateArticle() {
                   <input ref={fileInput} type="file" accept="image/*" multiple style={{ display: 'none' }}
                     onChange={e => { addFiles(e.target.files); e.target.value = '' }} />
                 </div>
-
                 {images.length > 0 && (
                   <div className="photo-gallery">
                     {images.map(img => (
@@ -276,13 +377,13 @@ export default function CreateArticle() {
                         <img src={img.url} alt={img.name} />
                         <div className="photo-thumb-overlay">
                           <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                            <rect x="9" y="9" width="13" height="13" rx="2"/>
+                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
                           </svg>
                           Скопировать код
                         </div>
                         <button className="photo-thumb-remove"
-                          onClick={e => { e.stopPropagation(); removeImage(img.id) }}
-                          title="Удалить">
+                          onClick={e => { e.stopPropagation(); removeImage(img.id) }} title="Удалить">
                           <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                           </svg>
