@@ -2711,6 +2711,7 @@ body.dark .profile-tab.active { background: var(--surface-3); }
   scrollbar-width: none;
 }
 .sd-main::-webkit-scrollbar { display: none; }
+.sd-main > * { flex-shrink: 0; }
 
 /* ── Hero card ── */
 .sd-hero-card {

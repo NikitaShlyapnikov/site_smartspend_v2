@@ -3,6 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { setDetails, catalogSets } from '../data/mock'
 
+// Category → envelope category (Profile)
+const CAT_TO_ENV = {
+  clothes: 'clothes', food: 'food', home: 'home',
+  health: 'beauty', transport: 'auto', leisure: 'fun', gifts: 'other',
+}
+// Category → inventory group ID
+const CAT_TO_GROUP = {
+  clothes: 'g1', food: 'g2', home: 'g6', health: 'g4',
+  transport: 'g3', leisure: 'g1', gifts: 'g1',
+}
+// Source → envelope source key
+const SRC_TO_ENV = { ss: 'smartspend', community: 'community', own: 'custom' }
+
 const fmtRub = n => Math.round(n).toLocaleString('ru') + '\u00a0₽'
 const fmtNum = n => {
   if (!n && n !== 0) return '—'
@@ -65,6 +78,62 @@ export default function SetDetail() {
       scaleTimerRef.current = setTimeout(tick, elapsed < 400 ? 350 : 80)
     }
     tick()
+  }
+
+  function handleAdd() {
+    // 1. Build set title (append version label if modified)
+    const now = new Date()
+    const dd = String(now.getDate()).padStart(2, '0')
+    const mm = String(now.getMonth() + 1).padStart(2, '0')
+    const yy = String(now.getFullYear()).slice(2)
+    const setTitle = isDefault ? set.title : `${set.title} v: ${dd}-${mm}-${yy}`
+
+    // 2. Active items only (qty > 0)
+    const activeItems = items.filter(i => i.qty > 0)
+
+    // 3. Save to ss_envelopes
+    const envCat = CAT_TO_ENV[set.category] || 'other'
+    const envEntry = {
+      id: set.id,
+      source: SRC_TO_ENV[set.source] || 'custom',
+      name: setTitle,
+      items: activeItems.length,
+      amount: totalMonthly != null ? Math.round(totalMonthly) : (set.amount || 0),
+      type: 'depreciation',
+      period: 'амортизация',
+    }
+    try {
+      const envData = JSON.parse(localStorage.getItem('ss_envelopes') || '{}')
+      const catList = envData[envCat] || []
+      // Remove previous entry for same set id (re-add replaces)
+      envData[envCat] = [...catList.filter(e => e.id !== set.id), envEntry]
+      localStorage.setItem('ss_envelopes', JSON.stringify(envData))
+    } catch {}
+
+    // 4. Save to ss_inventory_extra
+    const groupId = CAT_TO_GROUP[set.category] || 'g1'
+    const ts = Date.now()
+    const invItems = activeItems.map((item, idx) => ({
+      id: `inv_${set.id}_${item.id}_${ts + idx}`,
+      name: item.name,
+      type: 'wear',
+      price: Math.round(item.basePrice * scale),
+      wearLifeWeeks: Math.round(item.period * 52),
+      purchaseDate: now.toISOString().slice(0, 10),
+      set: setTitle,
+      setId: set.id,
+      groupId,
+      paused: true,
+    }))
+    try {
+      const invData = JSON.parse(localStorage.getItem('ss_inventory_extra') || '[]')
+      // Remove previous items from same set (re-add replaces)
+      const filtered = invData.filter(e => e.setId !== set.id)
+      localStorage.setItem('ss_inventory_extra', JSON.stringify([...filtered, ...invItems]))
+    } catch {}
+
+    setAdded(true)
+    setTimeout(() => navigate('/inventory'), 800)
   }
 
   function handleReset() {
@@ -187,7 +256,7 @@ export default function SetDetail() {
             {/* Actions */}
             <div className="sd-hero-actions">
               <button className={`sd-btn-primary${added ? ' added' : ''}`}
-                onClick={() => { setAdded(true); setTimeout(() => navigate('/inventory'), 700) }}>
+                onClick={!added ? handleAdd : undefined}>
                 {added ? <><CheckIcon /> Добавлено</> : <><PlusIcon /> Добавить в конверт</>}
               </button>
               {added && (

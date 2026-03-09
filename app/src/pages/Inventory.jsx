@@ -232,7 +232,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, editM
           <div className="inv-name">{item.name}</div>
           {paused ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span className="inv-remainder" style={{ color: '#5B8FD4' }}>пауза · набор удалён</span>
+              <span className="inv-remainder" style={{ color: '#5B8FD4' }}>{item.set ? 'заморожен · не активирован' : 'пауза'}</span>
               <button className="inv-launch-btn" onClick={e => { e.stopPropagation(); onLaunch() }}>
                 <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M8 5v14l11-7z"/>
@@ -467,11 +467,23 @@ function AddItemForm({ groupId, groupSetCategories, onAdd, onCancel }) {
 
 // ── PAGE ──────────────────────────────────────────────────────────────────────
 
+function loadExtraItems() {
+  try { return JSON.parse(localStorage.getItem('ss_inventory_extra') || '[]') } catch { return [] }
+}
+function syncExtra(nextItems) {
+  try {
+    const extra = nextItems.filter(i => i.isExtra)
+    localStorage.setItem('ss_inventory_extra', JSON.stringify(extra))
+  } catch {}
+}
+
 export default function Inventory() {
-  // Mutable flat items state
-  const [items, setItems] = useState(() =>
-    inventoryGroups.flatMap(g => g.items.map(item => ({ ...item, groupId: g.id })))
-  )
+  // Mutable flat items state (mock + localStorage extras)
+  const [items, setItems] = useState(() => {
+    const base = inventoryGroups.flatMap(g => g.items.map(item => ({ ...item, groupId: g.id })))
+    const extra = loadExtraItems().map(i => ({ ...i, isExtra: true }))
+    return [...base, ...extra]
+  })
   const [openItem, setOpenItem] = useState(null)
   const [statusFilter, setStatusFilter] = useState(null)
   const [editMode, setEditMode] = useState(false)
@@ -490,6 +502,10 @@ export default function Inventory() {
         map[item.id] = item.purchaseDate
       }
     }))
+    // Init overrides for extra items too
+    loadExtraItems().forEach(item => {
+      map[item.id] = item.type === 'consumable' ? 0 : item.purchaseDate
+    })
     return map
   })
 
@@ -529,18 +545,30 @@ export default function Inventory() {
 
   // Handlers
   function doDelete(id) {
-    setItems(prev => prev.filter(i => i.id !== id))
+    setItems(prev => {
+      const next = prev.filter(i => i.id !== id)
+      syncExtra(next)
+      return next
+    })
     if (openItem === id) setOpenItem(null)
     setDeleteConfirm(null)
   }
 
   function doUnlink(id) {
-    setItems(prev => prev.map(i => i.id === id ? { ...i, set: null, setId: null } : i))
+    setItems(prev => {
+      const next = prev.map(i => i.id === id ? { ...i, set: null, setId: null } : i)
+      syncExtra(next)
+      return next
+    })
     setUnlinkConfirm(null)
   }
 
   function doLaunch(id) {
-    setItems(prev => prev.map(i => i.id === id ? { ...i, paused: false } : i))
+    setItems(prev => {
+      const next = prev.map(i => i.id === id ? { ...i, paused: false } : i)
+      syncExtra(next)
+      return next
+    })
   }
 
   function doLinkSet(itemId, pickedSet) {
