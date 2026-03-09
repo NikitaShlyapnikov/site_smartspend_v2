@@ -132,6 +132,27 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, editM
   const stepHoldRef = useRef(0)
   const stepValRef = useRef(null)
   const notePhotoInputRef = useRef(null)
+  const [lightboxIdx, setLightboxIdx] = useState(null)
+
+  const photos = notes.photos || []
+  const lbTotal = photos.length
+
+  function openLightbox(i, e) {
+    e.stopPropagation()
+    setLightboxIdx(i)
+  }
+  function closeLightbox(e) {
+    e?.stopPropagation()
+    setLightboxIdx(null)
+  }
+  function lbPrev(e) {
+    e.stopPropagation()
+    setLightboxIdx(i => (i - 1 + lbTotal) % lbTotal)
+  }
+  function lbNext(e) {
+    e.stopPropagation()
+    setLightboxIdx(i => (i + 1) % lbTotal)
+  }
 
   function handlePhotoAdd(e) {
     const files = Array.from(e.target.files)
@@ -363,7 +384,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, editM
                     Добавить фото
                   </button>
                   {(notes.photos || []).map((p, i) => (
-                    <div key={i} className="inv-notes-thumb-wrap">
+                    <div key={i} className="inv-notes-thumb-wrap" onClick={e => openLightbox(i, e)}>
                       <img src={p.url} alt={p.name} className="inv-notes-thumb" />
                       <button className="inv-notes-thumb-remove" onClick={e => { e.stopPropagation(); onNotesChange({ ...notes, photos: notes.photos.filter((_, j) => j !== i) }) }}>
                         <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -379,7 +400,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, editM
                 {notes.photos && notes.photos.length > 0 && (
                   <div className="inv-notes-photo-row">
                     {notes.photos.map((p, i) => (
-                      <div key={i} className="inv-notes-thumb-wrap">
+                      <div key={i} className="inv-notes-thumb-wrap" onClick={e => openLightbox(i, e)}>
                         <img src={p.url} alt={p.name} className="inv-notes-thumb" />
                       </div>
                     ))}
@@ -429,6 +450,37 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, editM
           </div>
         )}
       </div>
+
+      {/* Lightbox */}
+      {lightboxIdx !== null && lbTotal > 0 && (
+        <div className="inv-lightbox-overlay" onClick={closeLightbox}>
+          <button className="inv-lightbox-close" onClick={closeLightbox}>
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+          {lbTotal > 1 && (
+            <button className="inv-lightbox-nav prev" onClick={lbPrev}>
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </button>
+          )}
+          <div className="inv-lightbox-content" onClick={e => e.stopPropagation()}>
+            <img src={photos[lightboxIdx].url} alt={photos[lightboxIdx].name} className="inv-lightbox-img" />
+            {lbTotal > 1 && (
+              <div className="inv-lightbox-counter">{lightboxIdx + 1} / {lbTotal}</div>
+            )}
+          </div>
+          {lbTotal > 1 && (
+            <button className="inv-lightbox-nav next" onClick={lbNext}>
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }
