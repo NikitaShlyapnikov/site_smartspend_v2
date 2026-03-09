@@ -535,7 +535,7 @@ export default function Inventory() {
   }
 
   function doUnlink(id) {
-    setItems(prev => prev.map(i => i.id === id ? { ...i, set: null, setId: null, paused: true } : i))
+    setItems(prev => prev.map(i => i.id === id ? { ...i, set: null, setId: null } : i))
     setUnlinkConfirm(null)
   }
 
