@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { inventoryGroups, catalogSets } from '../data/mock'
@@ -121,7 +121,7 @@ function getStepSize(elapsed) {
   return 1000
 }
 
-function InventoryItem({ item, open, onToggle, override, onOverrideChange, editMode, onDelete, onUnlink, onLinkSet, onLaunch }) {
+function InventoryItem({ item, open, onToggle, override, onOverrideChange, editMode, onDelete, onUnlink, onLinkSet, onLaunch, notes, onNotesChange }) {
   const paused = !!item.paused
   const info = getItemInfo(item, override)
   const { pct, status, remainderText, ringNum, ringUnit, monthlyBlock } = info
@@ -131,6 +131,20 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, editM
   const stepTimerRef = useRef(null)
   const stepHoldRef = useRef(0)
   const stepValRef = useRef(null)
+  const notePhotoInputRef = useRef(null)
+
+  function handlePhotoAdd(e) {
+    const files = Array.from(e.target.files)
+    if (!files.length) return
+    files.forEach(file => {
+      const reader = new FileReader()
+      reader.onload = ev => {
+        onNotesChange({ ...notes, photos: [...(notes.photos || []), { url: ev.target.result, name: file.name }] })
+      }
+      reader.readAsDataURL(file)
+    })
+    e.target.value = ''
+  }
 
   function stopStep() {
     if (stepTimerRef.current) { clearTimeout(stepTimerRef.current); stepTimerRef.current = null }
@@ -321,6 +335,58 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, editM
                 </>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Notes section */}
+        {open && (editMode || notes.text || (notes.photos && notes.photos.length > 0)) && (
+          <div className="inv-notes-section">
+            <div className="inv-notes-label">
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+              </svg>
+              Заметки
+            </div>
+            {editMode ? (
+              <>
+                <textarea
+                  className="inv-notes-textarea"
+                  placeholder="Добавьте заметку..."
+                  value={notes.text || ''}
+                  onChange={e => onNotesChange({ ...notes, text: e.target.value })}
+                />
+                <div className="inv-notes-photo-row">
+                  <button className="inv-notes-add-photo-btn" onClick={e => { e.stopPropagation(); notePhotoInputRef.current?.click() }}>
+                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                    Добавить фото
+                  </button>
+                  {(notes.photos || []).map((p, i) => (
+                    <div key={i} className="inv-notes-thumb-wrap">
+                      <img src={p.url} alt={p.name} className="inv-notes-thumb" />
+                      <button className="inv-notes-thumb-remove" onClick={e => { e.stopPropagation(); onNotesChange({ ...notes, photos: notes.photos.filter((_, j) => j !== i) }) }}>
+                        <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <input ref={notePhotoInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handlePhotoAdd} />
+              </>
+            ) : (
+              <>
+                {notes.text && <div className="inv-notes-text">{notes.text}</div>}
+                {notes.photos && notes.photos.length > 0 && (
+                  <div className="inv-notes-photo-row">
+                    {notes.photos.map((p, i) => (
+                      <div key={i} className="inv-notes-thumb-wrap">
+                        <img src={p.url} alt={p.name} className="inv-notes-thumb" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
 
@@ -606,6 +672,14 @@ export default function Inventory() {
     setAddFormGroup(null)
   }
 
+  function doNotesChange(id, notes) {
+    setItems(prev => {
+      const next = prev.map(i => i.id === id ? { ...i, notes } : i)
+      syncExtra(next)
+      return next
+    })
+  }
+
   function toggleEditMode() {
     setEditMode(m => !m)
     if (editMode) setAddFormGroup(null)
@@ -735,6 +809,8 @@ export default function Inventory() {
                       onUnlink={() => setUnlinkConfirm({ id: item.id, name: item.name, set: item.set })}
                       onLinkSet={() => setLinkToSetItem(item.id)}
                       onLaunch={() => doLaunch(item.id)}
+                      notes={item.notes || { text: '', photos: [] }}
+                      onNotesChange={n => doNotesChange(item.id, n)}
                     />
                   ))}
 

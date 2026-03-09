@@ -14,23 +14,29 @@ const CATEGORIES = [
   { id: 'other',     label: 'Другое'    },
 ]
 
-const WEAR_UNITS   = ['шт', 'пар', 'компл']
-const CONS_UNITS   = ['г', 'мл', 'шт', 'упак', 'кг', 'л', 'рул']
-
-function calcPerMonth(price, qty, period) {
-  if (!price || !qty || !period) return 0
-  return (parseFloat(price) * parseFloat(qty)) / parseFloat(period)
+function calcPerMonth(item) {
+  if (item.type === 'consumable') {
+    if (!item.price || !item.qty || !item.dailyUse) return 0
+    return (item.price / item.qty) * item.dailyUse * 30
+  } else {
+    if (!item.price || !item.wearLifeWeeks) return 0
+    return (item.price / item.wearLifeWeeks) * 4.33
+  }
 }
 
-// ── Form добавления одной позиции (стиль из Inventory) ────────────────────────
-function SetItemForm({ type, onAdd, onCancel }) {
+// ── Точная копия AddItemForm из Inventory (без поля «Привязать к набору») ─────
+function AddItemForm({ onAdd, onCancel }) {
+  const today = new Date().toISOString().slice(0, 10)
   const [form, setForm] = useState({
-    name: '', qty: '1', price: '', unit: type === 'consumable' ? 'г' : 'шт', period: '',
+    name: '', type: 'consumable', price: '', qty: '', dailyUse: '', unit: 'г',
+    wearLifeWeeks: '', purchaseDate: today, expectedPrice: '',
   })
   const set = k => v => setForm(p => ({ ...p, [k]: v }))
-  const units = type === 'consumable' ? CONS_UNITS : WEAR_UNITS
 
-  const valid = form.name.trim() && form.price && form.period
+  function handleSubmit() {
+    if (!form.name.trim() || !form.price) return
+    onAdd(form)
+  }
 
   return (
     <div className="inv-add-form">
@@ -41,43 +47,71 @@ function SetItemForm({ type, onAdd, onCancel }) {
           <div className="inv-add-form-lbl">Название</div>
           <input className="inv-add-form-input" value={form.name}
             onChange={e => set('name')(e.target.value)}
-            placeholder={type === 'consumable' ? 'Например: Оливковое масло' : 'Например: Куртка'} />
+            placeholder={form.type === 'consumable' ? 'Например: Оливковое масло' : 'Например: Куртка'} />
         </div>
 
         <div className="inv-add-form-field">
-          <div className="inv-add-form-lbl">Количество</div>
-          <input className="inv-add-form-input" type="number" min="1" value={form.qty}
-            onChange={e => set('qty')(e.target.value)} placeholder="1" />
-        </div>
-
-        <div className="inv-add-form-field">
-          <div className="inv-add-form-lbl">Единица</div>
-          <select className="inv-add-form-select" value={form.unit} onChange={e => set('unit')(e.target.value)}>
-            {units.map(u => <option key={u}>{u}</option>)}
+          <div className="inv-add-form-lbl">Тип</div>
+          <select className="inv-add-form-select" value={form.type} onChange={e => set('type')(e.target.value)}>
+            <option value="consumable">Расходник</option>
+            <option value="wear">Вещь (износ)</option>
           </select>
         </div>
 
         <div className="inv-add-form-field">
           <div className="inv-add-form-lbl">Цена, руб.</div>
-          <input className="inv-add-form-input" type="number" min="0" value={form.price}
+          <input className="inv-add-form-input" type="number" value={form.price}
             onChange={e => set('price')(e.target.value)} placeholder="0" />
         </div>
 
-        <div className="inv-add-form-field">
-          <div className="inv-add-form-lbl">
-            {type === 'consumable' ? 'Расход, мес.' : 'Срок службы, мес.'}
-          </div>
-          <input className="inv-add-form-input" type="number" min="1" value={form.period}
-            onChange={e => set('period')(e.target.value)}
-            placeholder={type === 'consumable' ? '1' : '12'} />
-        </div>
+        {form.type === 'consumable' ? (
+          <>
+            <div className="inv-add-form-field">
+              <div className="inv-add-form-lbl">Объём / масса</div>
+              <input className="inv-add-form-input" type="number" value={form.qty}
+                onChange={e => set('qty')(e.target.value)} placeholder="500" />
+            </div>
+            <div className="inv-add-form-field">
+              <div className="inv-add-form-lbl">Единица</div>
+              <select className="inv-add-form-select" value={form.unit} onChange={e => set('unit')(e.target.value)}>
+                <option value="г">г</option>
+                <option value="мл">мл</option>
+                <option value="шт">шт</option>
+                <option value="кап">кап</option>
+                <option value="рул">рул</option>
+              </select>
+            </div>
+            <div className="inv-add-form-field">
+              <div className="inv-add-form-lbl">Расход в день</div>
+              <input className="inv-add-form-input" type="number" value={form.dailyUse}
+                onChange={e => set('dailyUse')(e.target.value)} placeholder="10" step="0.1" />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="inv-add-form-field">
+              <div className="inv-add-form-lbl">Срок службы, нед.</div>
+              <input className="inv-add-form-input" type="number" value={form.wearLifeWeeks}
+                onChange={e => set('wearLifeWeeks')(e.target.value)} placeholder="52" />
+            </div>
+            <div className="inv-add-form-field">
+              <div className="inv-add-form-lbl">Плановая цена, руб.</div>
+              <input className="inv-add-form-input" type="number" value={form.expectedPrice}
+                onChange={e => set('expectedPrice')(e.target.value)} placeholder="необязательно" />
+            </div>
+            <div className="inv-add-form-field">
+              <div className="inv-add-form-lbl">Дата покупки</div>
+              <input className="inv-add-form-input" type="date" value={form.purchaseDate}
+                onChange={e => set('purchaseDate')(e.target.value)} max={today} />
+            </div>
+          </>
+        )}
 
       </div>
       <div className="inv-add-form-actions">
         <button className="inv-add-cancel" onClick={onCancel}>Отмена</button>
-        <button className="inv-add-submit" onClick={() => valid && onAdd(form)} disabled={!valid}>
-          Добавить
-        </button>
+        <button className="inv-add-submit" onClick={handleSubmit}
+          disabled={!form.name.trim() || !form.price}>Добавить</button>
       </div>
     </div>
   )
@@ -85,14 +119,16 @@ function SetItemForm({ type, onAdd, onCancel }) {
 
 // ── Строка добавленной позиции ────────────────────────────────────────────────
 function SetItemRow({ item, onDelete }) {
-  const pm = calcPerMonth(item.price, item.qty, item.period)
+  const pm = calcPerMonth(item)
+  const meta = item.type === 'consumable'
+    ? `${item.qty} ${item.unit} · расход ${item.dailyUse} ${item.unit}/день`
+    : `срок ${item.wearLifeWeeks} нед.`
   return (
     <div className="cs-set-item-row">
       <div className="cs-set-item-info">
         <span className="cs-set-item-name">{item.name}</span>
         <span className="cs-set-item-meta">
-          {item.qty} {item.unit} · {parseInt(item.price).toLocaleString('ru')} ₽
-          {item.period && ` · ${item.period} мес.`}
+          {parseInt(item.price).toLocaleString('ru')} ₽ · {meta}
         </span>
       </div>
       {pm > 0 && (
@@ -111,17 +147,16 @@ function SetItemRow({ item, onDelete }) {
 export default function CreateSet() {
   const navigate = useNavigate()
 
-  const [preview,    setPreview]   = useState(false)
-  const [title,      setTitle]     = useState('')
-  const [shortDesc,  setShortDesc] = useState('')
-  const [introText,  setIntroText] = useState('')
-  const [category,   setCategory]  = useState('clothes')
-  const [type,       setType]      = useState('wear')
-  const [isPublic,   setIsPublic]  = useState(true)
-  const [items,      setItems]     = useState([])
-  const [showForm,   setShowForm]  = useState(false)
+  const [preview,   setPreview]   = useState(false)
+  const [title,     setTitle]     = useState('')
+  const [shortDesc, setShortDesc] = useState('')
+  const [introText, setIntroText] = useState('')
+  const [category,  setCategory]  = useState('clothes')
+  const [isPublic,  setIsPublic]  = useState(true)
+  const [items,     setItems]     = useState([])
+  const [showForm,  setShowForm]  = useState(false)
 
-  const totalPerMonth = items.reduce((s, it) => s + calcPerMonth(it.price, it.qty, it.period), 0)
+  const totalPerMonth = items.reduce((s, it) => s + calcPerMonth(it), 0)
 
   function addItem(form) {
     setItems(prev => [...prev, { ...form, id: Date.now() }])
@@ -141,9 +176,9 @@ export default function CreateSet() {
             <span className="editor-toolbar-title">Создать набор</span>
           </div>
           <div className="editor-toolbar-right">
-            {(items.length > 0 || totalPerMonth > 0) && (
+            {items.length > 0 && (
               <span className="editor-counter">
-                {items.length} поз.{totalPerMonth > 0 && ` · ${totalPerMonth.toLocaleString('ru', { maximumFractionDigits: 0 })} ₽/мес`}
+                {items.length} поз.{totalPerMonth > 0 && ` · ${Math.round(totalPerMonth).toLocaleString('ru')} ₽/мес`}
               </span>
             )}
             <button className={`btn-preview-toggle${preview ? ' active' : ''}`} onClick={() => setPreview(p => !p)}>
@@ -168,7 +203,6 @@ export default function CreateSet() {
                 <div className="hero-body">
                   <div className="hero-badges">
                     <span className="source-badge community">{isPublic ? 'Сообщество' : 'Личный'}</span>
-                    <span className="base-badge">{type === 'wear' ? 'Износ' : 'Расходник'}</span>
                     <span className="cat-badge">{CATEGORIES.find(c => c.id === category)?.label}</span>
                   </div>
                   <div className="hero-title">{title || 'Без названия'}</div>
@@ -176,7 +210,7 @@ export default function CreateSet() {
                   <div className="hero-stats">
                     <div className="hstat">
                       <div className="hstat-val">
-                        {totalPerMonth > 0 ? totalPerMonth.toLocaleString('ru', { maximumFractionDigits: 0 }) + ' ₽' : '— ₽'}
+                        {totalPerMonth > 0 ? Math.round(totalPerMonth).toLocaleString('ru') + ' ₽' : '— ₽'}
                       </div>
                       <div className="hstat-lbl">в месяц</div>
                     </div>
@@ -216,26 +250,22 @@ export default function CreateSet() {
                     <thead>
                       <tr>
                         <th>Позиция</th>
-                        <th style={{ textAlign: 'right' }}>Кол-во</th>
-                        <th>Ед.</th>
+                        <th>Тип</th>
                         <th style={{ textAlign: 'right' }}>Цена, ₽</th>
-                        <th style={{ textAlign: 'right' }}>{type === 'consumable' ? 'Расход, мес.' : 'Срок, мес.'}</th>
                         <th style={{ textAlign: 'right' }}>₽/мес</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {items.map((item) => {
-                        const pm = calcPerMonth(item.price, item.qty, item.period)
+                      {items.map(item => {
+                        const pm = calcPerMonth(item)
                         return (
                           <tr key={item.id} className="cs-item-row">
                             <td style={{ padding: '9px 14px', fontWeight: 500 }}>{item.name}</td>
-                            <td style={{ padding: '9px 10px', textAlign: 'right', fontFamily: 'var(--mono)' }}>{item.qty}</td>
-                            <td style={{ padding: '9px 10px', color: 'var(--text-3)', fontSize: 12 }}>{item.unit}</td>
+                            <td style={{ padding: '9px 10px', fontSize: 12, color: 'var(--text-3)' }}>
+                              {item.type === 'consumable' ? 'Расходник' : 'Износ'}
+                            </td>
                             <td style={{ padding: '9px 10px', textAlign: 'right', fontFamily: 'var(--mono)' }}>
                               {parseInt(item.price).toLocaleString('ru')}
-                            </td>
-                            <td style={{ padding: '9px 10px', textAlign: 'right', fontFamily: 'var(--mono)', color: 'var(--text-2)' }}>
-                              {item.period}
                             </td>
                             <td style={{ padding: '9px 14px', textAlign: 'right', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent-green)' }}>
                               {pm > 0 ? Math.round(pm).toLocaleString('ru') : '—'}
@@ -292,24 +322,6 @@ export default function CreateSet() {
                     </button>
                   </div>
                 </div>
-                <div className="editor-meta-row">
-                  <div className="editor-meta-label">Тип</div>
-                  <div className="visibility-toggle">
-                    <button className={`visibility-btn${type === 'wear' ? ' active' : ''}`}
-                      onClick={() => { setType('wear'); setShowForm(false) }}>
-                      Износ
-                    </button>
-                    <button className={`visibility-btn${type === 'consumable' ? ' active' : ''}`}
-                      onClick={() => { setType('consumable'); setShowForm(false) }}>
-                      Расходник
-                    </button>
-                  </div>
-                  {type === 'consumable' && (
-                    <span style={{ fontSize: 11, color: 'var(--text-3)', marginLeft: 8 }}>
-                      «Расход, мес.» — за сколько мес. тратится 1 ед.
-                    </span>
-                  )}
-                </div>
               </div>
 
               {/* Название */}
@@ -336,12 +348,11 @@ export default function CreateSet() {
                   <span>Позиции набора</span>
                   {totalPerMonth > 0 && (
                     <span style={{ fontWeight: 700, color: 'var(--accent-green)', fontFamily: 'var(--mono)', textTransform: 'none', letterSpacing: 0 }}>
-                      {totalPerMonth.toLocaleString('ru', { maximumFractionDigits: 0 })} ₽/мес
+                      {Math.round(totalPerMonth).toLocaleString('ru')} ₽/мес
                     </span>
                   )}
                 </div>
 
-                {/* Список добавленных позиций */}
                 {items.length > 0 && (
                   <div className="cs-set-items-list">
                     {items.map(item => (
@@ -350,9 +361,8 @@ export default function CreateSet() {
                   </div>
                 )}
 
-                {/* Форма или кнопка добавления */}
                 {showForm ? (
-                  <SetItemForm type={type} onAdd={addItem} onCancel={() => setShowForm(false)} />
+                  <AddItemForm onAdd={addItem} onCancel={() => setShowForm(false)} />
                 ) : (
                   <div style={{ padding: '10px 14px' }}>
                     <button className="inv-add-toggle" onClick={() => setShowForm(true)}>
