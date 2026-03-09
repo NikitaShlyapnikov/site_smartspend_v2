@@ -121,7 +121,7 @@ function getStepSize(elapsed) {
   return 1000
 }
 
-function InventoryItem({ item, open, onToggle, override, onOverrideChange, editMode, onDelete, onUnlink, onLinkSet, onLaunch, notes, onNotesChange }) {
+function InventoryItem({ item, open, onToggle, override, onOverrideChange, editMode, onDelete, onUnlink, onLinkSet, onLaunch, notes, onNotesChange, onUpdateItem }) {
   const paused = !!item.paused
   const info = getItemInfo(item, override)
   const { pct, status, remainderText, ringNum, ringUnit, monthlyBlock } = info
@@ -133,6 +133,37 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, editM
   const stepValRef = useRef(null)
   const notePhotoInputRef = useRef(null)
   const [lightboxIdx, setLightboxIdx] = useState(null)
+  const [isEditingParams, setIsEditingParams] = useState(false)
+  const [paramForm, setParamForm] = useState(null)
+
+  function startEditParams(e) {
+    e.stopPropagation()
+    const today = new Date().toISOString().slice(0, 10)
+    setParamForm({
+      name: item.name,
+      price: String(item.price || ''),
+      qty: String(item.qty || ''),
+      dailyUse: String(item.dailyUse || ''),
+      unit: item.unit || 'г',
+      wearLifeWeeks: String(item.wearLifeWeeks || ''),
+      purchaseDate: item.purchaseDate || today,
+    })
+    setIsEditingParams(true)
+  }
+
+  function saveParams(e) {
+    e.stopPropagation()
+    if (!paramForm.name.trim() || !paramForm.price) return
+    onUpdateItem(paramForm)
+    setIsEditingParams(false)
+  }
+
+  function cancelEditParams(e) {
+    e.stopPropagation()
+    setIsEditingParams(false)
+  }
+
+  const setPF = k => v => setParamForm(p => ({ ...p, [k]: v }))
 
   const photos = notes.photos || []
   const lbTotal = photos.length
@@ -359,6 +390,81 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, editM
           </div>
         )}
 
+        {/* Inline param edit form for non-set items */}
+        {open && editMode && !hasSet && !isEditingParams && (
+          <div style={{ padding: '0 16px 8px' }}>
+            <button className="inv-edit-params-btn" onClick={startEditParams}>
+              <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"
+                strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Редактировать параметры
+            </button>
+          </div>
+        )}
+
+        {open && isEditingParams && paramForm && (
+          <div className="inv-add-form" style={{ margin: '0 16px 12px' }} onClick={e => e.stopPropagation()}>
+            <div className="inv-add-form-title">Редактировать параметры</div>
+            <div className="inv-add-form-grid">
+              <div className="inv-add-form-field" style={{ gridColumn: '1/-1' }}>
+                <div className="inv-add-form-lbl">Название</div>
+                <input className="inv-add-form-input" value={paramForm.name}
+                  onChange={e => setPF('name')(e.target.value)} placeholder="Название" />
+              </div>
+              <div className="inv-add-form-field">
+                <div className="inv-add-form-lbl">Цена, руб.</div>
+                <input className="inv-add-form-input" type="number" value={paramForm.price}
+                  onChange={e => setPF('price')(e.target.value)} placeholder="0" />
+              </div>
+
+              {item.type === 'consumable' ? (
+                <>
+                  <div className="inv-add-form-field">
+                    <div className="inv-add-form-lbl">Объём / масса</div>
+                    <input className="inv-add-form-input" type="number" value={paramForm.qty}
+                      onChange={e => setPF('qty')(e.target.value)} placeholder="500" />
+                  </div>
+                  <div className="inv-add-form-field">
+                    <div className="inv-add-form-lbl">Единица</div>
+                    <select className="inv-add-form-select" value={paramForm.unit} onChange={e => setPF('unit')(e.target.value)}>
+                      <option value="г">г</option>
+                      <option value="мл">мл</option>
+                      <option value="шт">шт</option>
+                      <option value="кап">кап</option>
+                      <option value="рул">рул</option>
+                    </select>
+                  </div>
+                  <div className="inv-add-form-field">
+                    <div className="inv-add-form-lbl">Расход в день</div>
+                    <input className="inv-add-form-input" type="number" value={paramForm.dailyUse}
+                      onChange={e => setPF('dailyUse')(e.target.value)} placeholder="10" step="0.1" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="inv-add-form-field">
+                    <div className="inv-add-form-lbl">Срок службы, нед.</div>
+                    <input className="inv-add-form-input" type="number" value={paramForm.wearLifeWeeks}
+                      onChange={e => setPF('wearLifeWeeks')(e.target.value)} placeholder="52" />
+                  </div>
+                  <div className="inv-add-form-field">
+                    <div className="inv-add-form-lbl">Дата покупки</div>
+                    <input className="inv-add-form-input" type="date" value={paramForm.purchaseDate}
+                      onChange={e => setPF('purchaseDate')(e.target.value)} max={new Date().toISOString().slice(0, 10)} />
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="inv-add-form-actions">
+              <button className="inv-add-cancel" onClick={cancelEditParams}>Отмена</button>
+              <button className="inv-add-submit" onClick={saveParams}
+                disabled={!paramForm.name.trim() || !paramForm.price}>Сохранить</button>
+            </div>
+          </div>
+        )}
+
         {/* Notes section */}
         {open && (editMode || notes.text || (notes.photos && notes.photos.length > 0)) && (
           <div className="inv-notes-section">
@@ -436,7 +542,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, editM
               </>
             ) : (
               <>
-                <span style={{ color: 'var(--text-3)' }}>Личное</span>
+                <span className="inv-personal-badge">Личное</span>
                 <button className="inv-link-btn" onClick={e => { e.stopPropagation(); onLinkSet() }}>
                   <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"
                     strokeLinecap="round" strokeLinejoin="round">
@@ -489,7 +595,7 @@ function AddItemForm({ groupId, groupSetCategories, onAdd, onCancel }) {
   const today = new Date().toISOString().slice(0, 10)
   const [form, setForm] = useState({
     name: '', type: 'consumable', price: '', qty: '', dailyUse: '', unit: 'г',
-    wearLifeWeeks: '', purchaseDate: today, expectedPrice: '', setId: '',
+    wearLifeWeeks: '', purchaseDate: today, setId: '',
   })
   const set = k => v => setForm(p => ({ ...p, [k]: v }))
   const groupSets = catalogSets.filter(s => groupSetCategories?.includes(s.category))
@@ -550,11 +656,6 @@ function AddItemForm({ groupId, groupSetCategories, onAdd, onCancel }) {
               <div className="inv-add-form-lbl">Срок службы, нед.</div>
               <input className="inv-add-form-input" type="number" value={form.wearLifeWeeks}
                 onChange={e => set('wearLifeWeeks')(e.target.value)} placeholder="52" />
-            </div>
-            <div className="inv-add-form-field">
-              <div className="inv-add-form-lbl">Плановая цена, руб.</div>
-              <input className="inv-add-form-input" type="number" value={form.expectedPrice}
-                onChange={e => set('expectedPrice')(e.target.value)} placeholder="необязательно" />
             </div>
             <div className="inv-add-form-field">
               <div className="inv-add-form-lbl">Дата покупки</div>
@@ -716,7 +817,6 @@ export default function Inventory() {
       Object.assign(base, {
         wearLifeWeeks: Number(form.wearLifeWeeks) || 52,
         purchaseDate: form.purchaseDate || new Date().toISOString().slice(0, 10),
-        expectedPrice: form.expectedPrice ? Number(form.expectedPrice) : undefined,
       })
       setOverrides(p => ({ ...p, [id]: base.purchaseDate }))
     }
@@ -730,6 +830,26 @@ export default function Inventory() {
       syncExtra(next)
       return next
     })
+  }
+
+  function doUpdateItem(id, form) {
+    const currentItem = items.find(i => i.id === id)
+    setItems(prev => {
+      const next = prev.map(i => {
+        if (i.id !== id) return i
+        const updated = { ...i, name: form.name.trim(), price: Number(form.price) || 0 }
+        if (i.type === 'consumable') {
+          return { ...updated, qty: Number(form.qty) || 100, dailyUse: Number(form.dailyUse) || 1, unit: form.unit || 'г' }
+        } else {
+          return { ...updated, wearLifeWeeks: Number(form.wearLifeWeeks) || 52, purchaseDate: form.purchaseDate }
+        }
+      })
+      syncExtra(next)
+      return next
+    })
+    if (currentItem?.type === 'wear') {
+      setOverrides(p => ({ ...p, [id]: form.purchaseDate }))
+    }
   }
 
   function toggleEditMode() {
@@ -863,6 +983,7 @@ export default function Inventory() {
                       onLaunch={() => doLaunch(item.id)}
                       notes={item.notes || { text: '', photos: [] }}
                       onNotesChange={n => doNotesChange(item.id, n)}
+                      onUpdateItem={form => doUpdateItem(item.id, form)}
                     />
                   ))}
 

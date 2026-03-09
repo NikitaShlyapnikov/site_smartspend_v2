@@ -3,6 +3,13 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { catalogSets } from '../data/mock'
 
+function loadLikes() {
+  try { return new Set(JSON.parse(localStorage.getItem('ss_catalog_likes') || '[]')) } catch { return new Set() }
+}
+function saveLikes(set) {
+  try { localStorage.setItem('ss_catalog_likes', JSON.stringify([...set])) } catch {}
+}
+
 const CATEGORIES = [
   { id: 'all',        label: 'Все'                   },
   { id: 'food',       label: 'Еда и Супермаркеты'    },
@@ -35,6 +42,17 @@ export default function Catalog() {
   const [typeFilter, setType]   = useState('all')
   const [sourceFilter, setSrc]  = useState('all')
   const [sortFilter, setSort]   = useState('popular')
+  const [likedSets, setLikedSets] = useState(loadLikes)
+
+  function toggleLike(id, e) {
+    e.stopPropagation()
+    setLikedSets(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      saveLikes(next)
+      return next
+    })
+  }
 
   // Counts per category (across all source/type filters)
   const catCounts = {}
@@ -46,6 +64,7 @@ export default function Catalog() {
 
   // Filter + sort
   let filtered = catalogSets.filter(s => {
+    if (cat === 'liked') return likedSets.has(s.id)
     if (cat !== 'all' && s.category !== cat) return false
     if (typeFilter !== 'all' && s.type !== typeFilter) return false
     if (sourceFilter !== 'all' && s.source !== sourceFilter) return false
@@ -81,6 +100,13 @@ export default function Catalog() {
                 <span className="cat-count">{catCounts[c.id]}</span>
               </button>
             ))}
+            <button className={`cat-btn cat-btn-liked${cat === 'liked' ? ' active' : ''}`} onClick={() => setCat(cat === 'liked' ? 'all' : 'liked')}>
+              <svg width="11" height="11" fill={cat === 'liked' ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+              Понравившиеся
+              <span className="cat-count">{likedSets.size}</span>
+            </button>
           </div>
 
           {/* Row 2: type · source · sort · count */}
@@ -125,6 +151,15 @@ export default function Catalog() {
             </div>
           ) : filtered.map(set => (
             <div key={set.id} className="catalog-card" onClick={() => navigate(`/set/${set.id}`)}>
+              <button
+                className={`card-like-btn${likedSets.has(set.id) ? ' liked' : ''}`}
+                onClick={e => toggleLike(set.id, e)}
+                title={likedSets.has(set.id) ? 'Убрать из понравившихся' : 'Добавить в понравившиеся'}
+              >
+                <svg width="14" height="14" fill={likedSets.has(set.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </button>
               <div className="card-accent-bar" style={{ background: set.color }} />
               <div className="card-body">
                 <div className="card-badges">

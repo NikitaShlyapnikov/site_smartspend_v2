@@ -1,5 +1,14 @@
+import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { notifications as ALL_NOTIFS } from '../data/mock'
+
+function getUnreadCount() {
+  try {
+    const read = new Set(JSON.parse(localStorage.getItem('ss_notif_read') || '[]'))
+    return ALL_NOTIFS.filter(n => n.unread && !read.has(n.id)).length
+  } catch { return 0 }
+}
 
 const navItems = [
   {
@@ -72,6 +81,14 @@ export default function Sidebar() {
   const { dark, collapsed, username, toggleTheme, toggleSidebar } = useApp()
   const location = useLocation()
   const navigate = useNavigate()
+  const [unreadCount, setUnreadCount] = useState(getUnreadCount)
+
+  useEffect(() => {
+    const handler = () => setUnreadCount(getUnreadCount())
+    window.addEventListener('notif-update', handler)
+    window.addEventListener('storage', handler)
+    return () => { window.removeEventListener('notif-update', handler); window.removeEventListener('storage', handler) }
+  }, [])
 
   const initials = username.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
 
@@ -114,8 +131,18 @@ export default function Sidebar() {
             to={item.to}
             className={`nav-item${location.pathname === item.to ? ' active' : ''}`}
           >
-            {item.icon}
-            <span className="nav-label">{item.label}</span>
+            <span style={{ position: 'relative', display: 'inline-flex' }}>
+              {item.icon}
+              {item.id === 'notifications' && unreadCount > 0 && collapsed && (
+                <span className="nav-notif-dot" />
+              )}
+            </span>
+            <span className="nav-label">
+              {item.label}
+              {item.id === 'notifications' && unreadCount > 0 && !collapsed && (
+                <span className="nav-notif-badge">{unreadCount}</span>
+              )}
+            </span>
           </Link>
         ))}
       </nav>

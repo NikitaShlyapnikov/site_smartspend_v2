@@ -48,6 +48,156 @@ const TABS = [
   { id: 'sets',     label: 'Наборы' },
 ]
 
+// ── ANONYMOUS PROFILE ────────────────────────────────────────────────────────
+
+function AnonymousProfile({ navigate }) {
+  return (
+    <Layout>
+      <main className="account-main">
+        <div className="user-header author-special-header">
+          <div className="author-special-avatar author-special-avatar--anon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <div className="user-info">
+            <div className="user-name-line">
+              <span className="user-display-name">Анонимный пользователь</span>
+              <span className="author-special-badge author-special-badge--anon">Скрытый профиль</span>
+            </div>
+            <div className="user-bio" style={{ marginTop: 8 }}>
+              Этот пользователь ограничил доступ к своей странице. Профиль, статьи и наборы скрыты от посторонних.
+            </div>
+          </div>
+          <button className="btn-follow" style={{ position: 'absolute', top: 28, right: 32 }} disabled>
+            Подписаться
+          </button>
+        </div>
+        <div className="author-special-blocked">
+          <div className="author-special-blocked-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+            </svg>
+          </div>
+          <div className="author-special-blocked-title">Профиль скрыт</div>
+          <div className="author-special-blocked-desc">Пользователь ограничил доступ к своей странице в настройках конфиденциальности</div>
+          <button className="btn-cancel" style={{ marginTop: 16 }} onClick={() => navigate(-1)}>← Назад</button>
+        </div>
+      </main>
+    </Layout>
+  )
+}
+
+// ── GHOST (DELETED) PROFILE ───────────────────────────────────────────────────
+
+const GHOST_ARTICLES = [
+  { title: 'Почему мы переплачиваем за доставку и как это остановить', excerpt: 'Подписки на доставку, минимальные суммы заказа, наценки за «быстро» — лишние 2 000–4 000 ₽ в месяц.', meta: '9 мар 2026', views: 22100 },
+  { title: 'Скрытые расходы: что мы не замечаем в ежедневных тратах', excerpt: 'Небольшие ежедневные покупки складываются в суммы, которые мало кто осознаёт. Разбираю по категориям.', meta: '2 фев 2026', views: 9800 },
+]
+const GHOST_SETS = [
+  { name: 'Еда и доставка', color: '#C4A882', amount: '12 000 ₽', period: '/ мес', tags: ['14 поз.', 'еженедельно'] },
+]
+
+function GhostProfile({ navigate }) {
+  const [tab, setTab] = useState('articles')
+  const tabs = [
+    { id: 'articles', label: `Статьи · ${GHOST_ARTICLES.length}` },
+    { id: 'sets',     label: `Наборы · ${GHOST_SETS.length}` },
+  ]
+  return (
+    <Layout>
+      <main className="account-main">
+        <div className="user-header author-special-header">
+          <div className="author-special-avatar author-special-avatar--ghost">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2a8 8 0 0 0-8 8v10l3-3 3 3 3-3 3 3 3-3V10a8 8 0 0 0-8-8zm-2.5 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+            </svg>
+          </div>
+          <div className="user-info">
+            <div className="user-name-line">
+              <span className="user-display-name author-ghost-name">Удалённый аккаунт</span>
+              <span className="author-special-badge author-special-badge--ghost">Аккаунт удалён</span>
+            </div>
+            <div className="user-bio" style={{ marginTop: 8 }}>
+              Этот аккаунт был удалён пользователем. Опубликованные материалы сохранены и переданы анонимному автору.
+            </div>
+          </div>
+        </div>
+
+        <div className="author-ghost-notice">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2a8 8 0 0 0-8 8v10l3-3 3 3 3-3 3 3 3-3V10a8 8 0 0 0-8-8zm-2.5 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+          </svg>
+          Материалы удалённого пользователя сохранены на платформе и доступны для чтения
+        </div>
+
+        <div className="acc-tabs">
+          {tabs.map(t => (
+            <button key={t.id} className={`acc-tab${tab === t.id ? ' active' : ''}`}
+              onClick={() => setTab(t.id)}>{t.label}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'articles' && (
+          <div className="acc-panel">
+            {GHOST_ARTICLES.map((a, i) => (
+              <div key={i} className="acc-article-card">
+                <div className="acc-article-title">{a.title}</div>
+                <div className="acc-article-excerpt">{a.excerpt}</div>
+                <div className="article-footer-meta">
+                  <span>{a.meta}</span>
+                  {a.views != null && <span>{a.views.toLocaleString('ru')} просмотров</span>}
+                  <span className="author-ghost-attr">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{ opacity: 0.6 }}>
+                      <path d="M12 2a8 8 0 0 0-8 8v10l3-3 3 3 3-3 3 3 3-3V10a8 8 0 0 0-8-8zm-2.5 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+                    </svg>
+                    Удалённый аккаунт
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {tab === 'sets' && (
+          <div className="acc-panel">
+            <div className="acc-sets-grid">
+              {GHOST_SETS.map((s, i) => (
+                <div key={i} className="acc-set-card">
+                  <div className="acc-set-accent" style={{ background: s.color }} />
+                  <div className="acc-set-body">
+                    <div className="acc-set-top-row">
+                      <span className="acc-set-source author-ghost-attr">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{ opacity: 0.6 }}>
+                          <path d="M12 2a8 8 0 0 0-8 8v10l3-3 3 3 3-3 3 3 3-3V10a8 8 0 0 0-8-8zm-2.5 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+                        </svg>
+                        Удалённый аккаунт
+                      </span>
+                    </div>
+                    <div className="acc-set-name">{s.name}</div>
+                    <div className="acc-set-tags">
+                      {s.tags.map((tag, j) => <span key={j} className="acc-set-tag">{tag}</span>)}
+                    </div>
+                  </div>
+                  <div className="acc-set-footer">
+                    <span className="acc-set-amount">{s.amount}</span>
+                    <span className="acc-set-period">{s.period}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
+    </Layout>
+  )
+}
+
+// ── MAIN PAGE ─────────────────────────────────────────────────────────────────
+
 export default function AuthorPage() {
   const { state } = useLocation()
   const navigate = useNavigate()
@@ -67,6 +217,9 @@ export default function AuthorPage() {
       </Layout>
     )
   }
+
+  if (state.type === 'anonymous') return <AnonymousProfile navigate={navigate} />
+  if (state.type === 'deleted')   return <GhostProfile navigate={navigate} />
 
   const author = state
   const articles = AUTHOR_ARTICLES[author.handle] ?? DEFAULT_ARTICLES

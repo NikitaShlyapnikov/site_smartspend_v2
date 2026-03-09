@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { feedItems, feedAuthors } from '../data/mock'
@@ -111,15 +111,57 @@ function SetCard({ item, isRead, onClick }) {
 
 // ── ARTICLE CARD ──────────────────────────────────────────────────────────────
 
-function ArticleCard({ item, isRead, isLiked, onLikeToggle, onClick }) {
+function AuthorChip({ author, authorId, navigate }) {
+  if (!author) return null
+
+  function handleAuthorClick(e) {
+    e.stopPropagation()
+    navigate(`/author/${authorId}`, { state: { ...author, id: authorId } })
+  }
+
+  if (author.type === 'anonymous') {
+    return (
+      <button className="author-chip author-chip--anon" onClick={handleAuthorClick} title="Анонимный автор">
+        <span className="author-avatar-sm author-avatar-anon">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </span>
+        <span className="author-name-inline author-name--special">Анонимный автор</span>
+      </button>
+    )
+  }
+
+  if (author.type === 'deleted') {
+    return (
+      <button className="author-chip author-chip--ghost" onClick={handleAuthorClick} title="Аккаунт удалён">
+        <span className="author-avatar-sm author-avatar-ghost">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2a8 8 0 0 0-8 8v10l3-3 3 3 3-3 3 3 3-3V10a8 8 0 0 0-8-8zm-2.5 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+          </svg>
+        </span>
+        <span className="author-name-inline author-name--special author-name--deleted">Удалённый аккаунт</span>
+      </button>
+    )
+  }
+
+  return (
+    <button className="author-chip" onClick={handleAuthorClick}>
+      <div className="author-avatar-sm" style={{ background: author.color }}>{author.initials}</div>
+      <span className="author-name-inline">{author.name}</span>
+    </button>
+  )
+}
+
+function ArticleCard({ item, isRead, isLiked, onLikeToggle, onClick, navigate }) {
   const author = feedAuthors[item.authorId]
   return (
     <div className={`card${isRead ? ' read' : ''}`} onClick={() => onClick(item)}>
       <div className="article-body">
         <div className="article-header">
           <div className="article-header-top">
-            <div className="author-avatar-sm" style={{ background: author?.color }}>{author?.initials}</div>
-            <span className="author-name-inline">{author?.name}</span>
+            <AuthorChip author={author} authorId={item.authorId} navigate={navigate} />
             <span className="article-time-chip">{item.time}</span>
           </div>
           <div className="article-title">{item.title}</div>
@@ -332,6 +374,7 @@ export default function Feed() {
                 isLiked={likedIds.has(item.id)}
                 onLikeToggle={toggleLike}
                 onClick={handleItemClick}
+                navigate={navigate}
               />
             ))}
           </div>

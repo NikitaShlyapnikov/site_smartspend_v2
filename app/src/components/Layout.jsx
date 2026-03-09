@@ -11,7 +11,7 @@ export default function Layout({ children }) {
   useEffect(() => {
     const auth = localStorage.getItem('ss_auth')
     if (auth !== 'true') {
-      navigate('/', { replace: true })
+      navigate('/?auth=1', { replace: true })
     }
   }, [navigate])
 

@@ -1,12 +1,46 @@
 // Feed authors
 export const feedAuthors = {
-  a1: { name: 'Анна Соколова',  initials: 'АС', color: '#7DAF92', following: true  },
-  a2: { name: 'Максим Лебедев', initials: 'МЛ', color: '#8A9EB8', following: true  },
-  a3: { name: 'Оля Петрова',    initials: 'ОП', color: '#C4A882', following: false },
-  a4: { name: 'Иван Козлов',    initials: 'ИК', color: '#B89AAE', following: false },
+  a1:    { name: 'Анна Соколова',      initials: 'АС', color: '#7DAF92', following: true  },
+  a2:    { name: 'Максим Лебедев',     initials: 'МЛ', color: '#8A9EB8', following: true  },
+  a3:    { name: 'Оля Петрова',        initials: 'ОП', color: '#C4A882', following: false },
+  a4:    { name: 'Иван Козлов',        initials: 'ИК', color: '#B89AAE', following: false },
+  anon:  {
+    name: 'Анонимный автор', initials: '?', color: '#A0A0A0', following: false,
+    type: 'anonymous',
+    handle: '@anonymous',
+    followers: '—', articles: 5, sets: 2,
+    desc: 'Этот пользователь ограничил доступ к своему профилю.',
+  },
+  ghost: {
+    name: 'Удалённый аккаунт', initials: '?', color: '#B0B0B0', following: false,
+    type: 'deleted',
+    handle: '@deleted',
+    followers: '—', articles: 0, sets: 0,
+    desc: 'Аккаунт был удалён. Материалы переданы анонимному пользователю.',
+  },
 }
 
 export const feedItems = [
+  {
+    id: 'fa1', type: 'article',
+    ts: 20260310, pop: 99000,
+    title: 'Скрытые расходы на здоровый образ жизни: считаем честно',
+    preview: 'Абонемент в зал, витамины, органические продукты — всё это складывается в сумму, которую мало кто осознаёт заранее. Разбираю реальный бюджет ЗОЖ и где можно сократить без ущерба.',
+    authorId: 'anon', time: '2 ч назад',
+    views: 18400, likes: 312, comments: 54,
+    setLink: { title: 'Здоровый образ жизни', color: '#7DAF92' },
+    category: 'health',
+  },
+  {
+    id: 'fa2', type: 'article',
+    ts: 20260309, pop: 95000,
+    title: 'Почему мы переплачиваем за доставку и как это остановить',
+    preview: 'Подписки на доставку, минимальные суммы заказа, наценки за «быстро» — в среднем это лишние 2 000–4 000 ₽ в месяц. Показываю, как убрать эти траты без отказа от удобства.',
+    authorId: 'ghost', time: '1 д назад',
+    views: 22100, likes: 487, comments: 73,
+    setLink: { title: 'Еда и доставка', color: '#C4A882' },
+    category: 'food',
+  },
   {
     id: 'f2', type: 'article',
     ts: 20260307, pop: 8700,
@@ -724,10 +758,53 @@ export const articles = [
 ]
 
 export const notifications = [
-  { id: 'n1', type: 'new-set', unread: true, title: 'Новый набор в каталоге', desc: 'Появился набор «Велосипедист: базовое снаряжение» от SmartSpend', time: '10 мин назад' },
-  { id: 'n2', type: 'article', unread: true, title: 'Новая статья от Анны Смирновой', desc: '«Как не купить лишнего в чёрную пятницу» — 5 мин чтения', time: '2 ч. назад' },
-  { id: 'n3', type: 'reminder', unread: false, title: 'Напоминание об обновлении инвентаря', desc: 'Вы не обновляли инвентарь уже 14 дней', time: 'вчера' },
-  { id: 'n4', type: 'system', unread: false, title: 'Добро пожаловать в SmartSpend!', desc: 'Заполните профиль и добавьте первые наборы в инвентарь', time: '3 дн. назад' },
+  // Subscriber content
+  { id: 'n7', type: 'subscriber-article', unread: true,
+    author: { name: 'Финансовый психолог', initials: 'Ф', color: '#7DA0BC' },
+    title: 'Финансовый психолог опубликовал статью',
+    desc: '«10 когнитивных ловушек при покупках — и как их избежать» · 7 мин чтения',
+    time: '15 мин назад' },
+  { id: 'n8', type: 'subscriber-set', unread: true,
+    author: { name: 'Инвестор на пенсии', initials: 'И', color: '#7DAF92' },
+    title: 'Инвестор на пенсии добавил набор',
+    desc: '«Квартира для рантье» — 14 поз. · Дом и Техника',
+    time: '1 ч назад' },
+  // Comment replies
+  { id: 'n5', type: 'comment-reply', unread: true,
+    author: { name: 'Анна Соколова', initials: 'АС', color: '#7DAF92' },
+    title: 'Анна Соколова ответила на ваш комментарий',
+    desc: 'В статье «Боул с киноа и запечёнными овощами» · «Да, гречка подойдёт! Главное промыть перед варкой»',
+    time: '3 ч назад' },
+  // New catalog sets
+  { id: 'n1', type: 'new-set', unread: true,
+    title: 'Новый набор от SmartSpend',
+    desc: '«Велосипедист: базовое снаряжение» добавлен в каталог · Развлечения и Хобби',
+    time: '5 ч назад' },
+  // Featured article
+  { id: 'n2', type: 'article', unread: false,
+    title: 'Популярная статья недели',
+    desc: '«Как не купить лишнего в чёрную пятницу» — Анна Смирнова · 5 мин чтения',
+    time: 'вчера' },
+  // More comment replies
+  { id: 'n6', type: 'comment-reply', unread: false,
+    author: { name: 'Лена М.', initials: 'ЛМ', color: '#BC9A7D' },
+    title: 'Лена М. ответила на ваш комментарий',
+    desc: 'В наборе «Базовый гардероб на сезон» · «Я тоже так думала сначала, но потом поняла что качество важнее»',
+    time: 'вчера' },
+  // Reminders
+  { id: 'n3', type: 'reminder', unread: false,
+    title: 'Инвентарь требует обновления',
+    desc: 'Зубная паста и Шампунь — пора проверить остаток и записать актуальные данные',
+    time: '2 дн. назад' },
+  { id: 'n9', type: 'reminder', unread: false,
+    title: 'Кроссовки Nike близки к замене',
+    desc: 'Использовано 87% ресурса — 490 недель из 78. Время присмотреть новую пару',
+    time: '4 дн. назад' },
+  // System
+  { id: 'n4', type: 'system', unread: false,
+    title: 'Добро пожаловать в SmartSpend!',
+    desc: 'Заполните профиль и добавьте первые наборы в инвентарь',
+    time: '7 дн. назад' },
 ]
 
 export const userData = {

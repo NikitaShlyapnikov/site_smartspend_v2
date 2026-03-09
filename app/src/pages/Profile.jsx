@@ -2,6 +2,17 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { useApp } from '../context/AppContext'
+import { inventoryGroups } from '../data/mock'
+
+// Inventory group id → envelope category ids
+const GROUP_CATS = {
+  g1: ['clothes'],
+  g2: ['food'],
+  g3: ['home'],
+  g4: ['health'],
+  g5: ['health'],
+  g6: ['home'],
+}
 
 const BASE_RETURN = 0.04
 
@@ -233,10 +244,23 @@ function saveEnvelopes(data) {
   localStorage.setItem('ss_envelopes', JSON.stringify(data))
 }
 
+function loadInventoryExtra() {
+  try { return JSON.parse(localStorage.getItem('ss_inventory_extra') || '[]') } catch { return [] }
+}
+
+function calcItemMonthly(item) {
+  if (item.type === 'consumable') {
+    const qty = item.qty || 100
+    return Math.round(((item.price || 0) / qty) * (item.dailyUse || 1) * 30)
+  }
+  return Math.round(((item.price || 0) / (item.wearLifeWeeks || 52)) * 4.33)
+}
+
 const SOURCE_META = {
   smartspend: { label: 'SmartSpend', cls: 'smartspend' },
   community:  { label: 'Сообщество', cls: 'community' },
   custom:     { label: 'Мой набор',  cls: '' },
+  personal:   { label: 'Личное',     cls: 'personal' },
 }
 
 function SourceIcon({ source }) {
@@ -250,6 +274,11 @@ function SourceIcon({ source }) {
     <svg className="set-source-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6">
       <circle cx="5" cy="4.5" r="2"/><circle cx="9.5" cy="4.5" r="1.5"/>
       <path d="M1 11c0-2.2 1.8-4 4-4s4 1.8 4 4"/><path d="M9.5 8c1.4 0 2.5 1 2.5 2.5"/>
+    </svg>
+  )
+  if (source === 'personal') return (
+    <svg className="set-source-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <circle cx="7" cy="4.5" r="2.5"/><path d="M2 12.5c0-2.8 2.2-5 5-5s5 2.2 5 5"/>
     </svg>
   )
   return (
@@ -280,8 +309,9 @@ function TypeTag({ type, period }) {
 
 function SetCard({ set, catColor, onDelete, onOpen, editMode }) {
   const sm = SOURCE_META[set.source] || SOURCE_META.custom
+  const isClickable = !editMode && (set.id || set.source === 'personal')
   return (
-    <div className="set-card" onClick={!editMode && set.id ? onOpen : undefined} style={!editMode && set.id ? { cursor: 'pointer' } : {}}>
+    <div className="set-card" onClick={isClickable ? onOpen : undefined} style={isClickable ? { cursor: 'pointer' } : {}}>
       <div className="set-card-accent" style={{ background: catColor }} />
       <div className="set-card-top">
         <div className="set-source">
@@ -303,7 +333,7 @@ function SetCard({ set, catColor, onDelete, onOpen, editMode }) {
         <span className="set-card-amount">{set.amount ? set.amount.toLocaleString('ru') + ' ₽' : '—'}</span>
         <span className="set-card-period">/ мес</span>
       </div>
-      {editMode && (
+      {editMode && set.source !== 'personal' && (
         <button className="set-delete" onClick={onDelete} title="Удалить набор">✕</button>
       )}
     </div>
@@ -520,6 +550,23 @@ export default function Profile() {
 
   const { income, housing, credit, creditMonths = 0, capital, updatedAt } = finance
 
+  // Личные (сиротские) позиции инвентаря → по категориям конвертов
+  const personalByCat = (() => {
+    const base = inventoryGroups.flatMap(g => g.items.map(item => ({ ...item, groupId: g.id })))
+    const extra = loadInventoryExtra().map(i => ({ ...i, isExtra: true }))
+    const allItems = [...base, ...extra]
+    const map = {}
+    CATEGORIES.forEach(cat => {
+      if (cat.id === 'all') return
+      const matchIds = new Set(
+        inventoryGroups.filter(g => (GROUP_CATS[g.id] || []).includes(cat.id)).map(g => g.id)
+      )
+      const orphans = allItems.filter(i => matchIds.has(i.groupId) && !i.setId)
+      if (orphans.length > 0) map[cat.id] = orphans
+    })
+    return map
+  })()
+
   // Суммируем конверты по категориям
   const grandTotal = CATEGORIES.reduce((sum, cat) => {
     return sum + (envelopes[cat.id] || []).reduce((s, x) => s + x.amount, 0)
@@ -611,7 +658,7 @@ export default function Profile() {
 
   const visibleCats = CATEGORIES.filter(cat => {
     const sets = envelopes[cat.id] || []
-    return sets.length > 0 || editMode
+    return sets.length > 0 || (personalByCat[cat.id] || []).length > 0 || editMode
   })
 
   return (
@@ -737,11 +784,24 @@ export default function Profile() {
             {visibleCats.map(cat => {
               const sets = envelopes[cat.id] || []
               const hasSets = sets.length > 0
+              const personalItems = personalByCat[cat.id] || []
+              const hasPersonal = personalItems.length > 0
               const total = sets.reduce((s, x) => s + x.amount, 0)
-              const count = sets.length
-              const desc = hasSets
-                ? `${count} набор${count === 1 ? '' : count < 5 ? 'а' : 'ов'} · пополняется 1-го числа`
+              const totalSets = sets.length + (hasPersonal ? 1 : 0)
+              const desc = (hasSets || hasPersonal)
+                ? `${totalSets} набор${totalSets === 1 ? '' : totalSets < 5 ? 'а' : 'ов'} · пополняется 1-го числа`
                 : 'Нет наборов'
+              const personalMonthly = personalItems.reduce((s, i) => s + calcItemMonthly(i), 0)
+              const personalSet = {
+                id: null,
+                source: 'personal',
+                name: 'Личное',
+                items: personalItems.length,
+                amount: personalMonthly,
+                type: personalItems.every(i => i.type === 'consumable') ? 'consumable'
+                     : personalItems.every(i => i.type === 'wear') ? 'depreciation' : 'consumable',
+                period: 'смешанный',
+              }
 
               return (
                 <div key={cat.id} className="envelope-card">
@@ -752,12 +812,12 @@ export default function Profile() {
                       <div className="env-desc">{desc}</div>
                     </div>
                     <div className="env-right">
-                      <div className="env-total">{hasSets ? total.toLocaleString('ru') + ' ₽' : '—'}</div>
-                      {hasSets && <div className="env-total-sub">/ месяц</div>}
+                      <div className="env-total">{(hasSets || hasPersonal) ? total.toLocaleString('ru') + ' ₽' : '—'}</div>
+                      {(hasSets || hasPersonal) && <div className="env-total-sub">/ месяц</div>}
                     </div>
                   </div>
 
-                  {hasSets && (
+                  {(hasSets || hasPersonal) && (
                     <div className="sets-grid">
                       {sets.map((set, idx) => (
                         <SetCard
@@ -769,6 +829,14 @@ export default function Profile() {
                           onOpen={() => navigate(`/set/${set.id}`)}
                         />
                       ))}
+                      {hasPersonal && (
+                        <SetCard
+                          set={personalSet}
+                          catColor={cat.color}
+                          editMode={editMode}
+                          onOpen={() => navigate('/inventory')}
+                        />
+                      )}
                       {editMode && (
                         <div className="set-card-add" onClick={() => goToCatalog(cat.id)}>
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
@@ -778,7 +846,7 @@ export default function Profile() {
                     </div>
                   )}
 
-                  {!hasSets && editMode && (
+                  {!hasSets && !hasPersonal && editMode && (
                     <div className="sets-grid-empty">
                       {cat.id === 'other' && (
                         <div className="env-envelope-hint">
