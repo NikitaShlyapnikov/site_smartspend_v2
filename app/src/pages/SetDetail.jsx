@@ -161,6 +161,24 @@ export default function SetDetail() {
     setTimeout(() => navigate('/inventory'), 800)
   }
 
+  function handleRemove() {
+    // Удаляем только замороженные (paused) позиции этого набора
+    try {
+      const invData = JSON.parse(localStorage.getItem('ss_inventory_extra') || '[]')
+      const filtered = invData.filter(e => !(e.setId === id && e.paused))
+      localStorage.setItem('ss_inventory_extra', JSON.stringify(filtered))
+    } catch {}
+    // Удаляем запись из ss_envelopes
+    try {
+      const envData = JSON.parse(localStorage.getItem('ss_envelopes') || '{}')
+      Object.keys(envData).forEach(cat => {
+        envData[cat] = envData[cat].filter(e => e.id !== id)
+      })
+      localStorage.setItem('ss_envelopes', JSON.stringify(envData))
+    } catch {}
+    setAdded(false)
+  }
+
   function handleReset() {
     setItems(defaultItems.map(i => ({ ...i })))
     setScaleRaw(1.0)
@@ -282,8 +300,14 @@ export default function SetDetail() {
             <div className="sd-hero-actions">
               <button className={`sd-btn-primary${added ? ' added' : ''}`}
                 onClick={!added ? handleAdd : undefined}>
-                {added ? <><CheckIcon /> Добавлено</> : <><PlusIcon /> Добавить в конверт</>}
+                {added ? <><CheckIcon /> Добавлено в конверт</> : <><PlusIcon /> Добавить в конверт</>}
               </button>
+              {added && (
+                <button className="sd-btn-remove" onClick={handleRemove}>
+                  <TrashIcon />
+                  Удалить из инвентаря
+                </button>
+              )}
               <button className={`btn-liked${liked ? ' liked' : ''}`} onClick={toggleLike}>
                 <svg width="14" height="14" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -650,5 +674,12 @@ function ArrIcon() {
   return <svg className="sd-article-arr" width="13" height="13" fill="none" stroke="currentColor"
     viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 18l6-6-6-6"/>
+  </svg>
+}
+function TrashIcon() {
+  return <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+    <path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
   </svg>
 }
