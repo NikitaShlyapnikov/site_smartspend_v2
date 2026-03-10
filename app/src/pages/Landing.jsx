@@ -372,96 +372,302 @@ export default function Landing() {
   function openLogin() { setAuthTab('login'); setAuthOpen(true) }
   function openRegister() { setAuthTab('register'); setAuthOpen(true) }
 
+  const LogoMark = () => (
+    <div className="landing-logo-mark">
+      <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
+        <rect x="2" y="2" width="5" height="5" rx="1.5" fill="white" opacity="0.9"/>
+        <rect x="9" y="2" width="5" height="5" rx="1.5" fill="white" opacity="0.5"/>
+        <rect x="2" y="9" width="5" height="5" rx="1.5" fill="white" opacity="0.5"/>
+        <rect x="9" y="9" width="5" height="5" rx="1.5" fill="white" opacity="0.9"/>
+      </svg>
+    </div>
+  )
+
   return (
     <>
+      {/* NAV */}
       <nav className="landing-nav">
-        <div className="landing-logo">
-          <div className="landing-logo-mark">
-            <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
-              <rect x="2" y="2" width="5" height="5" rx="1.5" fill="white" opacity="0.9"/>
-              <rect x="9" y="2" width="5" height="5" rx="1.5" fill="white" opacity="0.5"/>
-              <rect x="2" y="9" width="5" height="5" rx="1.5" fill="white" opacity="0.5"/>
-              <rect x="9" y="9" width="5" height="5" rx="1.5" fill="white" opacity="0.9"/>
-            </svg>
+        <div className="landing-nav-container">
+          <div className="landing-logo">
+            <LogoMark />
+            <span>SmartSpend</span>
           </div>
-          SmartSpend
-        </div>
-        <div className="landing-nav-actions">
-          <button className="nav-btn-ghost" onClick={openLogin}>Войти</button>
-          <button className="nav-btn-primary" onClick={openRegister}>Начать бесплатно</button>
+          <div className="landing-nav-links">
+            <a className="landing-nav-link" href="#landing-how">Как это работает</a>
+            <a className="landing-nav-link" href="#landing-features">Инструменты</a>
+            <a className="landing-nav-link" href="#landing-scenario">Сценарий</a>
+          </div>
+          <div className="landing-nav-actions">
+            <button className="nav-btn-ghost" onClick={openLogin}>Войти</button>
+            <button className="nav-btn-primary" onClick={openRegister}>Начать бесплатно</button>
+          </div>
         </div>
       </nav>
 
-      <div className="landing-hero">
-        <div className="hero-eyebrow">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-          Осознанное потребление
+      {/* HERO */}
+      <section className="landing-hero-section">
+        <div className="landing-hero-bg" />
+        <div className="landing-container">
+          <div className="landing-hero-inner">
+            <div className="landing-hero-left">
+              <div className="landing-hero-tag">Осознанное потребление</div>
+              <h1 className="landing-h1">Зарплата пришла —<br/>и сразу <em>ушла?</em></h1>
+              <p className="landing-hero-sub">SmartSpend покажет, куда уходят деньги, и научит тратить так, чтобы капитал рос — без жертв и без боли.</p>
+              <div className="landing-hero-actions-row">
+                <button className="landing-btn-primary" onClick={openRegister}>Начать бесплатно →</button>
+                <button className="landing-btn-ghost" onClick={() => setQuizOpen(true)}>Пройти тест (2 мин)</button>
+              </div>
+              <div className="landing-hero-stats">
+                <div><div className="landing-stat-num">1 200+</div><div className="landing-stat-label">Пользователей</div></div>
+                <div><div className="landing-stat-num">50+</div><div className="landing-stat-label">Готовых наборов</div></div>
+                <div><div className="landing-stat-num">11</div><div className="landing-stat-label">Категорий жизни</div></div>
+              </div>
+            </div>
+            <div className="landing-hero-mockup">
+              <div className="landing-mockup-window">
+                <div className="landing-mockup-topbar">
+                  <div className="landing-mockup-dot" /><div className="landing-mockup-dot" /><div className="landing-mockup-dot" />
+                  <span className="landing-mockup-title">SmartSpend / Профиль</span>
+                </div>
+                <div className="landing-mockup-body">
+                  <div className="landing-mk-balance">
+                    <div className="landing-mk-balance-label">Капитал</div>
+                    <div className="landing-mk-balance-num">186 400 ₽</div>
+                    <div className="landing-mk-balance-row">
+                      <span className="landing-mk-tag landing-mk-tag-green">↑ +4.2% за месяц</span>
+                      <span className="landing-mk-tag landing-mk-tag-neutral">EmoSpend: 8 200 ₽</span>
+                    </div>
+                  </div>
+                  <div className="landing-mk-envelopes">
+                    <div className="landing-mk-env-row">
+                      <div className="landing-mk-env-icon"><svg viewBox="0 0 12 12" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><path d="M1 3h10M1 6h6M1 9h4"/></svg></div>
+                      <span className="landing-mk-env-name">Smart-база</span>
+                      <div className="landing-mk-env-right"><div className="landing-mk-env-amount">22 000 ₽</div><div className="landing-mk-env-sub">из 22 000 ₽</div></div>
+                    </div>
+                    <div className="landing-mk-progress"><div className="landing-mk-progress-fill" style={{ width: '100%' }} /></div>
+                    <div className="landing-mk-env-row">
+                      <div className="landing-mk-env-icon"><svg viewBox="0 0 12 12" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><circle cx="6" cy="6" r="4.5"/><path d="M6 3.5v2.5l2 1"/></svg></div>
+                      <span className="landing-mk-env-name">Инвестиционное ядро</span>
+                      <div className="landing-mk-env-right"><div className="landing-mk-env-amount">40 000 ₽</div><div className="landing-mk-env-sub">накоплено</div></div>
+                    </div>
+                    <div className="landing-mk-progress"><div className="landing-mk-progress-fill" style={{ width: '72%' }} /></div>
+                  </div>
+                  <div className="landing-mk-inventory">
+                    <div className="landing-mk-inv-item landing-mk-inv-urgent"><div className="landing-mk-inv-name">Протеин</div><div className="landing-mk-inv-days">2 дня</div></div>
+                    <div className="landing-mk-inv-item"><div className="landing-mk-inv-name">Шампунь</div><div className="landing-mk-inv-days">8 дней</div></div>
+                    <div className="landing-mk-inv-item"><div className="landing-mk-inv-name">Кроссовки</div><div className="landing-mk-inv-days">42 дня</div></div>
+                  </div>
+                </div>
+              </div>
+              <div className="landing-mockup-badge">
+                <div className="landing-badge-icon"><svg viewBox="0 0 14 14" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><polyline points="2,9 5,5 8,7 12,3"/></svg></div>
+                <div><div className="landing-badge-label">Пассивный доход</div><div className="landing-badge-val">4 400 ₽/мес</div></div>
+              </div>
+            </div>
+          </div>
         </div>
-        <h1 className="hero-title">
-          Тратьте деньги на<br/>
-          <span className="hero-title-accent">то, что важно</span>
-        </h1>
-        <p className="hero-subtitle">
-          SmartSpend помогает планировать покупки, вести инвентарь вещей и следовать проверенным наборам от сообщества.
-        </p>
-        <div className="hero-actions">
-          <button className="btn-hero-primary" onClick={openRegister}>
-            Начать бесплатно →
-          </button>
-          <button className="btn-hero-secondary" onClick={() => setQuizOpen(true)}>
-            Пройти тест
-          </button>
-        </div>
-      </div>
+      </section>
 
-      <div className="landing-section">
-        <div className="section-eyebrow">Возможности</div>
-        <h2 className="section-title">Всё для осознанных трат</h2>
-        <p className="section-subtitle">Наборы вещей, инвентарь, лента контента — всё в одном месте</p>
-        <div className="features-grid">
-          <div className="feature-card">
-            <div className="feature-icon">
-              <svg width="20" height="20" fill="none" stroke="#4E8268" viewBox="0 0 24 24" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-              </svg>
+      {/* PAIN */}
+      <section className="landing-section-wrap">
+        <div className="landing-container">
+          <div className="landing-pain-block">
+            <div className="landing-section-label">Три боли, которые мы решаем</div>
+            <h2 className="landing-h2">Почему деньги не накапливаются,<br/>даже когда их хватает</h2>
+            <div className="landing-pain-grid">
+              <div className="landing-pain-card">
+                <div className="landing-pain-icon"><svg viewBox="0 0 16 16" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5M8 11h.01"/></svg></div>
+                <h3>Усталость от выбора</h3>
+                <p>Вы часами сравниваете товары, читаете отзывы и всё равно сомневаетесь. Бесконечный выбор сжигает энергию, которая нужна для настоящих решений.</p>
+              </div>
+              <div className="landing-pain-card">
+                <div className="landing-pain-icon"><svg viewBox="0 0 16 16" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><polyline points="2,12 6,7 9,9 14,4"/><polyline points="11,4 14,4 14,7"/></svg></div>
+                <h3>Инфляция образа жизни</h3>
+                <p>Зарплата выросла — и расходы выросли. Автоматически. Незаметно. Через год оказывается, что денег по-прежнему «впритък».</p>
+              </div>
+              <div className="landing-pain-card">
+                <div className="landing-pain-icon"><svg viewBox="0 0 16 16" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><path d="M8 2a6 6 0 1 0 0 12A6 6 0 0 0 8 2z"/><path d="M8 6v3M8 11h.01"/></svg></div>
+                <h3>Финансовая тревожность</h3>
+                <p>Смутное ощущение, что «что-то не так», но непонятно что. SmartSpend превращает эту туманную тревогу в чёткие цифры.</p>
+              </div>
             </div>
-            <div className="feature-title">Каталог наборов</div>
-            <div className="feature-desc">Готовые списки необходимых вещей от SmartSpend и сообщества. Выбирайте, адаптируйте, добавляйте в инвентарь.</div>
-          </div>
-          <div className="feature-card">
-            <div className="feature-icon">
-              <svg width="20" height="20" fill="none" stroke="#4E8268" viewBox="0 0 24 24" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-              </svg>
-            </div>
-            <div className="feature-title">Личный инвентарь</div>
-            <div className="feature-desc">Отслеживайте что уже есть, что планируете купить, что в вишлисте. Полная картина вашего имущества.</div>
-          </div>
-          <div className="feature-card">
-            <div className="feature-icon">
-              <svg width="20" height="20" fill="none" stroke="#4E8268" viewBox="0 0 24 24" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h7"/>
-              </svg>
-            </div>
-            <div className="feature-title">Лента контента</div>
-            <div className="feature-desc">Статьи и наборы от авторов сообщества. Учитесь у других, делитесь своим опытом осознанных покупок.</div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <footer className="landing-footer">
-        <div className="landing-footer-logo">
-          <div className="landing-logo-mark" style={{ width: 24, height: 24, borderRadius: 6 }}>
-            <svg viewBox="0 0 16 16" fill="none" width="12" height="12">
-              <rect x="2" y="2" width="5" height="5" rx="1.5" fill="white" opacity="0.9"/>
-              <rect x="9" y="2" width="5" height="5" rx="1.5" fill="white" opacity="0.5"/>
-              <rect x="2" y="9" width="5" height="5" rx="1.5" fill="white" opacity="0.5"/>
-              <rect x="9" y="9" width="5" height="5" rx="1.5" fill="white" opacity="0.9"/>
-            </svg>
+      {/* FOR WHOM */}
+      <section className="landing-section-wrap">
+        <div className="landing-container">
+          <div className="landing-section-label">Для кого</div>
+          <h2 className="landing-h2">Узнайте себя</h2>
+          <p className="landing-subhead">Если хоть одна фраза звучит знакомо — SmartSpend для вас.</p>
+          <div className="landing-fw-list">
+            <div className="landing-fw-item">
+              <div className="landing-fw-num">01</div>
+              <div className="landing-fw-quote">«Трачу нормально, но к концу месяца всегда ноль»</div>
+              <div className="landing-fw-answer">Вы не транжира. Просто нет системы. SmartSpend покажет, где спрятаны утечки.</div>
+            </div>
+            <div className="landing-fw-item">
+              <div className="landing-fw-num">02</div>
+              <div className="landing-fw-quote">«Хочу копить, но не знаю с чего начать»</div>
+              <div className="landing-fw-answer">Копить — это навык, а не воля. Мы дадим готовый алгоритм: Smart-база, ядро, EmoSpend.</div>
+            </div>
+            <div className="landing-fw-item">
+              <div className="landing-fw-num">03</div>
+              <div className="landing-fw-quote">«Покупаю одно и то же снова и снова — и это раздражает»</div>
+              <div className="landing-fw-answer">Инвентарь и умные наборы возьмут это на себя. Просто получайте уведомление вовремя.</div>
+            </div>
           </div>
-          SmartSpend
         </div>
-        <div className="landing-footer-copy">© 2025 SmartSpend. Осознанное потребление.</div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section id="landing-how" className="landing-section-wrap">
+        <div className="landing-container">
+          <div className="landing-section-label">Как это работает</div>
+          <h2 className="landing-h2">Три шага до финансового порядка</h2>
+          <div className="landing-steps">
+            <div className="landing-step">
+              <div className="landing-step-num">01</div>
+              <h3>Выберите наборы</h3>
+              <p>50+ готовых наборов: еда, одежда, косметика, техника. Каждый рассчитан по принципу «максимум пользы — минимум затрат».</p>
+              <span className="landing-step-result">→ Не нужно думать, что покупать</span>
+            </div>
+            <div className="landing-step">
+              <div className="landing-step-num">02</div>
+              <h3>Добавьте в инвентарь</h3>
+              <p>SmartSpend запустит таймеры. Система знает срок службы каждой вещи и предупредит заранее — не когда уже плохо, а когда самое время.</p>
+              <span className="landing-step-result">→ Покупки перестают быть срочными</span>
+            </div>
+            <div className="landing-step">
+              <div className="landing-step-num">03</div>
+              <h3>Копилка растёт сама</h3>
+              <p>Всё, что сэкономлено — направляется в инвестиционное ядро. Со временем пассивный доход начинает оплачивать ваши удовольствия.</p>
+              <span className="landing-step-result">→ Богатеете, не меняя образ жизни</span>
+            </div>
+          </div>
+          <div className="landing-mid-cta">
+            <div><h3>Готовы попробовать?</h3><p>Регистрация занимает меньше минуты. Карта не нужна.</p></div>
+            <button className="landing-btn-primary" onClick={openRegister}>Начать бесплатно →</button>
+          </div>
+        </div>
+      </section>
+
+      {/* PHILOSOPHY */}
+      <section className="landing-section-wrap">
+        <div className="landing-container">
+          <div className="landing-philosophy">
+            <div className="landing-phil-left">
+              <div className="landing-section-label">Философия SmartSpend</div>
+              <h2 className="landing-h2">Богатство — это не <em>«много»</em>, а <em>«достаточно»</em></h2>
+              <p>Мы не учим экономить на всём. Мы помогаем найти точку достаточности — уровень жизни, при котором вы счастливы, и при этом капитал продолжает расти.</p>
+            </div>
+            <div className="landing-phil-quotes">
+              <div className="landing-phil-quote">Трать на жизнь из дохода, а на мечту — из прибыли</div>
+              <div className="landing-phil-quote">Сила системы — в предсказуемости расходов и доходов</div>
+              <div className="landing-phil-quote">Вечное богатство — это капитал, который невозможно потратить</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FEATURES */}
+      <section id="landing-features" className="landing-section-wrap">
+        <div className="landing-container">
+          <div className="landing-section-label">Инструменты</div>
+          <h2 className="landing-h2">Что делает SmartSpend</h2>
+          <p className="landing-subhead">Четыре инструмента, которые работают вместе как единая система.</p>
+          <div className="landing-feat-grid">
+            <div className="landing-feat-card">
+              <div className="landing-feat-icon"><svg viewBox="0 0 18 18" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><rect x="2" y="2" width="14" height="14" rx="3"/><path d="M6 9h6M6 12h4M6 6h6"/></svg></div>
+              <h3>Инвентарь вещей</h3>
+              <p>Отслеживайте срок службы продуктов, косметики, одежды и техники. Больше не нужно держать это в голове — система помнит за вас.</p>
+              <span className="landing-feat-tag">↑ Меньше просрочки и ненужных покупок</span>
+            </div>
+            <div className="landing-feat-card">
+              <div className="landing-feat-icon"><svg viewBox="0 0 18 18" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><path d="M4 5h10M4 9h7M4 13h5"/><circle cx="14" cy="13" r="2.5"/><path d="M13.3 13l.7.7 1.5-1.5"/></svg></div>
+              <h3>Умный список покупок</h3>
+              <p>Список обновляется автоматически на основе инвентаря. Сортировка по приоритету — сначала то, что нужно срочно.</p>
+              <span className="landing-feat-tag">↑ Нулевой умственный ресурс на рутину</span>
+            </div>
+            <div className="landing-feat-card">
+              <div className="landing-feat-icon"><svg viewBox="0 0 18 18" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><polyline points="2,13 6,8 9,10 13,5 16,7"/><path d="M2 16h14"/></svg></div>
+              <h3>Копилка (Smart-ядро)</h3>
+              <p>Финансовый советник, который анализирует доходы и расходы, ведёт накопительные конверты и показывает путь к точке финансовой безопасности.</p>
+              <span className="landing-feat-tag">↑ Капитал растёт предсказуемо</span>
+            </div>
+            <div className="landing-feat-card">
+              <div className="landing-feat-icon"><svg viewBox="0 0 18 18" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><path d="M9 2a7 7 0 1 0 0 14A7 7 0 0 0 9 2z"/><path d="M9 6v3.5l2.5 1.5"/></svg></div>
+              <h3>База знаний</h3>
+              <p>Статьи об осознанном потреблении, финансовой грамотности и рациональном гедонизме — от экспертов, не от копирайтеров.</p>
+              <span className="landing-feat-tag">↑ Понимаете систему, а не просто следуете</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SCENARIO */}
+      <section id="landing-scenario" className="landing-section-wrap" style={{ paddingTop: 24 }}>
+        <div className="landing-container">
+          <div className="landing-scenario-card">
+            <div className="landing-section-label">Реальный сценарий</div>
+            <h2 className="landing-h2">Что будет, если начать сегодня</h2>
+            <p className="landing-subhead" style={{ marginBottom: 0 }}>Сценарий А: 18 лет, зарплата 80 000 ₽. 40 000 ₽ — в ядро, 22 000 ₽ — Smart-база.</p>
+            <div className="landing-timeline">
+              <div className="landing-timeline-item">
+                <div className="landing-t-period">Через 1 год</div>
+                <div><div className="landing-t-capital">530 000 ₽</div><div className="landing-t-income">Пассивный доход: ~4 400 ₽ / мес</div><span className="landing-t-status">✅ Система запущена</span></div>
+              </div>
+              <div className="landing-timeline-item">
+                <div className="landing-t-period">Через 5 лет</div>
+                <div><div className="landing-t-capital">3 100 000 ₽</div><div className="landing-t-income">Пассивный доход: ~26 000 ₽ / мес — покрывает Smart-базу</div><span className="landing-t-status">🎯 Safety Point</span></div>
+              </div>
+              <div className="landing-timeline-item">
+                <div className="landing-t-period">Через 10 лет</div>
+                <div><div className="landing-t-capital">8 000 000 ₽</div><div className="landing-t-income">Пассивный доход: ~65 000 ₽ / мес — EmoSpend в 3× больше базы</div><span className="landing-t-status">🚀 Independence Day</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <section className="landing-section-wrap" style={{ paddingTop: 24 }}>
+        <div className="landing-container">
+          <div className="landing-cta-section">
+            <h2 className="landing-h2">Начните сегодня — следующая зарплата уже <em>под контролем</em></h2>
+            <p className="landing-subhead" style={{ textAlign: 'center', margin: '0 auto 28px' }}>Бесплатно. Без карты. Без обязательств.</p>
+            <button className="landing-btn-primary" onClick={openRegister}>Начать бесплатно →</button>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="landing-footer-new">
+        <div className="landing-container landing-footer-container">
+          <div className="landing-footer-left">
+            <div className="landing-logo">
+              <LogoMark />
+              <span>SmartSpend</span>
+            </div>
+            <p>© 2025 SmartSpend. Все права защищены.</p>
+          </div>
+          <div className="landing-footer-center">
+            <a href="#">Политика конфиденциальности</a>
+            <a href="#">Пользовательское соглашение</a>
+          </div>
+          <div className="landing-footer-right">
+            <a href="#" className="landing-social-link" aria-label="Telegram">
+              <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            </a>
+            <a href="#" className="landing-social-link" aria-label="VK">
+              <svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/></svg>
+            </a>
+            <a href="#" className="landing-social-link" aria-label="YouTube">
+              <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M10 10l5 3-5 3v-6z"/></svg>
+            </a>
+          </div>
+        </div>
       </footer>
 
       <QuizModal open={quizOpen} onClose={() => setQuizOpen(false)} onFinish={handleAuth} />
