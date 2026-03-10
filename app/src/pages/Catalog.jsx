@@ -83,68 +83,68 @@ export default function Catalog() {
     <Layout>
       <main className="catalog-main">
         {/* Header */}
-        <div className="catalog-page-header">
-          <div>
-            <div className="page-title">Каталог наборов</div>
-            <div className="page-subtitle">Готовые наборы товаров от SmartSpend и сообщества</div>
+        <div className="catalog-header">
+          <div className="catalog-page-header">
+            <div>
+              <div className="page-title">Каталог наборов</div>
+              <div className="page-subtitle">Готовые наборы товаров от SmartSpend и сообщества</div>
+            </div>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="filters-block">
-          {/* Row 1: categories */}
-          <div className="cats-scroll">
-            {CATEGORIES.map(c => (
-              <button key={c.id} className={`cat-btn${cat === c.id ? ' active' : ''}`} onClick={() => setCat(c.id)}>
-                {c.label}
-                <span className="cat-count">{catCounts[c.id]}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Row 2: type · source · sort · count */}
-          <div className="filters-row2">
-            {/* Тип */}
-            <div className="seg-ctrl">
-              {[['all', 'Все'], ['base', 'Основа'], ['extra', 'Дополнение']].map(([id, label]) => (
-                <button key={id} className={`seg-btn${typeFilter === id ? ' active' : ''}`}
-                  onClick={() => setType(id)}>{label}</button>
-              ))}
-            </div>
-            {/* Источник + Понравившиеся */}
-            <div className="seg-ctrl">
-              {[['all', 'Все источники'], ['ss', 'SmartSpend'], ['community', 'Сообщество'], ['own', 'Мои']].map(([id, label]) => (
-                <button key={id} className={`seg-btn${sourceFilter === id ? ' active' : ''}`}
-                  onClick={() => setSrc(id)}>{label}</button>
-              ))}
-              <button
-                className={`seg-btn seg-btn-liked${sourceFilter === 'liked' ? ' active' : ''}`}
-                onClick={() => setSrc(sourceFilter === 'liked' ? 'all' : 'liked')}
-              >
-                <svg width="11" height="11" fill={sourceFilter === 'liked' ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                </svg>
-                Понравившиеся
-                {likedSets.size > 0 && <span className="seg-liked-count">{likedSets.size}</span>}
-              </button>
-            </div>
-
-            <span className="filters-spacer" />
-
-            {/* Сортировка */}
-            <span className="sort-label">Сортировка:</span>
-            <div className="seg-ctrl">
-              {[['popular', 'По популярности'], ['newest', 'Сначала новые']].map(([id, label]) => (
-                <button key={id} className={`seg-btn${sortFilter === id ? ' active' : ''}`}
-                  onClick={() => setSort(id)}>{label}</button>
+        {/* Sticky Filters */}
+        <div className="catalog-filters-bar">
+          <div className="filters-block">
+            {/* Row 1: categories */}
+            <div className="cats-scroll">
+              {CATEGORIES.map(c => (
+                <button key={c.id} className={`cat-btn${cat === c.id ? ' active' : ''}`} onClick={() => setCat(c.id)}>
+                  {c.label}
+                  <span className="cat-count">{catCounts[c.id]}</span>
+                </button>
               ))}
             </div>
 
-            <span className="results-count">{filtered.length} {noun(filtered.length)}</span>
+            {/* Row 2: type · source · sort · count */}
+            <div className="filters-row2">
+              {/* Тип */}
+              <div className="seg-ctrl">
+                {[['all', 'Все'], ['base', 'Основа'], ['extra', 'Дополнение']].map(([id, label]) => (
+                  <button key={id} className={`seg-btn${typeFilter === id ? ' active' : ''}`}
+                    onClick={() => setType(id)}>{label}</button>
+                ))}
+              </div>
+              {/* Источник + Понравившиеся */}
+              <div className="seg-ctrl">
+                {[['all', 'Все источники'], ['ss', 'SmartSpend'], ['community', 'Сообщество'], ['own', 'Мои']].map(([id, label]) => (
+                  <button key={id} className={`seg-btn${sourceFilter === id ? ' active' : ''}`}
+                    onClick={() => setSrc(id)}>{label}</button>
+                ))}
+                <button
+                  className={`seg-btn seg-btn-liked${sourceFilter === 'liked' ? ' active' : ''}`}
+                  onClick={() => setSrc(sourceFilter === 'liked' ? 'all' : 'liked')}
+                >
+                  Понравившиеся
+                </button>
+              </div>
+
+              <span className="filters-spacer" />
+
+              {/* Сортировка */}
+              <div className="seg-ctrl">
+                {[['popular', 'По популярности'], ['newest', 'Сначала новые']].map(([id, label]) => (
+                  <button key={id} className={`seg-btn${sortFilter === id ? ' active' : ''}`}
+                    onClick={() => setSort(id)}>{label}</button>
+                ))}
+              </div>
+
+              <span className="results-count">{filtered.length} {noun(filtered.length)}</span>
+            </div>
           </div>
         </div>
 
-        {/* Grid */}
+        {/* Scrollable Grid */}
+        <div className="catalog-scroll">
         <div className="catalog-grid">
           {filtered.length === 0 ? (
             <div className="empty-state">
@@ -228,6 +228,7 @@ export default function Catalog() {
               </div>
             </div>
           )}
+        </div>
         </div>
       </main>
     </Layout>

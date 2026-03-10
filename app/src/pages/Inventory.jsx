@@ -921,22 +921,6 @@ export default function Inventory() {
             <div className="inv-soon-hint">{statusFilter === 'soon' ? 'нажмите чтобы сбросить' : 'нажмите для фильтра'}</div>
           </div>
 
-          <div className="inv-value-card">
-            <div className="inv-value-main">
-              <div className="inv-value-lbl">стоимость инвентаря</div>
-              <div className="inv-value-val">{totalValue.toLocaleString('ru')}&thinsp;₽</div>
-            </div>
-            <div className="inv-value-breakdown">
-              <div className="inv-value-item">
-                <span className="inv-value-item-val">{Math.round(consumableVal).toLocaleString('ru')}&thinsp;₽</span>
-                <span className="inv-value-item-lbl">расходники</span>
-              </div>
-              <div className="inv-value-item">
-                <span className="inv-value-item-val">{wearVal.toLocaleString('ru')}&thinsp;₽</span>
-                <span className="inv-value-item-lbl">вещи</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         {statusFilter && (
@@ -1030,6 +1014,24 @@ export default function Inventory() {
               <button className="inv-empty-reset" onClick={() => setStatusFilter(null)}>Показать все</button>
             </div>
           )}
+        </div>
+
+        {/* Value summary — bottom of page */}
+        <div className="inv-value-card">
+          <div className="inv-value-main">
+            <div className="inv-value-lbl">стоимость инвентаря</div>
+            <div className="inv-value-val">{totalValue.toLocaleString('ru')}&thinsp;₽</div>
+          </div>
+          <div className="inv-value-breakdown">
+            <div className="inv-value-item">
+              <span className="inv-value-item-val">{Math.round(consumableVal).toLocaleString('ru')}&thinsp;₽</span>
+              <span className="inv-value-item-lbl">расходники</span>
+            </div>
+            <div className="inv-value-item">
+              <span className="inv-value-item-val">{wearVal.toLocaleString('ru')}&thinsp;₽</span>
+              <span className="inv-value-item-lbl">вещи</span>
+            </div>
+          </div>
         </div>
       </main>
 
