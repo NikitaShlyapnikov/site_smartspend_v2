@@ -301,14 +301,6 @@ export default function Settings() {
 
           <div className="settings-row settings-row-vert">
             <div>
-              <div className="settings-row-label">Кто может видеть мои наборы</div>
-              <div className="settings-row-desc">Контролируйте доступ к вашим созданным наборам</div>
-            </div>
-            <VisibilitySelect value={privacy.sets} onChange={setPriv('sets')} />
-          </div>
-
-          <div className="settings-row settings-row-vert">
-            <div>
               <div className="settings-row-label">Кто может видеть мои статьи</div>
               <div className="settings-row-desc">Статьи в черновике всегда видны только вам</div>
             </div>

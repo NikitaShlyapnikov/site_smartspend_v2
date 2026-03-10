@@ -3,47 +3,18 @@ import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 
 const INIT_PROFILE = {
-  displayName: 'Никита Орлов',
-  pseudonym: 'nicky_finance',
-  username: '@nicky_orlov',
-  bio: 'Интересуюсь личными финансами, инвестициями и оптимизацией бюджета. Создаю наборы для разных жизненных сценариев.',
-  joined: 'март 2024',
-  followers: 12,
+  displayName: '',
+  pseudonym: '',
+  username: '',
+  bio: '',
+  joined: 'март 2026',
+  followers: 0,
 }
 
-const COMMENTS = [
-  { ini: 'НО', date: '2 дня назад', text: 'Отличный подход к учёту! Я тоже использую конверты для категории «Еда» — очень дисциплинирует. А как вы учитываете незапланированные траты?', postLink: 'Мой бюджет на август' },
-  { ini: 'НО', date: '5 дней назад', text: 'Спасибо за статью! Очень полезно про EmoSpend. Я раньше не задумывался, что можно тратить доход от капитала, не трогая тело.', postLink: 'Что такое EmoSpend' },
-  { ini: 'НО', date: '2 недели назад', text: 'Использую набор «Базовое питание» уже 3 месяца — экономия около 2 000 ₽ в месяц по сравнению с хаотичными покупками.', postLink: 'Набор «Базовое питание»' },
-  { ini: 'НО', date: '1 месяц назад', text: 'А можно ли адаптировать набор под веганский рацион? Интересует замена белков животного происхождения.', postLink: 'Боул с киноа и запечёнными овощами' },
-]
-
-const ARTICLES = [
-  {
-    title: 'Как я перестал бояться и полюбил EmoSpend',
-    excerpt: 'Многие боятся тратить деньги, даже когда капитал уже позволяет. В этой статье я рассказываю, как концепция EmoSpend помогла мне перестать чувствовать вину за траты на удовольствия...',
-    meta: 'Опубликовано · 15 июля 2025', views: 1240, pub: true,
-  },
-  {
-    title: 'Почему я веду бюджет в конвертах (и вам советую)',
-    excerpt: 'Система конвертов — это не просто «раскидать деньги по папкам». Это психологический трюк, который помогает видеть реальные лимиты и перестать тратить сверх плана...',
-    meta: 'Черновик · 2 июня 2025', views: null, pub: false,
-  },
-]
-
-const SETS = [
-  { name: 'Базовое питание', color: '#8DBFA8', source: 'SmartSpend', amount: '7 500 ₽', period: '/ мес', tags: ['18 поз.', 'еженедельно'], pub: true },
-  { name: 'Вкусняшки', color: '#C4A882', source: 'Мой набор', amount: '2 500 ₽', period: '/ мес', tags: ['6 поз.', 'еженедельно'], pub: false },
-  { name: 'Домашняя аптечка', color: '#B89AAE', source: 'Мой набор', amount: '1 200 ₽', period: '/ квартал', tags: ['12 поз.', 'квартально'], pub: false },
-  { name: 'Базовый уход за кошкой', color: '#9AB8A8', source: 'SmartSpend', amount: '3 800 ₽', period: '/ мес', tags: ['9 поз.', 'ежемесячно'], pub: true },
-  { name: 'Домашний офис', color: '#8A9EB8', source: 'Мой набор', amount: '65 000 ₽', period: 'разово', tags: ['8 поз.', 'разово'], pub: false },
-]
-
-const SUBS = [
-  { ini: 'Ф', name: 'Финансовый психолог', handle: '@finance_psy', followers: '2.4K', desc: 'Как перестать бояться денег, начать копить и при этом жить хорошо. Разбираем психологические ловушки в финансах.', articles: 15, sets: 8, following: true },
-  { ini: 'И', name: 'Инвестор на пенсии', handle: '@pension_invest', followers: '5.1K', desc: 'Личный опыт выхода на пенсию в 45. Показываю реальные цифры, портфели и ошибки. Только практика.', articles: 43, sets: 12, following: true },
-  { ini: 'Б', name: 'Бюджет для жизни', handle: '@budget_life', followers: '890', desc: 'Простые шаги к финансовой свободе. Конверты, наборы, планирование — для тех, кто устал жить от зарплаты до зарплаты.', articles: 24, sets: 5, following: false },
-]
+const COMMENTS = []
+const ARTICLES = []
+const SETS = []
+const SUBS = []
 
 const TABS = [
   { id: 'comments', label: `Комментарии · ${COMMENTS.length}` },
@@ -63,7 +34,9 @@ export default function Account() {
   function cancelEdit() { setEditing(false) }
   function saveEdit() { setProfile({ ...draft }); setEditing(false) }
 
-  const initials = profile.displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+  const initials = profile.displayName
+    ? profile.displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+    : '?'
 
   return (
     <Layout>
@@ -150,6 +123,13 @@ export default function Account() {
         {/* Comments */}
         {tab === 'comments' && (
           <div className="acc-panel">
+            {COMMENTS.length === 0 && (
+              <div className="acc-empty">
+                <div className="acc-empty-icon">💬</div>
+                <div className="acc-empty-title">Нет комментариев</div>
+                <div className="acc-empty-desc">Вы ещё не оставляли комментариев к статьям и наборам</div>
+              </div>
+            )}
             {COMMENTS.map((c, i) => (
               <div key={i} className="comment-card">
                 <div className="comment-header">
@@ -181,6 +161,13 @@ export default function Account() {
                 Создать статью
               </button>
             </div>
+            {ARTICLES.length === 0 && (
+              <div className="acc-empty">
+                <div className="acc-empty-icon">✍️</div>
+                <div className="acc-empty-title">Нет статей</div>
+                <div className="acc-empty-desc">Напишите первую статью и поделитесь опытом с сообществом</div>
+              </div>
+            )}
             {ARTICLES.map((a, i) => (
               <div key={i} className="acc-article-card">
                 <div className="acc-article-title">{a.title}</div>
@@ -223,6 +210,13 @@ export default function Account() {
                 Создать набор
               </button>
             </div>
+            {SETS.length === 0 && (
+              <div className="acc-empty">
+                <div className="acc-empty-icon">📦</div>
+                <div className="acc-empty-title">Нет наборов</div>
+                <div className="acc-empty-desc">Создайте первый набор или добавьте готовый из каталога</div>
+              </div>
+            )}
             <div className="acc-sets-grid">
               {SETS.map((s, i) => (
                 <div key={i} className="acc-set-card">
@@ -255,6 +249,13 @@ export default function Account() {
             <div className="panel-header">
               <span className="panel-title">Авторы и блоги, на которые вы подписаны</span>
             </div>
+            {SUBS.length === 0 && (
+              <div className="acc-empty">
+                <div className="acc-empty-icon">🌟</div>
+                <div className="acc-empty-title">Нет подписок</div>
+                <div className="acc-empty-desc">Подписывайтесь на авторов, чтобы следить за их статьями и наборами</div>
+              </div>
+            )}
             {SUBS.map((s, i) => (
               <div key={i} className="subscription-card" style={{ cursor: 'pointer' }}
                 onClick={() => navigate('/author/' + s.handle.replace('@', ''), { state: s })}>

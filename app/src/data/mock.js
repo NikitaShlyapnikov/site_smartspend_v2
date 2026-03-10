@@ -712,53 +712,10 @@ export const articles = [
 ]
 
 export const notifications = [
-  // Subscriber content
-  { id: 'n7', type: 'subscriber-article', unread: true,
-    author: { name: 'Финансовый психолог', initials: 'Ф', color: '#7DA0BC' },
-    title: 'Финансовый психолог опубликовал статью',
-    desc: '«10 когнитивных ловушек при покупках — и как их избежать» · 7 мин чтения',
-    time: '15 мин назад' },
-  { id: 'n8', type: 'subscriber-set', unread: true,
-    author: { name: 'Инвестор на пенсии', initials: 'И', color: '#7DAF92' },
-    title: 'Инвестор на пенсии добавил набор',
-    desc: '«Квартира для рантье» — 14 поз. · Дом и Техника',
-    time: '1 ч назад' },
-  // Comment replies
-  { id: 'n5', type: 'comment-reply', unread: true,
-    author: { name: 'Анна Соколова', initials: 'АС', color: '#7DAF92' },
-    title: 'Анна Соколова ответила на ваш комментарий',
-    desc: 'В статье «Боул с киноа и запечёнными овощами» · «Да, гречка подойдёт! Главное промыть перед варкой»',
-    time: '3 ч назад' },
-  // New catalog sets
-  { id: 'n1', type: 'new-set', unread: true,
-    title: 'Новый набор от SmartSpend',
-    desc: '«Велосипедист: базовое снаряжение» добавлен в каталог · Развлечения и Хобби',
-    time: '5 ч назад' },
-  // Featured article
-  { id: 'n2', type: 'article', unread: false,
-    title: 'Популярная статья недели',
-    desc: '«Как не купить лишнего в чёрную пятницу» — Анна Смирнова · 5 мин чтения',
-    time: 'вчера' },
-  // More comment replies
-  { id: 'n6', type: 'comment-reply', unread: false,
-    author: { name: 'Лена М.', initials: 'ЛМ', color: '#BC9A7D' },
-    title: 'Лена М. ответила на ваш комментарий',
-    desc: 'В наборе «Базовый гардероб на сезон» · «Я тоже так думала сначала, но потом поняла что качество важнее»',
-    time: 'вчера' },
-  // Reminders
-  { id: 'n3', type: 'reminder', unread: false,
-    title: 'Инвентарь требует обновления',
-    desc: 'Зубная паста и Шампунь — пора проверить остаток и записать актуальные данные',
-    time: '2 дн. назад' },
-  { id: 'n9', type: 'reminder', unread: false,
-    title: 'Кроссовки Nike близки к замене',
-    desc: 'Использовано 87% ресурса — 490 недель из 78. Время присмотреть новую пару',
-    time: '4 дн. назад' },
-  // System
-  { id: 'n4', type: 'system', unread: false,
+  { id: 'n4', type: 'system', unread: true,
     title: 'Добро пожаловать в SmartSpend!',
     desc: 'Заполните профиль и добавьте первые наборы в инвентарь',
-    time: '7 дн. назад' },
+    time: 'только что' },
 ]
 
 export const userData = {

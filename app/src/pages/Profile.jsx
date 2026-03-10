@@ -17,18 +17,26 @@ const GROUP_CATS = {
 const BASE_RETURN = 0.04
 
 const DEFAULT_FINANCE = {
-  income: 80000,
-  housing: 25000,
-  credit: 11700,
-  creditMonths: 24,
-  capital: 1240000,
-  updatedAt: '3 августа 2025',
+  income: 0,
+  housing: 0,
+  credit: 0,
+  creditMonths: 0,
+  capital: 0,
+  updatedAt: '',
 }
 
 function loadFinance() {
   try {
     const raw = localStorage.getItem('ss_finance')
-    if (raw) return { ...DEFAULT_FINANCE, ...JSON.parse(raw) }
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      // Сброс старых тестовых данных — если капитал был захардкожен
+      if (parsed.capital === 1240000) {
+        localStorage.removeItem('ss_finance')
+        return DEFAULT_FINANCE
+      }
+      return { ...DEFAULT_FINANCE, ...parsed }
+    }
   } catch {}
   return DEFAULT_FINANCE
 }
@@ -218,24 +226,20 @@ const CAT_TO_CATALOG = {
   all:        'all',
 }
 
-const INITIAL_ENVELOPES = {
-  food: [
-    { id: 's2', source: 'smartspend', name: 'Базовое питание', items: 18, amount: 7500, type: 'consumable', period: 'еженедельно' },
-    { id: null, source: 'custom', name: 'Вкусняшки', items: 6, amount: 2500, type: 'consumable', period: 'еженедельно' },
-  ],
-  clothes: [
-    { id: 's1', source: 'smartspend', name: 'Базовый гардероб', items: 7, amount: 5000, type: 'depreciation', period: 'раз в 2–5 лет' },
-  ],
-  health: [
-    { id: 's5', source: 'smartspend', name: 'Гигиена', items: 12, amount: 2000, type: 'consumable', period: 'ежемесячно' },
-    { id: null, source: 'custom', name: 'Уход за кожей', items: 4, amount: 1000, type: 'consumable', period: 'ежемесячно' },
-  ],
-}
+const INITIAL_ENVELOPES = {}
 
 function loadEnvelopes() {
   try {
     const raw = localStorage.getItem('ss_envelopes')
-    if (raw) return JSON.parse(raw)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      // Сброс старых тестовых данных — если есть захардкоженные наборы
+      if (parsed.food || parsed.clothes || parsed.health) {
+        localStorage.removeItem('ss_envelopes')
+        return INITIAL_ENVELOPES
+      }
+      return parsed
+    }
   } catch {}
   return INITIAL_ENVELOPES
 }
