@@ -728,9 +728,32 @@ export default function Inventory() {
     return map
   })
 
+  // filterOverrides — debounced copy of overrides used only for filter membership checks
+  const [filterOverrides, setFilterOverrides] = useState(() => {
+    const map = {}
+    inventoryGroups.forEach(g => g.items.forEach(item => {
+      if (item.type === 'consumable') {
+        map[item.id] = Math.max(0, Math.round(item.qty - daysSince(item.lastBought) * item.dailyUse))
+      } else {
+        map[item.id] = item.purchaseDate
+      }
+    }))
+    loadExtraItems().forEach(item => {
+      map[item.id] = item.type === 'consumable' ? 0 : item.purchaseDate
+    })
+    return map
+  })
+  const overridesRef     = useRef(overrides)
+  overridesRef.current   = overrides
+  const filterDebounceRef = useRef(null)
+
   // Compute info for all items
   const infoMap = {}
   items.forEach(item => { infoMap[item.id] = getItemInfo(item, overrides[item.id] ?? null) })
+
+  // filterInfoMap — uses debounced overrides, controls filter membership only
+  const filterInfoMap = {}
+  items.forEach(item => { filterInfoMap[item.id] = getItemInfo(item, filterOverrides[item.id] ?? null) })
 
   const urgentItems = items.filter(i => !i.paused && infoMap[i.id].filterStatus === 'urgent')
   const soonItems   = items.filter(i => !i.paused && infoMap[i.id].filterStatus === 'soon')
@@ -759,7 +782,7 @@ export default function Inventory() {
     ? ALL_GROUPS
     : ALL_GROUPS.filter(g => {
         const gi = items.filter(i => i.groupId === g.id)
-        return statusFilter ? gi.some(i => infoMap[i.id]?.filterStatus === statusFilter) : gi.length > 0
+        return statusFilter ? gi.some(i => filterInfoMap[i.id]?.filterStatus === statusFilter) : gi.length > 0
       })
 
   // Handlers
@@ -943,9 +966,9 @@ export default function Inventory() {
           {visibleGroups.map(group => {
             const groupItems = items.filter(i => i.groupId === group.id)
             const displayItems = statusFilter
-              ? groupItems.filter(i => infoMap[i.id]?.filterStatus === statusFilter)
+              ? groupItems.filter(i => filterInfoMap[i.id]?.filterStatus === statusFilter)
               : groupItems
-            const hasUrgent = displayItems.some(i => infoMap[i.id]?.filterStatus === 'urgent')
+            const hasUrgent = displayItems.some(i => filterInfoMap[i.id]?.filterStatus === 'urgent')
 
             return (
               <div key={group.id} className="inv-section-card">
@@ -964,7 +987,18 @@ export default function Inventory() {
                       open={openItem === item.id}
                       onToggle={() => setOpenItem(prev => prev === item.id ? null : item.id)}
                       override={overrides[item.id] ?? null}
-                      onOverrideChange={v => setOverrides(prev => ({ ...prev, [item.id]: v }))}
+                      onOverrideChange={v => {
+                        const iid = item.id
+                        setOverrides(prev => ({ ...prev, [iid]: v }))
+                        if (statusFilter) {
+                          if (filterDebounceRef.current) clearTimeout(filterDebounceRef.current)
+                          filterDebounceRef.current = setTimeout(() => {
+                            setFilterOverrides({ ...overridesRef.current })
+                          }, 4000)
+                        } else {
+                          setFilterOverrides(prev => ({ ...prev, [iid]: v }))
+                        }
+                      }}
                       editMode={editMode}
                       onDelete={() => setDeleteConfirm({ id: item.id, name: item.name, set: item.set })}
                       onUnlink={() => setUnlinkConfirm({ id: item.id, name: item.name, set: item.set })}
@@ -1014,10 +1048,31 @@ export default function Inventory() {
               <button className="inv-empty-reset" onClick={() => setStatusFilter(null)}>Показать все</button>
             </div>
           )}
+
+          {!editMode && items.length === 0 && (
+            <div className="inv-cold-start">
+              <div className="inv-cold-icon">
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                  <rect x="8" y="6" width="26" height="32" rx="4" fill="var(--surface)" stroke="var(--border)" strokeWidth="1.5"/>
+                  <rect x="14" y="14" width="14" height="2" rx="1" fill="var(--border)"/>
+                  <rect x="14" y="19" width="10" height="2" rx="1" fill="var(--border)"/>
+                  <rect x="14" y="24" width="12" height="2" rx="1" fill="var(--border)"/>
+                  <circle cx="37" cy="37" r="9" fill="var(--bg)" stroke="var(--border)" strokeWidth="1.5"/>
+                  <path d="M37 33v4l2.5 2.5" stroke="var(--text-3)" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <div className="inv-cold-title">Инвентарь пуст</div>
+              <div className="inv-cold-desc">Добавьте готовый набор из каталога или внесите позиции вручную</div>
+              <div className="inv-cold-actions">
+                <Link to="/catalog" className="inv-cold-btn-primary">Найти набор в каталоге</Link>
+                <button className="inv-cold-btn-secondary" onClick={() => setEditMode(true)}>Добавить вручную</button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Value summary — bottom of page */}
-        <div className="inv-value-card">
+        {items.length > 0 && <div className="inv-value-card">
           <div className="inv-value-main">
             <div className="inv-value-lbl">стоимость инвентаря</div>
             <div className="inv-value-val">{totalValue.toLocaleString('ru')}&thinsp;₽</div>
@@ -1032,7 +1087,7 @@ export default function Inventory() {
               <span className="inv-value-item-lbl">вещи</span>
             </div>
           </div>
-        </div>
+        </div>}
       </main>
 
       {/* Delete confirmation modal */}

@@ -2305,6 +2305,33 @@ body.dark .inv-date-input { background: var(--surface-2); color: var(--text); }
   cursor: pointer; transition: all 0.14s; letter-spacing: -0.01em;
 }
 .inv-empty-reset:hover { background: var(--surface-3); color: var(--text); }
+
+/* Cold start (empty inventory) */
+.inv-cold-start {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center;
+  padding: 64px 24px; gap: 12px;
+}
+.inv-cold-icon { color: var(--text-3); margin-bottom: 4px; opacity: 0.7; }
+.inv-cold-title { font-size: 18px; font-weight: 700; letter-spacing: -0.03em; color: var(--text); }
+.inv-cold-desc { font-size: 13px; color: var(--text-2); max-width: 280px; line-height: 1.5; }
+.inv-cold-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+.inv-cold-btn-primary {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 20px; border-radius: 10px;
+  background: var(--text); color: var(--surface);
+  font-family: var(--sans); font-size: 13px; font-weight: 600;
+  letter-spacing: -0.01em; text-decoration: none; transition: opacity 0.15s;
+}
+.inv-cold-btn-primary:hover { opacity: 0.82; }
+.inv-cold-btn-secondary {
+  padding: 10px 18px; border-radius: 10px;
+  border: 1px solid var(--border); background: transparent; color: var(--text-2);
+  font-family: var(--sans); font-size: 13px; font-weight: 500;
+  letter-spacing: -0.01em; cursor: pointer; transition: all 0.15s;
+}
+.inv-cold-btn-secondary:hover { background: var(--surface-2); color: var(--text); }
+
 body.dark .inv-stepper { background: var(--surface-3); }
 
 /* Edit mode button */

@@ -5,7 +5,7 @@ const AppContext = createContext(null)
 export function AppProvider({ children }) {
   const [dark, setDark] = useState(() => localStorage.getItem('ss_theme') === 'dark')
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('ss_sidebar') === 'true')
-  const [username, setUsername] = useState(() => localStorage.getItem('ss_username') || 'Никита Орлов')
+  const [username, setUsername] = useState(() => localStorage.getItem('ss_username') || '')
 
   const toggleTheme = useCallback(() => {
     setDark(d => {

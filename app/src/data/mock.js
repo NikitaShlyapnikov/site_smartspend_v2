@@ -541,59 +541,10 @@ function daysAgo(n) {
 // type: 'consumable' — fields: price, qty, dailyUse, unit?, lastBought, set?, setId?
 // type: 'wear'       — fields: price, expectedPrice?, wearLifeWeeks, purchaseDate, set?, setId?
 export const inventoryGroups = [
-  {
-    id: 'g1', name: 'Одежда', color: '#4E8268',
-    items: [
-      { id: 'i1', name: 'Зимняя куртка', type: 'wear',
-        price: 12000, expectedPrice: 10000, wearLifeWeeks: 156, purchaseDate: daysAgo(120),
-        set: 'Базовый гардероб на сезон', setId: 's1' },
-      { id: 'i2', name: 'Кроссовки Nike', type: 'wear',
-        price: 8500, expectedPrice: 7000, wearLifeWeeks: 78, purchaseDate: daysAgo(490),
-        set: 'Базовый гардероб на сезон', setId: 's1' },
-      { id: 'i3', name: 'Базовые футболки', type: 'wear',
-        price: 4500, expectedPrice: 3000, wearLifeWeeks: 104, purchaseDate: daysAgo(800),
-        set: 'Базовый гардероб на сезон', setId: 's1' },
-    ],
-  },
-  {
-    id: 'g2', name: 'Питание', color: '#8268A0',
-    items: [
-      { id: 'i4', name: 'Гречка', type: 'consumable',
-        price: 180, qty: 1000, dailyUse: 70, unit: 'г', lastBought: daysAgo(12),
-        set: 'Здоровое питание — базовый набор', setId: 's2' },
-      { id: 'i5', name: 'Витамин D', type: 'consumable',
-        price: 650, qty: 90, dailyUse: 1, unit: 'кап', lastBought: daysAgo(20),
-        set: 'Здоровое питание — базовый набор', setId: 's2' },
-      { id: 'i10', name: 'Протеин', type: 'consumable',
-        price: 2800, qty: 2000, dailyUse: 33, unit: 'г', lastBought: daysAgo(58),
-        set: 'Здоровое питание — базовый набор', setId: 's2' },
-    ],
-  },
-  {
-    id: 'g3', name: 'Техника', color: '#6888A0',
-    items: [
-      { id: 'i6', name: 'Ноутбук MacBook', type: 'wear',
-        price: 120000, expectedPrice: 90000, wearLifeWeeks: 260, purchaseDate: daysAgo(60),
-        set: 'Домашний офис — всё необходимое', setId: 's3' },
-      { id: 'i7', name: 'Наушники Sony', type: 'wear',
-        price: 15000, expectedPrice: 12000, wearLifeWeeks: 104, purchaseDate: daysAgo(900),
-        set: 'Домашний офис — всё необходимое', setId: 's3' },
-    ],
-  },
-  {
-    id: 'g4', name: 'Гигиена и уход', color: '#A08268',
-    items: [
-      { id: 'i8', name: 'Шампунь', type: 'consumable',
-        price: 450, qty: 400, dailyUse: 10, unit: 'мл', lastBought: daysAgo(37),
-        set: 'Забота о себе — базовый уход', setId: 's5' },
-      { id: 'i9', name: 'Зубная паста', type: 'consumable',
-        price: 290, qty: 100, dailyUse: 3, unit: 'г', lastBought: daysAgo(10),
-        set: 'Забота о себе — базовый уход', setId: 's5' },
-      { id: 'i11', name: 'Крем для лица', type: 'consumable',
-        price: 1200, qty: 50, dailyUse: 0.5, unit: 'мл', lastBought: daysAgo(20),
-        set: null, setId: null, paused: true },
-    ],
-  },
+  { id: 'g1', name: 'Одежда',        color: '#4E8268', items: [] },
+  { id: 'g2', name: 'Питание',       color: '#8268A0', items: [] },
+  { id: 'g3', name: 'Техника',       color: '#6888A0', items: [] },
+  { id: 'g4', name: 'Гигиена и уход',color: '#A08268', items: [] },
 ]
 
 export const inventoryItems = [
