@@ -15,40 +15,24 @@ function saveRead(set) {
   } catch {}
 }
 
-// ── icons ─────────────────────────────────────────────────────────────────────
+// ── avatar ────────────────────────────────────────────────────────────────────
 
-const TYPE_META = {
-  'subscriber-article': { color: '#5A8A70', bg: 'rgba(90,138,112,0.12)' },
-  'subscriber-set':     { color: '#6878A8', bg: 'rgba(104,120,168,0.12)' },
-  'comment-reply':      { color: '#A07848', bg: 'rgba(160,120,72,0.12)' },
-  'new-set':            { color: '#5A8AA0', bg: 'rgba(90,138,160,0.12)' },
-  'article':            { color: '#8A6898', bg: 'rgba(138,104,152,0.12)' },
-  'reminder':           { color: '#A05050', bg: 'rgba(160,80,80,0.12)' },
-  'system':             { color: '#8A8A7A', bg: 'rgba(138,138,122,0.1)' },
-}
-
-function TypeIcon({ type }) {
-  const meta = TYPE_META[type] || TYPE_META.system
+function NotifAvatar({ n }) {
+  if (n.author) {
+    return (
+      <div className="notif-avatar" style={{ background: n.author.color }}>
+        {n.author.initials}
+      </div>
+    )
+  }
   return (
-    <div className="notif-icon" style={{ background: meta.bg, borderColor: 'transparent' }}>
-      <svg width="16" height="16" fill="none" stroke={meta.color} viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        {type === 'subscriber-article' && <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></>}
-        {type === 'subscriber-set' && <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>}
-        {type === 'comment-reply' && <><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></>}
-        {type === 'new-set' && <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>}
-        {type === 'article' && <><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></>}
-        {type === 'reminder' && <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>}
-        {type === 'system' && <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>}
+    <div className="notif-avatar notif-avatar-sys">
+      <svg viewBox="0 0 16 16" fill="none" width="18" height="18">
+        <rect x="2" y="2" width="5" height="5" rx="1.5" fill="currentColor" opacity="0.8"/>
+        <rect x="9" y="2" width="5" height="5" rx="1.5" fill="currentColor" opacity="0.4"/>
+        <rect x="2" y="9" width="5" height="5" rx="1.5" fill="currentColor" opacity="0.4"/>
+        <rect x="9" y="9" width="5" height="5" rx="1.5" fill="currentColor" opacity="0.8"/>
       </svg>
-    </div>
-  )
-}
-
-function AuthorAvatar({ author }) {
-  if (!author) return null
-  return (
-    <div className="notif-author-avatar" style={{ background: author.color }}>
-      {author.initials}
     </div>
   )
 }
@@ -190,8 +174,7 @@ function NotifItem({ n, onRead, navigate }) {
   return (
     <div className={`notif-item${n.unread ? ' unread' : ''}`} onClick={handleClick}>
       <div className="notif-item-icons">
-        <TypeIcon type={n.type} />
-        {n.author && <AuthorAvatar author={n.author} />}
+        <NotifAvatar n={n} />
       </div>
       <div className="notif-body">
         <div className="notif-title">{n.title}</div>

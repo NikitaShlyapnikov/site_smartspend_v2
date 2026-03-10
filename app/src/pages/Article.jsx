@@ -55,10 +55,34 @@ export default function Article() {
     return (
       <Layout>
         <main className="article-main">
-          <div className="empty-state">
-            <div className="empty-icon">📄</div>
-            <div className="empty-title">Статья не найдена</div>
-            <button className="btn-sm" style={{ marginTop: 8 }} onClick={() => navigate('/feed')}>← Лента</button>
+          <div className="article-not-found">
+            <div className="article-nf-icon">
+              <svg width="100" height="100" viewBox="0 0 100 100" fill="none">
+                <rect x="14" y="10" width="52" height="66" rx="7" fill="var(--surface)" stroke="var(--border)" strokeWidth="1.5"/>
+                <rect x="26" y="26" width="28" height="3" rx="1.5" fill="var(--border)"/>
+                <rect x="26" y="35" width="20" height="3" rx="1.5" fill="var(--border)"/>
+                <rect x="26" y="44" width="24" height="3" rx="1.5" fill="var(--border)"/>
+                <rect x="26" y="53" width="16" height="3" rx="1.5" fill="var(--border)"/>
+                <circle cx="72" cy="72" r="20" fill="var(--bg)" stroke="var(--border)" strokeWidth="1.5"/>
+                <path d="M64 64l16 16M80 64L64 80" stroke="var(--text-3)" strokeWidth="2.5" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <div className="article-nf-title">Статья не найдена</div>
+            <div className="article-nf-desc">Возможно, она была удалена или вы перешли по неверной ссылке</div>
+            <div className="article-nf-actions">
+              <button className="btn-secondary" onClick={() => navigate(-1)}>
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6"/>
+                </svg>
+                Назад
+              </button>
+              <button className="btn-primary-action" onClick={() => navigate('/feed')}>
+                Перейти в ленту
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </main>
       </Layout>
