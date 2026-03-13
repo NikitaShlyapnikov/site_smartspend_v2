@@ -43,6 +43,7 @@ export default function Catalog() {
   const [sourceFilter, setSrc]  = useState('all')
   const [sortFilter, setSort]   = useState('popular')
   const [likedSets, setLikedSets] = useState(loadLikes)
+  const [itemSearch, setItemSearch] = useState('')
 
   function toggleLike(id, e) {
     e.stopPropagation()
@@ -62,12 +63,19 @@ export default function Catalog() {
       : catalogSets.filter(s => s.category === c.id).length
   })
 
+  const itemQuery = itemSearch.trim().toLowerCase()
+
   // Filter + sort
   let filtered = catalogSets.filter(s => {
     if (cat !== 'all' && s.category !== cat) return false
     if (typeFilter !== 'all' && s.type !== typeFilter) return false
     if (sourceFilter === 'liked') return likedSets.has(s.id)
     if (sourceFilter !== 'all' && s.source !== sourceFilter) return false
+    if (itemQuery) {
+      const inItems = s.items.some(item => item.toLowerCase().includes(itemQuery))
+      const inTitle = s.title.toLowerCase().includes(itemQuery)
+      if (!inItems && !inTitle) return false
+    }
     return true
   })
 
@@ -103,6 +111,29 @@ export default function Catalog() {
                   <span className="cat-count">{catCounts[c.id]}</span>
                 </button>
               ))}
+            </div>
+
+            {/* Row 1.5: item search */}
+            <div className="catalog-search-row">
+              <div className="catalog-search-wrap">
+                <svg className="catalog-search-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                </svg>
+                <input
+                  className="catalog-search-input"
+                  type="text"
+                  placeholder="Поиск по составу набора..."
+                  value={itemSearch}
+                  onChange={e => setItemSearch(e.target.value)}
+                />
+                {itemSearch && (
+                  <button className="catalog-search-clear" onClick={() => setItemSearch('')}>
+                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
+                      <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Row 2: type · source · sort · count */}
@@ -169,7 +200,9 @@ export default function Catalog() {
                   <div className="card-desc">{set.desc}</div>
                 </div>
                 <div className="card-items">
-                  {set.items.slice(0, 4).map((t, i) => <span key={i} className="card-item-tag">{t}</span>)}
+                  {set.items.slice(0, 4).map((t, i) => (
+                    <span key={i} className={`card-item-tag${itemQuery && t.toLowerCase().includes(itemQuery) ? ' match' : ''}`}>{t}</span>
+                  ))}
                   {(set.more > 0 || set.items.length > 4) && (
                     <span className="card-item-more">+{set.more || set.items.length - 4}</span>
                   )}

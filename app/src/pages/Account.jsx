@@ -11,13 +11,11 @@ const INIT_PROFILE = {
   followers: 0,
 }
 
-const COMMENTS = []
 const ARTICLES = []
 const SETS = []
 const SUBS = []
 
 const TABS = [
-  { id: 'comments', label: `Комментарии · ${COMMENTS.length}` },
   { id: 'articles', label: `Статьи · ${ARTICLES.length}` },
   { id: 'sets',     label: `Наборы · ${SETS.length}` },
   { id: 'subs',     label: `Подписки · ${SUBS.length}` },
@@ -25,7 +23,7 @@ const TABS = [
 
 export default function Account() {
   const navigate = useNavigate()
-  const [tab, setTab] = useState('comments')
+  const [tab, setTab] = useState('articles')
   const [editing, setEditing] = useState(false)
   const [profile, setProfile] = useState(INIT_PROFILE)
   const [draft, setDraft] = useState(INIT_PROFILE)
@@ -119,35 +117,6 @@ export default function Account() {
             </button>
           ))}
         </div>
-
-        {/* Comments */}
-        {tab === 'comments' && (
-          <div className="acc-panel">
-            {COMMENTS.length === 0 && (
-              <div className="acc-empty">
-                <div className="acc-empty-icon">💬</div>
-                <div className="acc-empty-title">Нет комментариев</div>
-                <div className="acc-empty-desc">Вы ещё не оставляли комментариев к статьям и наборам</div>
-              </div>
-            )}
-            {COMMENTS.map((c, i) => (
-              <div key={i} className="comment-card">
-                <div className="comment-header">
-                  <div className="avatar-sm" style={{ width: 28, height: 28, fontSize: 10 }}>{c.ini}</div>
-                  <div className="comment-meta">{profile.displayName} · {c.date}</div>
-                </div>
-                <div className="comment-text">{c.text}</div>
-                <span className="comment-post-link">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                  </svg>
-                  К публикации «{c.postLink}»
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* Articles */}
         {tab === 'articles' && (
