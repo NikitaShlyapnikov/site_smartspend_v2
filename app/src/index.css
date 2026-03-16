@@ -4627,3 +4627,102 @@ body.dark .author-ghost-notice { background: #221D2A; border-color: #3A2E48; col
   display: inline-flex; align-items: center; gap: 4px;
   font-size: 11px; color: var(--text-3); font-style: italic;
 }
+
+/* ── DEMO HINT (AuthModal) ── */
+.auth-demo-hint {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 14px; margin-bottom: 16px;
+  background: var(--accent-green-light); border: 1px solid var(--accent-green-border);
+  border-radius: 10px; color: var(--accent-green);
+}
+.auth-demo-hint-body { flex: 1; }
+.auth-demo-hint-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+.auth-demo-hint-text { font-size: 12px; color: var(--text-2); line-height: 1.6; }
+.auth-demo-hint-text code {
+  font-family: var(--mono); font-size: 11px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1px 5px; color: var(--text);
+}
+
+/* ── ACCOUNT: placeholder text ── */
+.acc-placeholder { color: var(--text-3); font-style: italic; }
+
+/* ── ACCOUNT: article excerpt ── */
+.acc-article-excerpt {
+  font-size: 13px; color: var(--text-2); line-height: 1.5;
+  margin: 4px 0 10px;
+}
+
+/* ── ACCOUNT: card action buttons (edit / delete) ── */
+.acc-card-actions {
+  display: flex; gap: 8px; margin-top: 12px;
+  padding-top: 10px; border-top: 1px solid var(--border);
+}
+.acc-card-actions-set {
+  padding: 10px 14px 14px;
+  border-top: 1px solid var(--border); margin-top: 0;
+}
+.acc-btn-edit {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 12px; border-radius: 8px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--text-2); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+}
+.acc-btn-edit:hover { background: var(--surface-3); color: var(--text); border-color: var(--text-3); }
+.acc-btn-delete {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 12px; border-radius: 8px;
+  background: transparent; border: 1px solid #D5928A;
+  color: #B85555; font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+}
+.acc-btn-delete:hover { background: #FDF0EF; border-color: #B85555; }
+body.dark .acc-btn-delete { border-color: #7A3030; color: #E07070; }
+body.dark .acc-btn-delete:hover { background: #2A1A1A; border-color: #E07070; }
+
+/* ── ACCOUNT: confirm delete modal ── */
+.acc-confirm-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+}
+.acc-confirm-modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 32px 28px;
+  width: 100%; max-width: 360px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.acc-confirm-icon {
+  width: 48px; height: 48px; border-radius: 14px;
+  background: #FDF0EF; border: 1px solid #D5928A;
+  display: flex; align-items: center; justify-content: center;
+  color: #B85555;
+}
+body.dark .acc-confirm-icon { background: #2A1A1A; border-color: #7A3030; color: #E07070; }
+.acc-confirm-title { font-size: 16px; font-weight: 700; color: var(--text); text-align: center; }
+.acc-confirm-desc { font-size: 13px; color: var(--text-2); text-align: center; line-height: 1.5; }
+.acc-confirm-actions { display: flex; gap: 10px; margin-top: 8px; width: 100%; }
+.acc-confirm-cancel {
+  flex: 1; padding: 10px; border-radius: 10px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--text); font-size: 14px; font-weight: 500; cursor: pointer;
+  transition: all 0.15s;
+}
+.acc-confirm-cancel:hover { background: var(--surface-3); }
+.acc-confirm-delete {
+  flex: 1; padding: 10px; border-radius: 10px;
+  background: #B85555; border: none;
+  color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: all 0.15s;
+}
+.acc-confirm-delete:hover { background: #9A3535; }
+
+/* ── ARTICLE: author edit/delete buttons ── */
+.btn-author-edit { color: var(--accent-green) !important; border-color: var(--accent-green-border) !important; }
+.btn-author-edit:hover { background: var(--accent-green-light) !important; }
+.btn-author-delete { color: #B85555 !important; border-color: #D5928A !important; }
+.btn-author-delete:hover { background: #FDF0EF !important; }
+body.dark .btn-author-delete { border-color: #7A3030 !important; }
+body.dark .btn-author-delete:hover { background: #2A1A1A !important; }

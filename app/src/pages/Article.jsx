@@ -38,6 +38,35 @@ function renderBlock(block, i) {
   }
 }
 
+function isMyArticle(articleId) {
+  try {
+    const ids = JSON.parse(localStorage.getItem('ss_my_article_ids')) || []
+    return ids.includes(articleId)
+  } catch { return false }
+}
+
+function ConfirmDeleteModal({ open, onConfirm, onCancel }) {
+  if (!open) return null
+  return (
+    <div className="acc-confirm-overlay" onClick={e => e.target === e.currentTarget && onCancel()}>
+      <div className="acc-confirm-modal">
+        <div className="acc-confirm-icon">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+            <path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+          </svg>
+        </div>
+        <div className="acc-confirm-title">Удалить статью?</div>
+        <div className="acc-confirm-desc">Статья будет безвозвратно удалена из вашего профиля и ленты.</div>
+        <div className="acc-confirm-actions">
+          <button className="acc-confirm-cancel" onClick={onCancel}>Отмена</button>
+          <button className="acc-confirm-delete" onClick={onConfirm}>Удалить</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Article() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -48,6 +77,9 @@ export default function Article() {
   const [likedComments, setLikedComments] = useState(new Set())
   const [showAll, setShowAll] = useState(false)
   const [toast, setToast] = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  const isMine = isMyArticle(id)
 
   const article = articles.find(a => a.id === id)
 
@@ -115,6 +147,24 @@ export default function Article() {
     if (!commentInput.trim()) return
     setCommentInput('')
     showToastMsg('Комментарий отправлен')
+  }
+
+  function handleEditArticle() {
+    navigate('/create-article')
+    showToastMsg('Открыт редактор статьи')
+  }
+
+  function handleDeleteArticle() {
+    // Remove from account articles and myArticleIds
+    try {
+      const articles = JSON.parse(localStorage.getItem('ss_account_articles')) || []
+      localStorage.setItem('ss_account_articles', JSON.stringify(articles.filter(a => a.id !== id)))
+      const ids = JSON.parse(localStorage.getItem('ss_my_article_ids')) || []
+      localStorage.setItem('ss_my_article_ids', JSON.stringify(ids.filter(i => i !== id)))
+    } catch {}
+    setConfirmDelete(false)
+    showToastMsg('Статья удалена')
+    setTimeout(() => navigate('/account'), 1500)
   }
 
   return (
@@ -185,6 +235,23 @@ export default function Article() {
                 </svg>
                 Сохранить
               </button>
+              {/* UC-31 / UC-33: кнопки для своих статей */}
+              {isMine && (
+                <>
+                  <button className="btn-secondary btn-author-edit" onClick={handleEditArticle}>
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                      <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                    </svg>
+                    Редактировать
+                  </button>
+                  <button className="btn-secondary btn-author-delete" onClick={() => setConfirmDelete(true)}>
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                    </svg>
+                    Удалить
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
@@ -343,6 +410,13 @@ export default function Article() {
         </div>
 
       </main>
+
+      <ConfirmDeleteModal
+        open={confirmDelete}
+        onConfirm={handleDeleteArticle}
+        onCancel={() => setConfirmDelete(false)}
+      />
+
     </PublicLayout>
   )
 }

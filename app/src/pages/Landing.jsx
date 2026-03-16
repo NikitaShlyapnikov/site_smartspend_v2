@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { loadFullUserData, loadEmptyUserData, FULL_USER, EMPTY_USER } from '../data/demoUsers'
 
 // ── Quiz ──────────────────────────────────────────────────────────────────────
 
@@ -50,7 +51,7 @@ function QuizModal({ open, onClose, onFinish }) {
 
   function handleFinish() {
     const name = answers[answers.length - 1] || nameVal.trim() || 'Никита Орлов'
-    onFinish(name)
+    onFinish(name, 'default')
   }
 
   function handleClose() {
@@ -143,18 +144,17 @@ function AuthModal({ open, onClose, onAuth, defaultTab }) {
     if (open) setTab(defaultTab || 'login')
   }, [open, defaultTab])
 
-  function autoLogin(userName) {
+  function autoLogin(userName, userType = 'default') {
     setTimeout(() => {
       setLoading(false)
       setLoadingProvider(null)
-      onAuth(userName)
+      onAuth(userName, userType)
     }, 700)
   }
 
   function handleSocial(provider) {
     setLoadingProvider(provider)
-    const mockName = provider === 'yandex' ? 'Никита Орлов' : 'Никита Орлов'
-    autoLogin(mockName)
+    autoLogin(FULL_USER.username, 'full')
   }
 
   function handleSubmit(e) {
@@ -163,8 +163,15 @@ function AuthModal({ open, onClose, onAuth, defaultTab }) {
     if (!email.includes('@')) { setEmailError('Некорректный email'); return }
     setEmailError('')
     setLoading(true)
-    const userName = tab === 'register' ? (name.trim() || email.split('@')[0]) : email.split('@')[0]
-    autoLogin(userName)
+    const lower = email.trim().toLowerCase()
+    if (lower === 'empty@user.ru') {
+      autoLogin(EMPTY_USER.username, 'empty')
+    } else if (lower === 'full@user.ru') {
+      autoLogin(FULL_USER.username, 'full')
+    } else {
+      const userName = tab === 'register' ? (name.trim() || email.split('@')[0]) : email.split('@')[0]
+      autoLogin(userName, 'default')
+    }
   }
 
   function handleClose() {
@@ -212,6 +219,20 @@ function AuthModal({ open, onClose, onAuth, defaultTab }) {
           {tab === 'login'
             ? 'Войдите, чтобы продолжить'
             : 'Зарегистрируйтесь бесплатно'}
+        </div>
+
+        {/* Demo hint */}
+        <div className="auth-demo-hint">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <div className="auth-demo-hint-body">
+            <div className="auth-demo-hint-title">Демо-режим</div>
+            <div className="auth-demo-hint-text">
+              <code>empty@user.ru</code> — пустой профиль<br />
+              <code>full@user.ru</code> — заполненный профиль
+            </div>
+          </div>
         </div>
 
         {/* Social buttons */}
@@ -362,11 +383,19 @@ export default function Landing() {
     }
   }, [navigate, searchParams])
 
-  function handleAuth(name) {
+  function handleAuth(name, userType = 'default') {
     localStorage.setItem('ss_auth', 'true')
     localStorage.setItem('ss_username', name)
+    localStorage.setItem('ss_user_type', userType)
+    if (userType === 'full') {
+      loadFullUserData()
+    } else if (userType === 'empty') {
+      loadEmptyUserData()
+    } else {
+      loadEmptyUserData()
+    }
     setUsername(name)
-    navigate('/profile', { replace: true })
+    navigate('/feed', { replace: true })
   }
 
   function openLogin() { setAuthTab('login'); setAuthOpen(true) }
