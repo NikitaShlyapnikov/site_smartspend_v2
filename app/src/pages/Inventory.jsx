@@ -6,12 +6,14 @@ import { inventoryGroups, catalogSets } from '../data/mock'
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
 
 const ALL_GROUPS = [
-  { id: 'g1', name: 'Одежда', color: '#4E8268', setCategories: ['clothes'] },
-  { id: 'g2', name: 'Питание', color: '#8268A0', setCategories: ['food'] },
-  { id: 'g3', name: 'Техника', color: '#6888A0', setCategories: ['home'] },
-  { id: 'g4', name: 'Гигиена и уход', color: '#A08268', setCategories: ['health'] },
-  { id: 'g5', name: 'Здоровье', color: '#A06870', setCategories: ['health'] },
-  { id: 'g6', name: 'Дом', color: '#688870', setCategories: ['home'] },
+  { id: 'g1', name: 'Одежда и Обувь',       color: '#B8A0C8', setCategories: ['clothes'] },
+  { id: 'g2', name: 'Еда и Супермаркеты',   color: '#8DBFA8', setCategories: ['food'] },
+  { id: 'g3', name: 'Дом и Техника',        color: '#9EA8C0', setCategories: ['home'] },
+  { id: 'g4', name: 'Красота и Здоровье',   color: '#C4B0C0', setCategories: ['health'] },
+  { id: 'g5', name: 'Авто и Транспорт',     color: '#8AAFC8', setCategories: ['transport'] },
+  { id: 'g6', name: 'Развлечения и Хобби',  color: '#C8A8A0', setCategories: ['leisure'] },
+  { id: 'g7', name: 'Образование и Дети',   color: '#A8C0B0', setCategories: ['education'] },
+  { id: 'g8', name: 'Прочие расходы',       color: '#B0A898', setCategories: ['other'] },
 ]
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
@@ -61,27 +63,64 @@ function getItemInfo(item, override = null) {
     else status = 'ok'
 
   } else {
-    const purchaseDate = override !== null ? override : item.purchaseDate
-    const weeksUsed = Math.floor(daysSince(purchaseDate) / 7)
-    const overExploit = weeksUsed > item.wearLifeWeeks
-    const weeksLeft = Math.max(0, item.wearLifeWeeks - weeksUsed)
-    const weeksOver = weeksUsed - item.wearLifeWeeks
-    pct = Math.min(100, Math.round((weeksUsed / item.wearLifeWeeks) * 100))
+    if (Array.isArray(item.purchases)) {
+      // New multi-purchase format
+      const boughtList = item.purchases.filter(p => p.bought && p.purchaseDate)
+      const total = item.purchases.length
 
-    if (overExploit) {
-      remainderText = `+${weeksOver}\u00a0нед. сверх нормы`
-      ringNum = '+' + weeksOver; ringUnit = 'нед'
-      const bonusIncome = Math.round((item.price / item.wearLifeWeeks) * weeksOver)
-      monthlyBlock = { type: 'overexploit', weeksOver, bonusIncome }
-      status = 'overexploit'
+      if (boughtList.length === 0) {
+        pct = 0; status = 'ok'
+        remainderText = `${total} шт — ни одна не куплена`
+        ringNum = '—'; ringUnit = ''
+        monthlyBlock = null
+      } else {
+        const oldestDate = boughtList.map(p => p.purchaseDate).sort()[0]
+        const weeksUsed = Math.floor(daysSince(oldestDate) / 7)
+        const overExploit = weeksUsed > item.wearLifeWeeks
+        const weeksLeft = Math.max(0, item.wearLifeWeeks - weeksUsed)
+        const weeksOver = weeksUsed - item.wearLifeWeeks
+        pct = Math.min(100, Math.round((weeksUsed / item.wearLifeWeeks) * 100))
+
+        if (overExploit) {
+          remainderText = `+${weeksOver}\u00a0нед. сверх нормы (старейшая)`
+          ringNum = '+' + weeksOver; ringUnit = 'нед'
+          const bonusIncome = Math.round((item.price / item.wearLifeWeeks) * weeksOver)
+          monthlyBlock = { type: 'overexploit', weeksOver, bonusIncome }
+          status = 'overexploit'
+        } else {
+          remainderText = weeksLeft > 0 ? `осталось ${weeksLeft}\u00a0нед. до замены (старейшая)` : 'требует замены'
+          if (weeksLeft === 0) { ringNum = '0'; ringUnit = 'нед' }
+          else if (weeksLeft < 52) { ringNum = String(weeksLeft); ringUnit = 'нед' }
+          else { ringNum = String(Math.floor(weeksLeft / 52)); ringUnit = 'лет' }
+          if (pct >= 90) status = 'urgent'
+          else if (pct >= 70) status = 'soon'
+          else status = 'ok'
+        }
+      }
     } else {
-      remainderText = weeksLeft > 0 ? `осталось ${weeksLeft}\u00a0нед. до замены` : 'требует замены'
-      if (weeksLeft === 0) { ringNum = '0'; ringUnit = 'нед' }
-      else if (weeksLeft < 52) { ringNum = String(weeksLeft); ringUnit = 'нед' }
-      else { ringNum = String(Math.floor(weeksLeft / 52)); ringUnit = 'лет' }
-      if (pct >= 90) status = 'urgent'
-      else if (pct >= 70) status = 'soon'
-      else status = 'ok'
+      // Legacy single-purchaseDate format
+      const purchaseDate = override !== null ? override : item.purchaseDate
+      const weeksUsed = Math.floor(daysSince(purchaseDate) / 7)
+      const overExploit = weeksUsed > item.wearLifeWeeks
+      const weeksLeft = Math.max(0, item.wearLifeWeeks - weeksUsed)
+      const weeksOver = weeksUsed - item.wearLifeWeeks
+      pct = Math.min(100, Math.round((weeksUsed / item.wearLifeWeeks) * 100))
+
+      if (overExploit) {
+        remainderText = `+${weeksOver}\u00a0нед. сверх нормы`
+        ringNum = '+' + weeksOver; ringUnit = 'нед'
+        const bonusIncome = Math.round((item.price / item.wearLifeWeeks) * weeksOver)
+        monthlyBlock = { type: 'overexploit', weeksOver, bonusIncome }
+        status = 'overexploit'
+      } else {
+        remainderText = weeksLeft > 0 ? `осталось ${weeksLeft}\u00a0нед. до замены` : 'требует замены'
+        if (weeksLeft === 0) { ringNum = '0'; ringUnit = 'нед' }
+        else if (weeksLeft < 52) { ringNum = String(weeksLeft); ringUnit = 'нед' }
+        else { ringNum = String(Math.floor(weeksLeft / 52)); ringUnit = 'лет' }
+        if (pct >= 90) status = 'urgent'
+        else if (pct >= 70) status = 'soon'
+        else status = 'ok'
+      }
     }
   }
 
@@ -147,7 +186,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
       dailyUse: String(item.dailyUse || ''),
       unit: item.unit || 'г',
       wearLifeWeeks: String(item.wearLifeWeeks || ''),
-      purchaseDate: item.purchaseDate || today,
+      purchaseDate: Array.isArray(item.purchases) ? null : (item.purchaseDate || today),
     })
     setIsEditingParams(true)
   }
@@ -378,6 +417,9 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
                       onMouseLeave={stopStep} onTouchStart={() => startStep(1)} onTouchEnd={stopStep}>+</button>
                   </div>
                 </>
+              ) : Array.isArray(item.purchases) ? (
+                // Multi-purchase: show purchases list in the inv-stepper-wrap
+                null
               ) : (
                 <>
                   <div className="inv-field-lbl">Дата покупки</div>
@@ -393,6 +435,68 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
             </div>
           </div>
         )}
+
+        {/* Multi-purchase list for wear items */}
+        {open && Array.isArray(item.purchases) && (() => {
+          const today = new Date().toISOString().slice(0, 10)
+          const needsReplace = (p) => p.bought && p.purchaseDate &&
+            Math.floor(daysSince(p.purchaseDate) / 7) >= item.wearLifeWeeks
+          const weeksLeftFor = (p) => p.bought && p.purchaseDate
+            ? Math.max(0, item.wearLifeWeeks - Math.floor(daysSince(p.purchaseDate) / 7))
+            : null
+
+          function handlePurchaseToggle(i, checked) {
+            const next = item.purchases.map((p, idx) => idx !== i ? p : {
+              ...p, bought: checked, purchaseDate: checked ? (p.purchaseDate || today) : null
+            })
+            onUpdateItem({ ...item, purchases: next })
+          }
+          function handlePurchaseDate(i, date) {
+            const next = item.purchases.map((p, idx) => idx !== i ? p : { ...p, purchaseDate: date })
+            onUpdateItem({ ...item, purchases: next })
+          }
+
+          return (
+            <div className="inv-purchases-wrap" onClick={e => e.stopPropagation()}>
+              <div className="inv-purchases-label">
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                Даты покупок ({item.purchases.filter(p=>p.bought).length} / {item.purchases.length} куплено)
+              </div>
+              <div className="inv-purchases-list">
+                {item.purchases.map((p, i) => {
+                  const wl = weeksLeftFor(p)
+                  const expired = needsReplace(p)
+                  return (
+                    <div key={i} className={`inv-purchase-row${expired ? ' expired' : (p.bought && wl !== null && wl <= Math.ceil(item.wearLifeWeeks * 0.1) ? ' soon' : '')}`}>
+                      <span className="inv-purchase-num">{i + 1}</span>
+                      <label className="inv-purchase-check" onClick={e => e.stopPropagation()}>
+                        <input type="checkbox" checked={!!p.bought}
+                          onChange={e => handlePurchaseToggle(i, e.target.checked)} />
+                        <span>{p.bought ? 'Куплено' : 'Не куплено'}</span>
+                      </label>
+                      <input
+                        type="date"
+                        className={`inv-purchase-date${!p.bought ? ' disabled' : ''}`}
+                        disabled={!p.bought}
+                        value={p.purchaseDate || ''}
+                        max={today}
+                        onChange={e => handlePurchaseDate(i, e.target.value)}
+                        onClick={e => e.stopPropagation()}
+                      />
+                      {p.bought && wl !== null && (
+                        <span className={`inv-purchase-hint${expired ? ' expired' : ''}`}>
+                          {expired ? `+${Math.abs(wl)} нед` : `${wl} нед`}
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })()}
 
         {/* Inline param edit form for non-set items */}
         {open && editMode && !hasSet && !isEditingParams && (
@@ -453,11 +557,13 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
                     <input className="inv-add-form-input" type="number" value={paramForm.wearLifeWeeks}
                       onChange={e => setPF('wearLifeWeeks')(e.target.value)} placeholder="52" />
                   </div>
-                  <div className="inv-add-form-field">
-                    <div className="inv-add-form-lbl">Дата покупки</div>
-                    <input className="inv-add-form-input" type="date" value={paramForm.purchaseDate}
-                      onChange={e => setPF('purchaseDate')(e.target.value)} max={new Date().toISOString().slice(0, 10)} />
-                  </div>
+                  {!Array.isArray(item.purchases) && (
+                    <div className="inv-add-form-field">
+                      <div className="inv-add-form-lbl">Дата покупки</div>
+                      <input className="inv-add-form-input" type="date" value={paramForm.purchaseDate || ''}
+                        onChange={e => setPF('purchaseDate')(e.target.value)} max={new Date().toISOString().slice(0, 10)} />
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -607,14 +713,22 @@ function AddItemForm({ groupId, groupSetCategories, onAdd, onCancel }) {
   const today = new Date().toISOString().slice(0, 10)
   const [form, setForm] = useState({
     name: '', type: 'consumable', price: '', qty: '', dailyUse: '', unit: 'г',
-    wearLifeWeeks: '', purchaseDate: today, setId: '',
+    wearLifeWeeks: '', purchaseDate: today, setId: '', wearQty: '1',
   })
   const set = k => v => setForm(p => ({ ...p, [k]: v }))
   const groupSets = catalogSets.filter(s => groupSetCategories?.includes(s.category))
 
   function handleSubmit() {
     if (!form.name.trim() || !form.price) return
-    onAdd(groupId, form)
+    const data = { ...form }
+    if (form.type === 'wear') {
+      const count = Math.max(1, parseInt(form.wearQty) || 1)
+      if (count > 1) {
+        data.purchases = Array.from({ length: count }, () => ({ bought: false, purchaseDate: null }))
+        data.purchaseDate = null
+      }
+    }
+    onAdd(groupId, data)
   }
 
   return (
@@ -673,6 +787,11 @@ function AddItemForm({ groupId, groupSetCategories, onAdd, onCancel }) {
               <div className="inv-add-form-lbl">Дата покупки</div>
               <input className="inv-add-form-input" type="date" value={form.purchaseDate}
                 onChange={e => set('purchaseDate')(e.target.value)} max={today} />
+            </div>
+            <div className="inv-add-form-field">
+              <div className="inv-add-form-lbl">Количество, шт.</div>
+              <input className="inv-add-form-input" type="number" value={form.wearQty}
+                onChange={e => set('wearQty')(e.target.value)} placeholder="1" min="1" />
             </div>
           </>
         )}
@@ -850,11 +969,19 @@ export default function Inventory() {
       })
       setOverrides(p => ({ ...p, [id]: Number(form.qty) || 100 }))
     } else {
-      Object.assign(base, {
-        wearLifeWeeks: Number(form.wearLifeWeeks) || 52,
-        purchaseDate: form.purchaseDate || new Date().toISOString().slice(0, 10),
-      })
-      setOverrides(p => ({ ...p, [id]: base.purchaseDate }))
+      if (Array.isArray(form.purchases)) {
+        Object.assign(base, {
+          wearLifeWeeks: Number(form.wearLifeWeeks) || 52,
+          purchases: form.purchases,
+          qty: form.purchases.length,
+        })
+      } else {
+        Object.assign(base, {
+          wearLifeWeeks: Number(form.wearLifeWeeks) || 52,
+          purchaseDate: form.purchaseDate || new Date().toISOString().slice(0, 10),
+        })
+        setOverrides(p => ({ ...p, [id]: base.purchaseDate }))
+      }
     }
     setItems(prev => {
       const next = [...prev, base]
@@ -873,21 +1000,32 @@ export default function Inventory() {
   }
 
   function doUpdateItem(id, form) {
-    const currentItem = items.find(i => i.id === id)
     setItems(prev => {
       const next = prev.map(i => {
         if (i.id !== id) return i
-        const updated = { ...i, name: form.name.trim(), price: Number(form.price) || 0 }
+        // Direct item update (purchases list, inline changes)
+        if (form.purchases !== undefined) {
+          const updated = { ...i, ...form }
+          if (updated.isExtra) syncExtra([...prev.filter(x => x.id !== id), updated])
+          return updated
+        }
+        // Param form update
+        const updated = { ...i, name: form.name?.trim() || i.name, price: Number(form.price) || 0 }
         if (i.type === 'consumable') {
           return { ...updated, qty: Number(form.qty) || 100, dailyUse: Number(form.dailyUse) || 1, unit: form.unit || 'г' }
         } else {
-          return { ...updated, wearLifeWeeks: Number(form.wearLifeWeeks) || 52, purchaseDate: form.purchaseDate }
+          const base = { ...updated, wearLifeWeeks: Number(form.wearLifeWeeks) || 52 }
+          if (!Array.isArray(i.purchases) && form.purchaseDate) {
+            return { ...base, purchaseDate: form.purchaseDate }
+          }
+          return base
         }
       })
       syncExtra(next)
       return next
     })
-    if (currentItem?.type === 'wear') {
+    const currentItem = items.find(i => i.id === id)
+    if (currentItem?.type === 'wear' && !Array.isArray(currentItem.purchases) && form.purchaseDate) {
       setOverrides(p => ({ ...p, [id]: form.purchaseDate }))
     }
   }

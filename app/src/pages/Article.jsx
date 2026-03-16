@@ -71,10 +71,12 @@ export default function Article() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [liked, setLiked] = useState(false)
+  const [disliked, setDisliked] = useState(false)
   const [following, setFollowing] = useState(false)
   const [commentSort, setCommentSort] = useState('new')
   const [commentInput, setCommentInput] = useState('')
   const [likedComments, setLikedComments] = useState(new Set())
+  const [dislikedComments, setDislikedComments] = useState(new Set())
   const [showAll, setShowAll] = useState(false)
   const [toast, setToast] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -129,12 +131,29 @@ export default function Article() {
   )
   const displayComments = showAll ? sortedComments : sortedComments.slice(0, 2)
 
+  function toggleLike() {
+    setLiked(l => { if (!l) setDisliked(false); return !l })
+  }
+  function toggleDislike() {
+    setDisliked(d => { if (!d) setLiked(false); return !d })
+  }
+
   function toggleCommentLike(idx) {
     setLikedComments(prev => {
       const next = new Set(prev)
       next.has(idx) ? next.delete(idx) : next.add(idx)
       return next
     })
+    setDislikedComments(prev => { const next = new Set(prev); next.delete(idx); return next })
+  }
+
+  function toggleCommentDislike(idx) {
+    setDislikedComments(prev => {
+      const next = new Set(prev)
+      next.has(idx) ? next.delete(idx) : next.add(idx)
+      return next
+    })
+    setLikedComments(prev => { const next = new Set(prev); next.delete(idx); return next })
   }
 
   function showToastMsg(msg) {
@@ -200,14 +219,25 @@ export default function Article() {
                 </div>
                 <div className="hstat-lbl">просмотров</div>
               </div>
-              <div className="hstat clickable" onClick={() => setLiked(l => !l)}>
-                <div className="hstat-val">
-                  <svg width="18" height="18" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              <div className="hstat clickable" onClick={toggleLike}>
+                <div className="hstat-val" style={liked ? { color: '#4E8268' } : {}}>
+                  <svg width="18" height="18" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                    <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
                   </svg>
                   {article.likes + (liked ? 1 : 0)}
                 </div>
-                <div className="hstat-lbl">лайков</div>
+                <div className="hstat-lbl">нравится</div>
+              </div>
+              <div className="hstat clickable" onClick={toggleDislike}>
+                <div className="hstat-val" style={disliked ? { color: '#B85555' } : {}}>
+                  <svg width="18" height="18" fill={disliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+                    <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                  </svg>
+                  {(article.dislikes || 0) + (disliked ? 1 : 0)}
+                </div>
+                <div className="hstat-lbl">не нравится</div>
               </div>
               <div className="hstat">
                 <div className="hstat-val" style={{ fontSize: '15px', color: 'var(--text-2)' }}>{article.date}</div>
@@ -216,11 +246,19 @@ export default function Article() {
             </div>
 
             <div className="hero-actions">
-              <button className={`btn-liked${liked ? ' liked' : ''}`} onClick={() => setLiked(l => !l)}>
-                <svg width="14" height="14" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              <button className={`btn-liked${liked ? ' liked' : ''}`} onClick={toggleLike}>
+                <svg width="14" height="14" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                  <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
                 </svg>
-                {liked ? 'Понравилось' : 'Нравится'}
+                Нравится
+              </button>
+              <button className={`btn-liked btn-disliked${disliked ? ' disliked' : ''}`} onClick={toggleDislike}>
+                <svg width="14" height="14" fill={disliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+                  <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                </svg>
+                Не нравится
               </button>
               <button className="btn-secondary" onClick={() => showToastMsg('Ссылка скопирована')}>
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -257,10 +295,22 @@ export default function Article() {
 
           {/* Author inside hero */}
           <div className="hero-author">
-            <div className="author-avatar" style={{ background: article.authorColor }}>
+            <div className="author-avatar" style={{ background: article.authorColor, cursor: 'pointer' }}
+              onClick={() => navigate('/author/' + (article.authorId || 'unknown'), { state: {
+                name: article.author, ini: article.authorInitials,
+                handle: '@' + (article.author || '').toLowerCase().replace(/\s+/g, '_'),
+                bio: article.authorBio, color: article.authorColor,
+                followers: '—', articles: 0, sets: 0, following: false,
+              }})}>
               {article.authorInitials}
             </div>
-            <div className="author-info">
+            <div className="author-info" style={{ cursor: 'pointer' }}
+              onClick={() => navigate('/author/' + (article.authorId || 'unknown'), { state: {
+                name: article.author, ini: article.authorInitials,
+                handle: '@' + (article.author || '').toLowerCase().replace(/\s+/g, '_'),
+                bio: article.authorBio, color: article.authorColor,
+                followers: '—', articles: 0, sets: 0, following: false,
+              }})}>
               <div className="author-name">{article.author}</div>
               {article.authorBio && <div className="author-bio">{article.authorBio}</div>}
               {article.authorSetLink && set && (
@@ -369,10 +419,21 @@ export default function Article() {
                         className={`c-like${likedComments.has(i) ? ' liked' : ''}`}
                         onClick={() => toggleCommentLike(i)}
                       >
-                        <svg width="11" height="11" fill={likedComments.has(i) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        <svg width="11" height="11" fill={likedComments.has(i) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                          <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
                         </svg>
                         {c.likes + (likedComments.has(i) ? 1 : 0)}
+                      </button>
+                      <button
+                        className={`c-like c-dislike${dislikedComments.has(i) ? ' disliked' : ''}`}
+                        onClick={() => toggleCommentDislike(i)}
+                      >
+                        <svg width="11" height="11" fill={dislikedComments.has(i) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+                          <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                        </svg>
+                        {(c.dislikes || 0) + (dislikedComments.has(i) ? 1 : 0)}
                       </button>
                     </div>
                   </div>

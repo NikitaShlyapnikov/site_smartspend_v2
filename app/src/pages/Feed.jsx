@@ -121,14 +121,9 @@ function AuthorChip({ author, authorId, navigate }) {
 
   if (author.type === 'anonymous') {
     return (
-      <button className="author-chip author-chip--anon" onClick={handleAuthorClick} title="Анонимный автор">
-        <span className="author-avatar-sm author-avatar-anon">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
-        </span>
-        <span className="author-name-inline author-name--special">Анонимный автор</span>
+      <button className="author-chip" onClick={handleAuthorClick}>
+        <div className="author-avatar-sm" style={{ background: author.color }}>{author.initials}</div>
+        <span className="author-name-inline">{author.name}</span>
       </button>
     )
   }
@@ -154,7 +149,7 @@ function AuthorChip({ author, authorId, navigate }) {
   )
 }
 
-function ArticleCard({ item, isRead, isLiked, onLikeToggle, onClick, navigate }) {
+function ArticleCard({ item, isRead, isLiked, isDisliked, onLikeToggle, onDislikeToggle, onClick, navigate }) {
   const author = feedAuthors[item.authorId]
   return (
     <div className={`card${isRead ? ' read' : ''}`} onClick={() => onClick(item)}>
@@ -169,15 +164,28 @@ function ArticleCard({ item, isRead, isLiked, onLikeToggle, onClick, navigate })
         <div className="article-preview">{item.preview}</div>
       </div>
       <div className="article-footer">
-        <button
-          className={`liked-btn${isLiked ? ' liked' : ''}`}
-          onClick={e => { e.stopPropagation(); onLikeToggle(item.id) }}
-        >
-          <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-          </svg>
-          {item.likes + (isLiked ? 1 : 0)}
-        </button>
+        <div className="vote-row">
+          <button
+            className={`liked-btn${isLiked ? ' liked' : ''}`}
+            onClick={e => { e.stopPropagation(); onLikeToggle(item.id) }}
+          >
+            <svg width="13" height="13" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+              <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+            </svg>
+            {item.likes + (isLiked ? 1 : 0)}
+          </button>
+          <button
+            className={`liked-btn disliked-btn${isDisliked ? ' disliked' : ''}`}
+            onClick={e => { e.stopPropagation(); onDislikeToggle(item.id) }}
+          >
+            <svg width="13" height="13" fill={isDisliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+              <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+            </svg>
+            {(item.dislikes || 0) + (isDisliked ? 1 : 0)}
+          </button>
+        </div>
         {item.comments != null && (
           <div className="a-stat">
             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -267,6 +275,7 @@ export default function Feed() {
   const [sort,    setSort]    = useState('popular_7d')
   const [readIds, setReadIds] = useState(new Set())
   const [likedIds, setLikedIds] = useState(new Set())
+  const [dislikedIds, setDislikedIds] = useState(new Set())
 
   function markRead(id) {
     setReadIds(prev => new Set([...prev, id]))
@@ -278,6 +287,16 @@ export default function Feed() {
       next.has(id) ? next.delete(id) : next.add(id)
       return next
     })
+    setDislikedIds(prev => { const next = new Set(prev); next.delete(id); return next })
+  }
+
+  function toggleDislike(id) {
+    setDislikedIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+    setLikedIds(prev => { const next = new Set(prev); next.delete(id); return next })
   }
 
   function toggleMode(m) {
@@ -372,7 +391,9 @@ export default function Feed() {
               <ArticleCard key={item.id} item={item}
                 isRead={readIds.has(item.id)}
                 isLiked={likedIds.has(item.id)}
+                isDisliked={dislikedIds.has(item.id)}
                 onLikeToggle={toggleLike}
+                onDislikeToggle={toggleDislike}
                 onClick={handleItemClick}
                 navigate={navigate}
               />

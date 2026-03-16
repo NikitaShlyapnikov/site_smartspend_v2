@@ -10,8 +10,10 @@ const GROUP_CATS = {
   g2: ['food'],
   g3: ['home'],
   g4: ['health'],
-  g5: ['health'],
-  g6: ['home'],
+  g5: ['transport'],
+  g6: ['leisure'],
+  g7: ['education'],
+  g8: ['other'],
 }
 
 const BASE_RETURN = 0.04
@@ -795,12 +797,12 @@ export default function Profile() {
               const hasSets = sets.length > 0
               const personalItems = personalByCat[cat.id] || []
               const hasPersonal = personalItems.length > 0
+              const personalMonthly = personalItems.reduce((s, i) => s + calcItemMonthly(i), 0)
               const total = sets.reduce((s, x) => s + x.amount, 0) + (hasPersonal ? personalMonthly : 0)
               const totalSets = sets.length + (hasPersonal ? 1 : 0)
               const desc = (hasSets || hasPersonal)
                 ? `${totalSets} набор${totalSets === 1 ? '' : totalSets < 5 ? 'а' : 'ов'} · пополняется 1-го числа`
                 : 'Нет наборов'
-              const personalMonthly = personalItems.reduce((s, i) => s + calcItemMonthly(i), 0)
               const personalSet = {
                 id: null,
                 source: 'personal',

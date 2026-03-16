@@ -10,8 +10,8 @@ const CAT_TO_ENV = {
 }
 // Category → inventory group ID
 const CAT_TO_GROUP = {
-  clothes: 'g1', food: 'g2', home: 'g6', health: 'g4',
-  transport: 'g3', leisure: 'g1', gifts: 'g1',
+  clothes: 'g1', food: 'g2', home: 'g3', health: 'g4',
+  transport: 'g5', leisure: 'g6', gifts: 'g8',
 }
 // Source → envelope source key
 const SRC_TO_ENV = { ss: 'smartspend', community: 'community', own: 'custom' }
@@ -55,6 +55,9 @@ export default function SetDetail() {
   const [liked, setLiked]         = useState(() => {
     try { return new Set(JSON.parse(localStorage.getItem('ss_catalog_likes') || '[]')).has(id) } catch { return false }
   })
+  const [disliked, setDisliked]   = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('ss_catalog_dislikes') || '[]')).has(id) } catch { return false }
+  })
 
   function toggleLike(e) {
     e.stopPropagation()
@@ -67,6 +70,21 @@ export default function SetDetail() {
       } catch {}
       return next
     })
+    if (!liked) setDisliked(false)
+  }
+
+  function toggleDislike(e) {
+    e.stopPropagation()
+    setDisliked(prev => {
+      const next = !prev
+      try {
+        const set_ = new Set(JSON.parse(localStorage.getItem('ss_catalog_dislikes') || '[]'))
+        next ? set_.add(id) : set_.delete(id)
+        localStorage.setItem('ss_catalog_dislikes', JSON.stringify([...set_]))
+      } catch {}
+      return next
+    })
+    if (!disliked) setLiked(false)
   }
   const [editMode, setEditMode]   = useState(false)
   const [scale, setScaleRaw]      = useState(1.0)
@@ -76,6 +94,7 @@ export default function SetDetail() {
   const [cmtSort, setCmtSort]     = useState('popular')
   const [cmtText, setCmtText]     = useState('')
   const [likes, setLikes]         = useState({})
+  const [dislikes, setDislikes]   = useState({})
 
   // Modified = scale changed OR any item differs from defaults
   const isDefault = useMemo(() => {
@@ -172,22 +191,23 @@ export default function SetDetail() {
             isExtra: true,
           }
         })
-      // Вещи: амортизация по сроку службы
-      : activeItems.flatMap((item, idx) => {
-          const count = Math.max(1, Math.round(item.qty))
-          return Array.from({ length: count }, (_, k) => ({
-            id: `inv_${set.id}_${item.id}_${ts + idx * 1000 + k}`,
-            name: count > 1 ? `${item.name} #${k + 1}` : item.name,
+      // Вещи: одна карточка с массивом дат покупок
+      : activeItems.map((item, idx) => {
+          const count = Math.max(1, Math.round(item.qty * scale))
+          return {
+            id: `inv_${set.id}_${item.id}_${ts + idx * 1000}`,
+            name: item.name,
             type: 'wear',
+            qty: count,
             price: Math.round(item.basePrice * scale),
             wearLifeWeeks: Math.round(item.period * 52),
-            purchaseDate: today,
+            purchases: Array.from({ length: count }, () => ({ bought: false, purchaseDate: null })),
             set: setTitle,
             setId: set.id,
             groupId,
             paused: true,
             isExtra: true,
-          }))
+          }
         })
     try {
       const invData = JSON.parse(localStorage.getItem('ss_inventory_extra') || '[]')
@@ -256,6 +276,9 @@ export default function SetDetail() {
   const tableItems   = items.length > 0 ? items : null
   const totalMonthly = tableItems
     ? tableItems.reduce((s, i) => s + itemMonthly(i, scale), 0)
+    : null
+  const totalPrice = !isConsumable && tableItems
+    ? tableItems.reduce((s, i) => s + Math.round(i.basePrice * scale * i.qty), 0)
     : null
 
   const color    = set.color || '#4E8268'
@@ -349,9 +372,17 @@ export default function SetDetail() {
               )}
               <button className={`btn-liked${liked ? ' liked' : ''}`} onClick={toggleLike}>
                 <svg width="14" height="14" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                  <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                  <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
                 </svg>
-                {liked ? 'Понравилось' : 'Нравится'}
+                Нравится
+              </button>
+              <button className={`btn-liked btn-disliked${disliked ? ' disliked' : ''}`} onClick={toggleDislike}>
+                <svg width="14" height="14" fill={disliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+                  <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                </svg>
+                Не нравится
               </button>
             </div>
           </div>
@@ -490,6 +521,12 @@ export default function SetDetail() {
                   </td>
                   <td className="sd-total-amt">{fmtRub(totalMonthly)}</td>
                 </tr>
+                {totalPrice != null && (
+                  <tr className="sd-total-row" style={{ opacity: 0.7 }}>
+                    <td colSpan={4}>Общая стоимость</td>
+                    <td className="sd-total-amt">{fmtRub(totalPrice)}</td>
+                  </tr>
+                )}
               </tbody>
             </table>
 
@@ -544,7 +581,20 @@ export default function SetDetail() {
         {/* ── AUTHOR / ABOUT CARD ── */}
         {detail?.author && (
           <div className="sd-intro-card">
-            <div className="sd-author-row">
+            <div className="sd-author-row" style={{ cursor: 'pointer' }} onClick={() => {
+              const handle = detail.author.handle || ('@' + detail.author.name.toLowerCase().replace(/\s+/g, '_'))
+              navigate('/author/' + (set.source || 'ss'), { state: {
+                name: detail.author.name,
+                ini: detail.author.initials,
+                handle,
+                bio: detail.author.bio,
+                followers: set.users ? set.users.toLocaleString('ru') : '—',
+                articles: detail.authorArticles?.length ?? 0,
+                sets: 1,
+                color,
+                following: false,
+              }})
+            }}>
               <div className="sd-author-avatar" style={{ background: `linear-gradient(135deg, ${color}, #B8A0C8)` }}>
                 {detail.author.initials}
               </div>
@@ -552,7 +602,15 @@ export default function SetDetail() {
                 <div className="sd-author-name">{detail.author.name}</div>
                 <div className="sd-author-bio">{detail.author.bio}</div>
               </div>
-              <button className="sd-author-link">
+              <button className="sd-author-link" onClick={e => {
+                e.stopPropagation()
+                const handle = detail.author.handle || ('@' + detail.author.name.toLowerCase().replace(/\s+/g, '_'))
+                navigate('/author/' + (set.source || 'ss'), { state: {
+                  name: detail.author.name, ini: detail.author.initials, handle,
+                  bio: detail.author.bio, followers: set.users ? set.users.toLocaleString('ru') : '—',
+                  articles: detail.authorArticles?.length ?? 0, sets: 1, color, following: false,
+                }})
+              }}>
                 Все наборы
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"
                   strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
@@ -604,15 +662,15 @@ export default function SetDetail() {
           </div>
         )}
 
-        {/* ── RECOMMENDED ARTICLES ── */}
+        {/* ── COMMUNITY ARTICLES ── */}
         {recArticles.length > 0 && (
           <div className="sd-section-card">
             <div className="sd-section-header">
               <div className="sd-section-title">
-                Рекомендуемые статьи
-                <span className="sd-section-count">{recArticles.length} статьи</span>
+                Гайды от сообщества
+                <span className="sd-section-count">{recArticles.length} статей</span>
               </div>
-              <span className="sd-section-subtitle">из похожих наборов</span>
+              <span className="sd-section-subtitle">от авторов сообщества</span>
             </div>
             <div className="sd-articles-list">
               {recArticles.map((a, i) => (
@@ -661,10 +719,27 @@ export default function SetDetail() {
                     </div>
                     <div className="sd-c-text">{c.text}</div>
                     <div className="sd-c-actions">
-                      <button className="sd-c-like" onClick={() => setLikes(p => ({ ...p, [i]: !p[i] }))}>
+                      <button className={`sd-c-like${likes[i] ? ' liked' : ''}`} onClick={() => {
+                        setLikes(p => ({ ...p, [i]: !p[i] }))
+                        if (!likes[i]) setDislikes(p => ({ ...p, [i]: false }))
+                      }}>
                         <svg width="12" height="12" fill={likes[i] ? 'currentColor' : 'none'} stroke="currentColor"
-                          viewBox="0 0 24 24" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+                          viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                          <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                        </svg>
                         {c.likes + (likes[i] ? 1 : 0)}
+                      </button>
+                      <button className={`sd-c-like sd-c-dislike${dislikes[i] ? ' disliked' : ''}`} onClick={() => {
+                        setDislikes(p => ({ ...p, [i]: !p[i] }))
+                        if (!dislikes[i]) setLikes(p => ({ ...p, [i]: false }))
+                      }}>
+                        <svg width="12" height="12" fill={dislikes[i] ? 'currentColor' : 'none'} stroke="currentColor"
+                          viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+                          <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                        </svg>
+                        {(c.dislikes || 0) + (dislikes[i] ? 1 : 0)}
                       </button>
                     </div>
                   </div>
