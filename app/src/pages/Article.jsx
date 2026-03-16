@@ -1,7 +1,127 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import PublicLayout from '../components/PublicLayout'
 import { articles } from '../data/mock'
+
+const CATEGORIES = [
+  { id: 'other', name: 'Прочие расходы' },
+  { id: 'all', name: 'Все покупки' },
+  { id: 'food', name: 'Еда и Супермаркеты' },
+  { id: 'cafe', name: 'Кафе, Бары, Рестораны' },
+  { id: 'transport', name: 'Авто и Транспорт' },
+  { id: 'home', name: 'Дом и Техника' },
+  { id: 'clothes', name: 'Одежда и Обувь' },
+  { id: 'leisure', name: 'Развлечения и Хобби' },
+  { id: 'health', name: 'Красота и Здоровье' },
+  { id: 'education', name: 'Образование и Дети' },
+  { id: 'travel', name: 'Путешествия и Отдых' },
+]
+
+function loadAllSets() {
+  try {
+    const envelopes = JSON.parse(localStorage.getItem('ss_envelopes') || '{}')
+    const result = []
+    for (const catId of Object.keys(envelopes)) {
+      const cat = CATEGORIES.find(c => c.id === catId)
+      for (const s of (envelopes[catId] || [])) {
+        result.push({ ...s, catName: cat?.name || catId })
+      }
+    }
+    return result
+  } catch { return [] }
+}
+
+function loadLinkedSets(articleId) {
+  try { return JSON.parse(localStorage.getItem('ss_article_sets') || '{}')[articleId] || [] } catch { return [] }
+}
+
+function saveLinkedSet(articleId, setId) {
+  try {
+    const data = JSON.parse(localStorage.getItem('ss_article_sets') || '{}')
+    const list = data[articleId] || []
+    if (!list.includes(setId)) list.push(setId)
+    data[articleId] = list
+    localStorage.setItem('ss_article_sets', JSON.stringify(data))
+  } catch {}
+}
+
+function AddToSetModal({ articleId, onClose, onSaved }) {
+  const [sets, setSets] = useState([])
+  const [linked, setLinked] = useState([])
+  const [selected, setSelected] = useState(null)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    setSets(loadAllSets())
+    setLinked(loadLinkedSets(articleId))
+  }, [articleId])
+
+  useEffect(() => {
+    function handler(e) {
+      if (ref.current && !ref.current.contains(e.target)) onClose()
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [onClose])
+
+  function handleConfirm() {
+    if (!selected) return
+    saveLinkedSet(articleId, selected)
+    const set = sets.find(s => s.id === selected)
+    onSaved(set?.name || 'набор')
+    onClose()
+  }
+
+  return (
+    <div className="add-to-set-overlay">
+      <div className="add-to-set-modal" ref={ref}>
+        <div className="ats-header">
+          <div className="ats-title">Добавить к набору</div>
+          <button className="ats-close" onClick={onClose}>
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        {sets.length === 0 ? (
+          <div className="ats-empty">
+            <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+            <div>У вас пока нет наборов в конвертах</div>
+            <div className="ats-empty-hint">Добавьте наборы из каталога в раздел Профиль → Конверты</div>
+          </div>
+        ) : (
+          <>
+            <div className="ats-desc">Выберите набор, к которому хотите прикрепить эту статью:</div>
+            <div className="ats-list">
+              {sets.map(s => {
+                const isLinked = linked.includes(s.id)
+                return (
+                  <button
+                    key={s.id}
+                    className={`ats-item${selected === s.id ? ' selected' : ''}${isLinked ? ' already' : ''}`}
+                    onClick={() => !isLinked && setSelected(s.id)}
+                    disabled={isLinked}
+                  >
+                    <div className="ats-item-name">{s.name}</div>
+                    <div className="ats-item-cat">{s.catName}</div>
+                    {isLinked && <span className="ats-item-badge">Уже добавлено</span>}
+                    {selected === s.id && !isLinked && (
+                      <svg className="ats-check" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+            <div className="ats-actions">
+              <button className="ats-cancel" onClick={onClose}>Отмена</button>
+              <button className="ats-confirm" disabled={!selected} onClick={handleConfirm}>Прикрепить</button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
 
 function fmtNum(n) {
   if (n >= 1000) return (Math.round(n / 100) / 10) + 'k'
@@ -80,6 +200,7 @@ export default function Article() {
   const [showAll, setShowAll] = useState(false)
   const [toast, setToast] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [showAddToSet, setShowAddToSet] = useState(false)
 
   const isMine = isMyArticle(id)
 
@@ -267,11 +388,13 @@ export default function Article() {
                 </svg>
                 Поделиться
               </button>
-              <button className="btn-secondary" onClick={() => showToastMsg('Статья сохранена')}>
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+              <button className="btn-secondary" onClick={() => setShowAddToSet(true)}>
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                  <circle cx="19" cy="19" r="4" fill="var(--surface)" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M19 17v4M17 19h4"/>
                 </svg>
-                Сохранить
+                Добавить к набору
               </button>
               {/* UC-31 / UC-33: кнопки для своих статей */}
               {isMine && (
@@ -474,6 +597,14 @@ export default function Article() {
         onConfirm={handleDeleteArticle}
         onCancel={() => setConfirmDelete(false)}
       />
+
+      {showAddToSet && (
+        <AddToSetModal
+          articleId={id}
+          onClose={() => setShowAddToSet(false)}
+          onSaved={setName => showToastMsg(`Статья прикреплена к набору «${setName}»`)}
+        />
+      )}
 
     </PublicLayout>
   )
