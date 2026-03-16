@@ -732,7 +732,7 @@ export default function Profile() {
           <div className="profile-card">
             <div className="combined-top">
               <div>
-                <div className="cap-label">Общий капитал</div>
+                <div className="cap-label">Размер капитала</div>
                 <div className="cap-value">{capital.toLocaleString('ru')} ₽</div>
                 <div className="cap-meta">
                   <span className="cap-period">Обновлено: {updatedAt}</span>
@@ -744,10 +744,10 @@ export default function Profile() {
             <div className="combined-bottom">
               <div>
                 <div className="emo-title">EmoSpend</div>
-                <div className="emo-subtitle">Свободные траты вне наборов — от капитала</div>
+                <div className="emo-subtitle">Покупки на повседневные желания без вреда для роста капитала</div>
               </div>
               <div className="emo-main">
-                <div className="emo-tile">
+                <div className="emo-tile emo-tile--accent">
                   <div className="emo-tile-label">В месяц</div>
                   <div className="emo-tile-value">{emoMonthly.toLocaleString('ru')} ₽</div>
                   <div className="emo-tile-sub">можно потратить</div>
@@ -759,7 +759,7 @@ export default function Profile() {
                 </div>
               </div>
               <div className="emo-rate-row">
-                <span className="emo-rate-label">Ставка изъятия:</span>
+                <span className="emo-rate-label">Уровень удовольствия:</span>
                 <div className="rate-selector">
                   {EMO_RATES.map(r => (
                     <button
@@ -787,11 +787,58 @@ export default function Profile() {
               className={`section-link${editMode ? ' editing' : ''}`}
               onClick={() => setEditMode(e => !e)}
             >
-              {editMode ? 'Готово' : 'Редактировать'}
+              {editMode ? (
+                <>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Готово
+                </>
+              ) : (
+                <>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  Редактировать
+                </>
+              )}
             </button>
           </div>
 
           <div className="envelopes-list">
+            {visibleCats.length === 0 && (
+              <div className="envelopes-empty">
+                <div className="env-empty-icon">
+                  <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+                    <rect x="6" y="14" width="40" height="28" rx="5" fill="var(--surface-2)" stroke="var(--border)" strokeWidth="1.5"/>
+                    <path d="M6 20l20 13 20-13" stroke="var(--border)" strokeWidth="1.5" strokeLinecap="round"/>
+                    <circle cx="38" cy="36" r="9" fill="var(--bg)" stroke="var(--border)" strokeWidth="1.5"/>
+                    <path d="M38 32v4M38 38v.5" stroke="var(--accent-green)" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <div className="env-empty-title">Конверты пока пусты</div>
+                <div className="env-empty-desc">
+                  Добавьте готовые наборы из каталога — и SmartSpend автоматически рассчитает ваши расходы по категориям и покажет сколько откладывать каждый месяц.
+                </div>
+                <div className="env-empty-steps">
+                  <div className="env-empty-step">
+                    <div className="env-empty-step-num">1</div>
+                    <div className="env-empty-step-text">Откройте каталог и выберите набор, подходящий вашему образу жизни</div>
+                  </div>
+                  <div className="env-empty-step">
+                    <div className="env-empty-step-num">2</div>
+                    <div className="env-empty-step-text">Нажмите «Добавить в конверт» — набор появится в нужной категории</div>
+                  </div>
+                  <div className="env-empty-step">
+                    <div className="env-empty-step-num">3</div>
+                    <div className="env-empty-step-text">Укажите доход в настройках — и система покажет, сколько остаётся на накопления</div>
+                  </div>
+                </div>
+                <button className="env-empty-cta" onClick={() => navigate('/catalog')}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+                  </svg>
+                  Перейти в каталог
+                </button>
+              </div>
+            )}
             {visibleCats.map(cat => {
               const sets = envelopes[cat.id] || []
               const hasSets = sets.length > 0

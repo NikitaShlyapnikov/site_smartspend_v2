@@ -338,20 +338,16 @@ export default function Article() {
           </div>
         </div>
 
-        {/* Products */}
-        {article.products && article.products.length > 0 && (
-          <div className="products-card">
-            <div className="products-title">Продукты из набора</div>
-            <div className="products-grid">
-              {article.products.map((p, i) => (
-                <span key={i} className="product-tag">{p}</span>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Linked set as catalog card */}
         {set && (
+          <>
+            <div className="article-set-label">
+              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+              </svg>
+              Набор, связанный с этой статьёй
+            </div>
           <div className="catalog-card" onClick={() => navigate(`/set/${set.id}`)}>
             <div className="card-accent-bar" style={{ background: set.color }} />
             <div className="card-body">
@@ -387,6 +383,7 @@ export default function Article() {
               </div>
             </div>
           </div>
+          </>
         )}
 
         {/* Comments */}

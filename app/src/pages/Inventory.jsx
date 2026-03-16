@@ -294,21 +294,66 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
         </div>
       </>
     )
+  } else if (Array.isArray(item.purchases)) {
+    // Multi-purchase wear items
+    const total = item.purchases.length
+    const boughtList = item.purchases.filter(p => p.bought && p.purchaseDate)
+    const totalPrice = item.price * total
+    const lifeYears = (item.wearLifeWeeks / 52).toFixed(1).replace('.0', '')
+
+    let residualVal
+    if (boughtList.length === 0) {
+      residualVal = totalPrice
+    } else {
+      const oldestDate = boughtList.map(p => p.purchaseDate).sort()[0]
+      const weeksUsed = Math.floor(daysSince(oldestDate) / 7)
+      const pctUsed = Math.min(1, weeksUsed / item.wearLifeWeeks)
+      const boughtResidual = boughtList.length * Math.max(0, Math.round(item.price * (1 - pctUsed)))
+      const unboughtResidual = (total - boughtList.length) * item.price
+      residualVal = boughtResidual + unboughtResidual
+    }
+
+    const monthlyAmort = Math.round((totalPrice / item.wearLifeWeeks) * 4.33)
+    const dailyCost = Math.round(totalPrice / (item.wearLifeWeeks * 7))
+
+    details = (
+      <>
+        <div className="inv-detail">
+          <div className="inv-detail-lbl">Стоимость ({total}&thinsp;шт.)</div>
+          <div className="inv-detail-val mono">{totalPrice.toLocaleString('ru')}&thinsp;руб.</div>
+        </div>
+        <div className="inv-detail">
+          <div className="inv-detail-lbl">Стоимость/день</div>
+          <div className="inv-detail-val mono">{dailyCost}&thinsp;руб.</div>
+        </div>
+        <div className="inv-detail">
+          <div className="inv-detail-lbl">Срок эксплуатации</div>
+          <div className="inv-detail-val">{item.wearLifeWeeks}&thinsp;нед. ({lifeYears}&thinsp;г.)</div>
+        </div>
+        <div className="inv-detail">
+          <div className="inv-detail-lbl">Остаточная стоимость</div>
+          <div className="inv-detail-val mono">{residualVal.toLocaleString('ru')}&thinsp;руб.</div>
+        </div>
+        <div className="inv-detail">
+          <div className="inv-detail-lbl">Бюджет/мес.</div>
+          <div className="inv-detail-val mono">{monthlyAmort.toLocaleString('ru')}&thinsp;руб.</div>
+        </div>
+      </>
+    )
   } else {
+    // Legacy single-purchaseDate format
     const purchaseDate = override !== null ? override : item.purchaseDate
-    const weeksUsed = Math.floor(daysSince(purchaseDate) / 7)
+    const weeksUsed = purchaseDate ? Math.floor(daysSince(purchaseDate) / 7) : 0
     const residualVal = Math.max(0, Math.round(item.price * (1 - weeksUsed / item.wearLifeWeeks)))
     const monthlyAmort = Math.round((item.price / item.wearLifeWeeks) * 4.33)
     const dailyCost = Math.round(item.price / (item.wearLifeWeeks * 7))
     const lifeYears = (item.wearLifeWeeks / 52).toFixed(1).replace('.0', '')
     details = (
       <>
-        {item.expectedPrice && (
-          <div className="inv-detail">
-            <div className="inv-detail-lbl">Плановая стоимость</div>
-            <div className="inv-detail-val mono">{item.expectedPrice.toLocaleString('ru')}&thinsp;руб.</div>
-          </div>
-        )}
+        <div className="inv-detail">
+          <div className="inv-detail-lbl">Стоимость</div>
+          <div className="inv-detail-val mono">{(item.price || 0).toLocaleString('ru')}&thinsp;руб.</div>
+        </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Стоимость/день</div>
           <div className="inv-detail-val mono">{dailyCost}&thinsp;руб.</div>
