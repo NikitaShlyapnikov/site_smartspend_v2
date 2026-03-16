@@ -37,6 +37,9 @@ export default function SetDetail() {
   const catalog = catalogSets.find(s => s.id === id)
   const set     = detail || catalog
 
+  // Расходники (еда) — не амортизируются, закупаются ежемесячно
+  const isConsumable = set?.category === 'food'
+
   // Mutable items state (for editing)
   const defaultItems = useMemo(
     () => (detail?.items || []).filter(i => 'basePrice' in i).map(i => ({ ...i })),
@@ -134,22 +137,45 @@ export default function SetDetail() {
     // 4. Save to ss_inventory_extra
     const groupId = CAT_TO_GROUP[set.category] || 'g1'
     const ts = Date.now()
-    const invItems = activeItems.flatMap((item, idx) => {
-      const count = Math.max(1, Math.round(item.qty))
-      return Array.from({ length: count }, (_, k) => ({
-        id: `inv_${set.id}_${item.id}_${ts + idx * 1000 + k}`,
-        name: count > 1 ? `${item.name} #${k + 1}` : item.name,
-        type: 'wear',
-        price: Math.round(item.basePrice * scale),
-        wearLifeWeeks: Math.round(item.period * 52),
-        purchaseDate: now.toISOString().slice(0, 10),
-        set: setTitle,
-        setId: set.id,
-        groupId,
-        paused: true,
-        isExtra: true,
-      }))
-    })
+    const today = now.toISOString().slice(0, 10)
+
+    const invItems = isConsumable
+      // Расходники: каждая позиция — consumable с суточным расходом
+      ? activeItems.map((item, idx) => {
+          const totalQty = item.qty * scale
+          return {
+            id: `inv_${set.id}_${item.id}_${ts + idx * 1000}`,
+            name: item.name,
+            type: 'consumable',
+            price: Math.round(item.basePrice * totalQty),  // общая стоимость закупки
+            qty: totalQty,                                   // общее кол-во (кг/л/шт)
+            dailyUse: totalQty / 30,                        // суточный расход
+            unit: item.unit || 'шт',
+            lastBought: today,
+            set: setTitle,
+            setId: set.id,
+            groupId,
+            paused: false,  // расходники сразу активны
+            isExtra: true,
+          }
+        })
+      // Вещи: амортизация по сроку службы
+      : activeItems.flatMap((item, idx) => {
+          const count = Math.max(1, Math.round(item.qty))
+          return Array.from({ length: count }, (_, k) => ({
+            id: `inv_${set.id}_${item.id}_${ts + idx * 1000 + k}`,
+            name: count > 1 ? `${item.name} #${k + 1}` : item.name,
+            type: 'wear',
+            price: Math.round(item.basePrice * scale),
+            wearLifeWeeks: Math.round(item.period * 52),
+            purchaseDate: today,
+            set: setTitle,
+            setId: set.id,
+            groupId,
+            paused: true,
+            isExtra: true,
+          }))
+        })
     try {
       const invData = JSON.parse(localStorage.getItem('ss_inventory_extra') || '[]')
       // Remove previous items from same set (re-add replaces)
@@ -325,7 +351,7 @@ export default function SetDetail() {
             <div className="sd-scale-row">
               <div>
                 <div className="sd-scale-title">Масштаб набора</div>
-                <div className="sd-scale-desc">База: мужчина, размер M–L</div>
+                <div className="sd-scale-desc">{isConsumable ? 'База: 1 человек / месяц' : 'База: мужчина, размер M–L'}</div>
               </div>
               <div className="sd-scale-right">
                 <span className="sd-scale-val">×{scale.toFixed(2)}</span>
@@ -372,14 +398,16 @@ export default function SetDetail() {
               <thead>
                 <tr>
                   <th>Позиция</th>
-                  <th>{editMode ? 'Кол-во' : 'Кол-во'}</th>
+                  <th>Кол-во</th>
                   <th>Цена</th>
-                  <th>Срок службы</th>
+                  <th>{isConsumable ? 'Объём / мес' : 'Срок службы'}</th>
                   <th>₽/мес</th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="sd-divider-row"><td colSpan={5}>Долгосрочные вещи — амортизация</td></tr>
+                <tr className="sd-divider-row">
+                  <td colSpan={5}>{isConsumable ? 'Расходники — ежемесячная закупка' : 'Долгосрочные вещи — амортизация'}</td>
+                </tr>
                 {tableItems.map(item => {
                   const effectivePrice = item.basePrice * scale
                   const monthly = itemMonthly(item, scale)
@@ -419,15 +447,21 @@ export default function SetDetail() {
                       </tr>
                     )
                   }
+                  const scaledQty = parseFloat((item.qty * scale).toFixed(2))
                   return (
                     <tr key={item.id}>
                       <td>
                         <div className="sd-item-name">{item.name}</div>
                         {item.note && <div className="sd-item-note">{item.note}</div>}
                       </td>
-                      <td><span className="sd-mono-val">{item.qty}&thinsp;{item.unit}</span></td>
+                      <td><span className="sd-mono-val">{scaledQty}&thinsp;{item.unit}</span></td>
                       <td><span className="sd-mono-val">{Math.round(effectivePrice).toLocaleString('ru')}&thinsp;₽</span></td>
-                      <td><span className="amort-chip">{periodStr}</span></td>
+                      <td>
+                        {isConsumable
+                          ? <span className="sd-mono-val" style={{ color: 'var(--text-2)' }}>{scaledQty}&thinsp;{item.unit}/мес</span>
+                          : <span className="amort-chip">{periodStr}</span>
+                        }
+                      </td>
                       <td><span className="sd-mono-accent">{Math.round(monthly).toLocaleString('ru')}&thinsp;₽</span></td>
                     </tr>
                   )

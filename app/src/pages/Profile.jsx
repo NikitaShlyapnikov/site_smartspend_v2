@@ -231,15 +231,7 @@ const INITIAL_ENVELOPES = {}
 function loadEnvelopes() {
   try {
     const raw = localStorage.getItem('ss_envelopes')
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      // Сброс старых тестовых данных — если есть захардкоженные наборы
-      if (parsed.food || parsed.clothes || parsed.health) {
-        localStorage.removeItem('ss_envelopes')
-        return INITIAL_ENVELOPES
-      }
-      return parsed
-    }
+    if (raw) return JSON.parse(raw)
   } catch {}
   return INITIAL_ENVELOPES
 }

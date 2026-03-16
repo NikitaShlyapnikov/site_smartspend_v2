@@ -486,10 +486,10 @@ body.dark .btn-create { background: var(--surface-3); color: var(--text); }
 }
 .cat-btn:hover { background: var(--surface-2); color: var(--text); }
 .cat-btn.active { background: var(--text); color: var(--surface); border-color: var(--text); }
-body.dark .cat-btn.active { background: var(--surface-3); border-color: var(--border); }
+body.dark .cat-btn.active { background: var(--accent-green); border-color: var(--accent-green); color: #fff; }
 .cat-count { font-size: 10px; font-family: var(--mono); color: var(--text-3); }
 .cat-btn.active .cat-count { color: rgba(255,255,255,0.45); }
-body.dark .cat-btn.active .cat-count { color: rgba(240,238,232,0.35); }
+body.dark .cat-btn.active .cat-count { color: rgba(255,255,255,0.55); }
 
 .seg-ctrl {
   display: flex; background: var(--surface); border-radius: 10px;
@@ -4726,3 +4726,30 @@ body.dark .acc-confirm-icon { background: #2A1A1A; border-color: #7A3030; color:
 .btn-author-delete:hover { background: #FDF0EF !important; }
 body.dark .btn-author-delete { border-color: #7A3030 !important; }
 body.dark .btn-author-delete:hover { background: #2A1A1A !important; }
+
+/* ── SETTINGS: timezone select ── */
+.settings-tz-select {
+  padding: 7px 32px 7px 12px;
+  border-radius: 10px; border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--text);
+  font-family: var(--sans); font-size: 13px; font-weight: 500;
+  cursor: pointer; outline: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+  transition: border-color 0.15s;
+}
+.settings-tz-select:hover { border-color: var(--text-3); }
+.settings-tz-select:focus { border-color: var(--accent); }
+body.dark .settings-tz-select { background-color: var(--surface-2); }
+
+/* ── ACCOUNT: visibility hint ── */
+.acc-visibility-hint {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 12px 16px; margin-bottom: 16px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.acc-vh-item {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.acc-vh-desc { font-size: 12px; color: var(--text-2); line-height: 1.4; }

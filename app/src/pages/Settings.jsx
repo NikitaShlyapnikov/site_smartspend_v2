@@ -222,7 +222,10 @@ export default function Settings() {
   const { dark, toggleTheme } = useApp()
 
   // Notifications
-  const [notifs, setNotifs] = useState({ newSets: true, articles: true, reminders: false, weekly: true })
+  const [notifs, setNotifs] = useState({ newSets: true, articles: true, reminders: false })
+
+  // Timezone
+  const [timezone, setTimezone] = useState(() => localStorage.getItem('ss_timezone') || 'Europe/Moscow')
 
   // Privacy
   const [privacy, setPrivacy] = useState({ sets: 'all', articles: 'all', profile: 'all' })
@@ -280,10 +283,9 @@ export default function Settings() {
         <div className="settings-section">
           <div className="settings-section-title">Уведомления</div>
           {[
-            { key: 'newSets',   label: 'Новые наборы',          desc: 'Когда добавляются новые наборы в каталог' },
-            { key: 'articles',  label: 'Статьи от авторов',     desc: 'Когда выходят новые статьи' },
-            { key: 'reminders', label: 'Напоминания',           desc: 'Напоминания обновить инвентарь' },
-            { key: 'weekly',    label: 'Еженедельный дайджест', desc: 'Краткая сводка за неделю' },
+            { key: 'newSets',   label: 'Новые наборы',      desc: 'Когда добавляются новые наборы в каталог' },
+            { key: 'articles',  label: 'Статьи от авторов', desc: 'Когда выходят новые статьи' },
+            { key: 'reminders', label: 'Напоминания',       desc: 'Напоминания обновить инвентарь' },
           ].map(({ key, label, desc }) => (
             <div key={key} className="settings-row">
               <div>
@@ -295,9 +297,45 @@ export default function Settings() {
           ))}
         </div>
 
+        {/* Часовой пояс */}
+        <div className="settings-section">
+          <div className="settings-section-title">Региональные настройки</div>
+          <div className="settings-row">
+            <div>
+              <div className="settings-row-label">Часовой пояс</div>
+              <div className="settings-row-desc">Используется для расчёта напоминаний и временных меток</div>
+            </div>
+            <select
+              className="settings-tz-select"
+              value={timezone}
+              onChange={e => { setTimezone(e.target.value); localStorage.setItem('ss_timezone', e.target.value) }}
+            >
+              <option value="Europe/Kaliningrad">UTC+2 — Калининград</option>
+              <option value="Europe/Moscow">UTC+3 — Москва, Санкт-Петербург</option>
+              <option value="Europe/Samara">UTC+4 — Самара, Ижевск</option>
+              <option value="Asia/Yekaterinburg">UTC+5 — Екатеринбург</option>
+              <option value="Asia/Omsk">UTC+6 — Омск</option>
+              <option value="Asia/Krasnoyarsk">UTC+7 — Красноярск, Новосибирск</option>
+              <option value="Asia/Irkutsk">UTC+8 — Иркутск</option>
+              <option value="Asia/Yakutsk">UTC+9 — Якутск</option>
+              <option value="Asia/Vladivostok">UTC+10 — Владивосток</option>
+              <option value="Asia/Magadan">UTC+11 — Магадан</option>
+              <option value="Asia/Kamchatka">UTC+12 — Камчатка</option>
+            </select>
+          </div>
+        </div>
+
         {/* Конфиденциальность */}
         <div className="settings-section">
           <div className="settings-section-title">Конфиденциальность</div>
+
+          <div className="settings-row settings-row-vert">
+            <div>
+              <div className="settings-row-label">Кто может видеть мои наборы</div>
+              <div className="settings-row-desc">Личные наборы всегда видны только вам</div>
+            </div>
+            <VisibilitySelect value={privacy.sets} onChange={setPriv('sets')} />
+          </div>
 
           <div className="settings-row settings-row-vert">
             <div>
