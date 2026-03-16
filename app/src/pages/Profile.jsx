@@ -563,9 +563,11 @@ export default function Profile() {
     return map
   })()
 
-  // Суммируем конверты по категориям
+  // Суммируем конверты + личные позиции инвентаря по категориям
   const grandTotal = CATEGORIES.reduce((sum, cat) => {
-    return sum + (envelopes[cat.id] || []).reduce((s, x) => s + x.amount, 0)
+    const envAmt = (envelopes[cat.id] || []).reduce((s, x) => s + x.amount, 0)
+    const personalAmt = (personalByCat[cat.id] || []).reduce((s, i) => s + calcItemMonthly(i), 0)
+    return sum + envAmt + personalAmt
   }, 0)
 
   // Динамический перерасчёт
@@ -574,24 +576,26 @@ export default function Profile() {
   const monthlyInvest = Math.max(0, savings)
 
   // Строим группы финансовой картины из актуальных данных
-  const housingPct = Math.round(housing / income * 100)
-  const creditPct = Math.round(credit / income * 100)
+  const housingPct = income > 0 ? Math.round(housing / income * 100) : null
+  const creditPct = income > 0 ? Math.round(credit / income * 100) : null
   const staticGroups = [
     {
       id: 'housing', label: 'Жильё', total: -housing, pct: housingPct,
       rows: [{ label: 'Аренда / ипотека + ЖКХ', value: -housing }],
-      hint: housingPct > 30
-        ? `${housingPct}% дохода на жильё — выше рекомендуемых 25–30%. Если аренда выросла, возможно стоит пересмотреть бюджет.`
-        : `${housingPct}% дохода на жильё — в норме.`,
-      hintType: housingPct > 30 ? 'warn' : 'info',
+      hint: housingPct != null
+        ? (housingPct > 30
+          ? `${housingPct}% дохода на жильё — выше рекомендуемых 25–30%. Если аренда выросла, возможно стоит пересмотреть бюджет.`
+          : `${housingPct}% дохода на жильё — в норме.`)
+        : null,
+      hintType: housingPct != null && housingPct > 30 ? 'warn' : 'info',
     },
     {
       id: 'credit', label: 'Кредитные обязательства', total: -credit, pct: creditPct,
       rows: credit > 0 ? [{ label: 'Кредиты и кредитные карты', value: -credit }] : [],
-      hint: credit > 0
+      hint: credit > 0 && creditPct != null
         ? `Кредитная нагрузка ${creditPct}% дохода — ${creditPct <= 20 ? 'в норме.' : 'выше рекомендуемых 20%. Рассмотрите досрочное погашение.'}`
         : null,
-      hintType: creditPct <= 20 ? 'info' : 'warn',
+      hintType: creditPct == null || creditPct <= 20 ? 'info' : 'warn',
     },
   ]
 
@@ -599,7 +603,7 @@ export default function Profile() {
     id: 'envelopes',
     label: 'Конверты',
     total: -grandTotal,
-    pct: Math.round(grandTotal / income * 100),
+    pct: income > 0 ? Math.round(grandTotal / income * 100) : null,
     rows: CATEGORIES
       .filter(cat => (envelopes[cat.id] || []).length > 0)
       .map(cat => ({
@@ -640,9 +644,18 @@ export default function Profile() {
 
   function deleteSet(catId, idx) {
     setEnvelopes(prev => {
+      const setEntry = (prev[catId] || [])[idx]
       const next = { ...prev, [catId]: [...(prev[catId] || [])] }
       next[catId].splice(idx, 1)
       saveEnvelopes(next)
+      // Удаляем замороженные позиции этого набора из инвентаря
+      if (setEntry?.id) {
+        try {
+          const invData = JSON.parse(localStorage.getItem('ss_inventory_extra') || '[]')
+          const filtered = invData.filter(e => !(e.setId === setEntry.id && e.paused))
+          localStorage.setItem('ss_inventory_extra', JSON.stringify(filtered))
+        } catch {}
+      }
       return next
     })
   }
@@ -675,13 +688,13 @@ export default function Profile() {
             <div className="entry-tile">
               <div className="entry-tile-label">Расходы</div>
               <div className="entry-tile-value">{totalExpenses.toLocaleString('ru')} ₽</div>
-              <div className="entry-tile-sub">{Math.round((totalExpenses / income) * 100)}% дохода</div>
+              {income > 0 && <div className="entry-tile-sub">{Math.round((totalExpenses / income) * 100)}% дохода</div>}
             </div>
             <div className="entry-tile-divider" />
             <div className="entry-tile highlight">
               <div className="entry-tile-label">Откладывается</div>
               <div className="entry-tile-value">{savings.toLocaleString('ru')} ₽</div>
-              <div className="entry-tile-sub">{Math.round((savings / income) * 100)}% дохода</div>
+              {income > 0 && <div className="entry-tile-sub">{Math.round((savings / income) * 100)}% дохода</div>}
             </div>
           </div>
         </div>
@@ -700,11 +713,11 @@ export default function Profile() {
             {budgetGroups.map(g => <BudgetGroup key={g.id} group={g} />)}
             <div className="bl-row total-expenses">
               <span className="bl-label">Итого расходов</span>
-              <span className="bl-value">−{totalExpenses.toLocaleString('ru')} ₽ <span className="bl-tag-neutral">{Math.round((totalExpenses / income) * 100)}% дохода</span></span>
+              <span className="bl-value">−{totalExpenses.toLocaleString('ru')} ₽ {income > 0 && <span className="bl-tag-neutral">{Math.round((totalExpenses / income) * 100)}% дохода</span>}</span>
             </div>
             <div className="bl-row remainder">
               <span className="bl-label">Остаток — к инвестированию</span>
-              <span className="bl-value">{savings.toLocaleString('ru')} ₽ <span className="bl-tag">{Math.round((savings / income) * 100)}%</span></span>
+              <span className="bl-value">{savings.toLocaleString('ru')} ₽ {income > 0 && <span className="bl-tag">{Math.round((savings / income) * 100)}%</span>}</span>
             </div>
           </div>
         </div>
@@ -782,7 +795,7 @@ export default function Profile() {
               const hasSets = sets.length > 0
               const personalItems = personalByCat[cat.id] || []
               const hasPersonal = personalItems.length > 0
-              const total = sets.reduce((s, x) => s + x.amount, 0)
+              const total = sets.reduce((s, x) => s + x.amount, 0) + (hasPersonal ? personalMonthly : 0)
               const totalSets = sets.length + (hasPersonal ? 1 : 0)
               const desc = (hasSets || hasPersonal)
                 ? `${totalSets} набор${totalSets === 1 ? '' : totalSets < 5 ? 'а' : 'ов'} · пополняется 1-го числа`

@@ -142,20 +142,33 @@ export default function SetDetail() {
     const invItems = isConsumable
       // Расходники: каждая позиция — consumable с суточным расходом
       ? activeItems.map((item, idx) => {
-          const totalQty = item.qty * scale
+          let unit = item.unit || 'шт'
+          let rawQty = item.qty * scale  // количество за один период закупки
+
+          // Переводим крупные единицы в мелкие для наглядного отображения
+          if (unit === 'кг') { rawQty = rawQty * 1000; unit = 'г' }
+          else if (unit === 'л') { rawQty = rawQty * 1000; unit = 'мл' }
+
+          const qty = Math.round(rawQty)
+          // Суточный расход = кол-во за период / дней в периоде
+          // item.period — в годах (1/12 = месяц, 2/12 = 2 месяца)
+          const daysInPeriod = item.period * 12 * 30
+          const dailyUse = parseFloat((qty / daysInPeriod).toFixed(2))
+          const price = Math.round(item.basePrice * item.qty * scale)  // стоимость за период
+
           return {
             id: `inv_${set.id}_${item.id}_${ts + idx * 1000}`,
             name: item.name,
             type: 'consumable',
-            price: Math.round(item.basePrice * totalQty),  // общая стоимость закупки
-            qty: totalQty,                                   // общее кол-во (кг/л/шт)
-            dailyUse: totalQty / 30,                        // суточный расход
-            unit: item.unit || 'шт',
+            price,
+            qty,
+            dailyUse,
+            unit,
             lastBought: today,
             set: setTitle,
             setId: set.id,
             groupId,
-            paused: false,  // расходники сразу активны
+            paused: true,   // замороженный — пользователь активирует вручную
             isExtra: true,
           }
         })

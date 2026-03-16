@@ -2171,6 +2171,14 @@ body.dark {
 }
 .inv-notes-thumb-wrap:hover .inv-notes-thumb-remove { opacity: 1; }
 .inv-notes-thumb-wrap { cursor: pointer; }
+.inv-notes-placeholder {
+  padding: 10px 16px 12px;
+  border-top: 1px solid var(--border);
+  font-size: 13px; color: var(--text-3);
+  cursor: pointer; transition: color 0.13s;
+  display: flex; align-items: center; gap: 6px;
+}
+.inv-notes-placeholder:hover { color: var(--accent-green); }
 
 /* Lightbox */
 .inv-lightbox-overlay {
@@ -2314,7 +2322,10 @@ body.dark .inv-date-input { background: var(--surface-2); color: var(--text); }
   font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--text);
   border: none; border-left: 1px solid var(--border); border-right: 1px solid var(--border);
   background: none; outline: none; padding: 0 4px; height: 100%;
+  -moz-appearance: textfield;
 }
+.stepper-val::-webkit-inner-spin-button,
+.stepper-val::-webkit-outer-spin-button { display: none; }
 .stepper-unit {
   font-size: 11px; color: var(--text-3); padding: 0 10px 0 4px;
   white-space: nowrap; line-height: 36px;

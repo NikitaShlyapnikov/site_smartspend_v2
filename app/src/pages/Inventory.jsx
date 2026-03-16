@@ -135,6 +135,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
   const [lightboxIdx, setLightboxIdx] = useState(null)
   const [isEditingParams, setIsEditingParams] = useState(false)
   const [paramForm, setParamForm] = useState(null)
+  const [localNoteEdit, setLocalNoteEdit] = useState(false)
 
   function startEditParams(e) {
     e.stopPropagation()
@@ -234,7 +235,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
       <>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Расход/день</div>
-          <div className="inv-detail-val mono">{item.dailyUse}&thinsp;{unit}</div>
+          <div className="inv-detail-val mono">{(unit === 'г' || unit === 'мл') ? Math.round(item.dailyUse || 0) : parseFloat((item.dailyUse || 0).toFixed(2))}&thinsp;{unit}</div>
         </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Стоимость/день</div>
@@ -469,7 +470,15 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
         )}
 
         {/* Notes section */}
-        {open && (editMode || notes.text || (notes.photos && notes.photos.length > 0)) && (
+        {open && !editMode && !localNoteEdit && !notes.text && !(notes.photos && notes.photos.length > 0) && (
+          <div className="inv-notes-placeholder" onClick={e => { e.stopPropagation(); setLocalNoteEdit(true) }}>
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+            </svg>
+            Добавить заметку...
+          </div>
+        )}
+        {open && (editMode || localNoteEdit || notes.text || (notes.photos && notes.photos.length > 0)) && (
           <div className="inv-notes-section">
             <div className="inv-notes-label">
               <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -477,7 +486,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
               </svg>
               Заметки
             </div>
-            {editMode ? (
+            {(editMode || localNoteEdit) ? (
               <>
                 <textarea
                   className="inv-notes-textarea"
