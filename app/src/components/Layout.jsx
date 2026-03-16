@@ -1,19 +1,14 @@
-import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
+import { useNavigate } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import MobileNav from './MobileNav'
+import AuthModal from './AuthModal'
 
 export default function Layout({ children }) {
-  const { collapsed } = useApp()
+  const { collapsed, setUsername } = useApp()
   const navigate = useNavigate()
-
-  useEffect(() => {
-    const auth = localStorage.getItem('ss_auth')
-    if (auth !== 'true') {
-      navigate('/?auth=1', { replace: true })
-    }
-  }, [navigate])
+  const [authed, setAuthed] = useState(localStorage.getItem('ss_auth') === 'true')
 
   useEffect(() => {
     document.body.classList.add('app-body')
@@ -23,6 +18,25 @@ export default function Layout({ children }) {
   useEffect(() => {
     document.body.classList.toggle('sidebar-collapsed', collapsed)
   }, [collapsed])
+
+  function handleAuth(name) {
+    localStorage.setItem('ss_auth', 'true')
+    localStorage.setItem('ss_username', name)
+    setUsername(name)
+    setAuthed(true)
+  }
+
+  if (!authed) {
+    return (
+      <AuthModal
+        open={true}
+        dismissable={false}
+        onClose={() => navigate(-1)}
+        onAuth={handleAuth}
+        defaultTab="login"
+      />
+    )
+  }
 
   return (
     <>

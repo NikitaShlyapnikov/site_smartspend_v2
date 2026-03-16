@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import Layout from '../components/Layout'
+import PublicLayout from '../components/PublicLayout'
+import { useAuthModal } from '../components/AuthModal'
 import { catalogSets } from '../data/mock'
 
 function loadLikes() {
@@ -37,6 +38,7 @@ export default function Catalog() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const initCat = VALID_CATS.includes(searchParams.get('cat')) ? searchParams.get('cat') : 'all'
+  const authed = localStorage.getItem('ss_auth') === 'true'
 
   const [cat, setCat]           = useState(initCat)
   const [typeFilter, setType]   = useState('all')
@@ -44,15 +46,22 @@ export default function Catalog() {
   const [sortFilter, setSort]   = useState('popular')
   const [likedSets, setLikedSets] = useState(loadLikes)
   const [itemSearch, setItemSearch] = useState('')
+  const { modal: authModal, requireAuth } = useAuthModal()
 
   function toggleLike(id, e) {
     e.stopPropagation()
+    if (!requireAuth()) return
     setLikedSets(prev => {
       const next = new Set(prev)
       next.has(id) ? next.delete(id) : next.add(id)
       saveLikes(next)
       return next
     })
+  }
+
+  function handleSourceFilter(id) {
+    if ((id === 'liked' || id === 'own') && !authed) { requireAuth(); return }
+    setSrc(id)
   }
 
   // Counts per category (across all source/type filters)
@@ -88,7 +97,7 @@ export default function Catalog() {
   const fmtDate = iso => new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
 
   return (
-    <Layout>
+    <PublicLayout>
       <main className="catalog-main">
         {/* Header */}
         <div className="catalog-header">
@@ -149,11 +158,11 @@ export default function Catalog() {
               <div className="seg-ctrl">
                 {[['all', 'Все источники'], ['ss', 'SmartSpend'], ['community', 'Сообщество'], ['own', 'Мои']].map(([id, label]) => (
                   <button key={id} className={`seg-btn${sourceFilter === id ? ' active' : ''}`}
-                    onClick={() => setSrc(id)}>{label}</button>
+                    onClick={() => handleSourceFilter(id)}>{label}</button>
                 ))}
                 <button
                   className={`seg-btn seg-btn-liked${sourceFilter === 'liked' ? ' active' : ''}`}
-                  onClick={() => setSrc(sourceFilter === 'liked' ? 'all' : 'liked')}
+                  onClick={() => { if (!authed) { requireAuth(); return } setSrc(sourceFilter === 'liked' ? 'all' : 'liked') }}
                 >
                   Понравившиеся
                 </button>
@@ -264,7 +273,8 @@ export default function Catalog() {
         </div>
         </div>
       </main>
-    </Layout>
+      {authModal}
+    </PublicLayout>
   )
 }
 

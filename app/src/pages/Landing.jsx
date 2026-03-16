@@ -352,7 +352,7 @@ export default function Landing() {
 
   useEffect(() => {
     if (localStorage.getItem('ss_auth') === 'true') {
-      navigate('/feed', { replace: true })
+      navigate('/profile', { replace: true })
       return
     }
     // Auto-open auth if redirected from protected page
@@ -366,7 +366,7 @@ export default function Landing() {
     localStorage.setItem('ss_auth', 'true')
     localStorage.setItem('ss_username', name)
     setUsername(name)
-    navigate('/feed', { replace: true })
+    navigate('/profile', { replace: true })
   }
 
   function openLogin() { setAuthTab('login'); setAuthOpen(true) }
@@ -399,7 +399,7 @@ export default function Landing() {
           </div>
           <div className="landing-nav-actions">
             <button className="nav-btn-ghost" onClick={openLogin}>Войти</button>
-            <button className="nav-btn-primary" onClick={openRegister}>Начать бесплатно</button>
+            <button className="nav-btn-primary" onClick={openRegister}>Создать аккаунт</button>
           </div>
         </div>
       </nav>
@@ -414,13 +414,8 @@ export default function Landing() {
               <h1 className="landing-h1">Зарплата пришла —<br/>и сразу <em>ушла?</em></h1>
               <p className="landing-hero-sub">SmartSpend покажет, куда уходят деньги, и научит тратить так, чтобы капитал рос — без жертв и без боли.</p>
               <div className="landing-hero-actions-row">
-                <button className="landing-btn-primary" onClick={openRegister}>Начать бесплатно →</button>
+                <button className="landing-btn-primary" onClick={openRegister}>Создать аккаунт →</button>
                 <button className="landing-btn-ghost" onClick={() => setQuizOpen(true)}>Пройти тест (2 мин)</button>
-              </div>
-              <div className="landing-hero-stats">
-                <div><div className="landing-stat-num">1 200+</div><div className="landing-stat-label">Пользователей</div></div>
-                <div><div className="landing-stat-num">50+</div><div className="landing-stat-label">Готовых наборов</div></div>
-                <div><div className="landing-stat-num">11</div><div className="landing-stat-label">Категорий жизни</div></div>
               </div>
             </div>
             <div className="landing-hero-mockup">
@@ -548,7 +543,7 @@ export default function Landing() {
           </div>
           <div className="landing-mid-cta">
             <div><h3>Готовы попробовать?</h3><p>Регистрация занимает меньше минуты. Карта не нужна.</p></div>
-            <button className="landing-btn-primary" onClick={openRegister}>Начать бесплатно →</button>
+            <button className="landing-btn-primary" onClick={openRegister}>Создать аккаунт →</button>
           </div>
         </div>
       </section>
@@ -637,7 +632,7 @@ export default function Landing() {
           <div className="landing-cta-section">
             <h2 className="landing-h2">Начните сегодня — следующая зарплата уже <em>под контролем</em></h2>
             <p className="landing-subhead" style={{ textAlign: 'center', margin: '0 auto 28px' }}>Бесплатно. Без карты. Без обязательств.</p>
-            <button className="landing-btn-primary" onClick={openRegister}>Начать бесплатно →</button>
+            <button className="landing-btn-primary" onClick={openRegister}>Создать аккаунт →</button>
           </div>
         </div>
       </section>

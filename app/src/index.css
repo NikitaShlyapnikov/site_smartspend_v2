@@ -1559,6 +1559,48 @@ body.dark .landing-nav { background: rgba(20,20,18,0.88); }
 .landing-cta-section { text-align: center; background: var(--surface); border-radius: var(--r); padding: 72px 48px; box-shadow: var(--shadow); border: 1px solid var(--border); }
 .landing-cta-section .landing-h2 { max-width: 640px; margin: 0 auto 12px; }
 
+/* ── GUEST NAV ── */
+.guest-nav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  height: 52px;
+}
+.guest-nav-inner {
+  max-width: 1200px; margin: 0 auto; padding: 0 24px;
+  height: 100%; display: flex; align-items: center; gap: 24px;
+}
+.guest-nav-logo {
+  display: flex; align-items: center; gap: 8px; background: none; border: none;
+  cursor: pointer; color: var(--text-1); font-weight: 600; font-size: 15px;
+  letter-spacing: -0.02em; padding: 0; flex-shrink: 0;
+}
+.guest-logo-mark {
+  width: 26px; height: 26px; background: var(--accent); border-radius: 7px;
+  display: flex; align-items: center; justify-content: center; color: white;
+}
+.guest-nav-brand { font-size: 15px; font-weight: 600; }
+.guest-nav-links { display: flex; gap: 4px; flex: 1; }
+.guest-nav-link {
+  background: none; border: none; cursor: pointer; color: var(--text-2);
+  font-size: 13px; padding: 5px 10px; border-radius: 8px;
+  transition: background .15s, color .15s;
+}
+.guest-nav-link:hover { background: var(--surface-2); color: var(--text-1); }
+.guest-nav-actions { display: flex; gap: 8px; align-items: center; }
+.guest-btn-ghost {
+  background: none; border: 1px solid var(--border); color: var(--text-1);
+  padding: 6px 14px; border-radius: 8px; font-size: 13px; cursor: pointer;
+  transition: background .15s;
+}
+.guest-btn-ghost:hover { background: var(--surface-2); }
+.guest-btn-primary {
+  background: var(--accent); color: white; border: none;
+  padding: 6px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: 500;
+  transition: opacity .15s;
+}
+.guest-btn-primary:hover { opacity: .88; }
+.guest-content { min-height: calc(100vh - 52px); }
+
 /* ── FOOTER ── */
 .landing-footer-new { padding: 32px 0; border-top: 1px solid var(--border); }
 .landing-footer-container { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; }

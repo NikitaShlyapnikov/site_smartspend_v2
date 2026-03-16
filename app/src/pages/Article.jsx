@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import Layout from '../components/Layout'
+import PublicLayout from '../components/PublicLayout'
 import { articles } from '../data/mock'
 
 function fmtNum(n) {
@@ -53,7 +53,7 @@ export default function Article() {
 
   if (!article) {
     return (
-      <Layout>
+      <PublicLayout>
         <main className="article-main">
           <div className="article-not-found">
             <div className="article-nf-icon">
@@ -85,7 +85,7 @@ export default function Article() {
             </div>
           </div>
         </main>
-      </Layout>
+      </PublicLayout>
     )
   }
 
@@ -118,7 +118,7 @@ export default function Article() {
   }
 
   return (
-    <Layout>
+    <PublicLayout>
       <main className="article-main">
 
         {/* Breadcrumb */}
@@ -343,6 +343,6 @@ export default function Article() {
         </div>
 
       </main>
-    </Layout>
+    </PublicLayout>
   )
 }

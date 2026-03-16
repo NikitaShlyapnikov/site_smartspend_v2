@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import Layout from '../components/Layout'
+import PublicLayout from '../components/PublicLayout'
 import { setDetails, catalogSets } from '../data/mock'
 
 // Category → envelope category (Profile)
@@ -203,7 +203,7 @@ export default function SetDetail() {
   }
 
   if (!set) return (
-    <Layout>
+    <PublicLayout>
       <main className="sd-main">
         <div className="empty-state">
           <div className="empty-state-icon">📦</div>
@@ -211,7 +211,7 @@ export default function SetDetail() {
           <button className="btn-sm" style={{ marginTop: 8 }} onClick={() => navigate('/catalog')}>← Каталог</button>
         </div>
       </main>
-    </Layout>
+    </PublicLayout>
   )
 
   const tableItems   = items.length > 0 ? items : null
@@ -233,7 +233,7 @@ export default function SetDetail() {
   )
 
   return (
-    <Layout>
+    <PublicLayout>
       <main className="sd-main">
         {/* Breadcrumb */}
         <div className="breadcrumb">
@@ -642,7 +642,7 @@ export default function SetDetail() {
           </div>
         )}
       </main>
-    </Layout>
+    </PublicLayout>
   )
 }
 

@@ -121,7 +121,7 @@ function getStepSize(elapsed) {
   return 1000
 }
 
-function InventoryItem({ item, open, onToggle, override, onOverrideChange, editMode, onDelete, onUnlink, onLinkSet, onLaunch, notes, onNotesChange, onUpdateItem }) {
+function InventoryItem({ item, open, onToggle, override, onOverrideChange, onStepStop, editMode, onDelete, onUnlink, onLinkSet, onLaunch, notes, onNotesChange, onUpdateItem }) {
   const paused = !!item.paused
   const info = getItemInfo(item, override)
   const { pct, status, remainderText, ringNum, ringUnit, monthlyBlock } = info
@@ -200,6 +200,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, editM
 
   function stopStep() {
     if (stepTimerRef.current) { clearTimeout(stepTimerRef.current); stepTimerRef.current = null }
+    onStepStop?.()
   }
 
   const stepperVal = override !== null
@@ -368,6 +369,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, editM
                     <input
                       className="stepper-val" type="number" value={stepperVal}
                       onChange={e => onOverrideChange(Math.max(0, parseInt(e.target.value) || 0))}
+                      onBlur={() => onStepStop?.()}
                     />
                     <span className="stepper-unit">{unit}</span>
                     <button className="stepper-btn"
@@ -383,6 +385,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, editM
                     value={typeof stepperVal === 'string' ? stepperVal : item.purchaseDate}
                     max={new Date().toISOString().slice(0, 10)}
                     onChange={e => onOverrideChange(e.target.value)}
+                    onBlur={() => onStepStop?.()}
                   />
                 </>
               )}
@@ -990,14 +993,16 @@ export default function Inventory() {
                       onOverrideChange={v => {
                         const iid = item.id
                         setOverrides(prev => ({ ...prev, [iid]: v }))
-                        if (statusFilter) {
-                          if (filterDebounceRef.current) clearTimeout(filterDebounceRef.current)
-                          filterDebounceRef.current = setTimeout(() => {
-                            setFilterOverrides({ ...overridesRef.current })
-                          }, 4000)
-                        } else {
+                        if (!statusFilter) {
                           setFilterOverrides(prev => ({ ...prev, [iid]: v }))
                         }
+                      }}
+                      onStepStop={() => {
+                        if (!statusFilter) return
+                        if (filterDebounceRef.current) clearTimeout(filterDebounceRef.current)
+                        filterDebounceRef.current = setTimeout(() => {
+                          setFilterOverrides({ ...overridesRef.current })
+                        }, 3000)
                       }}
                       editMode={editMode}
                       onDelete={() => setDeleteConfirm({ id: item.id, name: item.name, set: item.set })}
