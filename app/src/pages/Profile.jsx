@@ -18,6 +18,81 @@ const GROUP_CATS = {
 
 const BASE_RETURN = 0.04
 
+// ── Profile Tour ─────────────────────────────────────────────────────────────
+const TOUR_STEPS = [
+  {
+    icon: (
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+      </svg>
+    ),
+    title: 'Профиль — твой финансовый центр',
+    desc: 'Здесь собрана вся картина твоих финансов: доходы, расходы, накопления и план по конвертам. Давай разберёмся с каждым блоком.',
+  },
+  {
+    icon: (
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+      </svg>
+    ),
+    title: 'Финансовые показатели',
+    desc: 'В верхней части — твой доход, общие расходы и сколько остаётся на накопления каждый месяц. Укажи доход и обязательные расходы в разделе «Финансовая картина».',
+  },
+  {
+    icon: (
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+      </svg>
+    ),
+    title: 'Накопления и EmoSpend',
+    desc: 'Накопления показывают рост капитала с учётом доходности. EmoSpend — это сумма, которую ты можешь тратить на удовольствия каждый месяц без вреда для финансовой цели.',
+  },
+  {
+    icon: (
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+      </svg>
+    ),
+    title: 'Конверты',
+    desc: 'Конверты — это категории трат: одежда, еда, здоровье и другие. Каждый конверт показывает, сколько нужно откладывать в месяц. Внутри конвертов — наборы, которые ты добавляешь из каталога.',
+  },
+]
+
+function ProfileTour({ onClose }) {
+  const [step, setStep] = useState(0)
+  const current = TOUR_STEPS[step]
+  const isLast = step === TOUR_STEPS.length - 1
+
+  function finish() {
+    localStorage.setItem('ss_tour_profile', '1')
+    onClose()
+  }
+
+  return (
+    <div className="tour-overlay" onClick={finish}>
+      <div className="tour-modal" onClick={e => e.stopPropagation()}>
+        <button className="tour-skip" onClick={finish}>Пропустить</button>
+        <div className="tour-icon">{current.icon}</div>
+        <div className="tour-step-dots">
+          {TOUR_STEPS.map((_, i) => (
+            <span key={i} className={`tour-dot${i === step ? ' active' : ''}`} onClick={() => setStep(i)} />
+          ))}
+        </div>
+        <div className="tour-title">{current.title}</div>
+        <div className="tour-desc">{current.desc}</div>
+        <div className="tour-actions">
+          {step > 0 && (
+            <button className="tour-btn-back" onClick={() => setStep(s => s - 1)}>Назад</button>
+          )}
+          <button className="tour-btn-next" onClick={isLast ? finish : () => setStep(s => s + 1)}>
+            {isLast ? 'Понятно' : 'Далее'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const DEFAULT_FINANCE = {
   income: 0,
   housing: 0,
@@ -545,6 +620,7 @@ export default function Profile() {
   const [editMode, setEditMode] = useState(false)
   const [finOpen, setFinOpen] = useState(false)
   const [finance, setFinance] = useState(loadFinance)
+  const [showTour, setShowTour] = useState(() => !localStorage.getItem('ss_tour_profile'))
 
   const { income, housing, credit, creditMonths = 0, capital, updatedAt } = finance
 
@@ -941,6 +1017,7 @@ export default function Profile() {
         onSave={f => setFinance(f)}
         onClose={() => setFinOpen(false)}
       />
+      {showTour && <ProfileTour onClose={() => setShowTour(false)} />}
     </Layout>
   )
 }
