@@ -1,6 +1,13 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
+import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
+
+const CA_SPOTLIGHT = [
+  { targetId: 'sp-ca-toolbar', btnId: 'sp-ca-publish', title: 'Панель редактора',    desc: 'Кнопки форматирования текста: жирный, курсив, заголовок, цитата. Справа — предпросмотр и публикация статьи.' },
+  { targetId: 'sp-ca-meta',    btnId: null,            title: 'Категория и настройки', desc: 'Укажи тему статьи и видимость. Можно прикрепить свой набор — он появится в конце статьи.' },
+  { targetId: 'sp-ca-photo',   btnId: null,            title: 'Фотографии',           desc: 'Загружай фото перетаскиванием или кликом. Нажми на фото — скопируется код для вставки в текст.' },
+]
 
 const CATEGORIES = [
   'Прочие расходы', 'Еда и Супермаркеты', 'Кафе, Бары, Рестораны',
@@ -100,6 +107,7 @@ export default function CreateArticle() {
   const [toast,     setToast]     = useState(null)
   const [linkedSet, setLinkedSet] = useState(null)   // выбранный набор
   const [setPickerOpen, setSetPickerOpen] = useState(false)
+  const [showSpotlight, setShowSpotlight] = useState(false)
 
   const wordCount = body.trim() ? body.trim().split(/\s+/).length : 0
   const readMin   = Math.max(1, Math.round(wordCount / 200))
@@ -155,7 +163,7 @@ export default function CreateArticle() {
       <main className="editor-main">
 
         {/* ── Toolbar ── */}
-        <div className="editor-toolbar">
+        <div id="sp-ca-toolbar" className="editor-toolbar">
           <div className="editor-format-bar">
             {FORMAT_BTNS.map(btn => (
               <button key={btn.label} className="fmt-btn" title={btn.title}
@@ -168,13 +176,14 @@ export default function CreateArticle() {
           </div>
           <div className="editor-toolbar-right">
             <span className="editor-counter">{wordCount} сл. · ~{readMin} мин</span>
+            <HelpButton seenKey="ss_spl_createarticle" onOpen={() => setShowSpotlight(true)} />
             <button className={`btn-preview-toggle${preview ? ' active' : ''}`} onClick={() => setPreview(p => !p)}>
               <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
               </svg>
               {preview ? 'Редактор' : 'Предпросмотр'}
             </button>
-            <button className="btn-publish" onClick={() => navigate('/feed')}>Опубликовать</button>
+            <button id="sp-ca-publish" className="btn-publish" onClick={() => navigate('/feed')}>Опубликовать</button>
           </div>
         </div>
 
@@ -288,7 +297,7 @@ export default function CreateArticle() {
             /* ══════════════════ EDITOR MODE ══════════════════ */
             <>
               {/* Meta */}
-              <div className="editor-meta-block">
+              <div id="sp-ca-meta" className="editor-meta-block">
                 <div className="editor-meta-row">
                   <div className="editor-meta-label">Категория</div>
                   <div className="editor-cats">
@@ -384,7 +393,7 @@ export default function CreateArticle() {
               </div>
 
               {/* Photo section */}
-              <div className="photo-section">
+              <div id="sp-ca-photo" className="photo-section">
                 <div className="photo-section-title">
                   <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                     <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
@@ -445,6 +454,7 @@ export default function CreateArticle() {
           {toast}
         </div>
 
+      {showSpotlight && <SpotlightTour steps={CA_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
       </main>
     </Layout>
   )

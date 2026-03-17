@@ -37,12 +37,16 @@ export default function SpotlightTour({ steps, onClose }) {
   const isLast = step === steps.length - 1
   const current = steps[step]
 
+  const MAX_HIGHLIGHT_H = rect ? Math.min(window.innerHeight * 0.45, rect.height + PAD * 2) : 0
+  const clampedH = rect ? (rect.height + PAD * 2 > window.innerHeight * 0.45 ? MAX_HIGHLIGHT_H : rect.height + PAD * 2) : 0
+  const effectiveBottom = rect ? rect.top - PAD + clampedH : 0
+
   const highlightStyle = rect ? {
     position: 'fixed',
     top:    rect.top    - PAD,
     left:   rect.left   - PAD,
     width:  rect.width  + PAD * 2,
-    height: rect.height + PAD * 2,
+    height: clampedH,
     borderRadius: 14,
     boxShadow: '0 0 0 9999px rgba(0,0,0,0.58)',
     zIndex: 1100,
@@ -50,14 +54,14 @@ export default function SpotlightTour({ steps, onClose }) {
     transition: 'top 0.3s ease, left 0.3s ease, width 0.3s ease, height 0.3s ease',
   } : null
 
-  const tooltipBelow = rect && (rect.bottom + PAD + 190 < window.innerHeight)
+  const tooltipBelow = rect && (effectiveBottom + 10 + 190 < window.innerHeight)
   const tooltipLeft  = rect ? Math.max(16, Math.min(rect.left - PAD, window.innerWidth - 340)) : 0
   const arrowLeft    = rect ? Math.min(Math.max(rect.left - tooltipLeft + PAD + 16, 16), 280) : 16
 
   const tooltipStyle = rect ? {
     position: 'fixed',
     left: tooltipLeft,
-    top: tooltipBelow ? rect.bottom + PAD + 10 : rect.top - PAD - 175,
+    top: tooltipBelow ? effectiveBottom + 10 : rect.top - PAD - 175,
     width: 320,
     zIndex: 1101,
     transition: 'top 0.3s ease, left 0.3s ease',

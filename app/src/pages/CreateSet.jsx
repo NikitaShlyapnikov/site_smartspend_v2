@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
+import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
+
+const CS_SPOTLIGHT = [
+  { targetId: 'sp-cs-toolbar', btnId: 'sp-cs-publish', title: 'Панель инструментов', desc: 'Здесь кнопки предпросмотра и публикации набора. Сначала заполни состав и настройки, а потом нажми «Опубликовать».' },
+  { targetId: 'sp-cs-meta',    btnId: null,            title: 'Категория и видимость', desc: 'Выбери категорию набора и укажи, будет ли он публичным для сообщества или останется приватным.' },
+  { targetId: 'sp-cs-items',   btnId: null,            title: 'Позиции набора', desc: 'Добавляй товары или вещи в набор. Для каждой позиции укажи цену и срок службы — система посчитает ежемесячную амортизацию.' },
+]
 
 const CATEGORIES = [
   { id: 'other',      label: 'Прочие расходы'        },
@@ -148,6 +155,7 @@ function SetItemRow({ item, onDelete }) {
 export default function CreateSet() {
   const navigate = useNavigate()
 
+  const [showSpotlight, setShowSpotlight] = useState(false)
   const [preview,   setPreview]   = useState(false)
   const [title,     setTitle]     = useState('')
   const [shortDesc, setShortDesc] = useState('')
@@ -172,9 +180,12 @@ export default function CreateSet() {
       <main className="editor-main">
 
         {/* ── Toolbar ── */}
-        <div className="editor-toolbar">
+        <div id="sp-cs-toolbar" className="editor-toolbar">
           <div className="editor-format-bar">
-            <span className="editor-toolbar-title">Создать набор</span>
+            <span className="editor-toolbar-title" style={{display:'flex',alignItems:'center',gap:8}}>
+              Создать набор
+              <HelpButton seenKey="ss_spl_createset" onOpen={() => setShowSpotlight(true)} />
+            </span>
           </div>
           <div className="editor-toolbar-right">
             {items.length > 0 && (
@@ -188,7 +199,7 @@ export default function CreateSet() {
               </svg>
               {preview ? 'Редактор' : 'Предпросмотр'}
             </button>
-            <button className="btn-publish" onClick={() => navigate('/catalog')}>
+            <button id="sp-cs-publish" className="btn-publish" onClick={() => navigate('/catalog')}>
               {isPublic ? 'Опубликовать' : 'Сохранить'}
             </button>
           </div>
@@ -292,7 +303,7 @@ export default function CreateSet() {
             /* ══════════════════ EDITOR MODE ══════════════════ */
             <>
               {/* Meta */}
-              <div className="editor-meta-block">
+              <div id="sp-cs-meta" className="editor-meta-block">
                 <div className="editor-meta-row">
                   <div className="editor-meta-label">Категория</div>
                   <div className="editor-cats">
@@ -344,7 +355,7 @@ export default function CreateSet() {
               </div>
 
               {/* Позиции */}
-              <div className="editor-field-block">
+              <div id="sp-cs-items" className="editor-field-block">
                 <div className="editor-field-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span>Позиции набора</span>
                   {totalPerMonth > 0 && (
@@ -388,6 +399,7 @@ export default function CreateSet() {
           )}
         </div>
 
+      {showSpotlight && <SpotlightTour steps={CS_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
       </main>
     </Layout>
   )

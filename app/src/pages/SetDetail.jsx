@@ -1,7 +1,13 @@
 import { useState, useRef, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import PublicLayout from '../components/PublicLayout'
+import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import { setDetails, catalogSets } from '../data/mock'
+
+const SD_SPOTLIGHT = [
+  { targetId: 'sp-sd-hero',  btnId: 'sp-sd-add',   title: 'Карточка набора',      desc: 'Здесь — название, описание и ключевые показатели набора. Кнопка «Добавить в конверт» сохранит набор в твой инвентарь.' },
+  { targetId: 'sp-sd-items', btnId: null,           title: 'Состав набора',        desc: 'Список позиций с ценами и сроками службы. Масштаб позволяет адаптировать набор под свои нужды — например, под двух человек.' },
+]
 
 // Category → envelope category (Profile)
 const CAT_TO_ENV = {
@@ -86,6 +92,7 @@ export default function SetDetail() {
     })
     if (!disliked) setLiked(false)
   }
+  const [showSpotlight, setShowSpotlight] = useState(false)
   const [editMode, setEditMode]   = useState(false)
   const [scale, setScaleRaw]      = useState(1.0)
   const [expOpen, setExpOpen]     = useState(false)
@@ -305,7 +312,7 @@ export default function SetDetail() {
         </div>
 
         {/* ── HERO CARD ── */}
-        <div className="sd-hero-card">
+        <div id="sp-sd-hero" className="sd-hero-card">
           <div className="sd-hero-bar" style={{ background: color }} />
           <div className="sd-hero-body">
             <div className="sd-hero-badges">
@@ -322,7 +329,10 @@ export default function SetDetail() {
                 </span>
               )}
             </div>
-            <div className="sd-hero-title">{set.title}</div>
+            <div className="sd-hero-title" style={{display:'flex',alignItems:'center',gap:8}}>
+              {set.title}
+              <HelpButton seenKey="ss_spl_setdetail" onOpen={() => setShowSpotlight(true)} />
+            </div>
             <div className="sd-hero-desc">{set.desc}</div>
 
             {/* Stats row */}
@@ -360,7 +370,7 @@ export default function SetDetail() {
 
             {/* Actions */}
             <div className="sd-hero-actions">
-              <button className={`sd-btn-primary${added ? ' added' : ''}`}
+              <button id="sp-sd-add" className={`sd-btn-primary${added ? ' added' : ''}`}
                 onClick={!added ? handleAdd : undefined}>
                 {added ? <><CheckIcon /> Добавлено в конверт</> : <><PlusIcon /> Добавить в конверт</>}
               </button>
@@ -390,7 +400,7 @@ export default function SetDetail() {
 
         {/* ── ITEMS SECTION CARD ── */}
         {tableItems ? (
-          <div className="sd-section-card">
+          <div id="sp-sd-items" className="sd-section-card">
             {/* Scale stepper */}
             <div className="sd-scale-row">
               <div>
@@ -763,6 +773,7 @@ export default function SetDetail() {
             </div>
           </div>
         )}
+      {showSpotlight && <SpotlightTour steps={SD_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
       </main>
     </PublicLayout>
   )
