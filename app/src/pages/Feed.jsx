@@ -1,7 +1,13 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
+import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import { feedItems, feedAuthors } from '../data/mock'
+
+const FEED_SPOTLIGHT = [
+  { targetId: 'sp-feed-filters', btnId: null,              title: 'Фильтры и категории',  desc: 'Выбирай категории, тип контента и сортировку — лента подстроится под твои интересы.' },
+  { targetId: 'sp-feed-list',    btnId: null,              title: 'Лента статей и наборов', desc: 'Статьи от авторов и готовые наборы из каталога. Нажми на карточку, чтобы открыть подробности.' },
+]
 
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
 
@@ -497,6 +503,7 @@ function WelcomeTour({ onClose }) {
 export default function Feed() {
   const navigate = useNavigate()
   const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem('ss_tour_welcome'))
+  const [showSpotlight, setShowSpotlight] = useState(false)
   const [tab,     setTab]     = useState('all')
   const [mode,    setMode]    = useState(null)
   const [cat,     setCat]     = useState('all')
@@ -563,10 +570,13 @@ export default function Feed() {
     <Layout>
       <main className="feed-main">
         <div className="page-header">
-          <div className="page-title">Лента</div>
+          <div className="page-title" style={{display:'flex',alignItems:'center',gap:10}}>
+            Лента
+            <HelpButton seenKey="ss_spl_feed" onOpen={() => setShowSpotlight(true)} />
+          </div>
         </div>
 
-        <div className="filters-sticky">
+        <div id="sp-feed-filters" className="filters-sticky">
           <div className="filters-block">
             {/* Row 1: categories */}
             <div className="cats-scroll">
@@ -608,7 +618,7 @@ export default function Feed() {
             </div>
           )}
 
-          <div className="feed-list">
+          <div id="sp-feed-list" className="feed-list">
             {filtered.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-icon">🔍</div>
@@ -630,6 +640,7 @@ export default function Feed() {
         </div>
       </main>
       {showWelcome && <WelcomeTour onClose={() => setShowWelcome(false)} />}
+      {showSpotlight && <SpotlightTour steps={FEED_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
     </Layout>
   )
 }

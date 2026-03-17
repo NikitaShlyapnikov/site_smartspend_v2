@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
+import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import { notifications as INIT_NOTIFS } from '../data/mock'
+
+const NOTIF_SPOTLIGHT = [
+  { targetId: 'sp-notif-header',  btnId: 'sp-notif-mark',   title: 'Заголовок',           desc: 'Кнопка «Прочитать все» отмечает все уведомления как прочитанные сразу.' },
+  { targetId: 'sp-notif-filters', btnId: null,               title: 'Фильтры',             desc: 'Переключайся между типами: подписки, ответы на статьи и напоминания от инвентаря.' },
+  { targetId: 'sp-notif-list',    btnId: null,               title: 'Уведомления',         desc: 'Новые уведомления выделены точкой. Нажми на уведомление — перейдёшь к нужному разделу.' },
+]
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -60,6 +67,7 @@ export default function Notifications() {
   const navigate = useNavigate()
   const [readIds, setReadIds] = useState(loadRead)
   const [filter, setFilter] = useState('all')
+  const [showSpotlight, setShowSpotlight] = useState(false)
 
   // On unmount — persist reads
   useEffect(() => {
@@ -92,13 +100,16 @@ export default function Notifications() {
       <main className="notif-main">
 
         {/* Header */}
-        <div className="notif-header">
+        <div id="sp-notif-header" className="notif-header">
           <div>
-            <div className="page-title">Уведомления</div>
+            <div className="page-title" style={{display:'flex',alignItems:'center',gap:10}}>
+              Уведомления
+              <HelpButton seenKey="ss_spl_notif" onOpen={() => setShowSpotlight(true)} />
+            </div>
             <div className="page-subtitle">Новости, ответы и напоминания</div>
           </div>
           {totalUnread > 0 && (
-            <button className="notif-mark-all-btn" onClick={markAllRead}>
+            <button id="sp-notif-mark" className="notif-mark-all-btn" onClick={markAllRead}>
               <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 6L9 17l-5-5"/>
               </svg>
@@ -108,7 +119,7 @@ export default function Notifications() {
         </div>
 
         {/* Filter tabs */}
-        <div className="notif-filters">
+        <div id="sp-notif-filters" className="notif-filters">
           {FILTERS.map(f => (
             <button
               key={f.id}
@@ -121,7 +132,7 @@ export default function Notifications() {
         </div>
 
         {/* List */}
-        <div className="notif-scroll">
+        <div id="sp-notif-list" className="notif-scroll">
           {unreadFiltered.length > 0 && (
             <>
               <div className="notif-group-label">Новые</div>
@@ -154,6 +165,7 @@ export default function Notifications() {
             </div>
           )}
         </div>
+      {showSpotlight && <SpotlightTour steps={NOTIF_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
       </main>
     </Layout>
   )

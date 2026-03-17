@@ -1,7 +1,13 @@
 import { useState, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import Layout from '../components/Layout'
+import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import { inventoryGroups, catalogSets } from '../data/mock'
+
+const INV_SPOTLIGHT = [
+  { targetId: 'sp-inv-summary', btnId: null,            title: 'Сводка статусов',       desc: 'Карточки показывают сколько позиций требует внимания. Нажми на карточку — лента отфильтруется по статусу.' },
+  { targetId: 'sp-inv-groups',  btnId: 'sp-inv-edit',   title: 'Группы инвентаря',      desc: 'Позиции сгруппированы по категориям. Нажми на позицию — откроются детали, стоимость и дата покупки. Кнопка «Редактировать» позволяет добавлять новые позиции.' },
+]
 
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
 
@@ -884,6 +890,7 @@ export default function Inventory() {
   const [openItem, setOpenItem] = useState(null)
   const [statusFilter, setStatusFilter] = useState(null)
   const [editMode, setEditMode] = useState(false)
+  const [showSpotlight, setShowSpotlight] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(null)   // {id, name, set}
   const [unlinkConfirm, setUnlinkConfirm] = useState(null)   // {id, name, set}
   const [linkToSetItem, setLinkToSetItem] = useState(null)   // item id
@@ -1098,11 +1105,14 @@ export default function Inventory() {
         {/* Header */}
         <div className="inv-page-header">
           <div>
-            <div className="page-title">Инвентарь</div>
+            <div className="page-title" style={{display:'flex',alignItems:'center',gap:10}}>
+              Инвентарь
+              <HelpButton seenKey="ss_spl_inv" onOpen={() => setShowSpotlight(true)} />
+            </div>
             <div className="page-subtitle">{items.length} позиций</div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className={`btn-edit-mode${editMode ? ' active' : ''}`} onClick={toggleEditMode}>
+            <button id="sp-inv-edit" className={`btn-edit-mode${editMode ? ' active' : ''}`} onClick={toggleEditMode}>
               {editMode ? (
                 <>
                   <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"
@@ -1126,7 +1136,7 @@ export default function Inventory() {
         </div>
 
         {/* Summary row */}
-        <div className="inv-summary-row">
+        <div id="sp-inv-summary" className="inv-summary-row">
           <div className={`inv-urgent-card${urgentItems.length === 0 ? ' empty' : ''}${statusFilter === 'urgent' ? ' active-filter' : ''}`}
             onClick={() => setStatusFilter(f => f === 'urgent' ? null : 'urgent')}>
             <div className="inv-urgent-top">
@@ -1169,7 +1179,7 @@ export default function Inventory() {
         )}
 
         {/* Groups */}
-        <div className="inv-groups">
+        <div id="sp-inv-groups" className="inv-groups">
           {visibleGroups.map(group => {
             const groupItems = items.filter(i => i.groupId === group.id)
             const displayItems = statusFilter
@@ -1365,6 +1375,7 @@ export default function Inventory() {
         </div>
         )
       })()}
+      {showSpotlight && <SpotlightTour steps={INV_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
     </Layout>
   )
 }

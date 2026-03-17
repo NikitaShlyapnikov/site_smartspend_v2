@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
+import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import { useApp } from '../context/AppContext'
 import { inventoryGroups } from '../data/mock'
 
@@ -47,94 +48,6 @@ const SPOTLIGHT_STEPS = [
   },
 ]
 
-function SpotlightTour({ onClose }) {
-  const [step, setStep] = useState(0)
-  const [rect, setRect] = useState(null)
-  const PAD = 10
-
-  useEffect(() => {
-    const el = document.getElementById(SPOTLIGHT_STEPS[step].targetId)
-    if (!el) return
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    const t = setTimeout(() => setRect(el.getBoundingClientRect()), 380)
-    return () => clearTimeout(t)
-  }, [step])
-
-  useEffect(() => {
-    const { btnId } = SPOTLIGHT_STEPS[step]
-    if (!btnId) return
-    const btn = document.getElementById(btnId)
-    if (!btn) return
-    btn.classList.add('spotlight-pulse')
-    return () => btn.classList.remove('spotlight-pulse')
-  }, [step])
-
-  const isLast = step === SPOTLIGHT_STEPS.length - 1
-  const current = SPOTLIGHT_STEPS[step]
-
-  const highlightStyle = rect ? {
-    position: 'fixed',
-    top:    rect.top    - PAD,
-    left:   rect.left   - PAD,
-    width:  rect.width  + PAD * 2,
-    height: rect.height + PAD * 2,
-    borderRadius: 14,
-    boxShadow: '0 0 0 9999px rgba(0,0,0,0.58)',
-    zIndex: 1100,
-    pointerEvents: 'none',
-    transition: 'top 0.3s ease, left 0.3s ease, width 0.3s ease, height 0.3s ease',
-  } : null
-
-  // Tooltip: показываем ниже если есть место, иначе выше
-  const tooltipBelow = rect && (rect.bottom + PAD + 180 < window.innerHeight)
-  const tooltipStyle = rect ? {
-    position: 'fixed',
-    left: Math.max(16, Math.min(rect.left - PAD, window.innerWidth - 332)),
-    top: tooltipBelow
-      ? rect.bottom + PAD + 10
-      : rect.top - PAD - 170,
-    width: 320,
-    zIndex: 1101,
-    transition: 'top 0.3s ease, left 0.3s ease',
-  } : null
-
-  return (
-    <>
-      {/* Click-outside to close */}
-      <div style={{position:'fixed',inset:0,zIndex:1099}} onClick={onClose} />
-
-      {/* Spotlight highlight */}
-      {highlightStyle && <div style={highlightStyle} />}
-
-      {/* Tooltip card */}
-      {tooltipStyle && (
-        <div className="spotlight-tooltip" style={tooltipStyle}>
-          {/* Arrow */}
-          <div className={`spotlight-arrow ${tooltipBelow ? 'arrow-top' : 'arrow-bottom'}`} style={{left: Math.min(Math.max(rect.left - Math.max(16, Math.min(rect.left - PAD, window.innerWidth - 332)) + PAD + 16, 16), 280)}} />
-          <div className="spotlight-step">{step + 1} / {SPOTLIGHT_STEPS.length}</div>
-          <div className="spotlight-title">{current.title}</div>
-          <div className="spotlight-desc">{current.desc}</div>
-          <div className="spotlight-actions">
-            {step > 0
-              ? <button className="spl-btn-back" onClick={() => setStep(s => s - 1)}>Назад</button>
-              : <button className="spl-btn-back" onClick={onClose}>Закрыть</button>
-            }
-            <button className="spl-btn-next" onClick={isLast ? onClose : () => setStep(s => s + 1)}>
-              {isLast ? 'Готово' : 'Далее →'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Loading state — waiting for rect */}
-      {!rect && (
-        <div style={{position:'fixed',inset:0,zIndex:1099,background:'rgba(0,0,0,0.58)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-          <div style={{width:32,height:32,borderRadius:'50%',border:'2px solid rgba(255,255,255,0.2)',borderTopColor:'#fff',animation:'spin 0.7s linear infinite'}}/>
-        </div>
-      )}
-    </>
-  )
-}
 
 const DEFAULT_FINANCE = {
   income: 0,
@@ -664,7 +577,6 @@ export default function Profile() {
   const [finOpen, setFinOpen] = useState(false)
   const [finance, setFinance] = useState(loadFinance)
   const [showSpotlight, setShowSpotlight] = useState(false)
-  const [spotlightSeen, setSpotlightSeen] = useState(() => !!localStorage.getItem('ss_spotlight_profile_seen'))
 
   const { income, housing, credit, creditMonths = 0, capital, updatedAt } = finance
 
@@ -803,17 +715,7 @@ export default function Profile() {
           <div className="entry-greeting">
             <div className="entry-title" style={{display:'flex',alignItems:'center',gap:10}}>
               Привет, {username.split(' ')[0]}
-              <button
-                className={`help-btn${!spotlightSeen ? ' help-btn--new' : ''}`}
-                onClick={() => {
-                  setShowSpotlight(true)
-                  if (!spotlightSeen) {
-                    localStorage.setItem('ss_spotlight_profile_seen', '1')
-                    setSpotlightSeen(true)
-                  }
-                }}
-                title="Как устроена страница"
-              >?</button>
+              <HelpButton seenKey="ss_spl_profile" onOpen={() => setShowSpotlight(true)} />
             </div>
             <div className="entry-subtitle">{greetingSubtitle}</div>
           </div>
@@ -1075,7 +977,7 @@ export default function Profile() {
         onSave={f => setFinance(f)}
         onClose={() => setFinOpen(false)}
       />
-      {showSpotlight && <SpotlightTour onClose={() => setShowSpotlight(false)} />}
+      {showSpotlight && <SpotlightTour steps={SPOTLIGHT_STEPS} onClose={() => setShowSpotlight(false)} />}
     </Layout>
   )
 }

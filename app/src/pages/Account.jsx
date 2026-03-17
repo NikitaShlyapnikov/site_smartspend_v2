@@ -1,6 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
+import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
+
+const ACC_SPOTLIGHT = [
+  { targetId: 'sp-acc-header', btnId: 'sp-acc-edit',   title: 'Профиль',        desc: 'Твоё имя, аватар и биография. Нажми «Редактировать», чтобы обновить информацию о себе.' },
+  { targetId: 'sp-acc-tabs',   btnId: null,             title: 'Разделы аккаунта', desc: 'Статьи, наборы и подписки — три раздела твоего профиля. Переключайся между ними.' },
+]
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 
@@ -61,6 +67,7 @@ export default function Account() {
   const [subs] = useState(() => readLS('ss_account_subs', []))
 
   const [confirmArticle, setConfirmArticle] = useState(null) // article object to delete
+  const [showSpotlight, setShowSpotlight] = useState(false)
   const [confirmSet, setConfirmSet] = useState(null)         // set object to delete
 
   const [toast, showToast] = useToast()
@@ -139,10 +146,11 @@ export default function Account() {
       <main className="account-main">
 
         {/* Profile header */}
-        <div className="user-header">
+        <div id="sp-acc-header" className="user-header">
           <div className="user-avatar-large">
             <span>{initials}</span>
           </div>
+          <HelpButton seenKey="ss_spl_account" onOpen={() => setShowSpotlight(true)} />
 
           <div className="user-info">
             <div className="user-name-line">
@@ -193,7 +201,7 @@ export default function Account() {
           </div>
 
           {!editing && (
-            <button className="btn-edit-profile" onClick={startEdit}>
+            <button id="sp-acc-edit" className="btn-edit-profile" onClick={startEdit}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
               </svg>
@@ -203,7 +211,7 @@ export default function Account() {
         </div>
 
         {/* Tabs */}
-        <div className="acc-tabs">
+        <div id="sp-acc-tabs" className="acc-tabs">
           {TABS.map(t => (
             <button key={t.id} className={`acc-tab${tab === t.id ? ' active' : ''}`}
               onClick={() => setTab(t.id)}>
@@ -455,6 +463,7 @@ export default function Account() {
         {toast}
       </div>
 
+      {showSpotlight && <SpotlightTour steps={ACC_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
     </Layout>
   )
 }

@@ -2,7 +2,13 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import PublicLayout from '../components/PublicLayout'
 import { useAuthModal } from '../components/AuthModal'
+import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import { catalogSets } from '../data/mock'
+
+const CATALOG_SPOTLIGHT = [
+  { targetId: 'sp-cat-filters', btnId: null,           title: 'Фильтры каталога',   desc: 'Фильтруй наборы по категориям, типу и источнику — SmartSpend, сообщество или твои собственные.' },
+  { targetId: 'sp-cat-grid',    btnId: 'sp-cat-create', title: 'Наборы',              desc: 'Готовые наборы товаров. Открой набор, чтобы посмотреть состав и добавить в свой конверт. Или создай свой.' },
+]
 
 function loadLikes() {
   try { return new Set(JSON.parse(localStorage.getItem('ss_catalog_likes') || '[]')) } catch { return new Set() }
@@ -47,6 +53,7 @@ export default function Catalog() {
   const [likedSets, setLikedSets] = useState(loadLikes)
   const [itemSearch, setItemSearch] = useState('')
   const { modal: authModal, requireAuth } = useAuthModal()
+  const [showSpotlight, setShowSpotlight] = useState(false)
 
   function toggleLike(id, e) {
     e.stopPropagation()
@@ -103,14 +110,17 @@ export default function Catalog() {
         <div className="catalog-header">
           <div className="catalog-page-header">
             <div>
-              <div className="page-title">Каталог наборов</div>
+              <div className="page-title" style={{display:'flex',alignItems:'center',gap:10}}>
+                Каталог наборов
+                <HelpButton seenKey="ss_spl_catalog" onOpen={() => setShowSpotlight(true)} />
+              </div>
               <div className="page-subtitle">Готовые наборы товаров от SmartSpend и сообщества</div>
             </div>
           </div>
         </div>
 
         {/* Sticky Filters */}
-        <div className="catalog-filters-bar">
+        <div id="sp-cat-filters" className="catalog-filters-bar">
           <div className="filters-block">
             {/* Row 1: categories */}
             <div className="cats-scroll">
@@ -185,7 +195,7 @@ export default function Catalog() {
 
         {/* Scrollable Grid */}
         <div className="catalog-scroll">
-        <div className="catalog-grid">
+        <div id="sp-cat-grid" className="catalog-grid">
           {filtered.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon">📦</div>
@@ -274,6 +284,7 @@ export default function Catalog() {
         </div>
       </main>
       {authModal}
+      {showSpotlight && <SpotlightTour steps={CATALOG_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
     </PublicLayout>
   )
 }

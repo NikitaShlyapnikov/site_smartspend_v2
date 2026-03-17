@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
+import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import { useApp } from '../context/AppContext'
+
+const SETTINGS_SPOTLIGHT = [
+  { targetId: 'sp-settings-appear',  btnId: null,                  title: 'Внешний вид',          desc: 'Переключай тёмную и светлую тему — настройка сохраняется автоматически.' },
+  { targetId: 'sp-settings-notifs',  btnId: null,                  title: 'Уведомления',          desc: 'Управляй какие уведомления получать: новые наборы, ответы на статьи и напоминания.' },
+  { targetId: 'sp-settings-privacy', btnId: null,                  title: 'Конфиденциальность',   desc: 'Выбирай кто видит твой профиль, статьи и наборы — все пользователи, подписчики или только ты.' },
+]
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -220,6 +227,7 @@ function ChangePasswordModal({ open, onClose }) {
 export default function Settings() {
   const navigate = useNavigate()
   const { dark, toggleTheme } = useApp()
+  const [showSpotlight, setShowSpotlight] = useState(false)
 
   // Notifications
   const [notifs, setNotifs] = useState({ newSets: true, articles: true, reminders: false })
@@ -263,12 +271,15 @@ export default function Settings() {
 
         {/* Header */}
         <div>
-          <div className="page-title">Настройки</div>
+          <div className="page-title" style={{display:'flex',alignItems:'center',gap:10}}>
+            Настройки
+            <HelpButton seenKey="ss_spl_settings" onOpen={() => setShowSpotlight(true)} />
+          </div>
           <div className="page-subtitle">Управление приложением и аккаунтом</div>
         </div>
 
         {/* Внешний вид */}
-        <div className="settings-section">
+        <div id="sp-settings-appear" className="settings-section">
           <div className="settings-section-title">Внешний вид</div>
           <div className="settings-row">
             <div>
@@ -280,7 +291,7 @@ export default function Settings() {
         </div>
 
         {/* Уведомления */}
-        <div className="settings-section">
+        <div id="sp-settings-notifs" className="settings-section">
           <div className="settings-section-title">Уведомления</div>
           {[
             { key: 'newSets',   label: 'Новые наборы',      desc: 'Когда добавляются новые наборы в каталог' },
@@ -326,7 +337,7 @@ export default function Settings() {
         </div>
 
         {/* Конфиденциальность */}
-        <div className="settings-section">
+        <div id="sp-settings-privacy" className="settings-section">
           <div className="settings-section-title">Конфиденциальность</div>
 
           <div className="settings-row settings-row-vert">
@@ -476,6 +487,7 @@ export default function Settings() {
         onConfirm={deleteAccount}
         onClose={() => setDeleteModal(false)}
       />
+      {showSpotlight && <SpotlightTour steps={SETTINGS_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
     </Layout>
   )
 }
