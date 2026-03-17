@@ -1127,7 +1127,7 @@ export default function Inventory() {
 
         {/* Summary row */}
         <div className="inv-summary-row">
-          <div className={`inv-urgent-card${statusFilter === 'urgent' ? ' active-filter' : ''}`}
+          <div className={`inv-urgent-card${urgentItems.length === 0 ? ' empty' : ''}${statusFilter === 'urgent' ? ' active-filter' : ''}`}
             onClick={() => setStatusFilter(f => f === 'urgent' ? null : 'urgent')}>
             <div className="inv-urgent-top">
               <div className="inv-urgent-num">{urgentItems.length}</div>

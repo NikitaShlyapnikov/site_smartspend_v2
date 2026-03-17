@@ -155,14 +155,6 @@ export default function Account() {
             </div>
             <div className="user-nickname-line">
               {editing
-                ? <input className="acc-edit-field" value={draft.pseudonym} style={{ width: 220 }}
-                    onChange={e => setDraft(d => ({ ...d, pseudonym: e.target.value }))}
-                    placeholder="Псевдоним" />
-                : <span className="user-pseudonym">{profile.pseudonym}</span>
-              }
-            </div>
-            <div className="user-nickname-line">
-              {editing
                 ? <input className="acc-edit-field" value={draft.username} style={{ width: 180 }}
                     onChange={e => setDraft(d => ({ ...d, username: e.target.value }))}
                     placeholder="@username" />
@@ -250,13 +242,17 @@ export default function Account() {
                   </svg>
                   Личный
                 </span>
-                <span className="acc-vh-desc">— черновик, виден только вам, не отображается в ленте</span>
+                <span className="acc-vh-desc">— виден только вам, не отображается в ленте</span>
               </div>
             </div>
 
             {articles.length === 0 && (
               <div className="acc-empty">
-                <div className="acc-empty-icon">✍️</div>
+                <div className="acc-empty-icon">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                  </svg>
+                </div>
                 <div className="acc-empty-title">Нет статей</div>
                 <div className="acc-empty-desc">Напишите первую статью и поделитесь опытом с сообществом</div>
               </div>
@@ -343,7 +339,11 @@ export default function Account() {
 
             {sets.length === 0 && (
               <div className="acc-empty">
-                <div className="acc-empty-icon">📦</div>
+                <div className="acc-empty-icon">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="3" width="9" height="9" rx="1.5"/><rect x="13" y="3" width="9" height="9" rx="1.5"/><rect x="2" y="13" width="9" height="9" rx="1.5"/><rect x="13" y="13" width="9" height="9" rx="1.5"/>
+                  </svg>
+                </div>
                 <div className="acc-empty-title">Нет наборов</div>
                 <div className="acc-empty-desc">Создайте первый набор или добавьте готовый из каталога</div>
               </div>
@@ -398,7 +398,11 @@ export default function Account() {
             </div>
             {subs.length === 0 && (
               <div className="acc-empty">
-                <div className="acc-empty-icon">🌟</div>
+                <div className="acc-empty-icon">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+                  </svg>
+                </div>
                 <div className="acc-empty-title">Нет подписок</div>
                 <div className="acc-empty-desc">Подписывайтесь на авторов, чтобы следить за их статьями и наборами</div>
               </div>
