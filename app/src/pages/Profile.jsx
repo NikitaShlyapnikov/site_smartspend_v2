@@ -138,6 +138,110 @@ function ProfileTour({ onClose }) {
   )
 }
 
+// ── Spotlight Tour ─────────────────────────────────────────────────────────────
+const SPOTLIGHT_STEPS = [
+  {
+    targetId: 'sp-tiles',
+    title: 'Финансовые показатели',
+    desc: 'Сводка по текущему месяцу: твой доход, общие расходы и сколько остаётся на накопления.',
+  },
+  {
+    targetId: 'sp-finance',
+    title: 'Финансовая картина',
+    desc: 'Детальная разбивка расходов — жильё, кредит, конверты. Нажми «Редактировать», чтобы указать доход и обязательные расходы.',
+  },
+  {
+    targetId: 'sp-emo',
+    title: 'Капитал и EmoSpend',
+    desc: 'Показывает размер накоплений и сколько можно тратить на удовольствия ежемесячно без ущерба для роста капитала.',
+  },
+  {
+    targetId: 'sp-envelopes',
+    title: 'Конверты и наборы',
+    desc: 'Твой план расходов по категориям. Добавляй наборы из каталога — система сама рассчитает нужную сумму для каждого конверта.',
+  },
+]
+
+function SpotlightTour({ onClose }) {
+  const [step, setStep] = useState(0)
+  const [rect, setRect] = useState(null)
+  const PAD = 10
+
+  useEffect(() => {
+    const el = document.getElementById(SPOTLIGHT_STEPS[step].targetId)
+    if (!el) return
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const t = setTimeout(() => setRect(el.getBoundingClientRect()), 380)
+    return () => clearTimeout(t)
+  }, [step])
+
+  const isLast = step === SPOTLIGHT_STEPS.length - 1
+  const current = SPOTLIGHT_STEPS[step]
+
+  const highlightStyle = rect ? {
+    position: 'fixed',
+    top:    rect.top    - PAD,
+    left:   rect.left   - PAD,
+    width:  rect.width  + PAD * 2,
+    height: rect.height + PAD * 2,
+    borderRadius: 14,
+    boxShadow: '0 0 0 9999px rgba(0,0,0,0.58)',
+    zIndex: 1100,
+    pointerEvents: 'none',
+    transition: 'top 0.3s ease, left 0.3s ease, width 0.3s ease, height 0.3s ease',
+  } : null
+
+  // Tooltip: показываем ниже если есть место, иначе выше
+  const tooltipBelow = rect && (rect.bottom + PAD + 180 < window.innerHeight)
+  const tooltipStyle = rect ? {
+    position: 'fixed',
+    left: Math.max(16, Math.min(rect.left - PAD, window.innerWidth - 332)),
+    top: tooltipBelow
+      ? rect.bottom + PAD + 10
+      : rect.top - PAD - 170,
+    width: 320,
+    zIndex: 1101,
+    transition: 'top 0.3s ease, left 0.3s ease',
+  } : null
+
+  return (
+    <>
+      {/* Click-outside to close */}
+      <div style={{position:'fixed',inset:0,zIndex:1099}} onClick={onClose} />
+
+      {/* Spotlight highlight */}
+      {highlightStyle && <div style={highlightStyle} />}
+
+      {/* Tooltip card */}
+      {tooltipStyle && (
+        <div className="spotlight-tooltip" style={tooltipStyle}>
+          {/* Arrow */}
+          <div className={`spotlight-arrow ${tooltipBelow ? 'arrow-top' : 'arrow-bottom'}`} style={{left: Math.min(Math.max(rect.left - Math.max(16, Math.min(rect.left - PAD, window.innerWidth - 332)) + PAD + 16, 16), 280)}} />
+          <div className="spotlight-step">{step + 1} / {SPOTLIGHT_STEPS.length}</div>
+          <div className="spotlight-title">{current.title}</div>
+          <div className="spotlight-desc">{current.desc}</div>
+          <div className="spotlight-actions">
+            {step > 0
+              ? <button className="spl-btn-back" onClick={() => setStep(s => s - 1)}>Назад</button>
+              : <button className="spl-btn-back" onClick={onClose}>Закрыть</button>
+            }
+            <button className="spl-btn-next" onClick={isLast ? onClose : () => setStep(s => s + 1)}>
+              {isLast ? 'Готово' : 'Далее →'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Loading state — waiting for rect */}
+      {!rect && (
+        <div style={{position:'fixed',inset:0,zIndex:1099,background:'rgba(0,0,0,0.58)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div style={{width:32,height:32,borderRadius:'50%',border:'2px solid rgba(255,255,255,0.2)',borderTopColor:'#fff',animation:'spin 0.7s linear infinite'}}/>
+        </div>
+      )}
+    </>
+  )
+}
+
 const DEFAULT_FINANCE = {
   income: 0,
   housing: 0,
@@ -666,6 +770,7 @@ export default function Profile() {
   const [finOpen, setFinOpen] = useState(false)
   const [finance, setFinance] = useState(loadFinance)
   const [showTour, setShowTour] = useState(() => !localStorage.getItem('ss_tour_profile'))
+  const [showSpotlight, setShowSpotlight] = useState(false)
 
   const { income, housing, credit, creditMonths = 0, capital, updatedAt } = finance
 
@@ -800,9 +905,12 @@ export default function Profile() {
     <Layout>
       <main className="profile-main">
         {/* Приветствие */}
-        <div className="entry-header">
+        <div className="entry-header" id="sp-tiles">
           <div className="entry-greeting">
-            <div className="entry-title">Привет, {username.split(' ')[0]}</div>
+            <div className="entry-title" style={{display:'flex',alignItems:'center',gap:10}}>
+              Привет, {username.split(' ')[0]}
+              <button className="help-btn" onClick={() => setShowSpotlight(true)} title="Как устроена страница">?</button>
+            </div>
             <div className="entry-subtitle">{greetingSubtitle}</div>
           </div>
           <div className="entry-tiles">
@@ -826,7 +934,7 @@ export default function Profile() {
         </div>
 
         {/* Финансовая картина */}
-        <div>
+        <div id="sp-finance">
           <div className="section-heading">
             <span className="section-title">Финансовая картина · {updatedAt}</span>
             <button className="section-link" onClick={() => setFinOpen(true)}>
@@ -852,7 +960,7 @@ export default function Profile() {
         </div>
 
         {/* Капитал и EmoSpend */}
-        <div>
+        <div id="sp-emo">
           <div className="section-heading">
             <span className="section-title">Капитал и свободные расходы</span>
           </div>
@@ -907,7 +1015,7 @@ export default function Profile() {
         </div>
 
         {/* Конверты и наборы */}
-        <div>
+        <div id="sp-envelopes">
           <div className="section-heading">
             <span className="section-title">Конверты и наборы</span>
             <button
@@ -1063,6 +1171,7 @@ export default function Profile() {
         onClose={() => setFinOpen(false)}
       />
       {showTour && <ProfileTour onClose={() => setShowTour(false)} />}
+      {showSpotlight && <SpotlightTour onClose={() => setShowSpotlight(false)} />}
     </Layout>
   )
 }

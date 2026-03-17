@@ -4986,6 +4986,56 @@ body.dark .inv-purchase-row.expired { background: rgba(184,85,85,0.12); border-c
 body.dark .inv-purchase-row.soon { background: rgba(176,136,64,0.12); border-color: rgba(176,136,64,0.3); }
 body.dark .inv-purchase-date { background: var(--surface); border-color: var(--border); }
 
+/* ── HELP BUTTON ──────────────────────────────────────────────────────────── */
+.help-btn {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--surface-2); border: 1.5px solid var(--border);
+  color: var(--text-3); font-size: 12px; font-weight: 700;
+  font-family: var(--mono); cursor: pointer; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  line-height: 1;
+}
+.help-btn:hover { border-color: var(--accent-green); color: var(--accent-green); background: var(--accent-green-light); }
+
+/* ── SPOTLIGHT TOUR ───────────────────────────────────────────────────────── */
+.spotlight-tooltip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px 20px 16px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+  animation: slideUp 0.2s ease;
+}
+.spotlight-arrow {
+  position: absolute; width: 12px; height: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  transform: rotate(45deg);
+}
+.spotlight-arrow.arrow-top  { top: -7px;    border-bottom: none; border-right: none; }
+.spotlight-arrow.arrow-bottom { bottom: -7px; border-top: none;    border-left: none; }
+.spotlight-step { font-size: 11px; color: var(--accent-green); font-weight: 600; margin-bottom: 6px; letter-spacing: 0.02em; }
+.spotlight-title { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); margin-bottom: 6px; }
+.spotlight-desc { font-size: 13px; color: var(--text-2); line-height: 1.6; margin-bottom: 14px; }
+.spotlight-actions { display: flex; gap: 8px; }
+.spl-btn-back {
+  flex: 0 0 auto; padding: 0 14px; height: 34px;
+  background: none; border: 1.5px solid var(--border);
+  border-radius: 8px; cursor: pointer;
+  font-size: 13px; font-weight: 500; color: var(--text-2);
+  font-family: var(--sans); transition: border-color 0.15s, color 0.15s;
+}
+.spl-btn-back:hover { border-color: var(--text-3); color: var(--text); }
+.spl-btn-next {
+  flex: 1; height: 34px;
+  background: var(--accent-green); color: #fff;
+  border: none; border-radius: 8px; cursor: pointer;
+  font-size: 13px; font-weight: 600;
+  font-family: var(--sans); transition: opacity 0.15s;
+}
+.spl-btn-next:hover { opacity: 0.88; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
 /* ── PROFILE TOUR ─────────────────────────────────────────────────────────── */
 .tour-overlay {
   position: fixed; inset: 0; z-index: 1000;
