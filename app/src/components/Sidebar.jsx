@@ -129,20 +129,10 @@ export default function Sidebar() {
           <Link
             key={item.id}
             to={item.to}
-            className={`nav-item${location.pathname === item.to ? ' active' : ''}`}
+            className={`nav-item${location.pathname === item.to ? ' active' : ''}${item.id === 'notifications' && unreadCount > 0 ? ' has-unread' : ''}`}
           >
-            <span style={{ position: 'relative', display: 'inline-flex' }}>
-              {item.icon}
-              {item.id === 'notifications' && unreadCount > 0 && collapsed && (
-                <span className="nav-notif-dot" />
-              )}
-            </span>
-            <span className="nav-label">
-              {item.label}
-              {item.id === 'notifications' && unreadCount > 0 && !collapsed && (
-                <span className="nav-notif-badge">{unreadCount}</span>
-              )}
-            </span>
+            {item.icon}
+            <span className="nav-label">{item.label}</span>
           </Link>
         ))}
       </nav>

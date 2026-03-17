@@ -59,7 +59,7 @@ function getItemInfo(item, override = null) {
     }
 
     if (pct >= 90) status = 'urgent'
-    else if (pct >= 70) status = 'soon'
+    else if (pct >= 75) status = 'soon'
     else status = 'ok'
 
   } else {
@@ -93,7 +93,7 @@ function getItemInfo(item, override = null) {
           else if (weeksLeft < 52) { ringNum = String(weeksLeft); ringUnit = 'нед' }
           else { ringNum = String(Math.floor(weeksLeft / 52)); ringUnit = 'лет' }
           if (pct >= 90) status = 'urgent'
-          else if (pct >= 70) status = 'soon'
+          else if (pct >= 75) status = 'soon'
           else status = 'ok'
         }
       }
@@ -118,7 +118,7 @@ function getItemInfo(item, override = null) {
         else if (weeksLeft < 52) { ringNum = String(weeksLeft); ringUnit = 'нед' }
         else { ringNum = String(Math.floor(weeksLeft / 52)); ringUnit = 'лет' }
         if (pct >= 90) status = 'urgent'
-        else if (pct >= 70) status = 'soon'
+        else if (pct >= 75) status = 'soon'
         else status = 'ok'
       }
     }
@@ -303,14 +303,12 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
 
     let residualVal
     if (boughtList.length === 0) {
-      residualVal = totalPrice
+      residualVal = 0
     } else {
       const oldestDate = boughtList.map(p => p.purchaseDate).sort()[0]
       const weeksUsed = Math.floor(daysSince(oldestDate) / 7)
       const pctUsed = Math.min(1, weeksUsed / item.wearLifeWeeks)
-      const boughtResidual = boughtList.length * Math.max(0, Math.round(item.price * (1 - pctUsed)))
-      const unboughtResidual = (total - boughtList.length) * item.price
-      residualVal = boughtResidual + unboughtResidual
+      residualVal = boughtList.length * Math.max(0, Math.round(item.price * (1 - pctUsed)))
     }
 
     const monthlyAmort = Math.round((totalPrice / item.wearLifeWeeks) * 4.33)
@@ -319,7 +317,11 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
     details = (
       <>
         <div className="inv-detail">
-          <div className="inv-detail-lbl">Стоимость ({total}&thinsp;шт.)</div>
+          <div className="inv-detail-lbl">Цена за шт.</div>
+          <div className="inv-detail-val mono">{item.price.toLocaleString('ru')}&thinsp;руб.</div>
+        </div>
+        <div className="inv-detail">
+          <div className="inv-detail-lbl">Итого ({total}&thinsp;шт.)</div>
           <div className="inv-detail-val mono">{totalPrice.toLocaleString('ru')}&thinsp;руб.</div>
         </div>
         <div className="inv-detail">
@@ -947,7 +949,17 @@ export default function Inventory() {
     return s + (item.qty > 0 ? (rem / item.qty) * item.price : 0)
   }, 0)
   const wearVal = items.filter(i => i.type === 'wear').reduce((s, item) => {
+    if (Array.isArray(item.purchases)) {
+      // Multi-purchase: sum residual only for bought items
+      const boughtList = item.purchases.filter(p => p.bought && p.purchaseDate)
+      if (boughtList.length === 0) return s
+      const oldestDate = boughtList.map(p => p.purchaseDate).sort()[0]
+      const wu = Math.floor(daysSince(oldestDate) / 7)
+      const pctUsed = Math.min(1, wu / item.wearLifeWeeks)
+      return s + boughtList.length * Math.max(0, Math.round(item.price * (1 - pctUsed)))
+    }
     const pd = overrides[item.id] ?? item.purchaseDate
+    if (!pd) return s
     const wu = Math.floor(daysSince(pd) / 7)
     return s + Math.max(0, Math.round(item.price * (1 - wu / item.wearLifeWeeks)))
   }, 0)

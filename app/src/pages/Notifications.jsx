@@ -116,9 +116,6 @@ export default function Notifications() {
               onClick={() => setFilter(f.id)}
             >
               {f.label}
-              {f.id === 'all' && totalUnread > 0 && (
-                <span className="notif-filter-badge">{totalUnread}</span>
-              )}
             </button>
           ))}
         </div>

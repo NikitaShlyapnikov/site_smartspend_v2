@@ -623,8 +623,11 @@ export default function Profile() {
   const emoAnnual = Math.round(capital * emoRate)
   const emoMonthly = Math.round(emoAnnual / 12)
 
-  const savingsPct = Math.round((savings / income) * 100)
+  const savingsPct = income > 0 ? Math.round((savings / income) * 100) : 0
   const greetingSubtitle = (() => {
+    if (!income || income <= 0) {
+      return <>Укажи доход в разделе «Финансовая картина» — и система покажет, сколько ты откладываешь каждый месяц.</>
+    }
     if (savings < 0) {
       const deficit = Math.abs(savings).toLocaleString('ru')
       return <>Расходы превышают доход на <strong>{deficit} ₽</strong> — самое время пересмотреть конверты и найти, где можно сократить.</>
@@ -705,7 +708,10 @@ export default function Profile() {
         <div>
           <div className="section-heading">
             <span className="section-title">Финансовая картина · {updatedAt}</span>
-            <button className="section-link" onClick={() => setFinOpen(true)}>Редактировать</button>
+            <button className="section-link" onClick={() => setFinOpen(true)}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              Редактировать
+            </button>
           </div>
           <div className="profile-card">
             <div className="bl-row income">

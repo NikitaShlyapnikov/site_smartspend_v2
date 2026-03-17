@@ -1194,20 +1194,18 @@ body.dark .notif-item.unread { background: rgba(255,255,255,0.04); }
 .notif-empty-desc { font-size: 13px; color: var(--text-2); }
 
 /* ── NOTIFICATION BADGES (sidebar + mobile) ── */
-.nav-notif-badge {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 17px; height: 17px; border-radius: 9px; padding: 0 4px;
-  background: transparent; color: var(--text-3);
-  border: 1.5px solid var(--border);
-  font-size: 10px; font-weight: 600; font-family: var(--mono);
-  line-height: 1; margin-left: 6px; vertical-align: middle;
+/* Bell icon: bright accent when there are unread notifications */
+.nav-item.has-unread .nav-icon {
+  opacity: 1 !important;
+  color: var(--accent-green);
+  filter: drop-shadow(0 0 4px rgba(78,130,104,0.35));
+  transition: color 0.2s, opacity 0.2s;
 }
-.nav-notif-dot {
-  position: absolute; top: -2px; right: -2px;
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--accent-green);
-  border: 2px solid var(--sidebar-bg, var(--bg));
+body.dark .nav-item.has-unread .nav-icon {
+  color: #6AAF8E;
+  filter: drop-shadow(0 0 5px rgba(106,175,142,0.4));
 }
+
 .mobile-notif-dot {
   position: absolute; top: -2px; right: -2px;
   width: 8px; height: 8px; border-radius: 50%;
