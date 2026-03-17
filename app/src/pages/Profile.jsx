@@ -112,7 +112,11 @@ function ProfileTour({ onClose }) {
   return (
     <div className="tour-overlay" onClick={finish}>
       <div className="tour-modal" onClick={e => e.stopPropagation()}>
-        <button className="tour-skip" onClick={finish}>Пропустить</button>
+        <button className="tour-close" onClick={finish} aria-label="Закрыть">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/>
+          </svg>
+        </button>
         <div className="tour-illust">{current.illust}</div>
         <div className="tour-step-dots">
           {TOUR_STEPS.map((_, i) => (

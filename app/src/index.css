@@ -5005,14 +5005,16 @@ body.dark .inv-purchase-date { background: var(--surface); border-color: var(--b
   position: relative;
   animation: slideUp 0.25s ease;
 }
-.tour-skip {
-  position: absolute; top: 16px; right: 18px;
-  background: none; border: none; cursor: pointer;
-  font-size: 13px; color: var(--text-3);
-  font-family: var(--sans); padding: 4px 8px;
-  border-radius: 6px; transition: color 0.15s;
+.tour-close {
+  position: absolute; top: -14px; right: -14px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--surface); border: 1.5px solid var(--border);
+  cursor: pointer; color: var(--text-3);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: color 0.15s, border-color 0.15s;
 }
-.tour-skip:hover { color: var(--text-2); }
+.tour-close:hover { color: var(--text); border-color: var(--text-3); }
 
 /* illustration */
 .tour-illust { width: 100%; margin-bottom: 20px; }
