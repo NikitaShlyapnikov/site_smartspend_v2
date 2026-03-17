@@ -19,43 +19,84 @@ const GROUP_CATS = {
 const BASE_RETURN = 0.04
 
 // ── Profile Tour ─────────────────────────────────────────────────────────────
+// ── Tour illustrations ────────────────────────────────────────────────────────
+function TourMockup({ title, children }) {
+  return (
+    <div className="tour-mockup">
+      <div className="tour-mockup-bar">
+        <span className="tour-mockup-dot" /><span className="tour-mockup-dot" /><span className="tour-mockup-dot" />
+        <span className="tour-mockup-label">{title}</span>
+      </div>
+      <div className="tour-mockup-body">{children}</div>
+    </div>
+  )
+}
+
+const IllustOverview = () => (
+  <TourMockup title="SmartSpend / Профиль">
+    <div className="tour-mk-section-row">
+      <div className="tour-mk-tile"><div className="tour-mk-tile-lbl">Доход</div><div className="tour-mk-tile-val">85 000 ₽</div></div>
+      <div className="tour-mk-tile"><div className="tour-mk-tile-lbl">Расходы</div><div className="tour-mk-tile-val">61 000 ₽</div></div>
+      <div className="tour-mk-tile tour-mk-tile--accent"><div className="tour-mk-tile-lbl">Откладывается</div><div className="tour-mk-tile-val">24 000 ₽</div></div>
+    </div>
+    <div className="tour-mk-block-row">
+      <div className="tour-mk-block"><div className="tour-mk-block-lbl">Размер капитала</div><div className="tour-mk-block-num">186 400 ₽</div></div>
+      <div className="tour-mk-block tour-mk-block--emo"><div className="tour-mk-block-lbl">EmoSpend / мес.</div><div className="tour-mk-block-num">8 200 ₽</div></div>
+    </div>
+    <div className="tour-mk-env-list">
+      <div className="tour-mk-env-item"><span className="tour-mk-env-dot" style={{background:'#B8A0C8'}}/>Одежда<span className="tour-mk-env-amt">12 000 ₽</span></div>
+      <div className="tour-mk-env-item"><span className="tour-mk-env-dot" style={{background:'#8DBFA8'}}/>Еда<span className="tour-mk-env-amt">22 000 ₽</span></div>
+      <div className="tour-mk-env-item"><span className="tour-mk-env-dot" style={{background:'#9EA8C0'}}/>Дом<span className="tour-mk-env-amt">18 000 ₽</span></div>
+    </div>
+  </TourMockup>
+)
+
+const IllustFinance = () => (
+  <TourMockup title="Финансовая картина">
+    <div className="tour-mk-section-row">
+      <div className="tour-mk-tile"><div className="tour-mk-tile-lbl">Доход</div><div className="tour-mk-tile-val">85 000 ₽</div></div>
+      <div className="tour-mk-tile"><div className="tour-mk-tile-lbl">Расходы</div><div className="tour-mk-tile-val">61 000 ₽</div></div>
+      <div className="tour-mk-tile tour-mk-tile--accent"><div className="tour-mk-tile-lbl">Откладывается</div><div className="tour-mk-tile-val">24 000 ₽</div></div>
+    </div>
+    <div className="tour-mk-fin-rows">
+      <div className="tour-mk-fin-row"><span className="tour-mk-fin-lbl">Жильё</span><span className="tour-mk-fin-bar"><span style={{width:'28%'}} /></span><span className="tour-mk-fin-val">−24 000 ₽</span></div>
+      <div className="tour-mk-fin-row"><span className="tour-mk-fin-lbl">Конверты</span><span className="tour-mk-fin-bar"><span style={{width:'44%'}} /></span><span className="tour-mk-fin-val">−37 000 ₽</span></div>
+      <div className="tour-mk-fin-row tour-mk-fin-row--accent"><span className="tour-mk-fin-lbl">Остаток</span><span className="tour-mk-fin-bar"><span style={{width:'28%', background:'var(--accent-green)'}} /></span><span className="tour-mk-fin-val">24 000 ₽</span></div>
+    </div>
+  </TourMockup>
+)
+
+const IllustEmo = () => (
+  <TourMockup title="Накопления и EmoSpend">
+    <div className="tour-mk-block-row">
+      <div className="tour-mk-block"><div className="tour-mk-block-lbl">Размер капитала</div><div className="tour-mk-block-num">186 400 ₽</div><div className="tour-mk-block-sub">↑ +4.2% за год</div></div>
+      <div className="tour-mk-block tour-mk-block--emo"><div className="tour-mk-block-lbl">EmoSpend</div><div className="tour-mk-block-num">8 200 ₽</div><div className="tour-mk-block-sub">в месяц</div></div>
+    </div>
+    <div className="tour-mk-emo-desc">Уровень удовольствия <span className="tour-mk-emo-rate">5%</span></div>
+    <div className="tour-mk-emo-bar"><div className="tour-mk-emo-fill" /></div>
+    <div className="tour-mk-emo-hint">Трать до 8 200 ₽ в месяц на желания — капитал продолжит расти</div>
+  </TourMockup>
+)
+
+const IllustEnvelopes = () => (
+  <TourMockup title="Конверты и наборы">
+    <div className="tour-mk-env-card" style={{borderColor:'#B8A0C8'}}>
+      <div className="tour-mk-env-head"><span className="tour-mk-env-dot" style={{background:'#B8A0C8'}}/>Одежда и обувь<span className="tour-mk-env-amt">12 000 ₽/мес</span></div>
+      <div className="tour-mk-env-set"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="1" width="10" height="10" rx="2"/></svg>Базовый гардероб<span>8 000 ₽</span></div>
+      <div className="tour-mk-env-set"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="1" width="10" height="10" rx="2"/></svg>Спортивная одежда<span>4 000 ₽</span></div>
+    </div>
+    <div className="tour-mk-env-card" style={{borderColor:'#8DBFA8'}}>
+      <div className="tour-mk-env-head"><span className="tour-mk-env-dot" style={{background:'#8DBFA8'}}/>Еда и супермаркеты<span className="tour-mk-env-amt">22 000 ₽/мес</span></div>
+      <div className="tour-mk-env-set"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="1" width="10" height="10" rx="2"/></svg>Питание на месяц<span>22 000 ₽</span></div>
+    </div>
+  </TourMockup>
+)
+
 const TOUR_STEPS = [
-  {
-    icon: (
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
-      </svg>
-    ),
-    title: 'Профиль — твой финансовый центр',
-    desc: 'Здесь собрана вся картина твоих финансов: доходы, расходы, накопления и план по конвертам. Давай разберёмся с каждым блоком.',
-  },
-  {
-    icon: (
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
-      </svg>
-    ),
-    title: 'Финансовые показатели',
-    desc: 'В верхней части — твой доход, общие расходы и сколько остаётся на накопления каждый месяц. Укажи доход и обязательные расходы в разделе «Финансовая картина».',
-  },
-  {
-    icon: (
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-      </svg>
-    ),
-    title: 'Накопления и EmoSpend',
-    desc: 'Накопления показывают рост капитала с учётом доходности. EmoSpend — это сумма, которую ты можешь тратить на удовольствия каждый месяц без вреда для финансовой цели.',
-  },
-  {
-    icon: (
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-      </svg>
-    ),
-    title: 'Конверты',
-    desc: 'Конверты — это категории трат: одежда, еда, здоровье и другие. Каждый конверт показывает, сколько нужно откладывать в месяц. Внутри конвертов — наборы, которые ты добавляешь из каталога.',
-  },
+  { illust: <IllustOverview />,  title: 'Профиль — твой финансовый центр', desc: 'Здесь собрана вся картина твоих финансов: доходы, расходы, накопления и план по конвертам. Давай разберёмся с каждым блоком.' },
+  { illust: <IllustFinance />,   title: 'Финансовые показатели',           desc: 'В верхней части — твой доход, общие расходы и сколько остаётся на накопления каждый месяц. Укажи данные в разделе «Финансовая картина».' },
+  { illust: <IllustEmo />,       title: 'Накопления и EmoSpend',           desc: 'Показывает рост капитала с учётом доходности. EmoSpend — сумма, которую можно тратить на удовольствия без вреда для цели.' },
+  { illust: <IllustEnvelopes />, title: 'Конверты',                        desc: 'Конверты — категории трат: одежда, еда, здоровье и другие. Каждый конверт состоит из наборов, которые ты добавляешь из каталога.' },
 ]
 
 function ProfileTour({ onClose }) {
@@ -72,7 +113,7 @@ function ProfileTour({ onClose }) {
     <div className="tour-overlay" onClick={finish}>
       <div className="tour-modal" onClick={e => e.stopPropagation()}>
         <button className="tour-skip" onClick={finish}>Пропустить</button>
-        <div className="tour-icon">{current.icon}</div>
+        <div className="tour-illust">{current.illust}</div>
         <div className="tour-step-dots">
           {TOUR_STEPS.map((_, i) => (
             <span key={i} className={`tour-dot${i === step ? ' active' : ''}`} onClick={() => setStep(i)} />
