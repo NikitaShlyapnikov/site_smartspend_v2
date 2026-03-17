@@ -4997,6 +4997,17 @@ body.dark .inv-purchase-date { background: var(--surface); border-color: var(--b
   line-height: 1;
 }
 .help-btn:hover { border-color: var(--accent-green); color: var(--accent-green); background: var(--accent-green-light); }
+.help-btn--new {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+  background: var(--accent-green-light);
+  animation: helpPulse 2s ease-in-out infinite;
+}
+@keyframes helpPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(78,130,104,0.55); }
+  60%  { box-shadow: 0 0 0 8px rgba(78,130,104,0); }
+  100% { box-shadow: 0 0 0 0 rgba(78,130,104,0); }
+}
 
 /* ── SPOTLIGHT TOUR ───────────────────────────────────────────────────────── */
 .spotlight-tooltip {
@@ -5035,6 +5046,17 @@ body.dark .inv-purchase-date { background: var(--surface); border-color: var(--b
 }
 .spl-btn-next:hover { opacity: 0.88; }
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spotlightPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(78,130,104,0.6), 0 0 0 0 rgba(78,130,104,0.3); }
+  50%  { box-shadow: 0 0 0 6px rgba(78,130,104,0.2), 0 0 0 12px rgba(78,130,104,0.05); }
+  100% { box-shadow: 0 0 0 0 rgba(78,130,104,0), 0 0 0 0 rgba(78,130,104,0); }
+}
+.spotlight-pulse {
+  animation: spotlightPulse 1.4s ease-in-out infinite !important;
+  border-color: var(--accent-green) !important;
+  color: var(--accent-green) !important;
+  position: relative; z-index: 1102;
+}
 
 /* ── PROFILE TOUR ─────────────────────────────────────────────────────────── */
 .tour-overlay {

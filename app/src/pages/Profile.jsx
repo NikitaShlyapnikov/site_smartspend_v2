@@ -19,146 +19,31 @@ const GROUP_CATS = {
 const BASE_RETURN = 0.04
 
 // ── Profile Tour ─────────────────────────────────────────────────────────────
-// ── Tour illustrations ────────────────────────────────────────────────────────
-function TourMockup({ title, children }) {
-  return (
-    <div className="tour-mockup">
-      <div className="tour-mockup-bar">
-        <span className="tour-mockup-dot" /><span className="tour-mockup-dot" /><span className="tour-mockup-dot" />
-        <span className="tour-mockup-label">{title}</span>
-      </div>
-      <div className="tour-mockup-body">{children}</div>
-    </div>
-  )
-}
-
-const IllustOverview = () => (
-  <TourMockup title="SmartSpend / Профиль">
-    <div className="tour-mk-section-row">
-      <div className="tour-mk-tile"><div className="tour-mk-tile-lbl">Доход</div><div className="tour-mk-tile-val">85 000 ₽</div></div>
-      <div className="tour-mk-tile"><div className="tour-mk-tile-lbl">Расходы</div><div className="tour-mk-tile-val">61 000 ₽</div></div>
-      <div className="tour-mk-tile tour-mk-tile--accent"><div className="tour-mk-tile-lbl">Откладывается</div><div className="tour-mk-tile-val">24 000 ₽</div></div>
-    </div>
-    <div className="tour-mk-block-row">
-      <div className="tour-mk-block"><div className="tour-mk-block-lbl">Размер капитала</div><div className="tour-mk-block-num">186 400 ₽</div></div>
-      <div className="tour-mk-block tour-mk-block--emo"><div className="tour-mk-block-lbl">EmoSpend / мес.</div><div className="tour-mk-block-num">8 200 ₽</div></div>
-    </div>
-    <div className="tour-mk-env-list">
-      <div className="tour-mk-env-item"><span className="tour-mk-env-dot" style={{background:'#B8A0C8'}}/>Одежда<span className="tour-mk-env-amt">12 000 ₽</span></div>
-      <div className="tour-mk-env-item"><span className="tour-mk-env-dot" style={{background:'#8DBFA8'}}/>Еда<span className="tour-mk-env-amt">22 000 ₽</span></div>
-      <div className="tour-mk-env-item"><span className="tour-mk-env-dot" style={{background:'#9EA8C0'}}/>Дом<span className="tour-mk-env-amt">18 000 ₽</span></div>
-    </div>
-  </TourMockup>
-)
-
-const IllustFinance = () => (
-  <TourMockup title="Финансовая картина">
-    <div className="tour-mk-section-row">
-      <div className="tour-mk-tile"><div className="tour-mk-tile-lbl">Доход</div><div className="tour-mk-tile-val">85 000 ₽</div></div>
-      <div className="tour-mk-tile"><div className="tour-mk-tile-lbl">Расходы</div><div className="tour-mk-tile-val">61 000 ₽</div></div>
-      <div className="tour-mk-tile tour-mk-tile--accent"><div className="tour-mk-tile-lbl">Откладывается</div><div className="tour-mk-tile-val">24 000 ₽</div></div>
-    </div>
-    <div className="tour-mk-fin-rows">
-      <div className="tour-mk-fin-row"><span className="tour-mk-fin-lbl">Жильё</span><span className="tour-mk-fin-bar"><span style={{width:'28%'}} /></span><span className="tour-mk-fin-val">−24 000 ₽</span></div>
-      <div className="tour-mk-fin-row"><span className="tour-mk-fin-lbl">Конверты</span><span className="tour-mk-fin-bar"><span style={{width:'44%'}} /></span><span className="tour-mk-fin-val">−37 000 ₽</span></div>
-      <div className="tour-mk-fin-row tour-mk-fin-row--accent"><span className="tour-mk-fin-lbl">Остаток</span><span className="tour-mk-fin-bar"><span style={{width:'28%', background:'var(--accent-green)'}} /></span><span className="tour-mk-fin-val">24 000 ₽</span></div>
-    </div>
-  </TourMockup>
-)
-
-const IllustEmo = () => (
-  <TourMockup title="Накопления и EmoSpend">
-    <div className="tour-mk-block-row">
-      <div className="tour-mk-block"><div className="tour-mk-block-lbl">Размер капитала</div><div className="tour-mk-block-num">186 400 ₽</div><div className="tour-mk-block-sub">↑ +4.2% за год</div></div>
-      <div className="tour-mk-block tour-mk-block--emo"><div className="tour-mk-block-lbl">EmoSpend</div><div className="tour-mk-block-num">8 200 ₽</div><div className="tour-mk-block-sub">в месяц</div></div>
-    </div>
-    <div className="tour-mk-emo-desc">Уровень удовольствия <span className="tour-mk-emo-rate">5%</span></div>
-    <div className="tour-mk-emo-bar"><div className="tour-mk-emo-fill" /></div>
-    <div className="tour-mk-emo-hint">Трать до 8 200 ₽ в месяц на желания — капитал продолжит расти</div>
-  </TourMockup>
-)
-
-const IllustEnvelopes = () => (
-  <TourMockup title="Конверты и наборы">
-    <div className="tour-mk-env-card" style={{borderColor:'#B8A0C8'}}>
-      <div className="tour-mk-env-head"><span className="tour-mk-env-dot" style={{background:'#B8A0C8'}}/>Одежда и обувь<span className="tour-mk-env-amt">12 000 ₽/мес</span></div>
-      <div className="tour-mk-env-set"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="1" width="10" height="10" rx="2"/></svg>Базовый гардероб<span>8 000 ₽</span></div>
-      <div className="tour-mk-env-set"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="1" width="10" height="10" rx="2"/></svg>Спортивная одежда<span>4 000 ₽</span></div>
-    </div>
-    <div className="tour-mk-env-card" style={{borderColor:'#8DBFA8'}}>
-      <div className="tour-mk-env-head"><span className="tour-mk-env-dot" style={{background:'#8DBFA8'}}/>Еда и супермаркеты<span className="tour-mk-env-amt">22 000 ₽/мес</span></div>
-      <div className="tour-mk-env-set"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="1" width="10" height="10" rx="2"/></svg>Питание на месяц<span>22 000 ₽</span></div>
-    </div>
-  </TourMockup>
-)
-
-const TOUR_STEPS = [
-  { illust: <IllustOverview />,  title: 'Профиль — твой финансовый центр', desc: 'Здесь собрана вся картина твоих финансов: доходы, расходы, накопления и план по конвертам. Давай разберёмся с каждым блоком.' },
-  { illust: <IllustFinance />,   title: 'Финансовые показатели',           desc: 'В верхней части — твой доход, общие расходы и сколько остаётся на накопления каждый месяц. Укажи данные в разделе «Финансовая картина».' },
-  { illust: <IllustEmo />,       title: 'Накопления и EmoSpend',           desc: 'Показывает рост капитала с учётом доходности. EmoSpend — сумма, которую можно тратить на удовольствия без вреда для цели.' },
-  { illust: <IllustEnvelopes />, title: 'Конверты',                        desc: 'Конверты — категории трат: одежда, еда, здоровье и другие. Каждый конверт состоит из наборов, которые ты добавляешь из каталога.' },
-]
-
-function ProfileTour({ onClose }) {
-  const [step, setStep] = useState(0)
-  const current = TOUR_STEPS[step]
-  const isLast = step === TOUR_STEPS.length - 1
-
-  function finish() {
-    localStorage.setItem('ss_tour_profile', '1')
-    onClose()
-  }
-
-  return (
-    <div className="tour-overlay" onClick={finish}>
-      <div className="tour-modal" onClick={e => e.stopPropagation()}>
-        <button className="tour-close" onClick={finish} aria-label="Закрыть">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/>
-          </svg>
-        </button>
-        <div className="tour-illust">{current.illust}</div>
-        <div className="tour-step-dots">
-          {TOUR_STEPS.map((_, i) => (
-            <span key={i} className={`tour-dot${i === step ? ' active' : ''}`} onClick={() => setStep(i)} />
-          ))}
-        </div>
-        <div className="tour-title">{current.title}</div>
-        <div className="tour-desc">{current.desc}</div>
-        <div className="tour-actions">
-          {step > 0 && (
-            <button className="tour-btn-back" onClick={() => setStep(s => s - 1)}>Назад</button>
-          )}
-          <button className="tour-btn-next" onClick={isLast ? finish : () => setStep(s => s + 1)}>
-            {isLast ? 'Понятно' : 'Далее'}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // ── Spotlight Tour ─────────────────────────────────────────────────────────────
 const SPOTLIGHT_STEPS = [
   {
     targetId: 'sp-tiles',
+    btnId: null,
     title: 'Финансовые показатели',
     desc: 'Сводка по текущему месяцу: твой доход, общие расходы и сколько остаётся на накопления.',
   },
   {
     targetId: 'sp-finance',
+    btnId: 'sp-btn-finance',
     title: 'Финансовая картина',
     desc: 'Детальная разбивка расходов — жильё, кредит, конверты. Нажми «Редактировать», чтобы указать доход и обязательные расходы.',
   },
   {
     targetId: 'sp-emo',
+    btnId: 'sp-btn-emo',
     title: 'Капитал и EmoSpend',
-    desc: 'Показывает размер накоплений и сколько можно тратить на удовольствия ежемесячно без ущерба для роста капитала.',
+    desc: 'Показывает накопления и сколько можно тратить на удовольствия. Выбери уровень удовольствия — он определяет размер EmoSpend.',
   },
   {
     targetId: 'sp-envelopes',
+    btnId: 'sp-btn-envelopes',
     title: 'Конверты и наборы',
-    desc: 'Твой план расходов по категориям. Добавляй наборы из каталога — система сама рассчитает нужную сумму для каждого конверта.',
+    desc: 'Твой план расходов по категориям. Нажми «Редактировать», чтобы добавить наборы из каталога.',
   },
 ]
 
@@ -173,6 +58,15 @@ function SpotlightTour({ onClose }) {
     el.scrollIntoView({ behavior: 'smooth', block: 'center' })
     const t = setTimeout(() => setRect(el.getBoundingClientRect()), 380)
     return () => clearTimeout(t)
+  }, [step])
+
+  useEffect(() => {
+    const { btnId } = SPOTLIGHT_STEPS[step]
+    if (!btnId) return
+    const btn = document.getElementById(btnId)
+    if (!btn) return
+    btn.classList.add('spotlight-pulse')
+    return () => btn.classList.remove('spotlight-pulse')
   }, [step])
 
   const isLast = step === SPOTLIGHT_STEPS.length - 1
@@ -769,8 +663,8 @@ export default function Profile() {
   const [editMode, setEditMode] = useState(false)
   const [finOpen, setFinOpen] = useState(false)
   const [finance, setFinance] = useState(loadFinance)
-  const [showTour, setShowTour] = useState(() => !localStorage.getItem('ss_tour_profile'))
   const [showSpotlight, setShowSpotlight] = useState(false)
+  const [spotlightSeen, setSpotlightSeen] = useState(() => !!localStorage.getItem('ss_spotlight_profile_seen'))
 
   const { income, housing, credit, creditMonths = 0, capital, updatedAt } = finance
 
@@ -909,7 +803,17 @@ export default function Profile() {
           <div className="entry-greeting">
             <div className="entry-title" style={{display:'flex',alignItems:'center',gap:10}}>
               Привет, {username.split(' ')[0]}
-              <button className="help-btn" onClick={() => setShowSpotlight(true)} title="Как устроена страница">?</button>
+              <button
+                className={`help-btn${!spotlightSeen ? ' help-btn--new' : ''}`}
+                onClick={() => {
+                  setShowSpotlight(true)
+                  if (!spotlightSeen) {
+                    localStorage.setItem('ss_spotlight_profile_seen', '1')
+                    setSpotlightSeen(true)
+                  }
+                }}
+                title="Как устроена страница"
+              >?</button>
             </div>
             <div className="entry-subtitle">{greetingSubtitle}</div>
           </div>
@@ -937,7 +841,7 @@ export default function Profile() {
         <div id="sp-finance">
           <div className="section-heading">
             <span className="section-title">Финансовая картина · {updatedAt}</span>
-            <button className="section-link" onClick={() => setFinOpen(true)}>
+            <button id="sp-btn-finance" className="section-link" onClick={() => setFinOpen(true)}>
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
               Редактировать
             </button>
@@ -995,7 +899,7 @@ export default function Profile() {
               </div>
               <div className="emo-rate-row">
                 <span className="emo-rate-label">Уровень удовольствия:</span>
-                <div className="rate-selector">
+                <div id="sp-btn-emo" className="rate-selector">
                   {EMO_RATES.map(r => (
                     <button
                       key={r.rate}
@@ -1019,6 +923,7 @@ export default function Profile() {
           <div className="section-heading">
             <span className="section-title">Конверты и наборы</span>
             <button
+              id="sp-btn-envelopes"
               className={`section-link${editMode ? ' editing' : ''}`}
               onClick={() => setEditMode(e => !e)}
             >
@@ -1170,7 +1075,6 @@ export default function Profile() {
         onSave={f => setFinance(f)}
         onClose={() => setFinOpen(false)}
       />
-      {showTour && <ProfileTour onClose={() => setShowTour(false)} />}
       {showSpotlight && <SpotlightTour onClose={() => setShowSpotlight(false)} />}
     </Layout>
   )
