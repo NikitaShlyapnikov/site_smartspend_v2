@@ -386,7 +386,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
           <div className="inv-name">{item.name}</div>
           {paused ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span className="inv-remainder" style={{ color: '#5B8FD4' }}>{item.set ? 'заморожен · не активирован' : 'пауза'}</span>
+              <span className="inv-remainder" style={{ color: '#5B8FD4' }}>{item.set ? 'не активирован' : 'пауза'}</span>
               <button className="inv-launch-btn" onClick={e => { e.stopPropagation(); onLaunch() }}>
                 <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M8 5v14l11-7z"/>

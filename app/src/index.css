@@ -273,7 +273,7 @@ body.dark .cat-pill.active { background: var(--accent-green); border-color: var(
 /* ── FEED PAGE ── */
 .feed-main {
   display: flex; flex-direction: column;
-  min-width: 0; max-width: 840px; width: 100%; margin: 0 auto;
+  min-width: 0; max-width: 860px; width: 100%; margin: 0 auto;
   height: 100vh; overflow: hidden;
 }
 .page-header { padding: 32px 36px 0; flex-shrink: 0; }
@@ -896,7 +896,7 @@ body.dark .btn-danger-ghost:hover { background: rgba(200,72,72,0.12); }
 .account-main {
   padding: 32px 36px;
   display: flex; flex-direction: column; gap: 28px;
-  min-width: 0; max-width: 820px; width: 100%; margin: 0 auto;
+  min-width: 0; max-width: 860px; width: 100%; margin: 0 auto;
 }
 .account-main > * { flex-shrink: 0; }
 
@@ -1950,7 +1950,7 @@ body.dark {
 .inventory-main {
   padding: 32px 36px;
   display: flex; flex-direction: column; gap: 20px;
-  min-width: 0; max-width: 960px; width: 100%; margin: 0 auto;
+  min-width: 0; max-width: 1060px; width: 100%; margin: 0 auto;
 }
 .inv-page-header {
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
@@ -2609,7 +2609,7 @@ body.dark .inv-add-form-select { background: var(--surface-3); }
 .profile-main {
   padding: 32px 36px;
   display: flex; flex-direction: column; gap: 36px;
-  min-width: 0; max-width: 880px; width: 100%; margin: 0 auto;
+  min-width: 0; max-width: 860px; width: 100%; margin: 0 auto;
   scrollbar-width: none;
 }
 .profile-main::-webkit-scrollbar { display: none; }
@@ -3146,7 +3146,7 @@ body.dark .profile-tab.active { background: var(--surface-3); }
 .article-main {
   padding: 32px 36px;
   display: flex; flex-direction: column; gap: 20px;
-  min-width: 0; max-width: 760px; width: 100%; margin: 0 auto;
+  min-width: 0; max-width: 720px; width: 100%; margin: 0 auto;
 }
 .article-main > * { flex-shrink: 0; }
 
@@ -3630,7 +3630,7 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
 .create-main {
   padding: 32px 36px;
   display: flex; flex-direction: column; gap: 20px;
-  min-width: 0; max-width: 760px; width: 100%; margin: 0 auto;
+  min-width: 0; max-width: 720px; width: 100%; margin: 0 auto;
 }
 
 .visibility-toggle {
@@ -4208,7 +4208,7 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
 .sd-main {
   padding: 32px 36px;
   display: flex; flex-direction: column; gap: 24px;
-  max-width: 900px; width: 100%; margin: 0 auto;
+  max-width: 860px; width: 100%; margin: 0 auto;
   scrollbar-width: none;
 }
 .sd-main::-webkit-scrollbar { display: none; }
