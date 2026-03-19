@@ -763,6 +763,21 @@ export default function Profile() {
               <span className="bl-value">{savings.toLocaleString('ru')} ₽ {income > 0 && <span className="bl-tag">{Math.round((savings / income) * 100)}%</span>}</span>
             </div>
           </div>
+
+          <button className="profile-tool-row" onClick={() => navigate('/cards')}>
+            <div className="profile-tool-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+              </svg>
+            </div>
+            <div className="profile-tool-text">
+              <div className="profile-tool-title">Подобрать банковскую карту</div>
+              <div className="profile-tool-desc">Кешбэк под ваши категории трат</div>
+            </div>
+            <svg className="profile-tool-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </button>
         </div>
 
         {/* Капитал и EmoSpend */}
@@ -818,6 +833,22 @@ export default function Profile() {
 
             <ForecastChart emoRate={emoRate} dark={dark} monthlyInvest={monthlyInvest} capital={capital} creditPayment={credit} creditMonths={creditMonths} />
           </div>
+
+          <button className="profile-tool-row" onClick={() => navigate('/deposits')}>
+            <div className="profile-tool-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="2" width="18" height="20" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>
+                <path d="M9 16l2 2 4-4"/>
+              </svg>
+            </div>
+            <div className="profile-tool-text">
+              <div className="profile-tool-title">Вклады и накопительные счета</div>
+              <div className="profile-tool-desc">Сравнить ставки в банках</div>
+            </div>
+            <svg className="profile-tool-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </button>
         </div>
 
         {/* Конверты и наборы */}
