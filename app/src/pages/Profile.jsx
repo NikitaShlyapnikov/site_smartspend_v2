@@ -764,20 +764,6 @@ export default function Profile() {
             </div>
           </div>
 
-          <button className="profile-tool-row" onClick={() => navigate('/cards')}>
-            <div className="profile-tool-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
-              </svg>
-            </div>
-            <div className="profile-tool-text">
-              <div className="profile-tool-title">Подобрать банковскую карту</div>
-              <div className="profile-tool-desc">Кешбэк под ваши категории трат</div>
-            </div>
-            <svg className="profile-tool-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 18l6-6-6-6"/>
-            </svg>
-          </button>
         </div>
 
         {/* Капитал и EmoSpend */}
@@ -1000,6 +986,21 @@ export default function Profile() {
             <span className="et-label">Итого в конвертах</span>
             <span className="et-value">{grandTotal.toLocaleString('ru')} ₽ <span className="et-sub">/ месяц</span></span>
           </div>
+
+          <button className="profile-tool-row" onClick={() => navigate('/cards')}>
+            <div className="profile-tool-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+              </svg>
+            </div>
+            <div className="profile-tool-text">
+              <div className="profile-tool-title">Подобрать банковскую карту</div>
+              <div className="profile-tool-desc">Кешбэк под ваши категории трат</div>
+            </div>
+            <svg className="profile-tool-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </button>
         </div>
       </main>
       <FinancialModal
