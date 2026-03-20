@@ -41,10 +41,22 @@ const SPOTLIGHT_STEPS = [
     desc: 'Показывает накопления и сколько можно тратить на удовольствия. Выбери уровень удовольствия — он определяет размер EmoSpend.',
   },
   {
+    targetId: 'sp-deposits',
+    btnId: null,
+    title: 'Вклады и накопительные счета',
+    desc: 'Сравни ставки в банках и выбери лучшее предложение для своего капитала. Доступны фильтры по сроку, банку и условиям.',
+  },
+  {
     targetId: 'sp-envelopes',
     btnId: 'sp-btn-envelopes',
     title: 'Конверты и наборы',
     desc: 'Твой план расходов по категориям. Нажми «Редактировать», чтобы добавить наборы из каталога.',
+  },
+  {
+    targetId: 'sp-cards',
+    btnId: null,
+    title: 'Подбор банковской карты',
+    desc: 'Найди карту с кешбэком под твои категории трат — продукты, транспорт, рестораны или путешествия.',
   },
 ]
 
@@ -886,7 +898,7 @@ export default function Profile() {
             />
           </div>
 
-          <button className="profile-tool-row" onClick={() => navigate('/deposits')}>
+          <button id="sp-deposits" className="profile-tool-row" onClick={() => navigate('/deposits')}>
             <div className="profile-tool-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="2" width="18" height="20" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>
@@ -1053,7 +1065,7 @@ export default function Profile() {
             <span className="et-value">{grandTotal.toLocaleString('ru')} ₽ <span className="et-sub">/ месяц</span></span>
           </div>
 
-          <button className="profile-tool-row" onClick={() => navigate('/cards')}>
+          <button id="sp-cards" className="profile-tool-row" onClick={() => navigate('/cards')}>
             <div className="profile-tool-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>

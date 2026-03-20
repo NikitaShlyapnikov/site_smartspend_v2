@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
+import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 
 // All months shown in chart (always 12 columns, scrollable on mobile)
 const DESKTOP_MONTHS = [1, 2, 3, 4, 5, 6, 9, 12, 15, 18, 24, 36]
@@ -202,6 +203,28 @@ const SAVINGS = [
 
 const ALL_BANKS = [...new Set(DEPOSITS.map(d => d.bank))]
 
+// ── Spotlight Tour ────────────────────────────────────────────────────────────
+const DEP_SPOTLIGHT = [
+  {
+    targetId: 'sp-dep-chart',
+    btnId: null,
+    title: 'График ставок по срокам',
+    desc: 'Нажми на любой столбец, чтобы выбрать срок вклада. График показывает максимальные ставки в выбранных банках — и обновляется при изменении фильтров.',
+  },
+  {
+    targetId: 'sp-dep-filters',
+    btnId: null,
+    title: 'Сумма, срок и фильтры',
+    desc: 'Укажи сумму вклада — и увидишь реальный доход для каждого предложения. Срок меняется здесь или кликом по графику. В «Фильтрах» можно отобрать банки, частоту выплат и условия.',
+  },
+  {
+    targetId: 'sp-dep-list',
+    btnId: null,
+    title: 'Предложения банков',
+    desc: 'Карточки отсортированы по ставке или доходу. Нажми на карточку, чтобы раскрыть детали: эффективная ставка, ликвидность, защита вклада и условия тарифа.',
+  },
+]
+
 const CHART_H = 140
 const MIN_BAR  = 28
 
@@ -269,6 +292,7 @@ export default function Deposits() {
   const [showModal, setShowModal]         = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [bankSearch, setBankSearch]       = useState('')
+  const [showSpotlight, setShowSpotlight] = useState(false)
 
   useEffect(() => {
     const fn = () => setShowScrollTop(window.scrollY > 480)
@@ -315,10 +339,20 @@ export default function Deposits() {
 
   const totalActiveFilters = filterBanks.size + filterFreq.size + filterConds.size + filterLiquid.size
 
+  // Deposits passing non-month filters (used for chart)
+  const chartFiltered = useMemo(() => DEPOSITS.filter(d => {
+    if (filterBanks.size > 0 && !filterBanks.has(d.bank)) return false
+    if (filterFreq.size > 0 && !filterFreq.has(d.freq)) return false
+    if (filterConds.size > 0 && !d.conditions.some(c => filterConds.has(c))) return false
+    if (filterLiquid.has('replenishment') && !d.replenishment) return false
+    if (filterLiquid.has('no_replenishment') && d.replenishment) return false
+    return true
+  }), [filterBanks, filterFreq, filterConds, filterLiquid])
+
   const monthRates = useMemo(() => DESKTOP_MONTHS.map(m => ({
     month: m,
-    rate: Math.max(0, ...DEPOSITS.map(d => d.rates[m] || 0)),
-  })), [])
+    rate: chartFiltered.length > 0 ? Math.max(0, ...chartFiltered.map(d => d.rates[m] || 0)) : 0,
+  })), [chartFiltered])
 
   const validRates = monthRates.filter(r => r.rate > 0).map(r => r.rate)
   const minRate = validRates.length ? Math.min(...validRates) : 0
@@ -382,10 +416,11 @@ export default function Deposits() {
             <polyline points="9 18 15 12 9 6"/>
           </svg>
           <span className="breadcrumb-current">Вклады и накопительные счета</span>
+          <HelpButton seenKey="ss_spl_deposits" onOpen={() => setShowSpotlight(true)} />
         </div>
 
         {/* ── Chart card ── */}
-        <div className="dep-chart-card">
+        <div id="sp-dep-chart" className="dep-chart-card">
           <div className="dep-chart-title">Максимальные ставки по срокам</div>
 
           <div className="dep-chart" ref={chartRef}
@@ -414,7 +449,7 @@ export default function Deposits() {
         </div>
 
         {/* ── Filters row ── */}
-        <div className="dep-filters-card">
+        <div id="sp-dep-filters" className="dep-filters-card">
           <div className="dep-filters-row">
             <div className="dep-filter-group">
               <span className="dep-filter-label">Сумма вклада</span>
@@ -476,7 +511,7 @@ export default function Deposits() {
         </div>
 
         {/* ── Deposit list ── */}
-        <div className="dep-list">
+        <div id="sp-dep-list" className="dep-list">
           {filtered.length === 0 && (
             <div className="dep-empty">Нет предложений для выбранных фильтров</div>
           )}
@@ -508,7 +543,7 @@ export default function Deposits() {
                             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                           </svg>
                         )}
-                        ₽ {fmtRub(income)}
+                        {fmtRub(income)}
                       </span>
                     </div>
                   </div>
@@ -666,7 +701,7 @@ export default function Deposits() {
                     <div className="dep-card-pills">
                       <span className="dep-pill dep-pill-rate">% {sav.rate}</span>
                       <span className="dep-pill dep-pill-note">{sav.rateNote}</span>
-                      <span className="dep-pill dep-pill-income">₽ {fmtRub(calcIncome(sav.rate, amount, 1))}</span>
+                      <span className="dep-pill dep-pill-income">{fmtRub(calcIncome(sav.rate, amount, 1))}</span>
                     </div>
                   </div>
                   <div className="dep-card-aside">
@@ -766,6 +801,8 @@ export default function Deposits() {
           </svg>
         </button>
       )}
+
+      {showSpotlight && <SpotlightTour steps={DEP_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
 
       {/* ── Filters modal ── */}
       {showModal && (

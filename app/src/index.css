@@ -5506,7 +5506,7 @@ body.dark .dep-term-select { background: var(--surface-2); }
   border-radius: var(--r-sm); border: 1px solid var(--border);
 }
 .dep-detail-lbl { font-size: 11px; color: var(--text-3); }
-.dep-detail-val { font-size: 13px; font-weight: 600; color: var(--text); font-family: var(--mono); }
+.dep-detail-val { font-size: 13px; font-weight: 400; color: var(--text); font-family: var(--mono); }
 .dep-detail-val.green { color: var(--accent-green); }
 .dep-detail-hint { font-size: 10px; font-weight: 400; color: var(--text-3); font-family: var(--sans); margin-left: 2px; }
 
@@ -5756,6 +5756,61 @@ body.dark .dep-bank-search { background: var(--surface); }
     from { transform: translateY(100%); }
     to   { transform: translateY(0); }
   }
+}
+
+/* ── Mobile 480px: deposits layout ── */
+@media (max-width: 480px) {
+  .dep-main { padding: 12px 12px 80px; gap: 12px; }
+
+  /* Filter row → 2×2 grid */
+  .dep-filters-row { gap: 10px; }
+  .dep-filter-group { flex: 1 1 calc(50% - 5px); min-width: 0; }
+  .dep-amount-wrap { width: 100%; box-sizing: border-box; }
+  .dep-amount-input { flex: 1; width: auto; min-width: 0; }
+  .dep-term-select { width: 100%; box-sizing: border-box; }
+  .dep-sort-toggle { width: 100%; min-width: 0; }
+  .dep-sort-btn { flex: 1; justify-content: center; padding: 0 10px; }
+  .dep-filter-toggle-btn { width: 100%; justify-content: center; box-sizing: border-box; }
+
+  /* Cards */
+  .dep-card-main { padding: 12px; }
+  .dep-card-aside { padding-left: 8px; gap: 6px; }
+  .dep-bank-logo { width: 44px; height: 44px; font-size: 13px; border-radius: 10px; }
+
+  /* Tags: allow line wrap on tiny screens */
+  .dep-tag { white-space: normal; line-height: 1.3; }
+
+  /* Expanded grid */
+  .dep-card-detail { padding: 0 12px 12px; gap: 10px; }
+  .dep-detail-item { padding: 8px 10px; }
+  .dep-detail-lbl { font-size: 10px; }
+  .dep-detail-val { font-size: 12px; }
+
+  /* Tariff block */
+  .dep-tariff-block { margin: 0; }
+  .dep-tariff-header { padding: 10px 12px; }
+  .dep-tariff-cond { padding: 8px 12px 6px; }
+  .dep-tariff-benefits { padding: 0 12px 10px; }
+  .dep-tariff-link { margin: 0 12px 10px; }
+
+  /* Savings detail */
+  .dep-sav-notice { padding: 8px 10px; font-size: 11px; }
+
+  /* Scroll-to-top btn — lift above bottom nav */
+  .dep-scroll-top { bottom: calc(var(--bottom-nav-h) + 12px); }
+}
+
+/* ── Mobile 360px: tighten further ── */
+@media (max-width: 380px) {
+  .dep-main { padding: 8px 8px 80px; }
+  .dep-filters-card { padding: 12px; }
+  .dep-chart-card { padding: 14px 12px 12px; }
+  .dep-filter-group { flex: 1 1 100%; } /* full width stack on 360 */
+  .dep-sort-toggle { min-width: 0; }
+  .dep-bank-logo { width: 40px; height: 40px; font-size: 12px; border-radius: 8px; }
+  .dep-pill { padding: 4px 8px; font-size: 11px; }
+  .dep-bar-col { flex: 0 0 54px; }
+  .dep-detail-grid { gap: 6px; }
 }
 
 /* Dark theme */
