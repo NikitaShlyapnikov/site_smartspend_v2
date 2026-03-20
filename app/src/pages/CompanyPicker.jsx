@@ -177,15 +177,6 @@ function CompanyCard({ company, selected, onToggle, onInfo }) {
       onAnimationEnd={e => { if (e.animationName === 'cardBounce') setBouncing(false) }}
       style={{ touchAction: 'none' }}
     >
-      {/* Hold progress ring */}
-      <svg className="cpicker-hold-ring" viewBox="0 0 92 114" fill="none" aria-hidden="true">
-        <rect x="1.5" y="1.5" width="89" height="111" rx="13"
-          stroke="var(--accent-green)" strokeWidth="3"
-          strokeDasharray="390" strokeDashoffset="390"
-          strokeLinecap="round"
-        />
-      </svg>
-
       <div className="cpicker-logo" style={{ background: company.color }}>
         {company.abbr}
       </div>

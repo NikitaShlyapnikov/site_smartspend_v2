@@ -6735,22 +6735,23 @@ body.dark .cpicker-company.selected { background: rgba(106,175,142,0.12); border
 body.dark .cpicker-check { background: #6AAF8E; }
 body.dark .cpicker-progress-bar { background: #6AAF8E; }
 
-/* Hold ring animation */
-.cpicker-hold-ring {
+/* Hold progress bar */
+.cpicker-company { overflow: hidden; }
+.cpicker-company::after {
+  content: '';
   position: absolute;
-  inset: -1px;
+  bottom: 0; left: 0;
+  width: 0%; height: 3px;
+  background: var(--accent-green);
+  border-radius: 0 0 12px 12px;
   pointer-events: none;
-  z-index: 2;
 }
-.cpicker-hold-ring rect {
-  transition: none;
+.cpicker-company.holding::after {
+  animation: holdBar 0.5s linear forwards;
 }
-.cpicker-company.holding .cpicker-hold-ring rect {
-  animation: holdRingFill 0.5s linear forwards;
-}
-@keyframes holdRingFill {
-  from { stroke-dashoffset: 390; }
-  to   { stroke-dashoffset: 0; }
+@keyframes holdBar {
+  from { width: 0%; }
+  to   { width: 100%; }
 }
 
 /* Selection bounce */
