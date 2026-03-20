@@ -417,6 +417,16 @@ export default function Deposits() {
             </div>
 
             <div className="dep-filter-group">
+              <span className="dep-filter-label">Срок</span>
+              <select className="dep-term-select" value={selectedMonth}
+                onChange={e => { setSelectedMonth(Number(e.target.value)); setExpanded(null) }}>
+                {DESKTOP_MONTHS.filter(m => DEPOSITS.some(d => d.rates[m])).map(m => (
+                  <option key={m} value={m}>{fmtMonth(m)}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="dep-filter-group">
               <span className="dep-filter-label">Сортировка</span>
               <div className="dep-sort-toggle">
                 <button className={`dep-sort-btn${sortBy === 'rate' ? ' active' : ''}`}
@@ -505,10 +515,6 @@ export default function Deposits() {
 
                 {isOpen && (() => {
                   const effectiveRate = calcEffectiveRate(rate, dep.freq)
-                  const termKeys = Object.keys(dep.rates).map(Number)
-                  const minTerm = Math.min(...termKeys)
-                  const maxTerm = Math.max(...termKeys)
-                  const termRange = minTerm === maxTerm ? fmtMonth(maxTerm) : `${fmtMonth(minTerm)}\u00a0–\u00a0${fmtMonth(maxTerm)}`
                   const amountRange = dep.maxAmount
                     ? `от\u00a0${fmtRub(dep.minAmount)}\u00a0до\u00a0${fmtRub(dep.maxAmount)}`
                     : `от\u00a0${fmtRub(dep.minAmount)}`
@@ -540,16 +546,20 @@ export default function Deposits() {
                         <span className="dep-detail-val">{freqLabel}</span>
                       </div>
                       <div className="dep-detail-item">
-                        <span className="dep-detail-lbl">Срок</span>
-                        <span className="dep-detail-val">{termRange}</span>
+                        <span className="dep-detail-lbl">Срок вклада</span>
+                        <span className="dep-detail-val">{fmtMonth(selectedMonth)}</span>
                       </div>
                       <div className="dep-detail-item">
                         <span className="dep-detail-lbl">Сумма вклада</span>
                         <span className="dep-detail-val">{amountRange}</span>
                       </div>
-                      <div className="dep-detail-item">
-                        <span className="dep-detail-lbl">{dep.isSystemic ? 'Системообразующий банк' : 'Страхование АСВ'}</span>
-                        <span className="dep-detail-val">{dep.isSystemic ? 'да' : 'до\u00a01,4\u00a0млн\u00a0₽'}</span>
+                      <div className="dep-detail-item" style={{ gridColumn: '1 / -1' }}>
+                        <span className="dep-detail-lbl">Защита вкладов</span>
+                        <span className="dep-detail-val">
+                          {dep.isSystemic
+                            ? 'Системообразующий банк\u00a0— гарантия ЦБ\u00a0РФ на всю сумму'
+                            : 'Страхование АСВ до\u00a01,4\u00a0млн\u00a0₽'}
+                        </span>
                       </div>
                       <div className="dep-detail-item">
                         <span className="dep-detail-lbl">Пополнение</span>

@@ -5361,6 +5361,15 @@ body.dark .inv-purchase-date { background: var(--surface); border-color: var(--b
   color: var(--text); width: 110px;
 }
 .dep-amount-unit { font-size: 13px; color: var(--text-3); font-family: var(--mono); }
+.dep-term-select {
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  background: var(--surface); color: var(--text);
+  font: 500 14px/1 var(--sans); padding: 9px 12px;
+  cursor: pointer; outline: none; transition: border-color 0.15s;
+  min-width: 110px;
+}
+.dep-term-select:focus { border-color: var(--accent-green); }
+body.dark .dep-term-select { background: var(--surface-2); }
 .dep-sort-toggle {
   display: flex; border: 1px solid var(--border); border-radius: var(--r-sm);
   overflow: hidden; height: 38px;
