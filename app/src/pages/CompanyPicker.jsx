@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { companies } from '../data/mock'
+import Layout from '../components/Layout'
 
 const CATEGORY_ORDER = [
   'food', 'cafe', 'transport', 'home', 'clothes',
@@ -169,55 +170,58 @@ export default function CompanyPicker() {
   const progress = Math.round((step / totalSteps) * 100)
 
   return (
-    <div className="cpicker-page">
-      <div className="cpicker-container">
+    <Layout>
+      <main className="cpicker-main">
+        <div className="cpicker-container">
 
-        {/* Header */}
-        <div className="cpicker-header">
-          <button className="cpicker-back-btn" onClick={goBack} aria-label="Назад">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6"/>
-            </svg>
-          </button>
-          <div className="cpicker-header-title">
-            {isEdit ? 'Изменить компании' : 'Подбор компаний'}
+          {/* Breadcrumbs + step counter */}
+          <div className="cpicker-breadcrumb-row">
+            <nav className="breadcrumb">
+              <span className="breadcrumb-item" onClick={() => navigate('/feed')}>Лента</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+              <span className="breadcrumb-current">
+                {isEdit ? 'Изменить компании' : 'Подбор компаний'}
+              </span>
+            </nav>
+            {!isSummary && (
+              <div className="cpicker-step-counter">{step + 1} / {totalSteps}</div>
+            )}
           </div>
+
+          {/* Progress bar */}
           {!isSummary && (
-            <div className="cpicker-step-counter">{step + 1} / {totalSteps}</div>
+            <div className="cpicker-progress-wrap">
+              <div className="cpicker-progress-bar" style={{ width: `${progress}%` }} />
+            </div>
           )}
-        </div>
 
-        {/* Progress bar */}
-        {!isSummary && (
-          <div className="cpicker-progress-wrap">
-            <div className="cpicker-progress-bar" style={{ width: `${progress}%` }} />
+          {/* Content */}
+          <div className="cpicker-content">
+            {isSummary ? (
+              <Summary selected={selected} onFinish={finish} onBack={goBack} />
+            ) : (
+              <>
+                <WizardStep
+                  catKey={CATEGORY_ORDER[step]}
+                  selected={selected}
+                  onToggle={toggle}
+                />
+                <div className="cpicker-actions">
+                  <button className="cpicker-btn-skip" onClick={goNext}>
+                    {isLastStep ? 'Пропустить' : 'Пропустить шаг'}
+                  </button>
+                  <button className="cpicker-btn-next" onClick={goNext}>
+                    {isLastStep ? 'Готово' : 'Далее'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
-        )}
 
-        {/* Content */}
-        <div className="cpicker-content">
-          {isSummary ? (
-            <Summary selected={selected} onFinish={finish} onBack={goBack} />
-          ) : (
-            <>
-              <WizardStep
-                catKey={CATEGORY_ORDER[step]}
-                selected={selected}
-                onToggle={toggle}
-              />
-              <div className="cpicker-actions">
-                <button className="cpicker-btn-skip" onClick={goNext}>
-                  {isLastStep ? 'Пропустить' : 'Пропустить шаг'}
-                </button>
-                <button className="cpicker-btn-next" onClick={goNext}>
-                  {isLastStep ? 'Готово' : 'Далее'}
-                </button>
-              </div>
-            </>
-          )}
         </div>
-
-      </div>
-    </div>
+      </main>
+    </Layout>
   )
 }

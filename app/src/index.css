@@ -5304,6 +5304,7 @@ body.dark .inv-purchase-date { background: var(--surface); border-color: var(--b
   border: 1px solid var(--border); padding: 20px 20px 16px;
   overflow: hidden; /* chart scrolls internally */
   box-sizing: border-box; width: 100%;
+  flex-shrink: 0; /* prevent flex compression on desktop that clips the chart */
 }
 .dep-chart-title {
   font-size: 12px; font-weight: 600; color: var(--text-3);
@@ -6412,6 +6413,26 @@ body.dark .feed-section-card.active.promo    { background: #A86828; border-color
   text-transform: uppercase; letter-spacing: 0.05em;
 }
 
+/* Promo content area with header */
+.promo-content { display: flex; flex-direction: column; gap: 10px; }
+.promo-content-header {
+  display: flex; align-items: center; gap: 7px;
+  padding: 14px 0 2px;
+  font-size: 13px; font-weight: 600; color: var(--text-2);
+  letter-spacing: -0.01em;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+.promo-content-header svg { color: var(--text-3); flex-shrink: 0; }
+.promo-content-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 18px; padding: 0 5px;
+  border-radius: 9px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  font-size: 11px; font-weight: 600; color: var(--text-3);
+  font-family: var(--mono);
+}
+
 /* Broadcast card */
 .broadcast-card {
   display: flex; flex-direction: column; gap: 10px;
@@ -6431,6 +6452,21 @@ body.dark .feed-section-card.active.promo    { background: #A86828; border-color
   font-size: 13px; color: var(--text-2); line-height: 1.55;
   white-space: pre-wrap;
 }
+
+/* Promo scope row (мои/все компании + gear button) */
+.promo-scope-row {
+  display: flex; align-items: center; gap: 8px;
+}
+.promo-scope-row .tab-group { flex: 1; }
+.promo-settings-btn {
+  width: 30px; height: 30px; border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-3); cursor: pointer; flex-shrink: 0;
+  transition: all 0.15s;
+}
+.promo-settings-btn:hover { border-color: var(--accent-green-border); color: var(--text-2); }
 
 .promo-header {
   display: flex; align-items: center; justify-content: flex-end;
@@ -6542,36 +6578,21 @@ body.dark .promo-empty-btn { background: #6AAF8E; }
    COMPANY PICKER PAGE
    ═══════════════════════════════════════════════════════════════════════════ */
 
-.cpicker-page {
-  min-height: 100vh;
-  background: var(--bg);
-  display: flex; align-items: flex-start; justify-content: center;
-  padding: 0 0 40px;
+.cpicker-main {
+  min-width: 0;
+  overflow-y: auto;
 }
 .cpicker-container {
-  width: 100%; max-width: 560px;
+  width: 100%; max-width: 580px;
+  margin: 0 auto;
+  padding: 24px 24px 40px;
   display: flex; flex-direction: column;
 }
 
-/* Header */
-.cpicker-header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 20px 20px 16px;
-  position: sticky; top: 0; z-index: 10;
-  background: var(--bg);
-}
-.cpicker-back-btn {
-  width: 34px; height: 34px; border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  display: flex; align-items: center; justify-content: center;
-  color: var(--text-2); cursor: pointer; flex-shrink: 0;
-  transition: all 0.15s;
-}
-.cpicker-back-btn:hover { border-color: var(--accent-green-border); color: var(--text); }
-.cpicker-header-title {
-  flex: 1; font-size: 16px; font-weight: 600;
-  color: var(--text); letter-spacing: -0.01em;
+/* Breadcrumb row */
+.cpicker-breadcrumb-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 16px;
 }
 .cpicker-step-counter {
   font-size: 13px; color: var(--text-3); font-weight: 500;
@@ -6594,7 +6615,7 @@ body.dark .promo-empty-btn { background: #6AAF8E; }
 }
 
 /* Step content */
-.cpicker-content { padding: 0 20px; }
+.cpicker-content { padding: 0; }
 .cpicker-step { padding: 20px 0 4px; }
 .cpicker-step-label {
   font-size: 11px; font-weight: 600; letter-spacing: 0.08em;

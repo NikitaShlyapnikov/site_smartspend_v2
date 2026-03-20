@@ -62,69 +62,6 @@ const MY_SET_TITLES = new Set([
   'Базовый уход за кошкой',
 ])
 
-function fmtUsers(n) {
-  if (!n) return null
-  if (n >= 10000) return (Math.round(n / 100) / 10) + 'k'
-  if (n >= 1000)  return (n / 1000).toFixed(1).replace('.0', '') + 'k'
-  return String(n)
-}
-
-// ── SET CARD ──────────────────────────────────────────────────────────────────
-
-function SetCard({ item, isRead, onClick }) {
-  const author = item.authorId ? feedAuthors[item.authorId] : null
-  const srcLabel = item.source === 'ss' ? 'SmartSpend' : item.source === 'community' ? 'Сообщество' : 'Моё'
-  return (
-    <div className={`card${isRead ? ' read' : ''}`} onClick={() => onClick(item)}>
-      <div className="set-accent" style={{ background: item.color }} />
-      <div className="set-body">
-        <div className="set-top">
-          <div className="set-left">
-            <div className="set-badges">
-              <span className={`source-badge ${item.source}`}>{srcLabel}</span>
-              <span className={item.badge === 'base' ? 'base-badge' : 'extra-badge'}>
-                {item.badge === 'base' ? 'Основа' : 'Дополнение'}
-              </span>
-            </div>
-            <div className="set-title">{item.title}</div>
-            <div className="set-desc">{item.desc}</div>
-          </div>
-          <div className="set-amount-block">
-            <div className="set-amount">{item.amount.toLocaleString('ru')}&thinsp;₽</div>
-            <div className="set-amount-label">{item.amountLabel || 'в месяц'}</div>
-          </div>
-        </div>
-        <div className="set-items">
-          {item.items.slice(0, 5).map((t, i) => <span key={i} className="set-item-tag">{t}</span>)}
-          {(item.more > 0 || item.items.length > 5) && (
-            <span className="set-item-more">+{item.more || item.items.length - 5}</span>
-          )}
-        </div>
-      </div>
-      <div className="set-footer">
-        {item.users != null && (
-          <div className="meta-item">
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
-            </svg>
-            {fmtUsers(item.users)}
-          </div>
-        )}
-        {author && (
-          <div className="meta-item">
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-              <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-            </svg>
-            {author.name}
-          </div>
-        )}
-        <span className="meta-time" style={{ marginLeft: 'auto' }}>{item.time}</span>
-      </div>
-    </div>
-  )
-}
-
 // ── ARTICLE CARD ──────────────────────────────────────────────────────────────
 
 function AuthorChip({ author, authorId, navigate }) {
@@ -396,14 +333,24 @@ function PromoSection({ navigate, followed, hasSetup, promoCat, promoType, promo
   if (promoType === 'broadcast') {
     const items = byCat.filter(p => p.type === 'broadcast')
     return (
-      <div className="feed-list">
-        {items.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">📬</div>
-            <div className="empty-title">Рассылок нет</div>
-            <div className="empty-desc">Компании из выбранных категорий пока не публиковали рассылку</div>
-          </div>
-        ) : items.map(item => <BroadcastCard key={item.id} item={item} />)}
+      <div className="promo-content">
+        <div className="promo-content-header">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          <span>Рассылка</span>
+          {items.length > 0 && <span className="promo-content-count">{items.length}</span>}
+        </div>
+        <div className="feed-list">
+          {items.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">📬</div>
+              <div className="empty-title">Рассылок нет</div>
+              <div className="empty-desc">Компании из выбранных категорий пока не публиковали рассылку</div>
+            </div>
+          ) : items.map(item => <BroadcastCard key={item.id} item={item} />)}
+        </div>
       </div>
     )
   }
@@ -411,16 +358,26 @@ function PromoSection({ navigate, followed, hasSetup, promoCat, promoType, promo
   const events   = byCat.filter(p => p.type !== 'broadcast')
   const filtered = actsFilter === 'all' ? events : events.filter(p => p.promo_filter === actsFilter)
   return (
-    <div className="feed-list">
-      {filtered.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">🏷️</div>
-          <div className="empty-title">Пока ничего нет</div>
-          <div className="empty-desc">Акций и купонов по выбранным фильтрам не найдено</div>
-        </div>
-      ) : filtered.map(item => (
-        <PromoCard key={item.id} item={item} />
-      ))}
+    <div className="promo-content">
+      <div className="promo-content-header">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+          <line x1="7" y1="7" x2="7.01" y2="7"/>
+        </svg>
+        <span>Акции</span>
+        {filtered.length > 0 && <span className="promo-content-count">{filtered.length}</span>}
+      </div>
+      <div className="feed-list">
+        {filtered.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">🏷️</div>
+            <div className="empty-title">Пока ничего нет</div>
+            <div className="empty-desc">Акций и купонов по выбранным фильтрам не найдено</div>
+          </div>
+        ) : filtered.map(item => (
+          <PromoCard key={item.id} item={item} />
+        ))}
+      </div>
     </div>
   )
 }
@@ -844,11 +801,23 @@ export default function Feed() {
                     <button className={`tab-btn${promoType === 'events' ? ' active' : ''}`}
                       onClick={() => setPromoType('events')}>Акции</button>
                   </div>
-                  <div className="tab-group">
-                    <button className={`tab-btn${promoScope === 'mine' ? ' active' : ''}`}
-                      onClick={() => setPromoScope('mine')}>Мои компании</button>
-                    <button className={`tab-btn${promoScope === 'all' ? ' active' : ''}`}
-                      onClick={() => setPromoScope('all')}>Все компании</button>
+                  <div className="promo-scope-row">
+                    <div className="tab-group">
+                      <button className={`tab-btn${promoScope === 'mine' ? ' active' : ''}`}
+                        onClick={() => setPromoScope('mine')}>Мои компании</button>
+                      <button className={`tab-btn${promoScope === 'all' ? ' active' : ''}`}
+                        onClick={() => setPromoScope('all')}>Все компании</button>
+                    </div>
+                    <button
+                      className="promo-settings-btn"
+                      onClick={() => navigate('/company-picker', { state: { edit: true } })}
+                      title="Изменить список компаний"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                      </svg>
+                    </button>
                   </div>
                 </div>
 
