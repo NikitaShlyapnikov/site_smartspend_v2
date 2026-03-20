@@ -5259,107 +5259,67 @@ body.dark .inv-purchase-date { background: var(--surface); border-color: var(--b
 /* ── Chart card ── */
 .dep-chart-card {
   background: var(--surface); border-radius: var(--r);
-  border: 1px solid var(--border); overflow: hidden;
-}
-.dep-chart-header {
-  padding: 20px 20px 0;
-  display: flex; align-items: flex-start;
-  justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  border: 1px solid var(--border); padding: 20px 20px 16px;
 }
 .dep-chart-title {
-  font-size: 13px; font-weight: 600; color: var(--text-2);
-  text-transform: uppercase; letter-spacing: 0.04em;
+  font-size: 12px; font-weight: 600; color: var(--text-3);
+  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px;
 }
-.dep-period-tabs {
-  display: flex; gap: 4px;
-}
-.dep-period-tab {
-  padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border);
-  background: transparent; font-size: 12px; font-weight: 500;
-  color: var(--text-2); cursor: pointer; transition: all 0.15s;
-  font-family: var(--sans);
-}
-.dep-period-tab.active {
-  background: var(--accent-green); border-color: var(--accent-green);
-  color: #fff;
-}
-.dep-period-tab:not(.active):hover { background: var(--surface-2); }
 
 /* Bar chart */
 .dep-chart {
-  display: flex; align-items: stretch; gap: 8px;
-  padding: 24px 20px 0; height: 180px;
+  display: flex; align-items: stretch; gap: 6px; height: 190px;
 }
 .dep-bar-col {
   flex: 1; display: flex; flex-direction: column;
-  align-items: center; gap: 6px; cursor: pointer; height: 100%;
-  padding: 4px 2px; border-radius: 8px;
+  align-items: center; gap: 4px; cursor: pointer; height: 100%;
+  padding: 4px 3px 0; border-radius: 8px;
   transition: background 0.15s;
 }
 .dep-bar-col:hover { background: var(--surface-2); }
 .dep-bar-col.selected { background: var(--accent-green-light); }
 .dep-bar-rate {
-  font-family: var(--mono); font-size: 11px; font-weight: 500;
-  color: var(--text-3); white-space: nowrap;
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  color: var(--text-3); white-space: nowrap; line-height: 1;
   transition: color 0.15s;
 }
-.dep-bar-col.selected .dep-bar-rate { color: var(--accent-green); font-weight: 700; }
+.dep-bar-col.selected .dep-bar-rate { color: var(--accent-green); }
 .dep-bar-spacer { flex: 1; }
 .dep-bar {
-  width: 100%; border-radius: 6px 6px 0 0;
-  background: var(--surface-3);
-  transition: background 0.2s, height 0.3s ease;
+  width: 100%; border-radius: 5px 5px 0 0;
+  background: rgba(78,130,104,0.20);
+  transition: background 0.2s;
 }
 .dep-bar-col.selected .dep-bar { background: var(--accent-green); }
-.dep-bar-col:not(.selected):hover .dep-bar { background: var(--border); }
+.dep-bar-col:not(.selected):hover .dep-bar { background: rgba(78,130,104,0.32); }
 .dep-bar-label {
-  font-size: 11px; color: var(--text-3); white-space: nowrap;
-  transition: color 0.15s;
+  font-size: 10px; color: var(--text-3); white-space: nowrap;
+  padding-bottom: 2px; transition: color 0.15s;
 }
 .dep-bar-col.selected .dep-bar-label { color: var(--accent-green); font-weight: 600; }
 
-/* Chart footer summary */
-.dep-chart-footer {
-  display: flex; gap: 0; margin: 16px 0 0;
-  border-top: 1px solid var(--border);
+/* Period tabs — below chart */
+.dep-period-tabs {
+  display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap;
 }
-.dep-chart-stat {
-  flex: 1; display: flex; flex-direction: column; align-items: center;
-  gap: 2px; padding: 14px 8px;
-  border-right: 1px solid var(--border);
+.dep-period-tab {
+  padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border);
+  background: var(--surface-2); font-size: 12px; font-weight: 500;
+  color: var(--text-2); cursor: pointer; transition: all 0.15s;
+  font-family: var(--sans);
 }
-.dep-chart-stat:last-child { border-right: none; }
-.dep-chart-stat-val {
-  font-family: var(--mono); font-size: 15px; font-weight: 600;
-  color: var(--accent-green);
+.dep-period-tab.active {
+  background: var(--accent-green); border-color: var(--accent-green); color: #fff;
 }
-.dep-chart-stat-lbl {
-  font-size: 11px; color: var(--text-3); text-align: center;
-}
+.dep-period-tab:not(.active):hover { background: var(--surface-3); }
 
-/* ── Filters ── */
+/* ── Filters card ── */
 .dep-filters-card {
   background: var(--surface); border-radius: var(--r);
   border: 1px solid var(--border);
   padding: 16px 20px; display: flex; flex-direction: column; gap: 12px;
 }
-.dep-filters-row { display: flex; gap: 24px; align-items: flex-end; flex-wrap: wrap; }
-.dep-cond-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.dep-cond-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.dep-cond-chip {
-  padding: 5px 12px; border-radius: 20px;
-  border: 1px solid var(--border); background: transparent;
-  font-size: 12px; font-weight: 500; color: var(--text-2);
-  cursor: pointer; transition: all 0.15s; font-family: var(--sans);
-  display: flex; align-items: center; gap: 4px;
-}
-.dep-cond-chip:hover { border-color: var(--accent-green-border); color: var(--text); background: var(--surface-2); }
-.dep-cond-chip.active { background: var(--accent-green); border-color: var(--accent-green); color: #fff; }
-.dep-cond-clear {
-  border-color: var(--border); color: var(--text-3);
-  background: var(--surface-2);
-}
-.dep-cond-clear:hover { border-color: #B85555; color: #B85555; background: rgba(184,85,85,0.08); }
+.dep-filters-row { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
 .dep-filter-group { display: flex; flex-direction: column; gap: 6px; }
 .dep-filter-label { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; }
 .dep-amount-wrap {
@@ -5377,18 +5337,47 @@ body.dark .inv-purchase-date { background: var(--surface); border-color: var(--b
 .dep-amount-unit { font-size: 13px; color: var(--text-3); font-family: var(--mono); }
 .dep-sort-toggle {
   display: flex; border: 1px solid var(--border); border-radius: var(--r-sm);
-  overflow: hidden;
+  overflow: hidden; height: 38px;
 }
 .dep-sort-btn {
-  padding: 8px 16px; border: none; background: transparent;
+  padding: 0 14px; border: none; background: transparent;
   font-size: 13px; font-weight: 500; color: var(--text-2);
   cursor: pointer; transition: background 0.15s, color 0.15s;
-  font-family: var(--sans);
+  font-family: var(--sans); display: flex; align-items: center; gap: 5px;
 }
-.dep-sort-btn.active {
-  background: var(--accent-green); color: #fff;
-}
+.dep-sort-btn.active { background: var(--accent-green); color: #fff; }
 .dep-sort-btn:not(.active):hover { background: var(--surface-2); }
+/* Filters toggle button */
+.dep-filter-toggle-btn {
+  height: 38px; padding: 0 14px; border-radius: var(--r-sm);
+  border: 1px solid var(--border); background: var(--surface-2);
+  font-family: var(--sans); font-size: 13px; font-weight: 500;
+  color: var(--text-2); cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; gap: 6px; position: relative;
+}
+.dep-filter-toggle-btn:hover { background: var(--surface-3); }
+.dep-filter-toggle-btn.active {
+  background: var(--accent-green-light); border-color: var(--accent-green-border);
+  color: var(--accent-green);
+}
+.dep-filter-badge {
+  background: var(--accent-green); color: #fff; border-radius: 20px;
+  font-size: 10px; font-weight: 700; padding: 2px 6px; line-height: 1;
+}
+/* Condition chips */
+.dep-cond-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dep-cond-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.dep-cond-chip {
+  padding: 5px 12px; border-radius: 20px;
+  border: 1px solid var(--border); background: transparent;
+  font-size: 12px; font-weight: 500; color: var(--text-2);
+  cursor: pointer; transition: all 0.15s; font-family: var(--sans);
+  display: flex; align-items: center; gap: 4px;
+}
+.dep-cond-chip:hover { border-color: var(--accent-green-border); color: var(--text); background: var(--surface-2); }
+.dep-cond-chip.active { background: var(--accent-green); border-color: var(--accent-green); color: #fff; }
+.dep-cond-clear { border-color: var(--border); color: var(--text-3); background: var(--surface-2); }
+.dep-cond-clear:hover { border-color: #B85555; color: #B85555; background: rgba(184,85,85,0.08); }
 
 /* ── Deposit list ── */
 .dep-list { display: flex; flex-direction: column; gap: 8px; }
@@ -5406,47 +5395,56 @@ body.dark .inv-purchase-date { background: var(--surface); border-color: var(--b
 }
 .dep-card.open { border-color: var(--accent-green-border); }
 .dep-card-main {
-  display: flex; align-items: flex-start; gap: 14px;
+  display: flex; align-items: stretch; gap: 0;
   padding: 16px; cursor: pointer; transition: background 0.12s;
 }
 .dep-card-main:hover { background: var(--surface-2); }
-.dep-bank-logo {
-  width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px; font-weight: 700; letter-spacing: -0.02em;
-}
-.dep-card-info { flex: 1; min-width: 0; }
-.dep-card-names { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
-.dep-bank-name { font-size: 13px; font-weight: 600; color: var(--text); }
+
+/* Card body — left side */
+.dep-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.dep-card-names { display: flex; align-items: center; gap: 8px; }
+.dep-bank-name { font-size: 14px; font-weight: 700; color: var(--text); }
 .dep-best-badge {
   font-size: 10px; font-weight: 600; padding: 2px 7px;
   border-radius: 20px; background: var(--accent-green);
   color: #fff; text-transform: uppercase; letter-spacing: 0.04em;
 }
-.dep-dep-name { font-size: 12px; color: var(--text-2); margin-bottom: 8px; }
+.dep-dep-name { font-size: 12px; color: var(--text-2); }
 .dep-tags { display: flex; flex-wrap: wrap; gap: 4px; }
 .dep-tag {
   font-size: 11px; padding: 3px 8px; border-radius: 20px;
   border: 1px solid var(--border); color: var(--text-2);
   background: var(--surface-2); white-space: nowrap;
 }
-.dep-card-right {
-  display: flex; flex-direction: column; align-items: flex-end;
-  gap: 2px; flex-shrink: 0; min-width: 90px;
+/* Rate + income pills */
+.dep-card-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.dep-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 10px; border-radius: 20px;
+  font-family: var(--mono); font-size: 12px; font-weight: 600;
+  border: 1px solid var(--border); white-space: nowrap;
 }
-.dep-rate-big {
-  font-family: var(--mono); font-size: 22px; font-weight: 700;
-  color: var(--accent-green); line-height: 1;
+.dep-pill-rate { color: var(--accent-green); background: var(--accent-green-light); border-color: var(--accent-green-border); }
+.dep-pill-income { color: var(--text); background: var(--surface-2); }
+
+/* Card aside — right side (logo + expand) */
+.dep-card-aside {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: space-between; gap: 8px; padding-left: 12px;
+  flex-shrink: 0;
 }
-.dep-income-amt {
-  font-family: var(--mono); font-size: 13px; font-weight: 500;
-  color: var(--text); margin-top: 4px;
+.dep-bank-logo {
+  width: 56px; height: 56px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 800; letter-spacing: -0.02em;
 }
-.dep-income-lbl { font-size: 11px; color: var(--text-3); margin-bottom: 8px; }
-.dep-card-chevron {
-  color: var(--text-3); transition: transform 0.2s;
+.dep-expand-btn {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--surface-2); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-3); transition: all 0.2s;
 }
-.dep-card-chevron.open { transform: rotate(180deg); }
+.dep-expand-btn.open { transform: rotate(180deg); background: var(--accent-green-light); color: var(--accent-green); border-color: var(--accent-green-border); }
 
 /* Expanded detail */
 .dep-card-detail {
@@ -5455,7 +5453,7 @@ body.dark .inv-purchase-date { background: var(--surface); border-color: var(--b
   animation: slideDown 0.2s ease;
 }
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
+  from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .dep-detail-grid {
@@ -5485,22 +5483,6 @@ body.dark .inv-purchase-date { background: var(--surface); border-color: var(--b
 .dep-acc-body { padding: 12px 14px; background: var(--surface); }
 .dep-acc-text { font-size: 13px; color: var(--text-2); line-height: 1.6; margin: 0; }
 
-/* Rate table */
-.dep-rates-table { background: var(--surface-2); border-radius: var(--r-sm); padding: 12px 14px; }
-.dep-rates-title { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; }
-.dep-rates-row { display: flex; gap: 6px; flex-wrap: wrap; }
-.dep-rate-cell {
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 8px 12px; border-radius: var(--r-sm);
-  border: 1px solid var(--border); background: var(--surface);
-  cursor: pointer; transition: all 0.15s; min-width: 56px;
-}
-.dep-rate-cell:hover { border-color: var(--accent-green-border); background: var(--accent-green-light); }
-.dep-rate-cell.current { border-color: var(--accent-green); background: var(--accent-green-light); }
-.dep-rate-cell-pct { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent-green); }
-.dep-rate-cell-term { font-size: 10px; color: var(--text-3); white-space: nowrap; }
-.dep-rate-cell.current .dep-rate-cell-term { color: var(--accent-green); }
-
 /* CTA */
 .dep-cta-btn {
   display: flex; align-items: center; gap: 8px; justify-content: center;
@@ -5520,14 +5502,15 @@ body.dark .inv-purchase-date { background: var(--surface); border-color: var(--b
 body.dark .dep-chart-card,
 body.dark .dep-filters-card,
 body.dark .dep-card { background: var(--surface); border-color: var(--border); }
-body.dark .dep-bar { background: rgba(255,255,255,0.08); }
+body.dark .dep-bar { background: rgba(106,175,142,0.18); }
 body.dark .dep-bar-col.selected .dep-bar { background: #6AAF8E; }
-body.dark .dep-rate-big { color: #6AAF8E; }
+body.dark .dep-bar-col:not(.selected):hover .dep-bar { background: rgba(106,175,142,0.30); }
 body.dark .dep-best-badge { background: #6AAF8E; }
 body.dark .dep-detail-val.green { color: #6AAF8E; }
-body.dark .dep-rate-cell.current { border-color: #6AAF8E; background: rgba(106,175,142,0.1); }
-body.dark .dep-rate-cell-pct { color: #6AAF8E; }
-body.dark .dep-chart-stat-val { color: #6AAF8E; }
 body.dark .dep-period-tab.active { background: #6AAF8E; border-color: #6AAF8E; }
 body.dark .dep-sort-btn.active { background: #6AAF8E; }
 body.dark .dep-cta-btn { background: #6AAF8E; }
+body.dark .dep-pill-rate { color: #6AAF8E; }
+body.dark .dep-bar-col.selected .dep-bar-rate { color: #6AAF8E; }
+body.dark .dep-bar-col.selected .dep-bar-label { color: #6AAF8E; }
+body.dark .dep-expand-btn.open { color: #6AAF8E; }

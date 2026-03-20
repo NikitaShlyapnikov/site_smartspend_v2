@@ -9,14 +9,13 @@ const PERIOD_GROUPS = [
   { id: '18-36', label: '1.5–3 года', months: [18, 24, 36] },
 ]
 
-// Condition keys for filtering
 const CONDITION_FILTERS = [
-  { id: 'new_client',  label: 'Новый клиент' },
-  { id: 'pension',     label: 'Пенсионер' },
-  { id: 'new_money',   label: 'Новые деньги' },
-  { id: 'insurance',   label: 'Страховка / инвест' },
-  { id: 'premium',     label: 'Премиум' },
-  { id: 'no_extra',    label: 'Без доп. условий' },
+  { id: 'new_client', label: 'Новый клиент' },
+  { id: 'pension',    label: 'Пенсионер' },
+  { id: 'new_money',  label: 'Новые деньги' },
+  { id: 'insurance',  label: 'Страховка / инвест' },
+  { id: 'premium',    label: 'Премиум' },
+  { id: 'no_extra',   label: 'Без доп. условий' },
 ]
 
 const DEPOSITS = [
@@ -39,7 +38,7 @@ const DEPOSITS = [
     tags: ['выплата % ежемесячно', 'с пополнением'],
     conditions: ['no_extra'],
     asv: true,
-    conditionsText: 'Для новых и действующих клиентов. Открытие онлайн. Пополнение разрешено в течение всего срока.',
+    conditionsText: 'Для новых и действующих клиентов. Пополнение разрешено в течение всего срока.',
     params: 'Выплата процентов ежемесячно на отдельный счёт. Пополнение: да. Снятие: нет.',
   },
   {
@@ -61,7 +60,7 @@ const DEPOSITS = [
     tags: ['для новых клиентов', 'выплата % в конце срока', 'без пополнения и снятия'],
     conditions: ['new_client', 'new_money'],
     asv: true,
-    conditionsText: 'Только для новых клиентов. Только новые деньги — средства ранее не размещавшиеся в ВТБ.',
+    conditionsText: 'Только для новых клиентов. Только новые деньги — средства, ранее не размещавшиеся в ВТБ.',
     params: 'Выплата в конце срока. Без пополнения и снятия. Автопролонгация: нет.',
   },
   {
@@ -83,7 +82,7 @@ const DEPOSITS = [
     tags: ['для новых клиентов', 'выплата % в конце срока', 'без пополнения и снятия'],
     conditions: ['new_client'],
     asv: true,
-    conditionsText: 'Для новых клиентов. От 100 000 ₽. Открытие онлайн.',
+    conditionsText: 'Для новых клиентов. От 100 000 ₽. Без пополнения и снятия. Выплата в конце срока.',
     params: 'Без пополнения и снятия. Выплата в конце срока. Автопролонгация: нет.',
   },
   {
@@ -132,7 +131,8 @@ const DEPOSITS = [
   },
 ]
 
-const CHART_H = 128 // px — high of bar area
+const CHART_H = 140 // px — total bar area height
+const MIN_BAR  = 28 // px — minimum bar height (for lowest rate)
 
 const fmtRub = n => Math.round(n).toLocaleString('ru') + '\u00a0₽'
 const fmtMonth = m =>
@@ -173,11 +173,12 @@ export default function Deposits() {
       return f.capital && f.capital >= 1000 ? f.capital : 500000
     } catch { return 500000 }
   })
-  const [periodGroup, setPeriodGroup]   = useState('1-6')
+  const [periodGroup, setPeriodGroup]     = useState('1-6')
   const [selectedMonth, setSelectedMonth] = useState(3)
-  const [sortBy, setSortBy]             = useState('rate')
-  const [expanded, setExpanded]         = useState(null)
+  const [sortBy, setSortBy]               = useState('rate')
+  const [expanded, setExpanded]           = useState(null)
   const [activeFilters, setActiveFilters] = useState(new Set())
+  const [showFilters, setShowFilters]     = useState(false)
 
   const currentGroup = PERIOD_GROUPS.find(g => g.id === periodGroup)
   const months = currentGroup.months
@@ -187,7 +188,16 @@ export default function Deposits() {
     rate: Math.max(0, ...DEPOSITS.map(d => d.rates[m] || 0)),
   })), [months])
 
-  const maxRate = Math.max(...monthRates.map(r => r.rate), 1)
+  // Normalized bar heights: scale between minRate and maxRate
+  const validRates = monthRates.filter(r => r.rate > 0).map(r => r.rate)
+  const minRate = validRates.length ? Math.min(...validRates) : 0
+  const maxRate = validRates.length ? Math.max(...validRates) : 1
+
+  function barHeight(rate) {
+    if (rate <= 0) return 4
+    if (maxRate === minRate) return CHART_H
+    return Math.round(MIN_BAR + ((rate - minRate) / (maxRate - minRate)) * (CHART_H - MIN_BAR))
+  }
 
   const filtered = useMemo(() => {
     return DEPOSITS
@@ -225,7 +235,6 @@ export default function Deposits() {
   }
 
   const bestRate   = filtered.length ? Math.max(...filtered.map(d => d.rates[selectedMonth] || 0)) : 0
-  const bestIncome = calcIncome(bestRate, amount, selectedMonth)
 
   return (
     <Layout>
@@ -242,62 +251,42 @@ export default function Deposits() {
 
         {/* ── Chart card ── */}
         <div className="dep-chart-card">
-          <div className="dep-chart-header">
-            <div className="dep-chart-title">Максимальные ставки по срокам</div>
-            <div className="dep-period-tabs">
-              {PERIOD_GROUPS.map(g => (
-                <button key={g.id}
-                  className={`dep-period-tab${periodGroup === g.id ? ' active' : ''}`}
-                  onClick={() => handleGroupChange(g.id)}>
-                  {g.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          <div className="dep-chart-title">Максимальные ставки по срокам</div>
 
           {/* Bars */}
           <div className="dep-chart">
             {monthRates.map(({ month, rate }) => {
               const isSelected = selectedMonth === month
-              const barH = rate > 0 ? Math.max(8, Math.round((rate / maxRate) * CHART_H)) : 6
+              const bH = barHeight(rate)
               return (
                 <div key={month}
                   className={`dep-bar-col${isSelected ? ' selected' : ''}`}
                   onClick={() => { setSelectedMonth(month); setExpanded(null) }}>
                   <div className="dep-bar-rate">{rate > 0 ? `${rate}%` : '—'}</div>
                   <div className="dep-bar-spacer" />
-                  <div className="dep-bar" style={{ height: barH }} />
+                  <div className="dep-bar" style={{ height: bH }} />
                   <div className="dep-bar-label">{fmtMonth(month)}</div>
                 </div>
               )
             })}
           </div>
 
-          {/* Summary row */}
-          <div className="dep-chart-footer">
-            <div className="dep-chart-stat">
-              <span className="dep-chart-stat-val">{fmtMonth(selectedMonth)}</span>
-              <span className="dep-chart-stat-lbl">выбранный срок</span>
-            </div>
-            <div className="dep-chart-stat">
-              <span className="dep-chart-stat-val">{bestRate > 0 ? `${bestRate}%` : '—'}</span>
-              <span className="dep-chart-stat-lbl">макс. ставка</span>
-            </div>
-            <div className="dep-chart-stat">
-              <span className="dep-chart-stat-val">{bestRate > 0 ? fmtRub(bestIncome) : '—'}</span>
-              <span className="dep-chart-stat-lbl">макс. доход</span>
-            </div>
-            <div className="dep-chart-stat">
-              <span className="dep-chart-stat-val">{filtered.length}</span>
-              <span className="dep-chart-stat-lbl">предложений</span>
-            </div>
+          {/* Period tabs */}
+          <div className="dep-period-tabs">
+            {PERIOD_GROUPS.map(g => (
+              <button key={g.id}
+                className={`dep-period-tab${periodGroup === g.id ? ' active' : ''}`}
+                onClick={() => handleGroupChange(g.id)}>
+                {g.label}
+              </button>
+            ))}
           </div>
         </div>
 
         {/* ── Filters card ── */}
         <div className="dep-filters-card">
-          {/* Amount + sort */}
           <div className="dep-filters-row">
+            {/* Amount */}
             <div className="dep-filter-group">
               <span className="dep-filter-label">Сумма вклада</span>
               <div className="dep-amount-wrap">
@@ -309,39 +298,67 @@ export default function Deposits() {
                 <span className="dep-amount-unit">₽</span>
               </div>
             </div>
+
+            {/* Sort */}
             <div className="dep-filter-group">
               <span className="dep-filter-label">Сортировка</span>
               <div className="dep-sort-toggle">
                 <button className={`dep-sort-btn${sortBy === 'rate' ? ' active' : ''}`}
-                  onClick={() => setSortBy('rate')}>% ставка</button>
+                  onClick={() => setSortBy('rate')}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 2v20M2 12h20"/>
+                  </svg>
+                  %
+                </button>
                 <button className={`dep-sort-btn${sortBy === 'income' ? ' active' : ''}`}
-                  onClick={() => setSortBy('income')}>₽ доход</button>
+                  onClick={() => setSortBy('income')}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
+                  </svg>
+                  ₽
+                </button>
               </div>
+            </div>
+
+            {/* Filters button */}
+            <div className="dep-filter-group">
+              <span className="dep-filter-label">Фильтры</span>
+              <button
+                className={`dep-filter-toggle-btn${showFilters || activeFilters.size > 0 ? ' active' : ''}`}
+                onClick={() => setShowFilters(f => !f)}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                </svg>
+                {activeFilters.size > 0 && (
+                  <span className="dep-filter-badge">{activeFilters.size}</span>
+                )}
+              </button>
             </div>
           </div>
 
-          {/* Condition filters */}
-          <div className="dep-cond-row">
-            <span className="dep-filter-label" style={{ flexShrink: 0 }}>Условия</span>
-            <div className="dep-cond-chips">
-              {activeFilters.size > 0 && (
-                <button className="dep-cond-chip dep-cond-clear"
-                  onClick={() => setActiveFilters(new Set())}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                  </svg>
-                  Сбросить
-                </button>
-              )}
-              {CONDITION_FILTERS.map(f => (
-                <button key={f.id}
-                  className={`dep-cond-chip${activeFilters.has(f.id) ? ' active' : ''}`}
-                  onClick={() => toggleFilter(f.id)}>
-                  {f.label}
-                </button>
-              ))}
+          {/* Condition chips — shown when filter panel open */}
+          {showFilters && (
+            <div className="dep-cond-row">
+              <div className="dep-cond-chips">
+                {activeFilters.size > 0 && (
+                  <button className="dep-cond-chip dep-cond-clear"
+                    onClick={() => setActiveFilters(new Set())}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                    Сбросить
+                  </button>
+                )}
+                {CONDITION_FILTERS.map(f => (
+                  <button key={f.id}
+                    className={`dep-cond-chip${activeFilters.has(f.id) ? ' active' : ''}`}
+                    onClick={() => toggleFilter(f.id)}>
+                    {f.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* ── Deposit list ── */}
@@ -350,20 +367,18 @@ export default function Deposits() {
             <div className="dep-empty">Нет предложений для выбранных фильтров</div>
           )}
           {filtered.map(dep => {
-            const rate    = dep.rates[selectedMonth]
-            const income  = calcIncome(rate, amount, selectedMonth)
-            const isOpen  = expanded === dep.id
-            const isBest  = rate === bestRate && filtered.length > 0
+            const rate   = dep.rates[selectedMonth]
+            const income = calcIncome(rate, amount, selectedMonth)
+            const isOpen = expanded === dep.id
+            const isBest = rate === bestRate && filtered.length > 0
 
             return (
               <div key={dep.id} className={`dep-card${isOpen ? ' open' : ''}`}>
-
                 <div className="dep-card-main"
                   onClick={() => setExpanded(isOpen ? null : dep.id)}>
-                  <div className="dep-bank-logo" style={{ background: dep.color, color: dep.textColor }}>
-                    {dep.bank.slice(0, 1)}
-                  </div>
-                  <div className="dep-card-info">
+
+                  {/* Left: info */}
+                  <div className="dep-card-body">
                     <div className="dep-card-names">
                       <span className="dep-bank-name">{dep.bank}</span>
                       {isBest && <span className="dep-best-badge">лучшее</span>}
@@ -372,16 +387,24 @@ export default function Deposits() {
                     <div className="dep-tags">
                       {dep.tags.map((t, i) => <span key={i} className="dep-tag">{t}</span>)}
                     </div>
+                    <div className="dep-card-pills">
+                      <span className="dep-pill dep-pill-rate">% {rate}</span>
+                      <span className="dep-pill dep-pill-income">₽ {fmtRub(income)}</span>
+                    </div>
                   </div>
-                  <div className="dep-card-right">
-                    <div className="dep-rate-big">{rate}%</div>
-                    <div className="dep-income-amt">{fmtRub(income)}</div>
-                    <div className="dep-income-lbl">за {fmtMonth(selectedMonth)}</div>
-                    <svg className={`dep-card-chevron${isOpen ? ' open' : ''}`}
-                      width="14" height="14" viewBox="0 0 24 24" fill="none"
-                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M19 9l-7 7-7-7"/>
-                    </svg>
+
+                  {/* Right: logo + expand */}
+                  <div className="dep-card-aside">
+                    <div className="dep-bank-logo"
+                      style={{ background: dep.color, color: dep.textColor }}>
+                      {dep.bank.slice(0, 2)}
+                    </div>
+                    <div className={`dep-expand-btn${isOpen ? ' open' : ''}`}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M19 9l-7 7-7-7"/>
+                      </svg>
+                    </div>
                   </div>
                 </div>
 
