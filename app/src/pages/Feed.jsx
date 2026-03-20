@@ -367,15 +367,10 @@ function PromoCard({ item }) {
   )
 }
 
-// ── PROMO SECTION ─────────────────────────────────────────────────────────────
+// ── PROMO SECTION (content only, filters live in Feed) ────────────────────────
 
-function PromoSection({ navigate }) {
-  const [followed] = useState(loadFollowed)
-  const hasSetup = !!localStorage.getItem('ss_promo_setup')
-  const [promoCat, setPromoCat]     = useState('all')
-  const [actsFilter, setActsFilter] = useState('all')
-
-  if (!hasSetup || followed.size === 0) {
+function PromoSection({ navigate, followed, hasSetup, promoCat, promoType, promoScope, actsFilter }) {
+  if (!hasSetup || (promoScope === 'mine' && followed.size === 0)) {
     return (
       <div className="promo-empty-state">
         <div className="promo-empty-icon">
@@ -395,71 +390,37 @@ function PromoSection({ navigate }) {
     )
   }
 
-  const byFollowed = promoItems.filter(p => followed.has(p.companyId))
-  const byCat      = promoCat === 'all' ? byFollowed : byFollowed.filter(p => p.category === promoCat)
+  const pool  = promoScope === 'mine' ? promoItems.filter(p => followed.has(p.companyId)) : promoItems
+  const byCat = promoCat === 'all'    ? pool        : pool.filter(p => p.category === promoCat)
 
-  const broadcasts    = byCat.filter(p => p.type === 'broadcast')
-  const events        = byCat.filter(p => p.type !== 'broadcast')
-  const filteredEvents = actsFilter === 'all' ? events : events.filter(p => p.promo_filter === actsFilter)
+  if (promoType === 'broadcast') {
+    const items = byCat.filter(p => p.type === 'broadcast')
+    return (
+      <div className="feed-list">
+        {items.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">📬</div>
+            <div className="empty-title">Рассылок нет</div>
+            <div className="empty-desc">Компании из выбранных категорий пока не публиковали рассылку</div>
+          </div>
+        ) : items.map(item => <BroadcastCard key={item.id} item={item} />)}
+      </div>
+    )
+  }
 
+  const events   = byCat.filter(p => p.type !== 'broadcast')
+  const filtered = actsFilter === 'all' ? events : events.filter(p => p.promo_filter === actsFilter)
   return (
-    <div className="promo-section">
-      {/* Category filters */}
-      <div className="promo-cats-row">
-        <div className="cats-scroll">
-          {CATEGORIES.map(c => (
-            <button
-              key={c.id}
-              className={`cat-pill${promoCat === c.id ? ' active' : ''}`}
-              onClick={() => setPromoCat(c.id)}
-            >{c.label}</button>
-          ))}
+    <div className="feed-list">
+      {filtered.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon">🏷️</div>
+          <div className="empty-title">Пока ничего нет</div>
+          <div className="empty-desc">Акций и купонов по выбранным фильтрам не найдено</div>
         </div>
-        <button className="promo-edit-btn" onClick={() => navigate('/company-picker', { state: { edit: true } })}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-          </svg>
-          Изменить компании
-        </button>
-      </div>
-
-      {/* Рассылка */}
-      {broadcasts.length > 0 && (
-        <div className="promo-sub-section">
-          <div className="promo-sub-title">Рассылка</div>
-          <div className="feed-list">
-            {broadcasts.map(item => <BroadcastCard key={item.id} item={item} />)}
-          </div>
-        </div>
-      )}
-
-      {/* Акции */}
-      <div className="promo-sub-section">
-        <div className="promo-sub-header">
-          <div className="promo-sub-title">Акции</div>
-          <div className="cats-scroll">
-            {ACTS_FILTERS.map(f => (
-              <button
-                key={f.id}
-                className={`cat-pill${actsFilter === f.id ? ' active' : ''}`}
-                onClick={() => setActsFilter(f.id)}
-              >{f.label}</button>
-            ))}
-          </div>
-        </div>
-        <div className="feed-list">
-          {filteredEvents.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-icon">🏷️</div>
-              <div className="empty-title">Пока ничего нет</div>
-              <div className="empty-desc">Акций и купонов от выбранных компаний не найдено</div>
-            </div>
-          ) : filteredEvents.map(item => (
-            <PromoCard key={item.id} item={item} />
-          ))}
-        </div>
-      </div>
+      ) : filtered.map(item => (
+        <PromoCard key={item.id} item={item} />
+      ))}
     </div>
   )
 }
@@ -698,10 +659,17 @@ export default function Feed() {
   const location = useLocation()
   const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem('ss_tour_welcome'))
   const [showSpotlight, setShowSpotlight] = useState(false)
-  const [section, setSection] = useState(() => location.state?.promo ? 'promo' : 'articles')
-  const [mode,    setMode]    = useState(null)
-  const [cat,     setCat]     = useState('all')
-  const [sort,    setSort]    = useState('popular_7d')
+  const [section,     setSection]     = useState(() => location.state?.promo ? 'promo' : 'articles')
+  const [mode,        setMode]        = useState(null)
+  const [cat,         setCat]         = useState('all')
+  const [sort,        setSort]        = useState('popular_7d')
+  // promo state
+  const [followed]                    = useState(loadFollowed)
+  const hasPromoSetup                 = !!localStorage.getItem('ss_promo_setup')
+  const [promoCat,    setPromoCat]    = useState('all')
+  const [promoType,   setPromoType]   = useState('broadcast')
+  const [promoScope,  setPromoScope]  = useState('mine')
+  const [actsFilter,  setActsFilter]  = useState('all')
   const [readIds, setReadIds] = useState(new Set())
   const [likedIds, setLikedIds] = useState(new Set())
   const [dislikedIds, setDislikedIds] = useState(new Set())
@@ -857,9 +825,57 @@ export default function Feed() {
             </div>
           </>
         ) : (
-          <div className="feed-scroll">
-            <PromoSection navigate={navigate} />
-          </div>
+          <>
+            <div className="filters-sticky">
+              <div className="filters-block">
+                {/* Row 1: categories */}
+                <div className="cats-scroll">
+                  {CATEGORIES.map(c => (
+                    <button key={c.id} className={`cat-pill${promoCat === c.id ? ' active' : ''}`}
+                      onClick={() => setPromoCat(c.id)}>{c.label}</button>
+                  ))}
+                </div>
+
+                {/* Row 2: content type + company scope */}
+                <div className="filters-mode-row">
+                  <div className="tab-group">
+                    <button className={`tab-btn${promoType === 'broadcast' ? ' active' : ''}`}
+                      onClick={() => setPromoType('broadcast')}>Рассылка</button>
+                    <button className={`tab-btn${promoType === 'events' ? ' active' : ''}`}
+                      onClick={() => setPromoType('events')}>Акции</button>
+                  </div>
+                  <div className="tab-group">
+                    <button className={`tab-btn${promoScope === 'mine' ? ' active' : ''}`}
+                      onClick={() => setPromoScope('mine')}>Мои компании</button>
+                    <button className={`tab-btn${promoScope === 'all' ? ' active' : ''}`}
+                      onClick={() => setPromoScope('all')}>Все компании</button>
+                  </div>
+                </div>
+
+                {/* Row 3: acts filters (only for Акции) */}
+                {promoType === 'events' && (
+                  <div className="cats-scroll">
+                    {ACTS_FILTERS.map(f => (
+                      <button key={f.id} className={`cat-pill${actsFilter === f.id ? ' active' : ''}`}
+                        onClick={() => setActsFilter(f.id)}>{f.label}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="feed-scroll">
+              <PromoSection
+                navigate={navigate}
+                followed={followed}
+                hasSetup={hasPromoSetup}
+                promoCat={promoCat}
+                promoType={promoType}
+                promoScope={promoScope}
+                actsFilter={actsFilter}
+              />
+            </div>
+          </>
         )}
       </main>
       {showWelcome && <WelcomeTour onClose={() => setShowWelcome(false)} />}

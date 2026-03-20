@@ -828,6 +828,16 @@ body.dark .settings-action-btn.disconnect:hover { background: rgba(200,72,72,0.1
 .settings-row-label-danger { color: #C0392B !important; }
 body.dark .settings-row-label-danger { color: #E07070 !important; }
 
+/* Settings link button */
+.settings-link-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 14px; border-radius: var(--r-sm);
+  border: 1px solid var(--border); background: var(--surface-2);
+  color: var(--text-2); font-family: var(--sans); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
+}
+.settings-link-btn:hover { border-color: var(--accent-green-border); color: var(--accent-green); background: var(--accent-green-light); }
+
 /* Danger ghost button */
 .btn-danger-ghost {
   background: transparent; border: 1px solid #E0A0A0; color: #C84848;
