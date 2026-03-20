@@ -1,15 +1,8 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 
-const PERIOD_GROUPS = [
-  { id: '1-6',   label: '1–6 мес',    months: [1, 2, 3, 4, 5, 6] },
-  { id: '6-12',  label: '6–12 мес',   months: [6, 7, 8, 9, 10, 11, 12] },
-  { id: '12-18', label: '1–1.5 года', months: [12, 15, 18] },
-  { id: '18-36', label: '1.5–3 года', months: [18, 24, 36] },
-]
-
-// All representative months shown on desktop (12 columns)
+// All months shown in chart (always 12 columns, scrollable on mobile)
 const DESKTOP_MONTHS = [1, 2, 3, 4, 5, 6, 9, 12, 15, 18, 24, 36]
 
 const FREQ_FILTERS = [
@@ -24,6 +17,11 @@ const COND_FILTERS = [
   { id: 'insurance',  label: 'Страховка / инвест' },
   { id: 'premium',    label: 'Премиум' },
   { id: 'no_extra',   label: 'Без доп. условий' },
+]
+
+const LIQUID_FILTERS = [
+  { id: 'replenishment', label: 'С пополнением' },
+  { id: 'no_replenishment', label: 'Без пополнения и снятия' },
 ]
 
 const DEPOSITS = [
@@ -256,13 +254,8 @@ function FilterChip({ label, active, onClick }) {
 export default function Deposits() {
   const navigate = useNavigate()
 
-  // Responsive: use 12-column desktop chart or 6-column mobile with tabs
-  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 680)
-  useEffect(() => {
-    const fn = () => setIsDesktop(window.innerWidth >= 680)
-    window.addEventListener('resize', fn)
-    return () => window.removeEventListener('resize', fn)
-  }, [])
+  const chartRef = useRef(null)
+  const drag = useRef({ on: false, x: 0, sl: 0 })
 
   const [amount, setAmount] = useState(() => {
     try {
@@ -270,12 +263,12 @@ export default function Deposits() {
       return f.capital && f.capital >= 1000 ? f.capital : 500000
     } catch { return 500000 }
   })
-  const [periodGroup, setPeriodGroup]     = useState('1-6')
   const [selectedMonth, setSelectedMonth] = useState(3)
   const [sortBy, setSortBy]               = useState('rate')
   const [expanded, setExpanded]           = useState(null)
   const [showModal, setShowModal]         = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
+  const [bankSearch, setBankSearch]       = useState('')
 
   useEffect(() => {
     const fn = () => setShowScrollTop(window.scrollY > 480)
@@ -283,20 +276,49 @@ export default function Deposits() {
     return () => window.removeEventListener('scroll', fn)
   }, [])
 
+  // Auto-scroll chart to center selected bar
+  useEffect(() => {
+    const el = chartRef.current
+    if (!el) return
+    const idx = DESKTOP_MONTHS.indexOf(selectedMonth)
+    if (idx < 0) return
+    const colW = el.scrollWidth / DESKTOP_MONTHS.length
+    el.scrollTo({ left: Math.max(0, idx * colW - el.clientWidth / 2 + colW / 2), behavior: 'smooth' })
+  }, [selectedMonth])
+
+  // Drag scroll handlers
+  function onChartMouseDown(e) {
+    drag.current = { on: true, x: e.clientX, sl: chartRef.current.scrollLeft }
+    chartRef.current.style.cursor = 'grabbing'
+  }
+  function onChartMouseMove(e) {
+    if (!drag.current.on) return
+    chartRef.current.scrollLeft = drag.current.sl + (drag.current.x - e.clientX)
+  }
+  function onChartMouseUp() {
+    drag.current.on = false
+    if (chartRef.current) chartRef.current.style.cursor = 'grab'
+  }
+  function onChartTouchStart(e) {
+    drag.current = { on: true, x: e.touches[0].clientX, sl: chartRef.current.scrollLeft }
+  }
+  function onChartTouchMove(e) {
+    if (!drag.current.on) return
+    chartRef.current.scrollLeft = drag.current.sl + (drag.current.x - e.touches[0].clientX)
+  }
+
   // Filter state
-  const [filterBanks, setFilterBanks] = useState(new Set())
-  const [filterFreq,  setFilterFreq]  = useState(new Set())
-  const [filterConds, setFilterConds] = useState(new Set())
+  const [filterBanks,   setFilterBanks]   = useState(new Set())
+  const [filterFreq,    setFilterFreq]    = useState(new Set())
+  const [filterConds,   setFilterConds]   = useState(new Set())
+  const [filterLiquid,  setFilterLiquid]  = useState(new Set())
 
-  const totalActiveFilters = filterBanks.size + filterFreq.size + filterConds.size
+  const totalActiveFilters = filterBanks.size + filterFreq.size + filterConds.size + filterLiquid.size
 
-  const currentGroup = PERIOD_GROUPS.find(g => g.id === periodGroup)
-  const months = isDesktop ? DESKTOP_MONTHS : currentGroup.months
-
-  const monthRates = useMemo(() => months.map(m => ({
+  const monthRates = useMemo(() => DESKTOP_MONTHS.map(m => ({
     month: m,
     rate: Math.max(0, ...DEPOSITS.map(d => d.rates[m] || 0)),
-  })), [months])
+  })), [])
 
   const validRates = monthRates.filter(r => r.rate > 0).map(r => r.rate)
   const minRate = validRates.length ? Math.min(...validRates) : 0
@@ -315,6 +337,8 @@ export default function Deposits() {
         if (filterBanks.size > 0 && !filterBanks.has(d.bank)) return false
         if (filterFreq.size > 0 && !filterFreq.has(d.freq)) return false
         if (filterConds.size > 0 && !d.conditions.some(c => filterConds.has(c))) return false
+        if (filterLiquid.has('replenishment') && !d.replenishment) return false
+        if (filterLiquid.has('no_replenishment') && d.replenishment) return false
         return true
       })
       .sort((a, b) => sortBy === 'rate'
@@ -322,15 +346,7 @@ export default function Deposits() {
         : calcIncome(b.rates[selectedMonth] || 0, amount, selectedMonth)
           - calcIncome(a.rates[selectedMonth] || 0, amount, selectedMonth)
       )
-  }, [selectedMonth, sortBy, amount, filterBanks, filterFreq, filterConds])
-
-  function handleGroupChange(gId) {
-    setPeriodGroup(gId)
-    const g = PERIOD_GROUPS.find(p => p.id === gId)
-    const firstValid = g.months.find(m => DEPOSITS.some(d => d.rates[m]))
-    setSelectedMonth(firstValid || g.months[0])
-    setExpanded(null)
-  }
+  }, [selectedMonth, sortBy, amount, filterBanks, filterFreq, filterConds, filterLiquid])
 
   function handleAmountChange(e) {
     const n = parseInt(e.target.value.replace(/\D/g, ''), 10)
@@ -349,9 +365,11 @@ export default function Deposits() {
     setFilterBanks(new Set())
     setFilterFreq(new Set())
     setFilterConds(new Set())
+    setFilterLiquid(new Set())
   }
 
   const bestRate = filtered.length ? Math.max(...filtered.map(d => d.rates[selectedMonth] || 0)) : 0
+  const visibleBanks = ALL_BANKS.filter(b => b.toLowerCase().includes(bankSearch.toLowerCase()))
 
   return (
     <Layout>
@@ -370,7 +388,14 @@ export default function Deposits() {
         <div className="dep-chart-card">
           <div className="dep-chart-title">Максимальные ставки по срокам</div>
 
-          <div className="dep-chart">
+          <div className="dep-chart" ref={chartRef}
+            onMouseDown={onChartMouseDown}
+            onMouseMove={onChartMouseMove}
+            onMouseUp={onChartMouseUp}
+            onMouseLeave={onChartMouseUp}
+            onTouchStart={onChartTouchStart}
+            onTouchMove={onChartTouchMove}
+            onTouchEnd={() => { drag.current.on = false }}>
             {monthRates.map(({ month, rate }) => {
               const isSelected = selectedMonth === month
               const bH = barHeight(rate)
@@ -386,19 +411,6 @@ export default function Deposits() {
               )
             })}
           </div>
-
-          {/* Period tabs — mobile only */}
-          {!isDesktop && (
-            <div className="dep-period-tabs">
-              {PERIOD_GROUPS.map(g => (
-                <button key={g.id}
-                  className={`dep-period-tab${periodGroup === g.id ? ' active' : ''}`}
-                  onClick={() => handleGroupChange(g.id)}>
-                  {g.label}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* ── Filters row ── */}
@@ -635,13 +647,6 @@ export default function Deposits() {
         </div>
 
         {/* ── Накопительные счета (только при сроке 1 мес) ── */}
-        {selectedMonth === 1 && <div className="dep-section-divider">
-          <div className="dep-section-divider-row">
-            <span className="dep-section-label">Накопительные счета</span>
-            <span className="dep-floating-badge">плавающая ставка</span>
-          </div>
-          <span className="dep-section-sub">Снятие и пополнение в любой момент · доход рассчитан за 1 мес · ставка может измениться</span>
-        </div>}
 
         {selectedMonth === 1 && <div className="dep-list">
           {SAVINGS.map(sav => {
@@ -764,11 +769,11 @@ export default function Deposits() {
 
       {/* ── Filters modal ── */}
       {showModal && (
-        <div className="dep-modal-overlay" onClick={() => setShowModal(false)}>
+        <div className="dep-modal-overlay" onClick={() => setShowModal(false); setBankSearch('')}>
           <div className="dep-modal" onClick={e => e.stopPropagation()}>
             <div className="dep-modal-header">
               <span className="dep-modal-title">Фильтры</span>
-              <button className="dep-modal-close" onClick={() => setShowModal(false)}>
+              <button className="dep-modal-close" onClick={() => setShowModal(false); setBankSearch('')}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
@@ -784,12 +789,14 @@ export default function Deposits() {
                     <button className="dep-modal-section-reset" onClick={() => setFilterBanks(new Set())}>Сбросить</button>
                   )}
                 </div>
+                <input className="dep-bank-search" type="text" placeholder="Поиск банка..."
+                  value={bankSearch} onChange={e => setBankSearch(e.target.value)} />
                 <div className="dep-fchips">
-                  {ALL_BANKS.map(bank => (
+                  {visibleBanks.length > 0 ? visibleBanks.map(bank => (
                     <FilterChip key={bank} label={bank}
                       active={filterBanks.has(bank)}
                       onClick={() => toggleSet(setFilterBanks, bank)} />
-                  ))}
+                  )) : <span className="dep-bank-no-results">Ничего не найдено</span>}
                 </div>
               </div>
 
@@ -826,6 +833,23 @@ export default function Deposits() {
                   ))}
                 </div>
               </div>
+
+              {/* Liquidity */}
+              <div className="dep-modal-section">
+                <div className="dep-modal-section-hdr">
+                  <span className="dep-modal-section-title">Пополнение и снятие</span>
+                  {filterLiquid.size > 0 && (
+                    <button className="dep-modal-section-reset" onClick={() => setFilterLiquid(new Set())}>Сбросить</button>
+                  )}
+                </div>
+                <div className="dep-fchips">
+                  {LIQUID_FILTERS.map(f => (
+                    <FilterChip key={f.id} label={f.label}
+                      active={filterLiquid.has(f.id)}
+                      onClick={() => toggleSet(setFilterLiquid, f.id)} />
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div className="dep-modal-footer">
@@ -833,7 +857,7 @@ export default function Deposits() {
                 disabled={totalActiveFilters === 0}>
                 Сбросить{totalActiveFilters > 0 ? ` (${totalActiveFilters})` : ''}
               </button>
-              <button className="dep-modal-apply" onClick={() => setShowModal(false)}>
+              <button className="dep-modal-apply" onClick={() => setShowModal(false); setBankSearch('')}>
                 Показать {filtered.length} предложений
               </button>
             </div>
