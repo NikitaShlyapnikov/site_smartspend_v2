@@ -15,6 +15,7 @@ import CreateSet from './pages/CreateSet'
 import CreateArticle from './pages/CreateArticle'
 import AuthorPage from './pages/AuthorPage'
 import Deposits from './pages/Deposits'
+import Cards from './pages/Cards'
 
 export default function App() {
   return (
@@ -35,6 +36,7 @@ export default function App() {
           <Route path="/create-article" element={<CreateArticle />} />
           <Route path="/author/:id" element={<AuthorPage />} />
           <Route path="/deposits" element={<Deposits />} />
+          <Route path="/cards" element={<Cards />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </HashRouter>
