@@ -769,11 +769,11 @@ export default function Deposits() {
 
       {/* ── Filters modal ── */}
       {showModal && (
-        <div className="dep-modal-overlay" onClick={() => setShowModal(false); setBankSearch('')}>
+        <div className="dep-modal-overlay" onClick={() => { setShowModal(false); setBankSearch('') }}>
           <div className="dep-modal" onClick={e => e.stopPropagation()}>
             <div className="dep-modal-header">
               <span className="dep-modal-title">Фильтры</span>
-              <button className="dep-modal-close" onClick={() => setShowModal(false); setBankSearch('')}>
+              <button className="dep-modal-close" onClick={() => { setShowModal(false); setBankSearch('') }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
@@ -857,7 +857,7 @@ export default function Deposits() {
                 disabled={totalActiveFilters === 0}>
                 Сбросить{totalActiveFilters > 0 ? ` (${totalActiveFilters})` : ''}
               </button>
-              <button className="dep-modal-apply" onClick={() => setShowModal(false); setBankSearch('')}>
+              <button className="dep-modal-apply" onClick={() => { setShowModal(false); setBankSearch('') }}>
                 Показать {filtered.length} предложений
               </button>
             </div>
