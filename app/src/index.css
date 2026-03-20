@@ -2795,8 +2795,34 @@ body.dark .emo-tile--accent .emo-tile-sub { color: #4E8268; }
 .rate-level { font-size: 9px; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.6; }
 .rate-btn.active .rate-level { opacity: 0.7; }
 
+/* Forecast collapsible wrapper */
+.forecast-collapsible { border-top: 1px solid var(--border); }
+.forecast-toggle-row {
+  width: 100%; display: flex; align-items: center;
+  justify-content: space-between; gap: 12px;
+  padding: 14px 24px; background: none; border: none;
+  cursor: pointer; text-align: left; transition: background 0.15s;
+}
+.forecast-toggle-row:hover { background: var(--surface-2); }
+.forecast-toggle-left { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.forecast-toggle-title {
+  font-size: 12px; font-weight: 600; color: var(--text-3);
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.forecast-toggle-pills {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}
+.ftpill { font-size: 13px; font-weight: 500; }
+.ftpill-cap { color: var(--accent-green); font-family: var(--mono); font-weight: 700; }
+.ftpill-sep { color: var(--text-3); }
+.ftpill-emo { color: var(--text-2); font-family: var(--mono); }
+.forecast-toggle-chevron {
+  color: var(--text-3); flex-shrink: 0; transition: transform 0.2s;
+}
+.forecast-toggle-chevron.open { transform: rotate(180deg); }
+
 /* Forecast chart */
-.forecast-inner { border-top: 1px solid var(--border); padding: 20px 24px; }
+.forecast-inner { padding: 0 24px 20px; }
 .forecast-inner-title {
   font-size: 12px; font-weight: 500; color: var(--text-3);
   text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px;
@@ -5457,7 +5483,7 @@ body.dark .inv-purchase-date { background: var(--surface); border-color: var(--b
   to   { opacity: 1; transform: translateY(0); }
 }
 .dep-detail-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
   padding-top: 14px;
 }
 .dep-detail-item {
@@ -5468,6 +5494,116 @@ body.dark .inv-purchase-date { background: var(--surface); border-color: var(--b
 .dep-detail-lbl { font-size: 11px; color: var(--text-3); }
 .dep-detail-val { font-size: 13px; font-weight: 600; color: var(--text); font-family: var(--mono); }
 .dep-detail-val.green { color: var(--accent-green); }
+.dep-detail-hint { font-size: 10px; font-weight: 400; color: var(--text-3); font-family: var(--sans); margin-left: 2px; }
+
+/* Amount warning (min not met) */
+.dep-amount-warn {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 10px 12px; border-radius: var(--r-sm);
+  background: rgba(184,85,85,0.08); border: 1px solid rgba(184,85,85,0.25);
+  font-size: 12px; color: #B85555; line-height: 1.5;
+}
+body.dark .dep-amount-warn { color: #E07070; background: rgba(184,85,85,0.12); border-color: rgba(184,85,85,0.30); }
+.dep-amount-warn svg { color: #B85555; flex-shrink: 0; margin-top: 1px; }
+
+/* Income/detail warn state */
+.dep-pill-income.warn {
+  color: #B85555; background: rgba(184,85,85,0.08);
+  border-color: rgba(184,85,85,0.25);
+}
+.dep-pill-income.warn svg { flex-shrink: 0; }
+body.dark .dep-pill-income.warn { color: #E07070; }
+.dep-detail-val.warn { color: #B85555; }
+body.dark .dep-detail-val.warn { color: #E07070; }
+
+/* Section divider */
+.dep-section-divider { display: flex; flex-direction: column; gap: 4px; padding: 8px 0 4px; }
+.dep-section-divider-row { display: flex; align-items: center; gap: 10px; }
+.dep-section-label { font-size: 15px; font-weight: 700; color: var(--text); }
+.dep-section-sub { font-size: 12px; color: var(--text-3); line-height: 1.5; }
+.dep-floating-badge {
+  font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px;
+  background: rgba(176,136,64,0.15); color: #7A5C10;
+  border: 1px solid rgba(176,136,64,0.30); text-transform: uppercase; letter-spacing: 0.04em;
+}
+body.dark .dep-floating-badge { color: #D4A847; background: rgba(212,168,71,0.12); border-color: rgba(212,168,71,0.25); }
+
+/* Savings notice */
+.dep-sav-notice {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 10px 12px; border-radius: var(--r-sm);
+  background: var(--surface-2); border: 1px solid var(--border);
+  font-size: 12px; color: var(--text-2); line-height: 1.5;
+}
+.dep-sav-notice svg { color: var(--text-3); flex-shrink: 0; margin-top: 1px; }
+
+/* Savings rate note pill */
+.dep-pill-note {
+  color: var(--text-3); background: var(--surface-2);
+  border-color: var(--border); font-size: 11px;
+}
+.dep-pill-base { color: var(--text-2); background: var(--surface-2); border-color: var(--border); }
+
+/* Scroll to top button */
+.dep-scroll-top {
+  position: fixed; bottom: 28px; right: 28px; z-index: 200;
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--accent-green); color: #fff;
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(78,130,104,0.35);
+  transition: opacity 0.2s, transform 0.2s;
+  animation: fadeInUp 0.2s ease;
+}
+.dep-scroll-top:hover { opacity: 0.88; transform: translateY(-2px); }
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+body.dark .dep-scroll-top { background: #6AAF8E; }
+
+/* Premium tariff block */
+.dep-tariff-block {
+  border: 1px solid #C8A84B;
+  border-radius: var(--r-sm); overflow: hidden;
+  background: linear-gradient(135deg, #FFFBEF 0%, #FFF8E1 100%);
+}
+body.dark .dep-tariff-block {
+  background: linear-gradient(135deg, #2A2418 0%, #252016 100%);
+  border-color: #7A6530;
+}
+.dep-tariff-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 14px; border-bottom: 1px solid #C8A84B;
+}
+body.dark .dep-tariff-header { border-color: #7A6530; }
+.dep-tariff-header svg { color: #B08840; flex-shrink: 0; }
+.dep-tariff-name {
+  font-size: 13px; font-weight: 700; color: #7A5C10;
+  flex: 1;
+}
+body.dark .dep-tariff-name { color: #D4A847; }
+.dep-tariff-cost {
+  font-size: 12px; font-weight: 600; color: #7A5C10;
+  background: rgba(176,136,64,0.15); border-radius: 20px;
+  padding: 3px 9px; white-space: nowrap;
+}
+body.dark .dep-tariff-cost { color: #D4A847; background: rgba(212,168,71,0.15); }
+.dep-tariff-cond {
+  font-size: 12px; color: #7A5C10; line-height: 1.5;
+  padding: 10px 14px 8px; margin: 0;
+}
+body.dark .dep-tariff-cond { color: #C4A04A; }
+.dep-tariff-benefits {
+  list-style: none; margin: 0; padding: 0 14px 12px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.dep-tariff-benefit {
+  display: flex; align-items: flex-start; gap: 7px;
+  font-size: 12px; color: #5C4510; line-height: 1.4;
+}
+body.dark .dep-tariff-benefit { color: #B89840; }
+.dep-tariff-benefit svg { color: #B08840; flex-shrink: 0; margin-top: 1px; }
 
 /* Accordion */
 .dep-acc { border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; }

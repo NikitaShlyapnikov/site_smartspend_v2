@@ -96,6 +96,12 @@ const DEPOSITS = [
     conditions: ['insurance'], asv: true,
     conditionsText: 'Требуется оформление инвестиционных или страховых продуктов банка.',
     params: 'Без пополнения и снятия. Выплата в конце срока.',
+    tariff: {
+      name: 'Инвестиционный / страховой продукт МТС',
+      cost: 'от 50\u00a0000\u00a0₽ единовременно',
+      conditions: 'Необходимо оформить инвестиционный или накопительный страховой продукт МТС Банка одновременно с открытием вклада.',
+      benefits: ['Повышенная ставка на весь срок вклада', 'Страховое покрытие жизни или капитала', 'Потенциальный доход от инвест. инструмента'],
+    },
   },
   {
     id: 'd8', bank: 'Росбанк', name: 'Максимальный доход',
@@ -126,6 +132,61 @@ const DEPOSITS = [
     conditions: ['premium'], asv: true,
     conditionsText: 'Только для клиентов с пакетом Т-Привилегия или Т-Прайм. Минимальная сумма от 300 000 ₽.',
     params: 'Выплата в конце срока. Без пополнения и снятия. Капитализация: нет.',
+    tariff: {
+      name: 'Т-Привилегия / Т-Прайм',
+      cost: 'от 199\u00a0₽/мес (или бесплатно)',
+      conditions: 'Бесплатно при остатке от 100\u00a0000\u00a0₽ или тратах от 30\u00a0000\u00a0₽/мес. Иначе — 199\u00a0₽/мес.',
+      benefits: ['Кешбэк до 5% на все покупки', 'Бесплатные переводы и снятие наличных', 'Страховка при путешествиях за рубеж', 'Приоритетная поддержка 24/7', 'Консьерж-сервис (Т-Прайм)'],
+    },
+  },
+]
+
+// ── Savings accounts (накопительные счета) ──────────────────────────────────
+const SAVINGS = [
+  {
+    id: 's1', bank: 'Т-Банк', name: 'Сейф',
+    color: '#FFDD2D', textColor: '#1A1A1A',
+    rate: 17.0, rateBase: null, rateNote: 'постоянно',
+    minAmount: 0, withdrawal: true, replenishment: true, asv: true,
+    tags: ['без условий', 'мгновенный доступ', 'ежемесячные %'],
+    conditionsText: 'Без условий и ограничений по сумме. Ставка не зависит от остатка.',
+    params: 'Снятие: да. Пополнение: да. % начисляется ежедневно, выплата ежемесячно.',
+  },
+  {
+    id: 's2', bank: 'Альфа-Банк', name: 'Альфа-Счёт',
+    color: '#EF3124', textColor: '#FFF',
+    rate: 20.0, rateBase: 14.0, rateNote: 'первые 2 мес',
+    minAmount: 0, withdrawal: true, replenishment: true, asv: true,
+    tags: ['акция для новых', 'мгновенный доступ', 'ежемесячные %'],
+    conditionsText: 'Повышенная ставка 20% — первые 2 месяца для новых клиентов Альфа-Банка. Далее — 14%.',
+    params: 'Снятие: да. Пополнение: да. % начисляется ежемесячно.',
+  },
+  {
+    id: 's3', bank: 'Сбер', name: 'СберСохраняй',
+    color: '#21A038', textColor: '#FFF',
+    rate: 16.0, rateBase: null, rateNote: 'постоянно',
+    minAmount: 0, withdrawal: true, replenishment: true, asv: true,
+    tags: ['без условий', 'мгновенный доступ', 'ежедневные %'],
+    conditionsText: 'Для всех клиентов. Без минимального остатка. Начисление каждый день.',
+    params: 'Снятие: да. Пополнение: да. % начисляется ежедневно, выплата ежемесячно.',
+  },
+  {
+    id: 's4', bank: 'ВТБ', name: 'Накопительный',
+    color: '#009FDF', textColor: '#FFF',
+    rate: 17.5, rateBase: null, rateNote: 'постоянно',
+    minAmount: 0, withdrawal: true, replenishment: true, asv: true,
+    tags: ['без условий', 'мгновенный доступ', 'ежедневные %'],
+    conditionsText: 'Для всех клиентов. Без ограничений по остатку и операциям.',
+    params: 'Снятие: да. Пополнение: да. % начисляется ежедневно.',
+  },
+  {
+    id: 's5', bank: 'Газпромбанк', name: 'Газпромбанк Плюс',
+    color: '#003087', textColor: '#FFF',
+    rate: 18.5, rateBase: 15.0, rateNote: 'при тратах от 10\u00a0000\u00a0₽/мес',
+    minAmount: 0, withdrawal: true, replenishment: true, asv: true,
+    tags: ['с условием трат', 'мгновенный доступ', 'ежемесячные %'],
+    conditionsText: 'Повышенная ставка при тратах по карте от 10 000 ₽/мес. Иначе — 15%.',
+    params: 'Снятие: да. Пополнение: да. % начисляется ежемесячно.',
   },
 ]
 
@@ -146,6 +207,14 @@ const fmtMonth = m =>
 
 function calcIncome(rate, amount, months) {
   return Math.round(amount * (rate / 100) * (months / 12))
+}
+
+// Эффективная ставка с учётом капитализации (для ежемесячных выплат)
+function calcEffectiveRate(rate, freq) {
+  if (freq === 'monthly') {
+    return +((Math.pow(1 + rate / 100 / 12, 12) - 1) * 100).toFixed(2)
+  }
+  return rate
 }
 
 function Accordion({ title, children }) {
@@ -194,6 +263,13 @@ export default function Deposits() {
   const [sortBy, setSortBy]               = useState('rate')
   const [expanded, setExpanded]           = useState(null)
   const [showModal, setShowModal]         = useState(false)
+  const [showScrollTop, setShowScrollTop] = useState(false)
+
+  useEffect(() => {
+    const fn = () => setShowScrollTop(window.scrollY > 480)
+    window.addEventListener('scroll', fn, { passive: true })
+    return () => window.removeEventListener('scroll', fn)
+  }, [])
 
   // Filter state
   const [filterBanks, setFilterBanks] = useState(new Set())
@@ -371,10 +447,11 @@ export default function Deposits() {
             <div className="dep-empty">Нет предложений для выбранных фильтров</div>
           )}
           {filtered.map(dep => {
-            const rate   = dep.rates[selectedMonth]
-            const income = calcIncome(rate, amount, selectedMonth)
-            const isOpen = expanded === dep.id
-            const isBest = rate === bestRate && filtered.length > 0
+            const rate      = dep.rates[selectedMonth]
+            const income    = calcIncome(rate, amount, selectedMonth)
+            const isOpen    = expanded === dep.id
+            const isBest    = rate === bestRate && filtered.length > 0
+            const belowMin  = amount < dep.minAmount
 
             return (
               <div key={dep.id} className={`dep-card${isOpen ? ' open' : ''}`}>
@@ -391,7 +468,14 @@ export default function Deposits() {
                     </div>
                     <div className="dep-card-pills">
                       <span className="dep-pill dep-pill-rate">% {rate}</span>
-                      <span className="dep-pill dep-pill-income">₽ {fmtRub(income)}</span>
+                      <span className={`dep-pill dep-pill-income${belowMin ? ' warn' : ''}`}>
+                        {belowMin && (
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                          </svg>
+                        )}
+                        ₽ {fmtRub(income)}
+                      </span>
                     </div>
                   </div>
                   <div className="dep-card-aside">
@@ -407,16 +491,43 @@ export default function Deposits() {
                   </div>
                 </div>
 
-                {isOpen && (
+                {isOpen && (() => {
+                  const effectiveRate = calcEffectiveRate(rate, dep.freq)
+                  const maxTerm = Math.max(...Object.keys(dep.rates).map(Number))
+                  const freqLabel = dep.freq === 'monthly' ? 'Ежемесячно' : 'В конце срока'
+                  return (
                   <div className="dep-card-detail">
+                    {belowMin && (
+                      <div className="dep-amount-warn">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        Ваша сумма {fmtRub(amount)} меньше минимальной ({fmtRub(dep.minAmount)}) — открыть вклад не получится
+                      </div>
+                    )}
                     <div className="dep-detail-grid">
                       <div className="dep-detail-item">
-                        <span className="dep-detail-lbl">Ставка</span>
-                        <span className="dep-detail-val green">{rate}% годовых</span>
+                        <span className="dep-detail-lbl">Ставка банка</span>
+                        <span className="dep-detail-val green">{rate}%</span>
                       </div>
                       <div className="dep-detail-item">
-                        <span className="dep-detail-lbl">Срок</span>
+                        <span className="dep-detail-lbl">Эффективная ставка</span>
+                        <span className="dep-detail-val green">
+                          {effectiveRate}%
+                          {dep.freq === 'monthly' && <span className="dep-detail-hint"> с кап.</span>}
+                        </span>
+                      </div>
+                      <div className="dep-detail-item">
+                        <span className="dep-detail-lbl">Выплата %</span>
+                        <span className="dep-detail-val">{freqLabel}</span>
+                      </div>
+                      <div className="dep-detail-item">
+                        <span className="dep-detail-lbl">Выбранный срок</span>
                         <span className="dep-detail-val">{fmtMonth(selectedMonth)}</span>
+                      </div>
+                      <div className="dep-detail-item">
+                        <span className="dep-detail-lbl">Макс. срок</span>
+                        <span className="dep-detail-val">{fmtMonth(maxTerm)}</span>
                       </div>
                       <div className="dep-detail-item">
                         <span className="dep-detail-lbl">Мин. сумма</span>
@@ -426,17 +537,158 @@ export default function Deposits() {
                         <span className="dep-detail-lbl">Страхование АСВ</span>
                         <span className="dep-detail-val">{dep.asv ? 'до 1,4\u00a0млн ₽' : 'нет'}</span>
                       </div>
-                      <div className="dep-detail-item" style={{ gridColumn: '2 / -1' }}>
+                      <div className="dep-detail-item">
                         <span className="dep-detail-lbl">Ваш доход</span>
-                        <span className="dep-detail-val green">{fmtRub(income)}</span>
+                        <span className={`dep-detail-val${belowMin ? ' warn' : ' green'}`}>{fmtRub(income)}</span>
                       </div>
                     </div>
+
                     <Accordion title="Условия для открытия">
                       <p className="dep-acc-text">{dep.conditionsText}</p>
                     </Accordion>
                     <Accordion title="Параметры вклада">
                       <p className="dep-acc-text">{dep.params}</p>
                     </Accordion>
+
+                    {dep.tariff && (
+                      <div className="dep-tariff-block">
+                        <div className="dep-tariff-header">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                          </svg>
+                          <span className="dep-tariff-name">{dep.tariff.name}</span>
+                          <span className="dep-tariff-cost">{dep.tariff.cost}</span>
+                        </div>
+                        <p className="dep-tariff-cond">{dep.tariff.conditions}</p>
+                        <ul className="dep-tariff-benefits">
+                          {dep.tariff.benefits.map((b, i) => (
+                            <li key={i} className="dep-tariff-benefit">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12"/>
+                              </svg>
+                              {b}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    <button className="dep-cta-btn">
+                      Узнать подробнее
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+                        <polyline points="15 3 21 3 21 9"/>
+                        <line x1="10" y1="14" x2="21" y2="3"/>
+                      </svg>
+                    </button>
+                  </div>
+                  )
+                })()}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* ── Накопительные счета ── */}
+        <div className="dep-section-divider">
+          <div className="dep-section-divider-row">
+            <span className="dep-section-label">Накопительные счета</span>
+            <span className="dep-floating-badge">плавающая ставка</span>
+          </div>
+          <span className="dep-section-sub">Снятие и пополнение в любой момент · доход рассчитан за 1 мес · ставка может измениться</span>
+        </div>
+
+        <div className="dep-list">
+          {SAVINGS.map(sav => {
+            const savIncome = calcIncome(sav.rate, amount, 1) // всегда 1 мес
+            const isOpen = expanded === sav.id
+            return (
+              <div key={sav.id} className={`dep-card${isOpen ? ' open' : ''}`}>
+                <div className="dep-card-main" onClick={() => setExpanded(isOpen ? null : sav.id)}>
+                  <div className="dep-card-body">
+                    <div className="dep-card-names">
+                      <span className="dep-bank-name">{sav.bank}</span>
+                    </div>
+                    <div className="dep-dep-name">{sav.name}</div>
+                    <div className="dep-tags">
+                      {sav.tags.map((t, i) => <span key={i} className="dep-tag">{t}</span>)}
+                    </div>
+                    <div className="dep-card-pills">
+                      <span className="dep-pill dep-pill-rate">% {sav.rate}</span>
+                      {sav.rateBase && (
+                        <span className="dep-pill dep-pill-base">затем {sav.rateBase}%</span>
+                      )}
+                      <span className="dep-pill dep-pill-note">{sav.rateNote}</span>
+                    </div>
+                  </div>
+                  <div className="dep-card-aside">
+                    <div className="dep-bank-logo" style={{ background: sav.color, color: sav.textColor }}>
+                      {sav.bank.slice(0, 2)}
+                    </div>
+                    <div className={`dep-expand-btn${isOpen ? ' open' : ''}`}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M19 9l-7 7-7-7"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {isOpen && (
+                  <div className="dep-card-detail">
+                    {/* Savings info grid */}
+                    <div className="dep-detail-grid" style={{ paddingTop: 14 }}>
+                      <div className="dep-detail-item">
+                        <span className="dep-detail-lbl">Ставка</span>
+                        <span className="dep-detail-val green">{sav.rate}%</span>
+                      </div>
+                      <div className="dep-detail-item">
+                        <span className="dep-detail-lbl">Условие ставки</span>
+                        <span className="dep-detail-val">{sav.rateNote}</span>
+                      </div>
+                      {sav.rateBase && (
+                        <div className="dep-detail-item">
+                          <span className="dep-detail-lbl">Базовая ставка</span>
+                          <span className="dep-detail-val">{sav.rateBase}%</span>
+                        </div>
+                      )}
+                      <div className="dep-detail-item">
+                        <span className="dep-detail-lbl">Снятие</span>
+                        <span className="dep-detail-val">{sav.withdrawal ? 'Да, в любой момент' : 'Нет'}</span>
+                      </div>
+                      <div className="dep-detail-item">
+                        <span className="dep-detail-lbl">Пополнение</span>
+                        <span className="dep-detail-val">{sav.replenishment ? 'Да, без ограничений' : 'Нет'}</span>
+                      </div>
+                      <div className="dep-detail-item">
+                        <span className="dep-detail-lbl">Страхование АСВ</span>
+                        <span className="dep-detail-val">{sav.asv ? 'до 1,4\u00a0млн ₽' : 'нет'}</span>
+                      </div>
+                      <div className="dep-detail-item" style={{ gridColumn: '1 / -1' }}>
+                        <span className="dep-detail-lbl">Доход за 1 мес при {fmtRub(amount)}</span>
+                        <span className="dep-detail-val green">{fmtRub(savIncome)}</span>
+                      </div>
+                    </div>
+
+                    <div className="dep-sav-notice">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                      </svg>
+                      В отличие от вклада ставка по накопительному счёту может измениться в любой момент по решению банка.
+                    </div>
+
+                    <Accordion title="Условия">
+                      <p className="dep-acc-text">{sav.conditionsText}</p>
+                    </Accordion>
+                    <Accordion title="Параметры">
+                      <p className="dep-acc-text">{sav.params}</p>
+                    </Accordion>
+
                     <button className="dep-cta-btn">
                       Узнать подробнее
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
@@ -455,10 +707,20 @@ export default function Deposits() {
 
         <div className="dep-disclaimer">
           Данные носят информационный характер. Актуальные условия уточняйте на сайте банка.
-          Вклады застрахованы АСВ в пределах 1,4 млн ₽.
+          Вклады и накопительные счета застрахованы АСВ в пределах 1,4 млн ₽.
         </div>
 
       </main>
+
+      {/* Scroll to top */}
+      {showScrollTop && (
+        <button className="dep-scroll-top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 15l-6-6-6 6"/>
+          </svg>
+        </button>
+      )}
 
       {/* ── Filters modal ── */}
       {showModal && (

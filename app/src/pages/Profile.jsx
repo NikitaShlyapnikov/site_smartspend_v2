@@ -420,6 +420,10 @@ function fmt(n) {
   return Math.round(n / 1000) + ' тыс'
 }
 
+function forecastKey(fin) {
+  return `${fin.income}|${fin.housing}|${fin.credit}|${fin.creditMonths}|${fin.capital}`
+}
+
 function calcTrajectory(emoRate, monthlyInvest, capital, creditPayment = 0, creditMonths = 0) {
   const points = []
   let cap = capital
@@ -435,6 +439,47 @@ function calcTrajectory(emoRate, monthlyInvest, capital, creditPayment = 0, cred
     }
   }
   return points
+}
+
+function ForecastCollapsible({ open, onToggle, emoRate, dark, monthlyInvest, capital, credit, creditMonths }) {
+  // Считаем сводку через ту же функцию — всегда актуально
+  const pts = calcTrajectory(emoRate, monthlyInvest, capital, credit, creditMonths)
+  const last = pts[pts.length - 1] || { cap: capital, emo: 0 }
+  const capFmt = last.cap >= 1_000_000
+    ? (last.cap / 1_000_000).toFixed(1).replace('.', ',') + '\u00a0млн ₽'
+    : last.cap.toLocaleString('ru') + '\u00a0₽'
+  const emoFmt = last.emo.toLocaleString('ru') + '\u00a0₽'
+
+  return (
+    <div className="forecast-collapsible">
+      <button className="forecast-toggle-row" onClick={onToggle}>
+        <div className="forecast-toggle-left">
+          <span className="forecast-toggle-title">Прогноз накоплений · 10 лет</span>
+          {!open && (
+            <div className="forecast-toggle-pills">
+              <span className="ftpill ftpill-cap">{capFmt}</span>
+              <span className="ftpill ftpill-sep">·</span>
+              <span className="ftpill ftpill-emo">EmoSpend {emoFmt}/мес</span>
+            </div>
+          )}
+        </div>
+        <svg
+          className={`forecast-toggle-chevron${open ? ' open' : ''}`}
+          width="14" height="14" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" strokeWidth="2.5"
+          strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 9l-7 7-7-7"/>
+        </svg>
+      </button>
+      {open && (
+        <ForecastChart
+          emoRate={emoRate} dark={dark}
+          monthlyInvest={monthlyInvest} capital={capital}
+          creditPayment={credit} creditMonths={creditMonths}
+        />
+      )}
+    </div>
+  )
 }
 
 function ForecastChart({ emoRate, dark, monthlyInvest, capital, creditPayment, creditMonths }) {
@@ -577,6 +622,18 @@ export default function Profile() {
   const [finOpen, setFinOpen] = useState(false)
   const [finance, setFinance] = useState(loadFinance)
   const [showSpotlight, setShowSpotlight] = useState(false)
+  const [chartOpen, setChartOpen] = useState(() => {
+    const current = forecastKey(loadFinance())
+    return localStorage.getItem('ss_forecast_seen') !== current
+  })
+
+  function toggleChart() {
+    if (chartOpen) {
+      // пользователь сворачивает — фиксируем как просмотренное
+      localStorage.setItem('ss_forecast_seen', forecastKey(finance))
+    }
+    setChartOpen(o => !o)
+  }
 
   const { income, housing, credit, creditMonths = 0, capital, updatedAt } = finance
 
@@ -817,7 +874,16 @@ export default function Profile() {
               </div>
             </div>
 
-            <ForecastChart emoRate={emoRate} dark={dark} monthlyInvest={monthlyInvest} capital={capital} creditPayment={credit} creditMonths={creditMonths} />
+            <ForecastCollapsible
+              open={chartOpen}
+              onToggle={toggleChart}
+              emoRate={emoRate}
+              dark={dark}
+              monthlyInvest={monthlyInvest}
+              capital={capital}
+              credit={credit}
+              creditMonths={creditMonths}
+            />
           </div>
 
           <button className="profile-tool-row" onClick={() => navigate('/deposits')}>
