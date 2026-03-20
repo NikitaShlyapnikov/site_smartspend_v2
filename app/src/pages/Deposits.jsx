@@ -29,71 +29,78 @@ const COND_FILTERS = [
 const DEPOSITS = [
   {
     id: 'd1', bank: 'Т-Банк', name: 'СмartВклад Онлайн',
-    color: '#FFDD2D', textColor: '#1A1A1A', freq: 'end',
+    color: '#FFDD2D', textColor: '#1A1A1A', freq: 'end', isSystemic: true,
     rates: { 1: 14.0, 2: 16.5, 3: 21.5, 6: 20.0, 12: 18.5, 18: 17.0 },
-    minAmount: 50000,
+    minAmount: 50000, maxAmount: null,
+    replenishment: false, withdrawal: false,
     tags: ['для новых клиентов', 'выплата % в конце срока', 'без пополнения и снятия'],
-    conditions: ['new_client'], asv: true,
+    conditions: ['new_client'],
     conditionsText: 'Только для новых клиентов банка. Открытие онлайн через приложение. Без пополнения и снятия до окончания срока.',
     params: 'Выплата процентов в конце срока. Капитализация: нет. Автопролонгация: по желанию.',
   },
   {
     id: 'd2', bank: 'Альфа-Банк', name: 'Альфа-Вклад',
-    color: '#EF3124', textColor: '#FFF', freq: 'monthly',
+    color: '#EF3124', textColor: '#FFF', freq: 'monthly', isSystemic: true,
     rates: { 1: 13.5, 3: 20.8, 6: 19.5, 12: 18.0, 18: 16.5, 24: 15.5 },
-    minAmount: 10000,
+    minAmount: 10000, maxAmount: null,
+    replenishment: true, withdrawal: false,
     tags: ['выплата % ежемесячно', 'с пополнением'],
-    conditions: ['no_extra'], asv: true,
+    conditions: ['no_extra'],
     conditionsText: 'Для новых и действующих клиентов. Пополнение разрешено в течение всего срока.',
     params: 'Выплата процентов ежемесячно на отдельный счёт. Пополнение: да. Снятие: нет.',
   },
   {
     id: 'd3', bank: 'Сбер', name: 'Лучший %',
-    color: '#21A038', textColor: '#FFF', freq: 'monthly',
+    color: '#21A038', textColor: '#FFF', freq: 'monthly', isSystemic: true,
     rates: { 1: 12.0, 2: 15.5, 3: 19.0, 4: 18.0, 5: 17.5, 6: 18.5, 12: 17.0, 18: 15.5, 24: 14.0, 36: 13.0 },
-    minAmount: 1000,
+    minAmount: 1000, maxAmount: null,
+    replenishment: true, withdrawal: false,
     tags: ['с пополнением', 'выплата % ежемесячно'],
-    conditions: ['no_extra'], asv: true,
+    conditions: ['no_extra'],
     conditionsText: 'Для всех клиентов. От 1 000 ₽. Пополнение разрешено в первую треть срока.',
     params: 'Выплата процентов ежемесячно. Капитализация: доступна. Снятие: нет.',
   },
   {
     id: 'd4', bank: 'ВТБ', name: 'Новое время',
-    color: '#009FDF', textColor: '#FFF', freq: 'end',
+    color: '#009FDF', textColor: '#FFF', freq: 'end', isSystemic: true,
     rates: { 3: 20.0, 4: 19.0, 5: 18.5, 6: 19.5, 12: 18.0, 18: 16.0 },
-    minAmount: 30000,
+    minAmount: 30000, maxAmount: null,
+    replenishment: false, withdrawal: false,
     tags: ['для новых клиентов', 'выплата % в конце срока', 'без пополнения и снятия'],
-    conditions: ['new_client', 'new_money'], asv: true,
+    conditions: ['new_client', 'new_money'],
     conditionsText: 'Только для новых клиентов. Только новые деньги — средства, ранее не размещавшиеся в ВТБ.',
     params: 'Выплата в конце срока. Без пополнения и снятия. Автопролонгация: нет.',
   },
   {
     id: 'd5', bank: 'Газпромбанк', name: 'Накопи +',
-    color: '#003087', textColor: '#FFF', freq: 'end',
+    color: '#003087', textColor: '#FFF', freq: 'end', isSystemic: true,
     rates: { 3: 19.5, 6: 19.0, 12: 17.5, 18: 16.0, 24: 15.0, 36: 13.5 },
-    minAmount: 15000,
+    minAmount: 15000, maxAmount: null,
+    replenishment: true, withdrawal: false,
     tags: ['с пополнением', 'выплата % в конце срока'],
-    conditions: ['no_extra'], asv: true,
+    conditions: ['no_extra'],
     conditionsText: 'Открытие в офисе или через личный кабинет. Пополнение разрешено.',
     params: 'Выплата в конце срока. Капитализация: нет. Снятие: нет.',
   },
   {
     id: 'd6', bank: 'Банк Дом.РФ', name: 'Надёжный прайм',
-    color: '#1A3F6F', textColor: '#FFF', freq: 'end',
+    color: '#1A3F6F', textColor: '#FFF', freq: 'end', isSystemic: true,
     rates: { 1: 13.0, 2: 17.0, 3: 20.5, 6: 18.0 },
-    minAmount: 100000,
+    minAmount: 100000, maxAmount: 30000000,
+    replenishment: false, withdrawal: false,
     tags: ['для новых клиентов', 'выплата % в конце срока', 'без пополнения и снятия'],
-    conditions: ['new_client'], asv: true,
+    conditions: ['new_client'],
     conditionsText: 'Для новых клиентов. От 100 000 ₽. Без пополнения и снятия.',
     params: 'Без пополнения и снятия. Выплата в конце срока. Автопролонгация: нет.',
   },
   {
     id: 'd7', bank: 'МТС Банк', name: 'МТС Специальный',
-    color: '#E30611', textColor: '#FFF', freq: 'end',
+    color: '#E30611', textColor: '#FFF', freq: 'end', isSystemic: false,
     rates: { 3: 20.2, 6: 19.0, 12: 17.0 },
-    minAmount: 10000,
+    minAmount: 10000, maxAmount: 5000000,
+    replenishment: false, withdrawal: false,
     tags: ['инвест или страхование', 'выплата % в конце срока', 'без пополнения и снятия'],
-    conditions: ['insurance'], asv: true,
+    conditions: ['insurance'],
     conditionsText: 'Требуется оформление инвестиционных или страховых продуктов банка.',
     params: 'Без пополнения и снятия. Выплата в конце срока.',
     tariff: {
@@ -101,35 +108,39 @@ const DEPOSITS = [
       cost: 'от 50\u00a0000\u00a0₽ единовременно',
       conditions: 'Необходимо оформить инвестиционный или накопительный страховой продукт МТС Банка одновременно с открытием вклада.',
       benefits: ['Повышенная ставка на весь срок вклада', 'Страховое покрытие жизни или капитала', 'Потенциальный доход от инвест. инструмента'],
+      url: 'https://www.mtsbank.ru/vklady/',
     },
   },
   {
     id: 'd8', bank: 'Росбанк', name: 'Максимальный доход',
-    color: '#CC2030', textColor: '#FFF', freq: 'end',
+    color: '#CC2030', textColor: '#FFF', freq: 'end', isSystemic: true,
     rates: { 1: 12.5, 2: 16.0, 3: 19.8, 6: 18.5, 12: 17.0, 18: 15.5 },
-    minAmount: 50000,
+    minAmount: 50000, maxAmount: null,
+    replenishment: false, withdrawal: false,
     tags: ['выплата % в конце срока', 'без пополнения и снятия'],
-    conditions: ['no_extra'], asv: true,
+    conditions: ['no_extra'],
     conditionsText: 'Для новых и действующих клиентов. Открытие онлайн или в офисе.',
     params: 'Выплата в конце срока. Без пополнения и снятия. Капитализация: нет.',
   },
   {
     id: 'd9', bank: 'Сбер', name: 'Пенсионный плюс',
-    color: '#21A038', textColor: '#FFF', freq: 'monthly',
+    color: '#21A038', textColor: '#FFF', freq: 'monthly', isSystemic: true,
     rates: { 3: 20.5, 6: 20.0, 12: 18.5, 18: 17.0 },
-    minAmount: 1000,
+    minAmount: 1000, maxAmount: null,
+    replenishment: true, withdrawal: false,
     tags: ['для пенсионеров', 'с пополнением', 'выплата % ежемесячно'],
-    conditions: ['pension'], asv: true,
+    conditions: ['pension'],
     conditionsText: 'Только для получателей пенсии на счёт в Сбере. С пополнением.',
     params: 'Выплата процентов ежемесячно. Пополнение: да. Снятие: нет.',
   },
   {
     id: 'd10', bank: 'Т-Банк', name: 'Т-Привилегия',
-    color: '#FFDD2D', textColor: '#1A1A1A', freq: 'end',
+    color: '#FFDD2D', textColor: '#1A1A1A', freq: 'end', isSystemic: true,
     rates: { 1: 16.0, 3: 22.5, 6: 21.0, 12: 19.5 },
-    minAmount: 300000,
+    minAmount: 300000, maxAmount: null,
+    replenishment: false, withdrawal: false,
     tags: ['премиальный клиент', 'выплата % в конце срока'],
-    conditions: ['premium'], asv: true,
+    conditions: ['premium'],
     conditionsText: 'Только для клиентов с пакетом Т-Привилегия или Т-Прайм. Минимальная сумма от 300 000 ₽.',
     params: 'Выплата в конце срока. Без пополнения и снятия. Капитализация: нет.',
     tariff: {
@@ -137,6 +148,7 @@ const DEPOSITS = [
       cost: 'от 199\u00a0₽/мес (или бесплатно)',
       conditions: 'Бесплатно при остатке от 100\u00a0000\u00a0₽ или тратах от 30\u00a0000\u00a0₽/мес. Иначе — 199\u00a0₽/мес.',
       benefits: ['Кешбэк до 5% на все покупки', 'Бесплатные переводы и снятие наличных', 'Страховка при путешествиях за рубеж', 'Приоритетная поддержка 24/7', 'Консьерж-сервис (Т-Прайм)'],
+      url: 'https://www.tbank.ru/privilege/',
     },
   },
 ]
@@ -493,7 +505,13 @@ export default function Deposits() {
 
                 {isOpen && (() => {
                   const effectiveRate = calcEffectiveRate(rate, dep.freq)
-                  const maxTerm = Math.max(...Object.keys(dep.rates).map(Number))
+                  const termKeys = Object.keys(dep.rates).map(Number)
+                  const minTerm = Math.min(...termKeys)
+                  const maxTerm = Math.max(...termKeys)
+                  const termRange = minTerm === maxTerm ? fmtMonth(maxTerm) : `${fmtMonth(minTerm)}\u00a0–\u00a0${fmtMonth(maxTerm)}`
+                  const amountRange = dep.maxAmount
+                    ? `от\u00a0${fmtRub(dep.minAmount)}\u00a0до\u00a0${fmtRub(dep.maxAmount)}`
+                    : `от\u00a0${fmtRub(dep.minAmount)}`
                   const freqLabel = dep.freq === 'monthly' ? 'Ежемесячно' : 'В конце срока'
                   return (
                   <div className="dep-card-detail">
@@ -522,23 +540,27 @@ export default function Deposits() {
                         <span className="dep-detail-val">{freqLabel}</span>
                       </div>
                       <div className="dep-detail-item">
-                        <span className="dep-detail-lbl">Выбранный срок</span>
-                        <span className="dep-detail-val">{fmtMonth(selectedMonth)}</span>
+                        <span className="dep-detail-lbl">Срок</span>
+                        <span className="dep-detail-val">{termRange}</span>
                       </div>
                       <div className="dep-detail-item">
-                        <span className="dep-detail-lbl">Макс. срок</span>
-                        <span className="dep-detail-val">{fmtMonth(maxTerm)}</span>
+                        <span className="dep-detail-lbl">Сумма вклада</span>
+                        <span className="dep-detail-val">{amountRange}</span>
                       </div>
                       <div className="dep-detail-item">
-                        <span className="dep-detail-lbl">Мин. сумма</span>
-                        <span className="dep-detail-val">{fmtRub(dep.minAmount)}</span>
+                        <span className="dep-detail-lbl">{dep.isSystemic ? 'Системообразующий банк' : 'Страхование АСВ'}</span>
+                        <span className="dep-detail-val">{dep.isSystemic ? 'да' : 'до\u00a01,4\u00a0млн\u00a0₽'}</span>
                       </div>
                       <div className="dep-detail-item">
-                        <span className="dep-detail-lbl">Страхование АСВ</span>
-                        <span className="dep-detail-val">{dep.asv ? 'до 1,4\u00a0млн ₽' : 'нет'}</span>
+                        <span className="dep-detail-lbl">Пополнение</span>
+                        <span className="dep-detail-val">{dep.replenishment ? 'Да' : 'Нет'}</span>
                       </div>
                       <div className="dep-detail-item">
-                        <span className="dep-detail-lbl">Ваш доход</span>
+                        <span className="dep-detail-lbl">Снятие</span>
+                        <span className="dep-detail-val">{dep.withdrawal ? 'Да' : 'Нет'}</span>
+                      </div>
+                      <div className="dep-detail-item" style={{ gridColumn: '1 / -1' }}>
+                        <span className="dep-detail-lbl">Ваш доход за {fmtMonth(selectedMonth)}</span>
                         <span className={`dep-detail-val${belowMin ? ' warn' : ' green'}`}>{fmtRub(income)}</span>
                       </div>
                     </div>
@@ -572,6 +594,16 @@ export default function Deposits() {
                             </li>
                           ))}
                         </ul>
+                        {dep.tariff.url && (
+                          <a className="dep-tariff-link" href={dep.tariff.url} target="_blank" rel="noopener noreferrer">
+                            Подробнее
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+                              <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                            </svg>
+                          </a>
+                        )}
                       </div>
                     )}
 
@@ -592,16 +624,16 @@ export default function Deposits() {
           })}
         </div>
 
-        {/* ── Накопительные счета ── */}
-        <div className="dep-section-divider">
+        {/* ── Накопительные счета (только при сроке 1 мес) ── */}
+        {selectedMonth === 1 && <div className="dep-section-divider">
           <div className="dep-section-divider-row">
             <span className="dep-section-label">Накопительные счета</span>
             <span className="dep-floating-badge">плавающая ставка</span>
           </div>
           <span className="dep-section-sub">Снятие и пополнение в любой момент · доход рассчитан за 1 мес · ставка может измениться</span>
-        </div>
+        </div>}
 
-        <div className="dep-list">
+        {selectedMonth === 1 && <div className="dep-list">
           {SAVINGS.map(sav => {
             const savIncome = calcIncome(sav.rate, amount, 1) // всегда 1 мес
             const isOpen = expanded === sav.id
@@ -618,10 +650,8 @@ export default function Deposits() {
                     </div>
                     <div className="dep-card-pills">
                       <span className="dep-pill dep-pill-rate">% {sav.rate}</span>
-                      {sav.rateBase && (
-                        <span className="dep-pill dep-pill-base">затем {sav.rateBase}%</span>
-                      )}
                       <span className="dep-pill dep-pill-note">{sav.rateNote}</span>
+                      <span className="dep-pill dep-pill-income">₽ {fmtRub(calcIncome(sav.rate, amount, 1))}</span>
                     </div>
                   </div>
                   <div className="dep-card-aside">
@@ -703,7 +733,7 @@ export default function Deposits() {
               </div>
             )
           })}
-        </div>
+        </div>}
 
         <div className="dep-disclaimer">
           Данные носят информационный характер. Актуальные условия уточняйте на сайте банка.
@@ -738,7 +768,12 @@ export default function Deposits() {
             <div className="dep-modal-body">
               {/* Banks */}
               <div className="dep-modal-section">
-                <div className="dep-modal-section-title">Банки</div>
+                <div className="dep-modal-section-hdr">
+                  <span className="dep-modal-section-title">Банки</span>
+                  {filterBanks.size > 0 && (
+                    <button className="dep-modal-section-reset" onClick={() => setFilterBanks(new Set())}>Сбросить</button>
+                  )}
+                </div>
                 <div className="dep-fchips">
                   {ALL_BANKS.map(bank => (
                     <FilterChip key={bank} label={bank}
@@ -750,7 +785,12 @@ export default function Deposits() {
 
               {/* Payment frequency */}
               <div className="dep-modal-section">
-                <div className="dep-modal-section-title">Выплата процентов</div>
+                <div className="dep-modal-section-hdr">
+                  <span className="dep-modal-section-title">Выплата процентов</span>
+                  {filterFreq.size > 0 && (
+                    <button className="dep-modal-section-reset" onClick={() => setFilterFreq(new Set())}>Сбросить</button>
+                  )}
+                </div>
                 <div className="dep-fchips">
                   {FREQ_FILTERS.map(f => (
                     <FilterChip key={f.id} label={f.label}
@@ -762,7 +802,12 @@ export default function Deposits() {
 
               {/* Additional conditions */}
               <div className="dep-modal-section">
-                <div className="dep-modal-section-title">Дополнительные условия</div>
+                <div className="dep-modal-section-hdr">
+                  <span className="dep-modal-section-title">Дополнительные условия</span>
+                  {filterConds.size > 0 && (
+                    <button className="dep-modal-section-reset" onClick={() => setFilterConds(new Set())}>Сбросить</button>
+                  )}
+                </div>
                 <div className="dep-fchips">
                   {COND_FILTERS.map(f => (
                     <FilterChip key={f.id} label={f.label}
