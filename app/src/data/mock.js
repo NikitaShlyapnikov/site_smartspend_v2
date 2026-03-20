@@ -889,6 +889,149 @@ export const articles = [
   },
 ]
 
+// ── COMPANIES & PROMO ──────────────────────────────────────────────────────────
+
+export const companies = {
+  food:      { label: 'Еда и Супермаркеты',        list: [
+    { id: 'c-perekrestok', name: 'Перекрёсток',  abbr: 'Пе', color: '#4E8268' },
+    { id: 'c-magnit',      name: 'Магнит',        abbr: 'Ма', color: '#DA4040' },
+    { id: 'c-vkusvill',    name: 'ВкусВилл',      abbr: 'Вк', color: '#6DB880' },
+    { id: 'c-lenta',       name: 'Лента',          abbr: 'Ле', color: '#C8A840' },
+    { id: 'c-samokat',     name: 'Самокат',        abbr: 'Са', color: '#F04060' },
+  ]},
+  cafe:      { label: 'Кафе, Бары, Рестораны',     list: [
+    { id: 'c-vkusno',   name: 'Вкусно и точка',  abbr: 'Вт', color: '#DA4040' },
+    { id: 'c-kfc',      name: 'KFC',              abbr: 'KF', color: '#C8362A' },
+    { id: 'c-dodo',     name: 'Додо Пицца',       abbr: 'До', color: '#F04040' },
+    { id: 'c-dominos',  name: "Domino's",         abbr: 'Do', color: '#2A60C8' },
+    { id: 'c-coffee',   name: 'Coffee Like',      abbr: 'Cf', color: '#7A5030' },
+  ]},
+  transport: { label: 'Авто и Транспорт',           list: [
+    { id: 'c-yandex-go', name: 'Яндекс Go',       abbr: 'Яг', color: '#E8C820' },
+    { id: 'c-rosneft',   name: 'Роснефть',         abbr: 'Рн', color: '#DA4040' },
+    { id: 'c-lukoil',    name: 'Лукойл',           abbr: 'Лк', color: '#C82A2A' },
+    { id: 'c-gazprom',   name: 'Газпром нефть',    abbr: 'Гп', color: '#2A88C8' },
+    { id: 'c-citimobil', name: 'Ситимобил',        abbr: 'Си', color: '#5870E8' },
+  ]},
+  home:      { label: 'Дом и Техника',              list: [
+    { id: 'c-mvideo',   name: 'М.Видео',          abbr: 'МВ', color: '#DA4040' },
+    { id: 'c-eldorado', name: 'Эльдорадо',        abbr: 'Эл', color: '#2A80C8' },
+    { id: 'c-lerua',    name: 'Леруа Мерлен',     abbr: 'Лм', color: '#4E8830' },
+    { id: 'c-ikea',     name: 'IKEA',             abbr: 'IK', color: '#C8B020' },
+    { id: 'c-obi',      name: 'OBI',              abbr: 'OB', color: '#E87020' },
+  ]},
+  clothes:   { label: 'Одежда и Обувь',             list: [
+    { id: 'c-wb',     name: 'Wildberries',        abbr: 'WB', color: '#8A40C8' },
+    { id: 'c-ozon',   name: 'Ozon',               abbr: 'Oz', color: '#4A5FAE' },
+    { id: 'c-lamoda', name: 'Lamoda',             abbr: 'La', color: '#333333' },
+    { id: 'c-gloria', name: 'Gloria Jeans',       abbr: 'Gj', color: '#2848A8' },
+    { id: 'c-befree', name: 'befree',             abbr: 'Bf', color: '#444444' },
+  ]},
+  leisure:   { label: 'Развлечения и Хобби',        list: [
+    { id: 'c-yandex-plus', name: 'Яндекс Плюс',  abbr: 'Яп', color: '#E8C820' },
+    { id: 'c-sber-zvuk',   name: 'СберЗвук',      abbr: 'Сз', color: '#22C870' },
+    { id: 'c-netflix',     name: 'Netflix',        abbr: 'Nf', color: '#DA2020' },
+    { id: 'c-steam',       name: 'Steam',          abbr: 'St', color: '#294878' },
+    { id: 'c-chitai',      name: 'Читай-город',   abbr: 'Чг', color: '#DA6030' },
+  ]},
+  health:    { label: 'Красота и Здоровье',         list: [
+    { id: 'c-apteka',    name: 'Аптека.ру',       abbr: 'Ап', color: '#4E8268' },
+    { id: 'c-rigla',     name: 'Ригла',            abbr: 'Ри', color: '#22A870' },
+    { id: 'c-letual',    name: "Л'Этуаль",        abbr: 'Лэ', color: '#C83080' },
+    { id: 'c-podruzhka', name: 'Подружка',         abbr: 'По', color: '#E84080' },
+    { id: 'c-yasno',     name: 'Ясно',             abbr: 'Яс', color: '#6A8CC8' },
+  ]},
+  education: { label: 'Образование и Дети',         list: [
+    { id: 'c-skyeng',     name: 'Skyeng',          abbr: 'Sk', color: '#4A5FAE' },
+    { id: 'c-skillbox',   name: 'Skillbox',        abbr: 'Sb', color: '#5848C8' },
+    { id: 'c-netology',   name: 'Нетология',       abbr: 'Не', color: '#4870D8' },
+    { id: 'c-detmir',     name: 'Детский Мир',     abbr: 'Дм', color: '#C82828' },
+    { id: 'c-geekbrains', name: 'GeekBrains',      abbr: 'Gb', color: '#406880' },
+  ]},
+  travel:    { label: 'Путешествия и Отдых',        list: [
+    { id: 'c-rzd',       name: 'РЖД',             abbr: 'РЖ', color: '#DA2828' },
+    { id: 'c-aeroflot',  name: 'Аэрофлот',        abbr: 'Аэ', color: '#2848A8' },
+    { id: 'c-aviasales', name: 'Авиасейлс',        abbr: 'Ав', color: '#FF6040' },
+    { id: 'c-ostrovok',  name: 'Ostrovok',         abbr: 'Os', color: '#4E8268' },
+    { id: 'c-sutochno',  name: 'Суточно.ру',       abbr: 'Су', color: '#4870D8' },
+  ]},
+  other:     { label: 'Прочие расходы',             list: [
+    { id: 'c-sber',     name: 'СберБанк',          abbr: 'Сб', color: '#22C870' },
+    { id: 'c-tinkoff',  name: 'Т-Банк',            abbr: 'ТБ', color: '#E8C820' },
+    { id: 'c-vtb',      name: 'ВТБ',               abbr: 'ВТ', color: '#2440A8' },
+    { id: 'c-mts',      name: 'МТС',               abbr: 'МТ', color: '#DA2020' },
+    { id: 'c-megafon',  name: 'МегаФон',           abbr: 'МФ', color: '#4E8268' },
+  ]},
+}
+
+export const promoItems = [
+  {
+    id: 'pr1', type: 'event', companyId: 'c-perekrestok', category: 'food',
+    ts: 20260319, expires: '31 марта',
+    title: 'Скидка 20% на фрукты и овощи',
+    desc: 'Каждую пятницу и субботу — скидка 20% на весь отдел свежих фруктов и овощей в магазинах Перекрёсток.',
+  },
+  {
+    id: 'pr2', type: 'coupon', companyId: 'c-vkusvill', category: 'food',
+    ts: 20260318, expires: '30 апреля',
+    title: 'Скидка 500 ₽ на первый заказ',
+    desc: 'Промокод действует на первый заказ от 1 500 ₽ через приложение ВкусВилл.',
+    code: 'SMART500',
+  },
+  {
+    id: 'pr3', type: 'event', companyId: 'c-wb', category: 'clothes',
+    ts: 20260318, expires: '25 марта',
+    title: 'Недели брендов: скидки до 50%',
+    desc: 'Акция на топ-бренды одежды и обуви. Скидки до 50% без промокодов — только через приложение Wildberries.',
+  },
+  {
+    id: 'pr4', type: 'coupon', companyId: 'c-dodo', category: 'cafe',
+    ts: 20260317, expires: '31 марта',
+    title: '2 пиццы по цене 1',
+    desc: 'При заказе от двух пицц одного размера — вторая в подарок. Заказ через приложение или сайт Додо Пицца.',
+    code: 'DODO2X1',
+  },
+  {
+    id: 'pr5', type: 'event', companyId: 'c-mvideo', category: 'home',
+    ts: 20260316, expires: '22 марта',
+    title: 'Гарантия лучшей цены на технику',
+    desc: 'М.Видео вернёт разницу, если найдёте дешевле. Акция действует на всю технику в наличии.',
+  },
+  {
+    id: 'pr6', type: 'coupon', companyId: 'c-yandex-plus', category: 'leisure',
+    ts: 20260315, expires: '1 апреля',
+    title: '3 месяца Яндекс Плюс бесплатно',
+    desc: 'Подключите Яндекс Плюс по промокоду и получите 3 месяца бесплатно. Для новых пользователей.',
+    code: 'PLUS3FREE',
+  },
+  {
+    id: 'pr7', type: 'event', companyId: 'c-rigla', category: 'health',
+    ts: 20260314, expires: '30 марта',
+    title: 'Скидка 15% на витамины',
+    desc: 'Весенняя акция на витамины и БАДы в аптеках сети Ригла. Скидка 15% при предъявлении карты лояльности.',
+  },
+  {
+    id: 'pr8', type: 'coupon', companyId: 'c-skyeng', category: 'education',
+    ts: 20260313, expires: '15 апреля',
+    title: 'Скидка 20% на первый месяц',
+    desc: 'Начните учить английский со скидкой 20% на первый месяц обучения в Skyeng.',
+    code: 'SMART20',
+  },
+  {
+    id: 'pr9', type: 'event', companyId: 'c-rzd', category: 'travel',
+    ts: 20260312, expires: '5 апреля',
+    title: 'Акция «Весенние путешествия»',
+    desc: 'Скидки до 30% на билеты в популярные направления при покупке за 45+ дней до отправления.',
+  },
+  {
+    id: 'pr10', type: 'coupon', companyId: 'c-ozon', category: 'clothes',
+    ts: 20260311, expires: '28 марта',
+    title: 'Кешбэк 10% на одежду',
+    desc: 'Кешбэк 10% монетами Ozon на все заказы из раздела «Одежда и обувь». Монеты зачисляются в течение суток.',
+    code: 'OZONCLOTH10',
+  },
+]
+
 export const notifications = [
   { id: 'n4', type: 'system', unread: true,
     title: 'Добро пожаловать в SmartSpend!',

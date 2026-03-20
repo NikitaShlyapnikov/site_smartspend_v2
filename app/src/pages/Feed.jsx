@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
-import { feedItems, feedAuthors } from '../data/mock'
+import { feedItems, feedAuthors, companies, promoItems } from '../data/mock'
 
 const FEED_SPOTLIGHT = [
   { targetId: 'sp-feed-filters', btnId: null,              title: 'Фильтры и категории',  desc: 'Выбирай категории, тип контента и сортировку — лента подстроится под твои интересы.' },
@@ -44,6 +44,20 @@ const SORT_OPTIONS = [
   { group: 'По популярности', id: 'popular_30d', label: 'За месяц' },
   { group: 'По популярности', id: 'popular_all', label: 'За всё время' },
 ]
+
+const PROMO_TABS = [
+  { id: 'all',    label: 'Все' },
+  { id: 'event',  label: 'События' },
+  { id: 'coupon', label: 'Купоны' },
+]
+
+// Build a flat lookup: companyId → company object
+const COMPANY_MAP = Object.values(companies).flatMap(c => c.list).reduce((m, c) => { m[c.id] = c; return m }, {})
+
+function loadFollowed() {
+  try { return new Set(JSON.parse(localStorage.getItem('ss_companies') || '[]')) }
+  catch { return new Set() }
+}
 
 const MY_SET_TITLES = new Set([
   'Корейский уход за кожей',
@@ -265,6 +279,129 @@ function SortDropdown({ sort, onSort }) {
               </div>
             ))}
           </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── PROMO CARD ────────────────────────────────────────────────────────────────
+
+function PromoCard({ item }) {
+  const company = COMPANY_MAP[item.companyId]
+  const [copied, setCopied] = useState(false)
+
+  function copyCode(e) {
+    e.stopPropagation()
+    navigator.clipboard.writeText(item.code).catch(() => {})
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="promo-card">
+      <div className="promo-card-top">
+        <div className="promo-company-row">
+          <div className="promo-logo" style={{ background: company?.color }}>
+            {company?.abbr}
+          </div>
+          <div className="promo-company-info">
+            <div className="promo-company-name">{company?.name}</div>
+            <div className="promo-expires">до {item.expires}</div>
+          </div>
+          <div className={`promo-type-badge promo-type-badge--${item.type}`}>
+            {item.type === 'event' ? 'Акция' : 'Купон'}
+          </div>
+        </div>
+        <div className="promo-title">{item.title}</div>
+        <div className="promo-desc">{item.desc}</div>
+      </div>
+      {item.type === 'coupon' && item.code && (
+        <div className="promo-code-row">
+          <div className="promo-code">{item.code}</div>
+          <button className="promo-copy-btn" onClick={copyCode}>
+            {copied ? (
+              <>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Скопировано
+              </>
+            ) : (
+              <>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                Скопировать
+              </>
+            )}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── PROMO SECTION ─────────────────────────────────────────────────────────────
+
+function PromoSection({ navigate }) {
+  const [followed] = useState(loadFollowed)
+  const hasSetup = !!localStorage.getItem('ss_promo_setup')
+  const [promoTab, setPromoTab] = useState('all')
+
+  if (!hasSetup || followed.size === 0) {
+    return (
+      <div className="promo-empty-state">
+        <div className="promo-empty-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+        </div>
+        <div className="promo-empty-title">Выберите компании</div>
+        <div className="promo-empty-desc">
+          Подпишитесь на компании, чьи акции и купоны хотите видеть в ленте
+        </div>
+        <button className="promo-empty-btn" onClick={() => navigate('/company-picker')}>
+          Подобрать компании
+        </button>
+      </div>
+    )
+  }
+
+  const filtered = promoItems.filter(p => {
+    if (!followed.has(p.companyId)) return false
+    if (promoTab !== 'all' && p.type !== promoTab) return false
+    return true
+  })
+
+  return (
+    <div className="promo-section">
+      <div className="promo-header">
+        <div className="tab-group">
+          {PROMO_TABS.map(t => (
+            <button key={t.id} className={`tab-btn${promoTab === t.id ? ' active' : ''}`}
+              onClick={() => setPromoTab(t.id)}>{t.label}</button>
+          ))}
+        </div>
+        <button className="promo-edit-btn" onClick={() => navigate('/company-picker', { state: { edit: true } })}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+          Компании
+        </button>
+      </div>
+      <div className="feed-list">
+        {filtered.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">🏷️</div>
+            <div className="empty-title">Пока ничего нет</div>
+            <div className="empty-desc">Акций и купонов от выбранных компаний не найдено</div>
+          </div>
+        ) : filtered.map(item => (
+          <PromoCard key={item.id} item={item} />
         ))}
       </div>
     </div>
@@ -502,8 +639,10 @@ function WelcomeTour({ onClose }) {
 
 export default function Feed() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem('ss_tour_welcome'))
   const [showSpotlight, setShowSpotlight] = useState(false)
+  const [section, setSection] = useState(() => location.state?.promo ? 'promo' : 'articles')
   const [tab,     setTab]     = useState('all')
   const [mode,    setMode]    = useState(null)
   const [cat,     setCat]     = useState('all')
@@ -576,68 +715,98 @@ export default function Feed() {
           </div>
         </div>
 
-        <div id="sp-feed-filters" className="filters-sticky">
-          <div className="filters-block">
-            {/* Row 1: categories */}
-            <div className="cats-scroll">
-              {CATEGORIES.map(c => (
-                <button key={c.id} className={`cat-pill${cat === c.id ? ' active' : ''}`}
-                  onClick={() => setCat(c.id)}>{c.label}</button>
-              ))}
-            </div>
-
-            {/* Row 2: type tabs + sort dropdown */}
-            <div className="filters-row1">
-              <div className="tab-group">
-                {TABS.map(t => (
-                  <button key={t.id} className={`tab-btn${tab === t.id ? ' active' : ''}`}
-                    onClick={() => setTab(t.id)}>{t.label}</button>
-                ))}
-              </div>
-              <div className="filters-spacer" />
-              <SortDropdown sort={sort} onSort={setSort} />
-            </div>
-
-            {/* Row 3: mode as segmented control */}
-            <div className="filters-row2">
-              <div className="tab-group">
-                {MODES.map(m => (
-                  <button key={m.id} className={`tab-btn${mode === m.id ? ' active' : ''}`}
-                    onClick={() => toggleMode(m.id)}>{m.label}</button>
-                ))}
-              </div>
-            </div>
-          </div>
+        {/* Section switcher */}
+        <div className="feed-section-switcher">
+          <button
+            className={`feed-section-btn${section === 'articles' ? ' active' : ''}`}
+            onClick={() => setSection('articles')}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+            Статьи
+          </button>
+          <button
+            className={`feed-section-btn${section === 'promo' ? ' active' : ''}`}
+            onClick={() => setSection('promo')}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            Промо
+          </button>
         </div>
 
-        <div className="feed-scroll">
-          {hasFilters && (
-            <div className="filter-summary">
-              <span>{filtered.length} {noun(filtered.length)}</span>
-              <button className="reset-btn" onClick={resetFilters}>Сбросить</button>
-            </div>
-          )}
+        {section === 'articles' ? (
+          <>
+            <div id="sp-feed-filters" className="filters-sticky">
+              <div className="filters-block">
+                {/* Row 1: categories */}
+                <div className="cats-scroll">
+                  {CATEGORIES.map(c => (
+                    <button key={c.id} className={`cat-pill${cat === c.id ? ' active' : ''}`}
+                      onClick={() => setCat(c.id)}>{c.label}</button>
+                  ))}
+                </div>
 
-          <div id="sp-feed-list" className="feed-list">
-            {filtered.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-icon">🔍</div>
-                <div className="empty-title">Ничего не найдено</div>
-                <div className="empty-desc">Попробуйте изменить фильтры</div>
+                {/* Row 2: type tabs + sort dropdown */}
+                <div className="filters-row1">
+                  <div className="tab-group">
+                    {TABS.map(t => (
+                      <button key={t.id} className={`tab-btn${tab === t.id ? ' active' : ''}`}
+                        onClick={() => setTab(t.id)}>{t.label}</button>
+                    ))}
+                  </div>
+                  <div className="filters-spacer" />
+                  <SortDropdown sort={sort} onSort={setSort} />
+                </div>
+
+                {/* Row 3: mode as segmented control */}
+                <div className="filters-row2">
+                  <div className="tab-group">
+                    {MODES.map(m => (
+                      <button key={m.id} className={`tab-btn${mode === m.id ? ' active' : ''}`}
+                        onClick={() => toggleMode(m.id)}>{m.label}</button>
+                    ))}
+                  </div>
+                </div>
               </div>
-            ) : filtered.map(item => (
-              <ArticleCard key={item.id} item={item}
-                isRead={readIds.has(item.id)}
-                isLiked={likedIds.has(item.id)}
-                isDisliked={dislikedIds.has(item.id)}
-                onLikeToggle={toggleLike}
-                onDislikeToggle={toggleDislike}
-                onClick={handleItemClick}
-                navigate={navigate}
-              />
-            ))}
+            </div>
+
+            <div className="feed-scroll">
+              {hasFilters && (
+                <div className="filter-summary">
+                  <span>{filtered.length} {noun(filtered.length)}</span>
+                  <button className="reset-btn" onClick={resetFilters}>Сбросить</button>
+                </div>
+              )}
+
+              <div id="sp-feed-list" className="feed-list">
+                {filtered.length === 0 ? (
+                  <div className="empty-state">
+                    <div className="empty-icon">🔍</div>
+                    <div className="empty-title">Ничего не найдено</div>
+                    <div className="empty-desc">Попробуйте изменить фильтры</div>
+                  </div>
+                ) : filtered.map(item => (
+                  <ArticleCard key={item.id} item={item}
+                    isRead={readIds.has(item.id)}
+                    isLiked={likedIds.has(item.id)}
+                    isDisliked={dislikedIds.has(item.id)}
+                    onLikeToggle={toggleLike}
+                    onDislikeToggle={toggleDislike}
+                    onClick={handleItemClick}
+                    navigate={navigate}
+                  />
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="feed-scroll">
+            <PromoSection navigate={navigate} />
           </div>
-        </div>
+        )}
       </main>
       {showWelcome && <WelcomeTour onClose={() => setShowWelcome(false)} />}
       {showSpotlight && <SpotlightTour steps={FEED_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}

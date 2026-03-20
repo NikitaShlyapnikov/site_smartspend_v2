@@ -235,6 +235,43 @@ const CARDS = [
 
 const ALL_CARD_BANKS = [...new Set(CARDS.map(c => c.bank))]
 
+// ── Subscriptions data ────────────────────────────────────────────────────────
+const SUBS = [
+  {
+    id: 'sub1', name: 'Яндекс Плюс', icon: '🎵',
+    color: '#FC3F1D', textColor: '#FFF',
+    cost: 'от 299 ₽/мес',
+    cashbackBonus: 'до 5% кешбэк баллами Плюс',
+    tags: ['Музыка, Кино', 'Такси, Доставка', 'Кешбэк баллами'],
+    desc: 'Кешбэк до 5% баллами Плюс на покупки в экосистеме Яндекса (Такси, Лавка, Еда, Маркет). Баллы тратятся 1:1 вместо рублей. При оплате подходящей картой — дополнительный кешбэк.',
+    feeDesc: 'от 299 ₽/мес — Плюс. от 499 ₽/мес — Плюс с опциями. Первые 3 месяца бесплатно для новых пользователей.',
+    cashbackType: 'Баллы (1 балл = 1 ₽)',
+    compatibility: 'Т-Банк, Альфа-Банк, ВТБ, Сбер (частично)',
+  },
+  {
+    id: 'sub2', name: 'СберПрайм', icon: '💚',
+    color: '#21A038', textColor: '#FFF',
+    cost: 'от 399 ₽/мес',
+    cashbackBonus: 'до 10% кешбэк бонусами Спасибо',
+    tags: ['Сбербанк экосистема', 'Повышенный Спасибо', 'Доставка и медиа'],
+    desc: 'Повышенные бонусы Спасибо (до 10% у партнёров) вместо стандартных 0.5%. Бесплатная доставка в СберМаркет. Доступ к СберТВ, Звук, кешбэк в Аптека.ру и Сбер Здоровье.',
+    feeDesc: '399 ₽/мес или 3 499 ₽/год. Бесплатно при остатке от 100 000 ₽ в Сбере.',
+    cashbackType: 'Бонусы СберСпасибо',
+    compatibility: 'СберКарта, СберПрайм+',
+  },
+  {
+    id: 'sub3', name: 'Т-Прайм', icon: '⭐',
+    color: '#FFDD2D', textColor: '#1A1A1A',
+    cost: 'от 199 ₽/мес',
+    cashbackBonus: 'до 5% на все покупки',
+    tags: ['Т-Банк экосистема', 'Страховка в поездках', 'Консьерж-сервис'],
+    desc: 'Кешбэк до 5% на все покупки. Бесплатные переводы и снятие наличных. Страховка при путешествиях за рубеж. Приоритетная поддержка 24/7. Доступ к вкладу Т-Привилегия с повышенной ставкой.',
+    feeDesc: 'Бесплатно при остатке от 100 000 ₽ или тратах от 30 000 ₽/мес. Иначе — 199 ₽/мес.',
+    cashbackType: 'Рубли (кешбэк)',
+    compatibility: 'Т-Банк Блэк, Т-Банк Платинум',
+  },
+]
+
 const CARD_COND_FILTERS = [
   { id: 'salary',       label: 'Зарплатный проект' },
   { id: 'pension',      label: 'Для пенсионеров' },
@@ -737,6 +774,69 @@ export default function Cards() {
         <div className="crd-disclaimer">
           Данные носят информационный характер. Расчёт кешбэка — приблизительный, на основе базовых ставок.
           Актуальные условия уточняйте на сайте банка.
+        </div>
+
+        {/* ── Subscriptions section ── */}
+        <div className="crd-section-title">Подписки банков</div>
+        <div className="crd-list">
+          {SUBS.map(sub => {
+            const isOpen = expanded === sub.id
+            return (
+              <div key={sub.id} className={`crd-card${isOpen ? ' open' : ''}`}>
+                <div className="crd-card-main" onClick={() => setExpanded(isOpen ? null : sub.id)}>
+                  <div className="crd-card-body">
+                    <div className="crd-card-names">
+                      <span className="crd-bank-name">{sub.name}</span>
+                    </div>
+                    <div className="crd-card-name">{sub.cashbackBonus}</div>
+                    <div className="crd-tags">
+                      {sub.tags.map((t, i) => <span key={i} className="crd-tag">{t}</span>)}
+                    </div>
+                    <div className="crd-card-pills">
+                      <span className="crd-pill crd-pill-bonus">{sub.cost}</span>
+                    </div>
+                  </div>
+                  <div className="crd-card-aside">
+                    <div className="crd-bank-logo" style={{ background: sub.color, color: sub.textColor, fontSize: 20 }}>
+                      {sub.icon}
+                    </div>
+                    <div className={`crd-expand-btn${isOpen ? ' open' : ''}`}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M19 9l-7 7-7-7"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {isOpen && (
+                  <div className="crd-card-detail">
+                    <div className="crd-detail-grid">
+                      <div className="crd-detail-item">
+                        <span className="crd-detail-lbl">Стоимость</span>
+                        <span className="crd-detail-val">{sub.cost}</span>
+                      </div>
+                      <div className="crd-detail-item">
+                        <span className="crd-detail-lbl">Тип кешбэка</span>
+                        <span className="crd-detail-val green">{sub.cashbackType}</span>
+                      </div>
+                      <div className="crd-detail-item" style={{ gridColumn: '1 / -1' }}>
+                        <span className="crd-detail-lbl">Совместимые карты</span>
+                        <span className="crd-detail-val">{sub.compatibility}</span>
+                      </div>
+                      <div className="crd-detail-item" style={{ gridColumn: '1 / -1' }}>
+                        <span className="crd-detail-lbl">Условия</span>
+                        <span className="crd-detail-val">{sub.feeDesc}</span>
+                      </div>
+                    </div>
+                    <CrdAccordion title="Что входит в подписку">
+                      <p className="crd-acc-text">{sub.desc}</p>
+                    </CrdAccordion>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
 
       </main>

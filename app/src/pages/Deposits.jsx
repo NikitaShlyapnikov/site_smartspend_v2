@@ -431,7 +431,7 @@ export default function Deposits() {
             onTouchStart={onChartTouchStart}
             onTouchMove={onChartTouchMove}
             onTouchEnd={() => { drag.current.on = false }}>
-            {monthRates.map(({ month, rate }) => {
+            {monthRates.filter(({ rate }) => rate > 0).map(({ month, rate }) => {
               const isSelected = selectedMonth === month
               const bH = barHeight(rate)
               return (

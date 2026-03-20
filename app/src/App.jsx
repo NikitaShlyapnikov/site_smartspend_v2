@@ -16,6 +16,7 @@ import CreateArticle from './pages/CreateArticle'
 import AuthorPage from './pages/AuthorPage'
 import Deposits from './pages/Deposits'
 import Cards from './pages/Cards'
+import CompanyPicker from './pages/CompanyPicker'
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="/author/:id" element={<AuthorPage />} />
           <Route path="/deposits" element={<Deposits />} />
           <Route path="/cards" element={<Cards />} />
+          <Route path="/company-picker" element={<CompanyPicker />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </HashRouter>
