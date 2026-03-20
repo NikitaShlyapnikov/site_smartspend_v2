@@ -6324,33 +6324,58 @@ body.dark .crd-spend-total-val { color: #6AAF8E; }
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .feed-section-switcher {
-  display: flex; gap: 8px;
-  padding: 16px 24px 0;
+  display: flex; gap: 10px;
+  padding: 16px 24px 4px;
   flex-shrink: 0;
 }
-.feed-section-btn {
-  display: flex; align-items: center; gap: 7px;
-  padding: 10px 20px;
+.feed-section-card {
+  display: flex; align-items: center; gap: 13px;
+  flex: 1; padding: 14px 16px;
   border-radius: var(--r);
   border: 1.5px solid var(--border);
   background: var(--surface);
-  color: var(--text-2);
-  font-family: var(--sans); font-size: 14px; font-weight: 500;
-  cursor: pointer; transition: all 0.15s;
-  flex: 1; justify-content: center;
+  cursor: pointer; transition: all 0.18s;
+  text-align: left;
 }
-.feed-section-btn:hover {
-  border-color: var(--accent-green-border);
-  color: var(--text);
+.feed-section-card:hover { border-color: var(--text-3); }
+.feed-section-card.active.articles {
+  border-color: #4A6BB8;
+  background: rgba(74,107,184,0.06);
 }
-.feed-section-btn.active {
-  background: var(--accent-green);
-  border-color: var(--accent-green);
-  color: #fff;
-  font-weight: 600;
+.feed-section-card.active.promo {
+  border-color: #C87838;
+  background: rgba(200,120,56,0.06);
 }
-body.dark .feed-section-btn { background: var(--surface); }
-body.dark .feed-section-btn.active { background: #6AAF8E; border-color: #6AAF8E; }
+.feed-section-icon {
+  width: 44px; height: 44px; border-radius: 13px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: background 0.18s;
+}
+.feed-section-icon.articles {
+  background: rgba(74,107,184,0.1);
+  color: #4A6BB8;
+}
+.feed-section-icon.promo {
+  background: rgba(200,120,56,0.1);
+  color: #C87838;
+}
+.feed-section-card.active .feed-section-icon.articles {
+  background: rgba(74,107,184,0.18);
+}
+.feed-section-card.active .feed-section-icon.promo {
+  background: rgba(200,120,56,0.18);
+}
+.feed-section-text { display: flex; flex-direction: column; gap: 3px; }
+.feed-section-title {
+  font-size: 14px; font-weight: 600; color: var(--text);
+  letter-spacing: -0.01em;
+}
+.feed-section-sub {
+  font-size: 11px; color: var(--text-3); line-height: 1;
+}
+body.dark .feed-section-card { background: var(--surface); }
+body.dark .feed-section-card.active.articles { background: rgba(74,107,184,0.1); }
+body.dark .feed-section-card.active.promo { background: rgba(200,120,56,0.1); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PROMO SECTION
@@ -6358,8 +6383,8 @@ body.dark .feed-section-btn.active { background: #6AAF8E; border-color: #6AAF8E;
 
 .promo-section { display: flex; flex-direction: column; gap: 0; }
 .promo-header {
-  display: flex; align-items: center; gap: 8px;
-  padding: 14px 0 4px;
+  display: flex; align-items: center; justify-content: flex-end;
+  padding: 10px 0 4px;
 }
 .promo-edit-btn {
   display: flex; align-items: center; gap: 5px;

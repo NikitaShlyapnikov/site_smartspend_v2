@@ -348,7 +348,6 @@ function PromoCard({ item }) {
 function PromoSection({ navigate }) {
   const [followed] = useState(loadFollowed)
   const hasSetup = !!localStorage.getItem('ss_promo_setup')
-  const [promoTab, setPromoTab] = useState('all')
 
   if (!hasSetup || followed.size === 0) {
     return (
@@ -370,27 +369,17 @@ function PromoSection({ navigate }) {
     )
   }
 
-  const filtered = promoItems.filter(p => {
-    if (!followed.has(p.companyId)) return false
-    if (promoTab !== 'all' && p.type !== promoTab) return false
-    return true
-  })
+  const filtered = promoItems.filter(p => followed.has(p.companyId))
 
   return (
     <div className="promo-section">
       <div className="promo-header">
-        <div className="tab-group">
-          {PROMO_TABS.map(t => (
-            <button key={t.id} className={`tab-btn${promoTab === t.id ? ' active' : ''}`}
-              onClick={() => setPromoTab(t.id)}>{t.label}</button>
-          ))}
-        </div>
         <button className="promo-edit-btn" onClick={() => navigate('/company-picker', { state: { edit: true } })}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
           </svg>
-          Компании
+          Изменить компании
         </button>
       </div>
       <div className="feed-list">
@@ -683,9 +672,7 @@ export default function Feed() {
     if (mode === 'my-sets')       return item.type === 'article' && item.setLink && MY_SET_TITLES.has(item.setLink.title)
     if (mode === 'unread')        { if (readIds.has(item.id)) return false }
 
-    if (tab === 'coupons'  && item.type !== 'coupon')  return false
-    if (tab === 'articles' && item.type !== 'article') return false
-    if (cat !== 'all' && item.category !== cat)        return false
+    if (cat !== 'all' && item.category !== cat) return false
     return true
   })
 
@@ -693,10 +680,10 @@ export default function Feed() {
     sort === 'newest' ? (a, b) => b.ts - a.ts : (a, b) => b.pop - a.pop
   )
 
-  const hasFilters = mode || tab !== 'all' || cat !== 'all' || sort !== 'popular_7d'
+  const hasFilters = mode || cat !== 'all' || sort !== 'popular_7d'
 
   function resetFilters() {
-    setTab('all'); setMode(null); setCat('all'); setSort('popular_7d')
+    setMode(null); setCat('all'); setSort('popular_7d')
   }
 
   function handleItemClick(item) {
@@ -718,22 +705,34 @@ export default function Feed() {
         {/* Section switcher */}
         <div className="feed-section-switcher">
           <button
-            className={`feed-section-btn${section === 'articles' ? ' active' : ''}`}
+            className={`feed-section-card${section === 'articles' ? ' active' : ''} articles`}
             onClick={() => setSection('articles')}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-            </svg>
-            Статьи
+            <div className="feed-section-icon articles">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9"/>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+            </div>
+            <div className="feed-section-text">
+              <div className="feed-section-title">Статьи</div>
+              <div className="feed-section-sub">авторы сообщества</div>
+            </div>
           </button>
           <button
-            className={`feed-section-btn${section === 'promo' ? ' active' : ''}`}
+            className={`feed-section-card${section === 'promo' ? ' active' : ''} promo`}
             onClick={() => setSection('promo')}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
-            Промо
+            <div className="feed-section-icon promo">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                <line x1="7" y1="7" x2="7.01" y2="7"/>
+              </svg>
+            </div>
+            <div className="feed-section-text">
+              <div className="feed-section-title">Промо</div>
+              <div className="feed-section-sub">акции и купоны</div>
+            </div>
           </button>
         </div>
 
@@ -749,14 +748,8 @@ export default function Feed() {
                   ))}
                 </div>
 
-                {/* Row 2: type tabs + sort dropdown */}
+                {/* Row 2: sort dropdown */}
                 <div className="filters-row1">
-                  <div className="tab-group">
-                    {TABS.map(t => (
-                      <button key={t.id} className={`tab-btn${tab === t.id ? ' active' : ''}`}
-                        onClick={() => setTab(t.id)}>{t.label}</button>
-                    ))}
-                  </div>
                   <div className="filters-spacer" />
                   <SortDropdown sort={sort} onSort={setSort} />
                 </div>
