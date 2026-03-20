@@ -42,6 +42,7 @@ const SORT_OPTIONS = [
 const ACTS_FILTERS = [
   { id: 'all',         label: 'Все' },
   { id: 'new_clients', label: 'Новым клиентам' },
+  { id: 'referral',    label: 'Приведи друга' },
   { id: 'birthday',    label: 'День рождения' },
   { id: 'holiday',     label: 'Праздник' },
   { id: 'regular',     label: 'Обычная' },
@@ -333,24 +334,14 @@ function PromoSection({ navigate, followed, hasSetup, promoCat, promoType, promo
   if (promoType === 'broadcast') {
     const items = byCat.filter(p => p.type === 'broadcast')
     return (
-      <div className="promo-content">
-        <div className="promo-content-header">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-            <polyline points="22,6 12,13 2,6"/>
-          </svg>
-          <span>Рассылка</span>
-          {items.length > 0 && <span className="promo-content-count">{items.length}</span>}
-        </div>
-        <div className="feed-list">
-          {items.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-icon">📬</div>
-              <div className="empty-title">Рассылок нет</div>
-              <div className="empty-desc">Компании из выбранных категорий пока не публиковали рассылку</div>
-            </div>
-          ) : items.map(item => <BroadcastCard key={item.id} item={item} />)}
-        </div>
+      <div className="feed-list">
+        {items.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">📬</div>
+            <div className="empty-title">Рассылок нет</div>
+            <div className="empty-desc">Компании из выбранных категорий пока не публиковали рассылку</div>
+          </div>
+        ) : items.map(item => <BroadcastCard key={item.id} item={item} />)}
       </div>
     )
   }
@@ -358,26 +349,16 @@ function PromoSection({ navigate, followed, hasSetup, promoCat, promoType, promo
   const events   = byCat.filter(p => p.type !== 'broadcast')
   const filtered = actsFilter === 'all' ? events : events.filter(p => p.promo_filter === actsFilter)
   return (
-    <div className="promo-content">
-      <div className="promo-content-header">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-          <line x1="7" y1="7" x2="7.01" y2="7"/>
-        </svg>
-        <span>Акции</span>
-        {filtered.length > 0 && <span className="promo-content-count">{filtered.length}</span>}
-      </div>
-      <div className="feed-list">
-        {filtered.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">🏷️</div>
-            <div className="empty-title">Пока ничего нет</div>
-            <div className="empty-desc">Акций и купонов по выбранным фильтрам не найдено</div>
-          </div>
-        ) : filtered.map(item => (
-          <PromoCard key={item.id} item={item} />
-        ))}
-      </div>
+    <div className="feed-list">
+      {filtered.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon">🏷️</div>
+          <div className="empty-title">Пока ничего нет</div>
+          <div className="empty-desc">Акций и купонов по выбранным фильтрам не найдено</div>
+        </div>
+      ) : filtered.map(item => (
+        <PromoCard key={item.id} item={item} />
+      ))}
     </div>
   )
 }
@@ -677,6 +658,22 @@ export default function Feed() {
     setMode(null); setCat('all'); setSort('popular_7d')
   }
 
+  const hasPromoFilters = promoCat !== 'all' || promoType !== 'broadcast' || promoScope !== 'mine' || actsFilter !== 'all'
+
+  function resetPromoFilters() {
+    setPromoCat('all'); setPromoType('broadcast'); setPromoScope('mine'); setActsFilter('all')
+  }
+
+  const promoPool    = hasPromoSetup && (promoScope !== 'mine' || followed.size > 0)
+    ? (promoScope === 'mine' ? promoItems.filter(p => followed.has(p.companyId)) : promoItems)
+    : []
+  const promoByCat   = promoCat === 'all' ? promoPool : promoPool.filter(p => p.category === promoCat)
+  const promoCount   = promoType === 'broadcast'
+    ? promoByCat.filter(p => p.type === 'broadcast').length
+    : (actsFilter === 'all'
+      ? promoByCat.filter(p => p.type !== 'broadcast').length
+      : promoByCat.filter(p => p.type !== 'broadcast' && p.promo_filter === actsFilter).length)
+
   function handleItemClick(item) {
     markRead(item.id)
     if (item.type === 'set') navigate(`/set/${item.id}`)
@@ -834,6 +831,12 @@ export default function Feed() {
             </div>
 
             <div className="feed-scroll">
+              {hasPromoFilters && (
+                <div className="filter-summary">
+                  <span>{promoCount} {noun(promoCount)}</span>
+                  <button className="reset-btn" onClick={resetPromoFilters}>Сбросить</button>
+                </div>
+              )}
               <PromoSection
                 navigate={navigate}
                 followed={followed}

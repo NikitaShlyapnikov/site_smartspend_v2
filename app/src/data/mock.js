@@ -1070,6 +1070,19 @@ export const promoItems = [
     desc: 'Кешбэк 10% монетами Ozon на все заказы из раздела «Одежда и обувь». Монеты зачисляются в течение суток.',
     code: 'OZONCLOTH10',
   },
+  {
+    id: 'pr-ref1', type: 'coupon', companyId: 'c-yandex-plus', category: 'leisure',
+    ts: 20260319, expires: '30 апреля', promo_filter: 'referral',
+    title: 'Месяц Плюс вам и другу',
+    desc: 'Пригласите друга в Яндекс Плюс — оба получите по 1 месяцу подписки бесплатно. Друг должен быть новым пользователем.',
+    code: 'REFPLUS1',
+  },
+  {
+    id: 'pr-ref2', type: 'event', companyId: 'c-wb', category: 'clothes',
+    ts: 20260317, expires: '15 апреля', promo_filter: 'referral',
+    title: '500 ₽ за приглашение друга',
+    desc: 'Поделитесь ссылкой с другом — когда он сделает первый заказ от 2000 ₽, вы получите 500 бонусных рублей на счёт.',
+  },
 ]
 
 export const notifications = [
