@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 
@@ -9,7 +9,15 @@ const PERIOD_GROUPS = [
   { id: '18-36', label: '1.5–3 года', months: [18, 24, 36] },
 ]
 
-const CONDITION_FILTERS = [
+// All representative months shown on desktop (12 columns)
+const DESKTOP_MONTHS = [1, 2, 3, 4, 5, 6, 9, 12, 15, 18, 24, 36]
+
+const FREQ_FILTERS = [
+  { id: 'monthly', label: 'Ежемесячно' },
+  { id: 'end',     label: 'В конце срока' },
+]
+
+const COND_FILTERS = [
   { id: 'new_client', label: 'Новый клиент' },
   { id: 'pension',    label: 'Пенсионер' },
   { id: 'new_money',  label: 'Новые деньги' },
@@ -21,118 +29,110 @@ const CONDITION_FILTERS = [
 const DEPOSITS = [
   {
     id: 'd1', bank: 'Т-Банк', name: 'СмartВклад Онлайн',
-    color: '#FFDD2D', textColor: '#1A1A1A',
+    color: '#FFDD2D', textColor: '#1A1A1A', freq: 'end',
     rates: { 1: 14.0, 2: 16.5, 3: 21.5, 6: 20.0, 12: 18.5, 18: 17.0 },
     minAmount: 50000,
     tags: ['для новых клиентов', 'выплата % в конце срока', 'без пополнения и снятия'],
-    conditions: ['new_client'],
-    asv: true,
+    conditions: ['new_client'], asv: true,
     conditionsText: 'Только для новых клиентов банка. Открытие онлайн через приложение. Без пополнения и снятия до окончания срока.',
     params: 'Выплата процентов в конце срока. Капитализация: нет. Автопролонгация: по желанию.',
   },
   {
     id: 'd2', bank: 'Альфа-Банк', name: 'Альфа-Вклад',
-    color: '#EF3124', textColor: '#FFF',
+    color: '#EF3124', textColor: '#FFF', freq: 'monthly',
     rates: { 1: 13.5, 3: 20.8, 6: 19.5, 12: 18.0, 18: 16.5, 24: 15.5 },
     minAmount: 10000,
     tags: ['выплата % ежемесячно', 'с пополнением'],
-    conditions: ['no_extra'],
-    asv: true,
+    conditions: ['no_extra'], asv: true,
     conditionsText: 'Для новых и действующих клиентов. Пополнение разрешено в течение всего срока.',
     params: 'Выплата процентов ежемесячно на отдельный счёт. Пополнение: да. Снятие: нет.',
   },
   {
     id: 'd3', bank: 'Сбер', name: 'Лучший %',
-    color: '#21A038', textColor: '#FFF',
+    color: '#21A038', textColor: '#FFF', freq: 'monthly',
     rates: { 1: 12.0, 2: 15.5, 3: 19.0, 4: 18.0, 5: 17.5, 6: 18.5, 12: 17.0, 18: 15.5, 24: 14.0, 36: 13.0 },
     minAmount: 1000,
     tags: ['с пополнением', 'выплата % ежемесячно'],
-    conditions: ['no_extra'],
-    asv: true,
+    conditions: ['no_extra'], asv: true,
     conditionsText: 'Для всех клиентов. От 1 000 ₽. Пополнение разрешено в первую треть срока.',
     params: 'Выплата процентов ежемесячно. Капитализация: доступна. Снятие: нет.',
   },
   {
     id: 'd4', bank: 'ВТБ', name: 'Новое время',
-    color: '#009FDF', textColor: '#FFF',
+    color: '#009FDF', textColor: '#FFF', freq: 'end',
     rates: { 3: 20.0, 4: 19.0, 5: 18.5, 6: 19.5, 12: 18.0, 18: 16.0 },
     minAmount: 30000,
     tags: ['для новых клиентов', 'выплата % в конце срока', 'без пополнения и снятия'],
-    conditions: ['new_client', 'new_money'],
-    asv: true,
+    conditions: ['new_client', 'new_money'], asv: true,
     conditionsText: 'Только для новых клиентов. Только новые деньги — средства, ранее не размещавшиеся в ВТБ.',
     params: 'Выплата в конце срока. Без пополнения и снятия. Автопролонгация: нет.',
   },
   {
     id: 'd5', bank: 'Газпромбанк', name: 'Накопи +',
-    color: '#003087', textColor: '#FFF',
+    color: '#003087', textColor: '#FFF', freq: 'end',
     rates: { 3: 19.5, 6: 19.0, 12: 17.5, 18: 16.0, 24: 15.0, 36: 13.5 },
     minAmount: 15000,
     tags: ['с пополнением', 'выплата % в конце срока'],
-    conditions: ['no_extra'],
-    asv: true,
+    conditions: ['no_extra'], asv: true,
     conditionsText: 'Открытие в офисе или через личный кабинет. Пополнение разрешено.',
     params: 'Выплата в конце срока. Капитализация: нет. Снятие: нет.',
   },
   {
     id: 'd6', bank: 'Банк Дом.РФ', name: 'Надёжный прайм',
-    color: '#1A3F6F', textColor: '#FFF',
+    color: '#1A3F6F', textColor: '#FFF', freq: 'end',
     rates: { 1: 13.0, 2: 17.0, 3: 20.5, 6: 18.0 },
     minAmount: 100000,
     tags: ['для новых клиентов', 'выплата % в конце срока', 'без пополнения и снятия'],
-    conditions: ['new_client'],
-    asv: true,
-    conditionsText: 'Для новых клиентов. От 100 000 ₽. Без пополнения и снятия. Выплата в конце срока.',
+    conditions: ['new_client'], asv: true,
+    conditionsText: 'Для новых клиентов. От 100 000 ₽. Без пополнения и снятия.',
     params: 'Без пополнения и снятия. Выплата в конце срока. Автопролонгация: нет.',
   },
   {
     id: 'd7', bank: 'МТС Банк', name: 'МТС Специальный',
-    color: '#E30611', textColor: '#FFF',
+    color: '#E30611', textColor: '#FFF', freq: 'end',
     rates: { 3: 20.2, 6: 19.0, 12: 17.0 },
     minAmount: 10000,
     tags: ['инвест или страхование', 'выплата % в конце срока', 'без пополнения и снятия'],
-    conditions: ['insurance'],
-    asv: true,
+    conditions: ['insurance'], asv: true,
     conditionsText: 'Требуется оформление инвестиционных или страховых продуктов банка.',
     params: 'Без пополнения и снятия. Выплата в конце срока.',
   },
   {
     id: 'd8', bank: 'Росбанк', name: 'Максимальный доход',
-    color: '#CC2030', textColor: '#FFF',
+    color: '#CC2030', textColor: '#FFF', freq: 'end',
     rates: { 1: 12.5, 2: 16.0, 3: 19.8, 6: 18.5, 12: 17.0, 18: 15.5 },
     minAmount: 50000,
     tags: ['выплата % в конце срока', 'без пополнения и снятия'],
-    conditions: ['no_extra'],
-    asv: true,
+    conditions: ['no_extra'], asv: true,
     conditionsText: 'Для новых и действующих клиентов. Открытие онлайн или в офисе.',
     params: 'Выплата в конце срока. Без пополнения и снятия. Капитализация: нет.',
   },
   {
     id: 'd9', bank: 'Сбер', name: 'Пенсионный плюс',
-    color: '#21A038', textColor: '#FFF',
+    color: '#21A038', textColor: '#FFF', freq: 'monthly',
     rates: { 3: 20.5, 6: 20.0, 12: 18.5, 18: 17.0 },
     minAmount: 1000,
     tags: ['для пенсионеров', 'с пополнением', 'выплата % ежемесячно'],
-    conditions: ['pension'],
-    asv: true,
+    conditions: ['pension'], asv: true,
     conditionsText: 'Только для получателей пенсии на счёт в Сбере. С пополнением.',
     params: 'Выплата процентов ежемесячно. Пополнение: да. Снятие: нет.',
   },
   {
     id: 'd10', bank: 'Т-Банк', name: 'Т-Привилегия',
-    color: '#FFDD2D', textColor: '#1A1A1A',
+    color: '#FFDD2D', textColor: '#1A1A1A', freq: 'end',
     rates: { 1: 16.0, 3: 22.5, 6: 21.0, 12: 19.5 },
     minAmount: 300000,
     tags: ['премиальный клиент', 'выплата % в конце срока'],
-    conditions: ['premium'],
-    asv: true,
+    conditions: ['premium'], asv: true,
     conditionsText: 'Только для клиентов с пакетом Т-Привилегия или Т-Прайм. Минимальная сумма от 300 000 ₽.',
     params: 'Выплата в конце срока. Без пополнения и снятия. Капитализация: нет.',
   },
 ]
 
-const CHART_H = 140 // px — total bar area height
-const MIN_BAR  = 28 // px — minimum bar height (for lowest rate)
+const ALL_BANKS = [...new Set(DEPOSITS.map(d => d.bank))]
+
+const CHART_H = 140
+const MIN_BAR  = 28
 
 const fmtRub = n => Math.round(n).toLocaleString('ru') + '\u00a0₽'
 const fmtMonth = m =>
@@ -164,8 +164,24 @@ function Accordion({ title, children }) {
   )
 }
 
+function FilterChip({ label, active, onClick }) {
+  return (
+    <button className={`dep-fchip${active ? ' active' : ''}`} onClick={onClick}>
+      {label}
+    </button>
+  )
+}
+
 export default function Deposits() {
   const navigate = useNavigate()
+
+  // Responsive: use 12-column desktop chart or 6-column mobile with tabs
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 680)
+  useEffect(() => {
+    const fn = () => setIsDesktop(window.innerWidth >= 680)
+    window.addEventListener('resize', fn)
+    return () => window.removeEventListener('resize', fn)
+  }, [])
 
   const [amount, setAmount] = useState(() => {
     try {
@@ -177,18 +193,23 @@ export default function Deposits() {
   const [selectedMonth, setSelectedMonth] = useState(3)
   const [sortBy, setSortBy]               = useState('rate')
   const [expanded, setExpanded]           = useState(null)
-  const [activeFilters, setActiveFilters] = useState(new Set())
-  const [showFilters, setShowFilters]     = useState(false)
+  const [showModal, setShowModal]         = useState(false)
+
+  // Filter state
+  const [filterBanks, setFilterBanks] = useState(new Set())
+  const [filterFreq,  setFilterFreq]  = useState(new Set())
+  const [filterConds, setFilterConds] = useState(new Set())
+
+  const totalActiveFilters = filterBanks.size + filterFreq.size + filterConds.size
 
   const currentGroup = PERIOD_GROUPS.find(g => g.id === periodGroup)
-  const months = currentGroup.months
+  const months = isDesktop ? DESKTOP_MONTHS : currentGroup.months
 
   const monthRates = useMemo(() => months.map(m => ({
     month: m,
     rate: Math.max(0, ...DEPOSITS.map(d => d.rates[m] || 0)),
   })), [months])
 
-  // Normalized bar heights: scale between minRate and maxRate
   const validRates = monthRates.filter(r => r.rate > 0).map(r => r.rate)
   const minRate = validRates.length ? Math.min(...validRates) : 0
   const maxRate = validRates.length ? Math.max(...validRates) : 1
@@ -203,15 +224,17 @@ export default function Deposits() {
     return DEPOSITS
       .filter(d => {
         if (!d.rates[selectedMonth]) return false
-        if (activeFilters.size === 0) return true
-        return d.conditions.some(c => activeFilters.has(c))
+        if (filterBanks.size > 0 && !filterBanks.has(d.bank)) return false
+        if (filterFreq.size > 0 && !filterFreq.has(d.freq)) return false
+        if (filterConds.size > 0 && !d.conditions.some(c => filterConds.has(c))) return false
+        return true
       })
       .sort((a, b) => sortBy === 'rate'
         ? (b.rates[selectedMonth] || 0) - (a.rates[selectedMonth] || 0)
         : calcIncome(b.rates[selectedMonth] || 0, amount, selectedMonth)
           - calcIncome(a.rates[selectedMonth] || 0, amount, selectedMonth)
       )
-  }, [selectedMonth, sortBy, amount, activeFilters])
+  }, [selectedMonth, sortBy, amount, filterBanks, filterFreq, filterConds])
 
   function handleGroupChange(gId) {
     setPeriodGroup(gId)
@@ -221,20 +244,26 @@ export default function Deposits() {
     setExpanded(null)
   }
 
-  function toggleFilter(id) {
-    setActiveFilters(prev => {
+  function handleAmountChange(e) {
+    const n = parseInt(e.target.value.replace(/\D/g, ''), 10)
+    if (!isNaN(n) && n > 0) setAmount(n)
+  }
+
+  function toggleSet(setter, id) {
+    setter(prev => {
       const next = new Set(prev)
       next.has(id) ? next.delete(id) : next.add(id)
       return next
     })
   }
 
-  function handleAmountChange(e) {
-    const n = parseInt(e.target.value.replace(/\D/g, ''), 10)
-    if (!isNaN(n) && n > 0) setAmount(n)
+  function resetFilters() {
+    setFilterBanks(new Set())
+    setFilterFreq(new Set())
+    setFilterConds(new Set())
   }
 
-  const bestRate   = filtered.length ? Math.max(...filtered.map(d => d.rates[selectedMonth] || 0)) : 0
+  const bestRate = filtered.length ? Math.max(...filtered.map(d => d.rates[selectedMonth] || 0)) : 0
 
   return (
     <Layout>
@@ -253,7 +282,6 @@ export default function Deposits() {
         <div className="dep-chart-card">
           <div className="dep-chart-title">Максимальные ставки по срокам</div>
 
-          {/* Bars */}
           <div className="dep-chart">
             {monthRates.map(({ month, rate }) => {
               const isSelected = selectedMonth === month
@@ -271,22 +299,23 @@ export default function Deposits() {
             })}
           </div>
 
-          {/* Period tabs */}
-          <div className="dep-period-tabs">
-            {PERIOD_GROUPS.map(g => (
-              <button key={g.id}
-                className={`dep-period-tab${periodGroup === g.id ? ' active' : ''}`}
-                onClick={() => handleGroupChange(g.id)}>
-                {g.label}
-              </button>
-            ))}
-          </div>
+          {/* Period tabs — mobile only */}
+          {!isDesktop && (
+            <div className="dep-period-tabs">
+              {PERIOD_GROUPS.map(g => (
+                <button key={g.id}
+                  className={`dep-period-tab${periodGroup === g.id ? ' active' : ''}`}
+                  onClick={() => handleGroupChange(g.id)}>
+                  {g.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* ── Filters card ── */}
+        {/* ── Filters row ── */}
         <div className="dep-filters-card">
           <div className="dep-filters-row">
-            {/* Amount */}
             <div className="dep-filter-group">
               <span className="dep-filter-label">Сумма вклада</span>
               <div className="dep-amount-wrap">
@@ -299,66 +328,41 @@ export default function Deposits() {
               </div>
             </div>
 
-            {/* Sort */}
             <div className="dep-filter-group">
               <span className="dep-filter-label">Сортировка</span>
               <div className="dep-sort-toggle">
                 <button className={`dep-sort-btn${sortBy === 'rate' ? ' active' : ''}`}
                   onClick={() => setSortBy('rate')}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <path d="M12 2v20M2 12h20"/>
                   </svg>
-                  %
+                  % ставка
                 </button>
                 <button className={`dep-sort-btn${sortBy === 'income' ? ' active' : ''}`}
                   onClick={() => setSortBy('income')}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
                   </svg>
-                  ₽
+                  ₽ доход
                 </button>
               </div>
             </div>
 
-            {/* Filters button */}
             <div className="dep-filter-group">
               <span className="dep-filter-label">Фильтры</span>
-              <button
-                className={`dep-filter-toggle-btn${showFilters || activeFilters.size > 0 ? ' active' : ''}`}
-                onClick={() => setShowFilters(f => !f)}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <button className={`dep-filter-toggle-btn${totalActiveFilters > 0 ? ' active' : ''}`}
+                onClick={() => setShowModal(true)}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
                 </svg>
-                {activeFilters.size > 0 && (
-                  <span className="dep-filter-badge">{activeFilters.size}</span>
+                Фильтры
+                {totalActiveFilters > 0 && (
+                  <span className="dep-filter-badge">{totalActiveFilters}</span>
                 )}
               </button>
             </div>
           </div>
-
-          {/* Condition chips — shown when filter panel open */}
-          {showFilters && (
-            <div className="dep-cond-row">
-              <div className="dep-cond-chips">
-                {activeFilters.size > 0 && (
-                  <button className="dep-cond-chip dep-cond-clear"
-                    onClick={() => setActiveFilters(new Set())}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                    Сбросить
-                  </button>
-                )}
-                {CONDITION_FILTERS.map(f => (
-                  <button key={f.id}
-                    className={`dep-cond-chip${activeFilters.has(f.id) ? ' active' : ''}`}
-                    onClick={() => toggleFilter(f.id)}>
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* ── Deposit list ── */}
@@ -376,8 +380,6 @@ export default function Deposits() {
               <div key={dep.id} className={`dep-card${isOpen ? ' open' : ''}`}>
                 <div className="dep-card-main"
                   onClick={() => setExpanded(isOpen ? null : dep.id)}>
-
-                  {/* Left: info */}
                   <div className="dep-card-body">
                     <div className="dep-card-names">
                       <span className="dep-bank-name">{dep.bank}</span>
@@ -392,11 +394,8 @@ export default function Deposits() {
                       <span className="dep-pill dep-pill-income">₽ {fmtRub(income)}</span>
                     </div>
                   </div>
-
-                  {/* Right: logo + expand */}
                   <div className="dep-card-aside">
-                    <div className="dep-bank-logo"
-                      style={{ background: dep.color, color: dep.textColor }}>
+                    <div className="dep-bank-logo" style={{ background: dep.color, color: dep.textColor }}>
                       {dep.bank.slice(0, 2)}
                     </div>
                     <div className={`dep-expand-btn${isOpen ? ' open' : ''}`}>
@@ -432,14 +431,12 @@ export default function Deposits() {
                         <span className="dep-detail-val green">{fmtRub(income)}</span>
                       </div>
                     </div>
-
                     <Accordion title="Условия для открытия">
                       <p className="dep-acc-text">{dep.conditionsText}</p>
                     </Accordion>
                     <Accordion title="Параметры вклада">
                       <p className="dep-acc-text">{dep.params}</p>
                     </Accordion>
-
                     <button className="dep-cta-btn">
                       Узнать подробнее
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
@@ -462,6 +459,70 @@ export default function Deposits() {
         </div>
 
       </main>
+
+      {/* ── Filters modal ── */}
+      {showModal && (
+        <div className="dep-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="dep-modal" onClick={e => e.stopPropagation()}>
+            <div className="dep-modal-header">
+              <span className="dep-modal-title">Фильтры</span>
+              <button className="dep-modal-close" onClick={() => setShowModal(false)}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            <div className="dep-modal-body">
+              {/* Banks */}
+              <div className="dep-modal-section">
+                <div className="dep-modal-section-title">Банки</div>
+                <div className="dep-fchips">
+                  {ALL_BANKS.map(bank => (
+                    <FilterChip key={bank} label={bank}
+                      active={filterBanks.has(bank)}
+                      onClick={() => toggleSet(setFilterBanks, bank)} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Payment frequency */}
+              <div className="dep-modal-section">
+                <div className="dep-modal-section-title">Выплата процентов</div>
+                <div className="dep-fchips">
+                  {FREQ_FILTERS.map(f => (
+                    <FilterChip key={f.id} label={f.label}
+                      active={filterFreq.has(f.id)}
+                      onClick={() => toggleSet(setFilterFreq, f.id)} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Additional conditions */}
+              <div className="dep-modal-section">
+                <div className="dep-modal-section-title">Дополнительные условия</div>
+                <div className="dep-fchips">
+                  {COND_FILTERS.map(f => (
+                    <FilterChip key={f.id} label={f.label}
+                      active={filterConds.has(f.id)}
+                      onClick={() => toggleSet(setFilterConds, f.id)} />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="dep-modal-footer">
+              <button className="dep-modal-reset" onClick={resetFilters}
+                disabled={totalActiveFilters === 0}>
+                Сбросить{totalActiveFilters > 0 ? ` (${totalActiveFilters})` : ''}
+              </button>
+              <button className="dep-modal-apply" onClick={() => setShowModal(false)}>
+                Показать {filtered.length} предложений
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   )
 }
