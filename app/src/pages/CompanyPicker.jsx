@@ -118,18 +118,16 @@ function CompanyInfoSheet({ company, selected, onToggle, onClose }) {
 function CompanyCard({ company, selected, onToggle, onInfo }) {
   const [holding, setHolding] = useState(false)
   const [bouncing, setBouncing] = useState(false)
-  const holdTimer  = useRef(null)
-  const hoverTimer = useRef(null)
-  const firedRef   = useRef(false)
-  const startPos   = useRef(null)
+  const holdTimer = useRef(null)
+  const firedRef  = useRef(false)
+  const startPos  = useRef(null)
 
   function clearAll() {
     clearTimeout(holdTimer.current)
-    clearTimeout(hoverTimer.current)
   }
 
   function handlePointerDown(e) {
-    if (e.pointerType === 'mouse') return
+    if (e.button !== undefined && e.button !== 0) return
     e.currentTarget.setPointerCapture(e.pointerId)
     firedRef.current = false
     startPos.current = { x: e.clientX, y: e.clientY }
@@ -143,17 +141,16 @@ function CompanyCard({ company, selected, onToggle, onInfo }) {
   }
 
   function handlePointerMove(e) {
-    if (e.pointerType === 'mouse' || !startPos.current) return
+    if (!startPos.current) return
     const dx = e.clientX - startPos.current.x
     const dy = e.clientY - startPos.current.y
-    if (Math.sqrt(dx * dx + dy * dy) > 10) {
+    if (Math.sqrt(dx * dx + dy * dy) > 8) {
       clearAll()
       setHolding(false)
     }
   }
 
-  function handlePointerUp(e) {
-    if (e.pointerType === 'mouse') return
+  function handlePointerUp() {
     clearAll()
     setHolding(false)
   }
@@ -169,14 +166,6 @@ function CompanyCard({ company, selected, onToggle, onInfo }) {
     setBouncing(true)
   }
 
-  function handleMouseEnter() {
-    hoverTimer.current = setTimeout(() => onInfo(company), 650)
-  }
-
-  function handleMouseLeave() {
-    clearTimeout(hoverTimer.current)
-  }
-
   return (
     <button
       className={`cpicker-company${selected ? ' selected' : ''}${holding ? ' holding' : ''}${bouncing ? ' bouncing' : ''}`}
@@ -185,8 +174,6 @@ function CompanyCard({ company, selected, onToggle, onInfo }) {
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
       onClick={handleClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       onAnimationEnd={e => { if (e.animationName === 'cardBounce') setBouncing(false) }}
       style={{ touchAction: 'none' }}
     >
