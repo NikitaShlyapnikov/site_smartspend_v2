@@ -11,12 +11,6 @@ const FEED_SPOTLIGHT = [
 
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
 
-const TABS = [
-  { id: 'all',      label: 'Все' },
-  { id: 'articles', label: 'Статьи' },
-  { id: 'coupons',  label: 'Купоны' },
-]
-
 const MODES = [
   { id: 'unread',        label: 'Непрочитанное' },
   { id: 'subscriptions', label: 'Подписки' },
@@ -45,10 +39,12 @@ const SORT_OPTIONS = [
   { group: 'По популярности', id: 'popular_all', label: 'За всё время' },
 ]
 
-const PROMO_TABS = [
-  { id: 'all',    label: 'Все' },
-  { id: 'event',  label: 'События' },
-  { id: 'coupon', label: 'Купоны' },
+const ACTS_FILTERS = [
+  { id: 'all',         label: 'Все' },
+  { id: 'new_clients', label: 'Новым клиентам' },
+  { id: 'birthday',    label: 'День рождения' },
+  { id: 'holiday',     label: 'Праздник' },
+  { id: 'regular',     label: 'Обычная' },
 ]
 
 // Build a flat lookup: companyId → company object
@@ -285,6 +281,34 @@ function SortDropdown({ sort, onSort }) {
   )
 }
 
+// ── BROADCAST CARD ────────────────────────────────────────────────────────────
+
+function BroadcastCard({ item }) {
+  const company = COMPANY_MAP[item.companyId]
+  return (
+    <a
+      href={item.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="broadcast-card"
+      onClick={e => e.stopPropagation()}
+    >
+      <div className="broadcast-company-row">
+        <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
+        <div className="promo-company-info">
+          <div className="promo-company-name">{company?.name}</div>
+          <div className="promo-expires">{item.channel} · {item.time}</div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)', flexShrink: 0 }}>
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+      </div>
+      <div className="broadcast-text">{item.text}</div>
+    </a>
+  )
+}
+
 // ── PROMO CARD ────────────────────────────────────────────────────────────────
 
 function PromoCard({ item }) {
@@ -348,6 +372,8 @@ function PromoCard({ item }) {
 function PromoSection({ navigate }) {
   const [followed] = useState(loadFollowed)
   const hasSetup = !!localStorage.getItem('ss_promo_setup')
+  const [promoCat, setPromoCat]     = useState('all')
+  const [actsFilter, setActsFilter] = useState('all')
 
   if (!hasSetup || followed.size === 0) {
     return (
@@ -369,11 +395,26 @@ function PromoSection({ navigate }) {
     )
   }
 
-  const filtered = promoItems.filter(p => followed.has(p.companyId))
+  const byFollowed = promoItems.filter(p => followed.has(p.companyId))
+  const byCat      = promoCat === 'all' ? byFollowed : byFollowed.filter(p => p.category === promoCat)
+
+  const broadcasts    = byCat.filter(p => p.type === 'broadcast')
+  const events        = byCat.filter(p => p.type !== 'broadcast')
+  const filteredEvents = actsFilter === 'all' ? events : events.filter(p => p.promo_filter === actsFilter)
 
   return (
     <div className="promo-section">
-      <div className="promo-header">
+      {/* Category filters */}
+      <div className="promo-cats-row">
+        <div className="cats-scroll">
+          {CATEGORIES.map(c => (
+            <button
+              key={c.id}
+              className={`cat-pill${promoCat === c.id ? ' active' : ''}`}
+              onClick={() => setPromoCat(c.id)}
+            >{c.label}</button>
+          ))}
+        </div>
         <button className="promo-edit-btn" onClick={() => navigate('/company-picker', { state: { edit: true } })}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -382,16 +423,42 @@ function PromoSection({ navigate }) {
           Изменить компании
         </button>
       </div>
-      <div className="feed-list">
-        {filtered.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">🏷️</div>
-            <div className="empty-title">Пока ничего нет</div>
-            <div className="empty-desc">Акций и купонов от выбранных компаний не найдено</div>
+
+      {/* Рассылка */}
+      {broadcasts.length > 0 && (
+        <div className="promo-sub-section">
+          <div className="promo-sub-title">Рассылка</div>
+          <div className="feed-list">
+            {broadcasts.map(item => <BroadcastCard key={item.id} item={item} />)}
           </div>
-        ) : filtered.map(item => (
-          <PromoCard key={item.id} item={item} />
-        ))}
+        </div>
+      )}
+
+      {/* Акции */}
+      <div className="promo-sub-section">
+        <div className="promo-sub-header">
+          <div className="promo-sub-title">Акции</div>
+          <div className="cats-scroll">
+            {ACTS_FILTERS.map(f => (
+              <button
+                key={f.id}
+                className={`cat-pill${actsFilter === f.id ? ' active' : ''}`}
+                onClick={() => setActsFilter(f.id)}
+              >{f.label}</button>
+            ))}
+          </div>
+        </div>
+        <div className="feed-list">
+          {filteredEvents.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">🏷️</div>
+              <div className="empty-title">Пока ничего нет</div>
+              <div className="empty-desc">Акций и купонов от выбранных компаний не найдено</div>
+            </div>
+          ) : filteredEvents.map(item => (
+            <PromoCard key={item.id} item={item} />
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -632,7 +699,6 @@ export default function Feed() {
   const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem('ss_tour_welcome'))
   const [showSpotlight, setShowSpotlight] = useState(false)
   const [section, setSection] = useState(() => location.state?.promo ? 'promo' : 'articles')
-  const [tab,     setTab]     = useState('all')
   const [mode,    setMode]    = useState(null)
   const [cat,     setCat]     = useState('all')
   const [sort,    setSort]    = useState('popular_7d')
@@ -748,20 +814,15 @@ export default function Feed() {
                   ))}
                 </div>
 
-                {/* Row 2: sort dropdown */}
-                <div className="filters-row1">
-                  <div className="filters-spacer" />
-                  <SortDropdown sort={sort} onSort={setSort} />
-                </div>
-
-                {/* Row 3: mode as segmented control */}
-                <div className="filters-row2">
+                {/* Row 2: modes + sort in one row */}
+                <div className="filters-mode-row">
                   <div className="tab-group">
                     {MODES.map(m => (
                       <button key={m.id} className={`tab-btn${mode === m.id ? ' active' : ''}`}
                         onClick={() => toggleMode(m.id)}>{m.label}</button>
                     ))}
                   </div>
+                  <SortDropdown sort={sort} onSort={setSort} />
                 </div>
               </div>
             </div>
