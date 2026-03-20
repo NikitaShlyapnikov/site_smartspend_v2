@@ -1,38 +1,213 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { companies } from '../data/mock'
+import { companies, promoItems } from '../data/mock'
 import Layout from '../components/Layout'
 
 const CATEGORY_ORDER = [
   'food', 'cafe', 'transport', 'home', 'clothes',
   'leisure', 'health', 'education', 'travel', 'other',
 ]
+const HOLD_MS = 500
 
 function loadSelected() {
   try { return new Set(JSON.parse(localStorage.getItem('ss_companies') || '[]')) }
   catch { return new Set() }
 }
-
 function saveSelected(set) {
   localStorage.setItem('ss_companies', JSON.stringify([...set]))
 }
 
-// ── COMPANY LOGO ──────────────────────────────────────────────────────────────
+// ── PROMO TYPE META ────────────────────────────────────────────────────────────
 
-function CompanyLogo({ company, selected, onToggle }) {
+const TYPE_META = {
+  coupons: {
+    label: 'Купоны',
+    icon: (
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+        <line x1="7" y1="7" x2="7.01" y2="7"/>
+      </svg>
+    ),
+  },
+  events: {
+    label: 'Акции',
+    icon: (
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+    ),
+  },
+  broadcast: {
+    label: 'Рассылка',
+    icon: (
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+        <polyline points="22,6 12,13 2,6"/>
+      </svg>
+    ),
+  },
+}
+
+// ── COMPANY INFO SHEET ─────────────────────────────────────────────────────────
+
+function CompanyInfoSheet({ company, selected, onToggle, onClose }) {
+  const sample = promoItems.find(p => p.companyId === company.id && p.type !== 'broadcast')
+    || promoItems.find(p => p.companyId === company.id)
+
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [])
+
+  return (
+    <div className="info-sheet-overlay" onPointerDown={onClose}>
+      <div className="info-sheet" onPointerDown={e => e.stopPropagation()}>
+        <button className="info-sheet-close" onClick={onClose} aria-label="Закрыть">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/>
+          </svg>
+        </button>
+
+        <div className="info-sheet-header">
+          <div className="info-sheet-logo" style={{ background: company.color }}>
+            {company.abbr}
+          </div>
+          <div>
+            <div className="info-sheet-name">{company.name}</div>
+            {company.promoTypes?.length > 0 && (
+              <div className="info-sheet-types">
+                {company.promoTypes.map(t => (
+                  <span key={t} className={`info-sheet-type info-sheet-type--${t}`}>
+                    {TYPE_META[t]?.icon}
+                    {TYPE_META[t]?.label}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {company.desc && (
+          <p className="info-sheet-desc">{company.desc}</p>
+        )}
+
+        {sample && (
+          <div className="info-sheet-sample">
+            <div className="info-sheet-sample-label">Пример акции</div>
+            <div className="info-sheet-sample-title">{sample.title}</div>
+            {sample.expires && (
+              <div className="info-sheet-sample-expires">до {sample.expires}</div>
+            )}
+          </div>
+        )}
+
+        <button
+          className={`info-sheet-action${selected ? ' info-sheet-action--remove' : ''}`}
+          onClick={() => { onToggle(company.id); onClose() }}
+        >
+          {selected ? 'Убрать из списка' : '+ Добавить в список'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── COMPANY CARD ──────────────────────────────────────────────────────────────
+
+function CompanyCard({ company, selected, onToggle, onInfo }) {
+  const [holding, setHolding] = useState(false)
+  const [bouncing, setBouncing] = useState(false)
+  const holdTimer  = useRef(null)
+  const hoverTimer = useRef(null)
+  const firedRef   = useRef(false)
+  const startPos   = useRef(null)
+
+  function clearAll() {
+    clearTimeout(holdTimer.current)
+    clearTimeout(hoverTimer.current)
+  }
+
+  function handlePointerDown(e) {
+    if (e.pointerType === 'mouse') return
+    e.currentTarget.setPointerCapture(e.pointerId)
+    firedRef.current = false
+    startPos.current = { x: e.clientX, y: e.clientY }
+    setHolding(true)
+    holdTimer.current = setTimeout(() => {
+      firedRef.current = true
+      setHolding(false)
+      if (navigator.vibrate) navigator.vibrate(30)
+      onInfo(company)
+    }, HOLD_MS)
+  }
+
+  function handlePointerMove(e) {
+    if (e.pointerType === 'mouse' || !startPos.current) return
+    const dx = e.clientX - startPos.current.x
+    const dy = e.clientY - startPos.current.y
+    if (Math.sqrt(dx * dx + dy * dy) > 10) {
+      clearAll()
+      setHolding(false)
+    }
+  }
+
+  function handlePointerUp(e) {
+    if (e.pointerType === 'mouse') return
+    clearAll()
+    setHolding(false)
+  }
+
+  function handlePointerCancel() {
+    clearAll()
+    setHolding(false)
+  }
+
+  function handleClick() {
+    if (firedRef.current) { firedRef.current = false; return }
+    onToggle(company.id)
+    setBouncing(true)
+  }
+
+  function handleMouseEnter() {
+    hoverTimer.current = setTimeout(() => onInfo(company), 650)
+  }
+
+  function handleMouseLeave() {
+    clearTimeout(hoverTimer.current)
+  }
+
   return (
     <button
-      className={`cpicker-company${selected ? ' selected' : ''}`}
-      onClick={() => onToggle(company.id)}
+      className={`cpicker-company${selected ? ' selected' : ''}${holding ? ' holding' : ''}${bouncing ? ' bouncing' : ''}`}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
+      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onAnimationEnd={e => { if (e.animationName === 'cardBounce') setBouncing(false) }}
+      style={{ touchAction: 'none' }}
     >
+      {/* Hold progress ring */}
+      <svg className="cpicker-hold-ring" viewBox="0 0 92 114" fill="none" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="89" height="111" rx="13"
+          stroke="var(--accent-green)" strokeWidth="3"
+          strokeDasharray="390" strokeDashoffset="390"
+          strokeLinecap="round"
+        />
+      </svg>
+
       <div className="cpicker-logo" style={{ background: company.color }}>
         {company.abbr}
       </div>
       <span className="cpicker-name">{company.name}</span>
+
       {selected && (
         <div className="cpicker-check">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
+            <polyline points="20 6 9 17 4 12" className="cpicker-check-path"/>
           </svg>
         </div>
       )}
@@ -42,21 +217,24 @@ function CompanyLogo({ company, selected, onToggle }) {
 
 // ── WIZARD STEP ───────────────────────────────────────────────────────────────
 
-function WizardStep({ catKey, selected, onToggle }) {
+function WizardStep({ catKey, selected, onToggle, onInfo }) {
   const cat = companies[catKey]
   if (!cat) return null
   return (
     <div className="cpicker-step">
       <div className="cpicker-step-label">Категория</div>
       <div className="cpicker-step-title">{cat.label}</div>
-      <div className="cpicker-step-hint">Выберите компании, чьи акции и купоны хотите видеть в ленте</div>
+      <div className="cpicker-step-hint">
+        Нажмите чтобы выбрать · удержите чтобы узнать подробнее
+      </div>
       <div className="cpicker-grid">
         {cat.list.map(c => (
-          <CompanyLogo
+          <CompanyCard
             key={c.id}
             company={c}
             selected={selected.has(c.id)}
             onToggle={onToggle}
+            onInfo={onInfo}
           />
         ))}
       </div>
@@ -135,12 +313,13 @@ export default function CompanyPicker() {
   const location = useLocation()
   const isEdit = location.state?.edit === true
 
-  const [step, setStep] = useState(0)
+  const [step, setStep]         = useState(0)
   const [selected, setSelected] = useState(loadSelected)
+  const [infoCompany, setInfoCompany] = useState(null)
 
   const totalSteps = CATEGORY_ORDER.length
   const isLastStep = step === totalSteps - 1
-  const isSummary = step === totalSteps
+  const isSummary  = step === totalSteps
 
   function toggle(id) {
     setSelected(prev => {
@@ -207,6 +386,7 @@ export default function CompanyPicker() {
                   catKey={CATEGORY_ORDER[step]}
                   selected={selected}
                   onToggle={toggle}
+                  onInfo={setInfoCompany}
                 />
                 <div className="cpicker-actions">
                   <button className="cpicker-btn-skip" onClick={goNext}>
@@ -222,6 +402,16 @@ export default function CompanyPicker() {
 
         </div>
       </main>
+
+      {/* Info sheet */}
+      {infoCompany && (
+        <CompanyInfoSheet
+          company={infoCompany}
+          selected={selected.has(infoCompany.id)}
+          onToggle={toggle}
+          onClose={() => setInfoCompany(null)}
+        />
+      )}
     </Layout>
   )
 }

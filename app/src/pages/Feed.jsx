@@ -51,6 +51,9 @@ const ACTS_FILTERS = [
 // Build a flat lookup: companyId → company object
 const COMPANY_MAP = Object.values(companies).flatMap(c => c.list).reduce((m, c) => { m[c.id] = c; return m }, {})
 
+// Categories that have at least one promo item
+const PROMO_CATS_WITH_ITEMS = new Set(promoItems.map(p => p.category))
+
 function loadFollowed() {
   try { return new Set(JSON.parse(localStorage.getItem('ss_companies') || '[]')) }
   catch { return new Set() }
@@ -189,7 +192,7 @@ function SortDropdown({ sort, onSort }) {
   return (
     <div className="sort-wrap" ref={ref}>
       <span className="sort-label-txt">Сортировка:</span>
-      <button className={`sort-btn${open ? ' open' : ''}`} onClick={() => setOpen(o => !o)}>
+      <button className={`sort-btn${open ? ' open' : ''}${sort !== 'popular_7d' ? ' active' : ''}`} onClick={() => setOpen(o => !o)}>
         <span>{current?.label || 'По популярности'}</span>
         <svg className="sort-btn-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="6 9 12 15 18 9"/>
@@ -611,6 +614,13 @@ export default function Feed() {
   const [readIds, setReadIds] = useState(new Set())
   const [likedIds, setLikedIds] = useState(new Set())
   const [dislikedIds, setDislikedIds] = useState(new Set())
+  const [filtersScrolled, setFiltersScrolled] = useState(false)
+
+  const feedScrollRef = useCallback(el => {
+    if (!el) return
+    setFiltersScrolled(false)
+    el.addEventListener('scroll', () => setFiltersScrolled(el.scrollTop > 8), { passive: true })
+  }, [])
 
   function markRead(id) {
     setReadIds(prev => new Set([...prev, id]))
@@ -726,7 +736,7 @@ export default function Feed() {
 
         {section === 'articles' ? (
           <>
-            <div id="sp-feed-filters" className="filters-sticky">
+            <div id="sp-feed-filters" className={`filters-sticky${filtersScrolled ? ' scrolled' : ''}`}>
               <div className="filters-block">
                 {/* Row 1: categories */}
                 <div className="cats-scroll">
@@ -746,16 +756,18 @@ export default function Feed() {
                   </div>
                   <SortDropdown sort={sort} onSort={setSort} />
                 </div>
+
+                {/* Filter summary — shown inside sticky block */}
+                {hasFilters && (
+                  <div className="filter-summary">
+                    <span>{filtered.length} {noun(filtered.length)}</span>
+                    <button className="reset-btn" onClick={resetFilters}>Сбросить</button>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="feed-scroll">
-              {hasFilters && (
-                <div className="filter-summary">
-                  <span>{filtered.length} {noun(filtered.length)}</span>
-                  <button className="reset-btn" onClick={resetFilters}>Сбросить</button>
-                </div>
-              )}
+            <div className="feed-scroll" ref={feedScrollRef}>
 
               <div id="sp-feed-list" className="feed-list">
                 {filtered.length === 0 ? (
@@ -780,17 +792,20 @@ export default function Feed() {
           </>
         ) : (
           <>
-            <div className="filters-sticky">
+            <div className={`filters-sticky${filtersScrolled ? ' scrolled' : ''}`}>
               <div className="filters-block">
-                {/* Row 1: categories */}
+                {/* Row 1: categories (disabled if no promo items in that category) */}
                 <div className="cats-scroll">
                   {CATEGORIES.map(c => (
-                    <button key={c.id} className={`cat-pill${promoCat === c.id ? ' active' : ''}`}
-                      onClick={() => setPromoCat(c.id)}>{c.label}</button>
+                    <button
+                      key={c.id}
+                      className={`cat-pill${promoCat === c.id ? ' active' : ''}${c.id !== 'all' && !PROMO_CATS_WITH_ITEMS.has(c.id) ? ' empty' : ''}`}
+                      onClick={() => setPromoCat(c.id)}
+                    >{c.label}</button>
                   ))}
                 </div>
 
-                {/* Row 2: content type + company scope */}
+                {/* Row 2: content type + company scope with visual separator */}
                 <div className="filters-mode-row">
                   <div className="tab-group">
                     <button className={`tab-btn${promoType === 'broadcast' ? ' active' : ''}`}
@@ -808,35 +823,37 @@ export default function Feed() {
                     <button
                       className="promo-settings-btn"
                       onClick={() => navigate('/company-picker', { state: { edit: true } })}
-                      title="Изменить список компаний"
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="12" cy="12" r="3"/>
                         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                       </svg>
+                      Изменить
                     </button>
                   </div>
                 </div>
 
-                {/* Row 3: acts filters (only for Акции) */}
+                {/* Row 3: acts filters with entry animation */}
                 {promoType === 'events' && (
-                  <div className="cats-scroll">
+                  <div className="cats-scroll filters-acts-row">
                     {ACTS_FILTERS.map(f => (
                       <button key={f.id} className={`cat-pill${actsFilter === f.id ? ' active' : ''}`}
                         onClick={() => setActsFilter(f.id)}>{f.label}</button>
                     ))}
                   </div>
                 )}
+
+                {/* Filter summary — shown inside sticky block */}
+                {hasPromoFilters && (
+                  <div className="filter-summary">
+                    <span>{promoCount} {noun(promoCount)}</span>
+                    <button className="reset-btn" onClick={resetPromoFilters}>Сбросить</button>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="feed-scroll">
-              {hasPromoFilters && (
-                <div className="filter-summary">
-                  <span>{promoCount} {noun(promoCount)}</span>
-                  <button className="reset-btn" onClick={resetPromoFilters}>Сбросить</button>
-                </div>
-              )}
+            <div className="feed-scroll" ref={feedScrollRef}>
               <PromoSection
                 navigate={navigate}
                 followed={followed}
