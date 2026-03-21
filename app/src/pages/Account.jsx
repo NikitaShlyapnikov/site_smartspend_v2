@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 
@@ -57,7 +57,8 @@ function useToast() {
 
 export default function Account() {
   const navigate = useNavigate()
-  const [tab, setTab] = useState('articles')
+  const location = useLocation()
+  const [tab, setTab] = useState(location.state?.tab || 'articles')
   const [editing, setEditing] = useState(false)
   const [profile, setProfile] = useState(initProfile)
   const [draft, setDraft] = useState(initProfile)
@@ -414,6 +415,12 @@ export default function Account() {
           <div className="acc-panel">
             <div className="panel-header">
               <span className="panel-title">Скидки и промокоды, которые вы добавили</span>
+              <button className="acc-btn-primary" onClick={() => navigate('/create-whisper')}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+                Создать купон
+              </button>
             </div>
 
             {whispers.length === 0 && (

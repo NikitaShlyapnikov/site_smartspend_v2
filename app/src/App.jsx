@@ -13,10 +13,12 @@ import SetDetail from './pages/SetDetail'
 import Article from './pages/Article'
 import CreateSet from './pages/CreateSet'
 import CreateArticle from './pages/CreateArticle'
+import CreateWhisper from './pages/CreateWhisper'
 import AuthorPage from './pages/AuthorPage'
 import Deposits from './pages/Deposits'
 import Cards from './pages/Cards'
 import CompanyPicker from './pages/CompanyPicker'
+import Promo from './pages/Promo'
 
 export default function App() {
   return (
@@ -35,10 +37,12 @@ export default function App() {
           <Route path="/article/:id" element={<Article />} />
           <Route path="/create-set" element={<CreateSet />} />
           <Route path="/create-article" element={<CreateArticle />} />
+          <Route path="/create-whisper" element={<CreateWhisper />} />
           <Route path="/author/:id" element={<AuthorPage />} />
           <Route path="/deposits" element={<Deposits />} />
           <Route path="/cards" element={<Cards />} />
           <Route path="/company-picker" element={<CompanyPicker />} />
+          <Route path="/promo" element={<Promo />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </HashRouter>
