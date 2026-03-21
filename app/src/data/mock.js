@@ -1095,90 +1095,95 @@ export const promoItems = [
   },
 ]
 
+// history: 'w' = работает, 'n' = не работает (хронологически слева направо)
 export const whisperItems = [
   {
     id: 'wh-1', companyId: 'c-magnit', category: 'food',
     title: 'Скидка 15% при оплате через СБП в приложении Магнит',
     code: null, expires: '31 марта',
     addedBy: 'marina_kz', addedAt: Date.now() - 2 * 3600000,
-    works: 41, notWorks: 4,
+    history: ['w','w','w','w','w','w','w','n','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','w','w','w','w','w','w','w','w','n','w','w'],
   },
   {
     id: 'wh-2', companyId: 'c-wb', category: 'clothes',
     title: '500 ₽ скидка на первый заказ по промокоду',
     code: 'WB500NEW', expires: '30 апр',
     addedBy: 'shopper_pro', addedAt: Date.now() - 5 * 3600000,
-    works: 28, notWorks: 7,
+    // работало стабильно, потом пошли сбои
+    history: ['w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','w','n','n','n','w','n','n','w','n','n'],
   },
   {
     id: 'wh-3', companyId: 'c-dodo', category: 'cafe',
     title: 'Бесплатная доставка на любую сумму',
     code: 'DODOFREE', expires: '15 апр',
     addedBy: 'pizza_fan', addedAt: Date.now() - 24 * 3600000,
-    works: 9, notWorks: 18,
+    // сначала работало, потом сломалось
+    history: ['w','w','w','w','w','w','w','w','w','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n'],
   },
   {
     id: 'wh-4', companyId: 'c-yandex-go', category: 'transport',
     title: '200 ₽ на первые три поездки в Яндекс Go',
     code: 'GO200', expires: null,
     addedBy: 'taxi_saver', addedAt: Date.now() - 3 * 86400000,
-    works: 67, notWorks: 3,
+    // почти всегда работает
+    history: ['w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','n'],
   },
   {
     id: 'wh-5', companyId: 'c-skyeng', category: 'education',
     title: '2 урока бесплатно при записи на курс английского',
     code: 'SKY2FREE', expires: '1 мая',
     addedBy: 'learn_every', addedAt: Date.now() - 48 * 3600000,
-    works: 5, notWorks: 1,
+    history: ['w','w','w','w','w','n'],
   },
   {
     id: 'wh-6', companyId: 'c-lenta', category: 'food',
     title: 'Скидка 20% по четвергам для держателей карты Лента',
     code: null, expires: null,
     addedBy: 'economy_life', addedAt: Date.now() - 6 * 3600000,
-    works: 33, notWorks: 5,
+    history: ['w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','w','w','w','w','w','w','w','n','w','w','w','w','w','w','w','w','w','w','w','w'],
   },
   {
     id: 'wh-7', companyId: 'c-netflix', category: 'leisure',
     title: 'Первые 30 дней бесплатно при оплате через T-Pay',
     code: null, expires: '30 апр',
     addedBy: 'stream_fan', addedAt: Date.now() - 12 * 3600000,
-    works: 11, notWorks: 19,
+    // работало, потом не работает — явный паттерн слома
+    history: ['w','w','w','w','w','w','w','w','w','w','w','n','n','w','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n'],
   },
   {
     id: 'wh-8', companyId: 'c-ozon', category: 'clothes',
     title: '10% кешбэк монетами в первые 3 дня после регистрации',
     code: 'OZON10START', expires: null,
     addedBy: 'deal_hunter', addedAt: Date.now() - 4 * 3600000,
-    works: 52, notWorks: 8,
+    history: ['w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','w'],
   },
   {
     id: 'wh-9', companyId: 'c-kfc', category: 'cafe',
     title: 'Бесплатное ведро при заказе от 999 ₽ по пятницам',
     code: null, expires: '28 марта',
-    addedBy: 'kfc_lover', addedAt: Date.now() - 7 * 3600000,
-    works: 6, notWorks: 28,
+    // почти полностью не работает
+    history: ['w','w','w','n','n','n','w','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n'],
   },
   {
     id: 'wh-10', companyId: 'c-sber', category: 'other',
     title: 'Двойной кешбэк СберСпасибо в последние дни месяца',
     code: null, expires: '31 марта',
     addedBy: 'sber_bonus', addedAt: Date.now() - 30 * 60000,
-    works: 19, notWorks: 1,
+    history: ['w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w'],
   },
   {
     id: 'wh-11', companyId: 'c-letual', category: 'health',
     title: 'Скидка 30% на весь уход за волосами по карте',
     code: null, expires: '5 апр',
     addedBy: 'beauty_tips', addedAt: Date.now() - 90 * 60000,
-    works: 14, notWorks: 2,
+    history: ['w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w'],
   },
   {
     id: 'wh-12', companyId: 'c-skillbox', category: 'education',
     title: 'Рассрочка 0% на все курсы до конца марта',
     code: 'SKILL0', expires: '31 марта',
     addedBy: 'edu_hunter', addedAt: Date.now() - 2 * 86400000,
-    works: 22, notWorks: 3,
+    history: ['w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','w'],
   },
 ]
 

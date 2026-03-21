@@ -631,12 +631,10 @@ function WhisperCard({ item, myVote, onVote }) {
   const company = COMPANY_MAP[item.companyId]
   const [copied, setCopied] = useState(false)
 
-  const works    = item.works + (myVote === 'works' ? 1 : 0)
-  const notWorks = item.notWorks + (myVote === 'not' ? 1 : 0)
+  const displayHistory = myVote ? [...item.history, myVote === 'works' ? 'w' : 'n'] : item.history
+  const works    = displayHistory.filter(v => v === 'w').length
+  const notWorks = displayHistory.filter(v => v === 'n').length
   const status   = whisperStatus(works, notWorks)
-  const total    = works + notWorks
-  const fillPct  = total > 0 ? Math.round((works / total) * 100) : 0
-  const barColor = fillPct >= 65 ? 'var(--ok)' : fillPct >= 40 ? 'var(--soon)' : 'var(--urgent)'
 
   function copyCode(e) {
     e.stopPropagation()
@@ -684,6 +682,18 @@ function WhisperCard({ item, myVote, onVote }) {
         </div>
       )}
 
+      {displayHistory.length > 0 && (
+        <div className="whisper-history">
+          {displayHistory.slice(-40).map((v, i) => (
+            <div
+              key={i}
+              className={`wvh-stripe${i === displayHistory.length - 1 && myVote ? ' wvh-mine' : ''}`}
+              style={{ background: v === 'w' ? 'var(--ok)' : 'var(--urgent)' }}
+            />
+          ))}
+        </div>
+      )}
+
       <div className="whisper-vote-row">
         <button
           className={`whisper-vote-btn wvb-works${myVote === 'works' ? ' active' : ''}`}
@@ -693,15 +703,8 @@ function WhisperCard({ item, myVote, onVote }) {
             <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
             <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
           </svg>
-          Работает {works > 0 ? works : ''}
+          Работает {works}
         </button>
-
-        {total > 0 && (
-          <div className="whisper-vote-bar">
-            <div className="whisper-vote-fill" style={{ width: fillPct + '%', background: barColor }} />
-          </div>
-        )}
-
         <button
           className={`whisper-vote-btn wvb-not${myVote === 'not' ? ' active' : ''}`}
           onClick={() => onVote(item.id, 'not')}
@@ -710,7 +713,7 @@ function WhisperCard({ item, myVote, onVote }) {
             <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
             <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
           </svg>
-          Не работает {notWorks > 0 ? notWorks : ''}
+          Не работает {notWorks}
         </button>
       </div>
     </div>

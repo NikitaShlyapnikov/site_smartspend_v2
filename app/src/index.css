@@ -6741,11 +6741,16 @@ body.dark .wh-question { background: #2A2208; color: #C8A830; border-color: #4A3
 body.dark .wvb-works.active { background: #0E2A1A; color: #6AAF8E; border-color: #1E4A30; }
 body.dark .wvb-not.active   { background: #2A0E0E; color: #C86060; border-color: #4A1E1E; }
 
-.whisper-vote-bar {
-  flex: 1; height: 4px; background: var(--border);
-  border-radius: 2px; overflow: hidden;
+.whisper-history {
+  display: flex; gap: 2px; height: 18px; align-items: stretch;
+  border-radius: 6px; overflow: hidden;
 }
-.whisper-vote-fill { height: 100%; border-radius: 2px; transition: width 0.35s ease; }
+.wvh-stripe {
+  flex: 1; min-width: 3px; border-radius: 2px;
+  opacity: 0.85; transition: opacity 0.15s;
+}
+.wvh-stripe:last-child { opacity: 1; }
+.wvh-mine { outline: 2px solid var(--surface); outline-offset: -1px; }
 
 /* ── ADD WHISPER MODAL ── */
 .wm-overlay {
