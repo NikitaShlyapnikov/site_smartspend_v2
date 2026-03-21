@@ -688,7 +688,7 @@ function WhisperCard({ item, myVote, onVote }) {
             <div
               key={i}
               className={`wvh-stripe${i === displayHistory.length - 1 && myVote ? ' wvh-mine' : ''}`}
-              style={{ background: v === 'w' ? 'var(--ok)' : 'var(--urgent)' }}
+              style={{ background: v === 'w' ? '#5E9478' : '#B85555' }}
             />
           ))}
         </div>
