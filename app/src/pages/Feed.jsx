@@ -12,7 +12,6 @@ const FEED_SPOTLIGHT = [
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
 
 const MODES = [
-  { id: 'unread',        label: 'Непрочитанное' },
   { id: 'subscriptions', label: 'Подписки' },
   { id: 'my-sets',       label: 'Мои наборы' },
   { id: 'liked',         label: 'Понравившиеся' },
@@ -659,7 +658,6 @@ export default function Feed() {
     if (mode === 'liked')         return item.type === 'article' && likedIds.has(item.id)
     if (mode === 'subscriptions') return !!(item.authorId && feedAuthors[item.authorId]?.following)
     if (mode === 'my-sets')       return item.type === 'article' && item.setLink && MY_SET_TITLES.has(item.setLink.title)
-    if (mode === 'unread')        { if (readIds.has(item.id)) return false }
 
     if (cat !== 'all' && item.category !== cat) return false
     return true

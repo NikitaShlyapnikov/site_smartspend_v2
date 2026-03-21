@@ -326,6 +326,9 @@ body.dark .cat-pill.active { background: var(--accent-green); border-color: var(
   overflow-x: auto; flex-wrap: nowrap;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  mask-image: linear-gradient(to right, black 88%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 88%, transparent 100%);
+  padding-right: 16px;
 }
 .cats-scroll::-webkit-scrollbar { display: none; }
 
