@@ -25,6 +25,8 @@
   --accent: var(--accent-green);
   --text-1: var(--text);
   --text-muted: var(--text-3);
+  /* Page layout */
+  --page-max: 900px;
 }
 
 html, body {
@@ -352,7 +354,7 @@ body.dark .fsel-option.active { background: var(--accent-green); border-color: v
 /* ── FEED PAGE ── */
 .feed-main {
   display: flex; flex-direction: column;
-  min-width: 0; max-width: 860px; width: 100%; margin: 0 auto;
+  min-width: 0; max-width: var(--page-max); width: 100%; margin: 0 auto;
   height: 100vh; overflow: hidden;
 }
 .page-header { padding: 32px 36px 0; flex-shrink: 0; }
@@ -554,7 +556,7 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
 /* ── CATALOG PAGE ── */
 .catalog-main {
   display: flex; flex-direction: column;
-  min-width: 0; max-width: 1060px; width: 100%; margin: 0 auto;
+  min-width: 0; max-width: var(--page-max); width: 100%; margin: 0 auto;
   height: 100vh; overflow: hidden;
 }
 .catalog-header {
@@ -821,7 +823,7 @@ body.dark .inv-status-badge.wishlist { background: var(--surface-3); color: var(
 .settings-inner {
   padding: 32px 36px;
   display: flex; flex-direction: column; gap: 28px;
-  max-width: 860px; width: 100%; margin: 0 auto;
+  max-width: var(--page-max); width: 100%; margin: 0 auto;
   box-sizing: border-box;
 }
 .settings-section {
@@ -1017,7 +1019,7 @@ body.dark .btn-danger-ghost:hover { background: rgba(200,72,72,0.12); }
 .account-main {
   padding: 32px 36px;
   display: flex; flex-direction: column; gap: 28px;
-  min-width: 0; max-width: 860px; width: 100%; margin: 0 auto;
+  min-width: 0; max-width: var(--page-max); width: 100%; margin: 0 auto;
 }
 .account-main > * { flex-shrink: 0; }
 
@@ -1223,7 +1225,7 @@ body.dark .btn-logout { background: #2A1010; color: #E87070; border-color: #4A20
 /* ── NOTIFICATIONS PAGE ── */
 .notif-main {
   display: flex; flex-direction: column;
-  min-width: 0; width: 100%; max-width: 720px;
+  min-width: 0; width: 100%; max-width: var(--page-max);
   height: 100vh; overflow: hidden;
   margin: 0 auto;
 }
@@ -1420,7 +1422,7 @@ body.dark .nav-item.has-unread .nav-icon {
 .create-main {
   padding: 32px 36px;
   display: flex; flex-direction: column; gap: 24px;
-  min-width: 0; overflow-y: auto; max-width: 720px;
+  min-width: 0; overflow-y: auto; max-width: var(--page-max);
 }
 .form-section {
   background: var(--surface); border-radius: var(--r);
@@ -2074,7 +2076,7 @@ body.dark {
 .inventory-main {
   padding: 32px 36px;
   display: flex; flex-direction: column; gap: 20px;
-  min-width: 0; max-width: 1060px; width: 100%; margin: 0 auto;
+  min-width: 0; max-width: var(--page-max); width: 100%; margin: 0 auto;
 }
 .inv-page-header {
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
@@ -2737,7 +2739,7 @@ body.dark .inv-add-form-select { background: var(--surface-3); }
 .profile-main {
   padding: 32px 36px;
   display: flex; flex-direction: column; gap: 36px;
-  min-width: 0; max-width: 860px; width: 100%; margin: 0 auto;
+  min-width: 0; max-width: var(--page-max); width: 100%; margin: 0 auto;
   scrollbar-width: none;
 }
 .profile-main::-webkit-scrollbar { display: none; }
@@ -3330,7 +3332,7 @@ body.dark .profile-tab.active { background: var(--surface-3); }
 .article-main {
   padding: 32px 36px;
   display: flex; flex-direction: column; gap: 20px;
-  min-width: 0; max-width: 720px; width: 100%; margin: 0 auto;
+  min-width: 0; max-width: var(--page-max); width: 100%; margin: 0 auto;
 }
 .article-main > * { flex-shrink: 0; }
 
@@ -3729,7 +3731,7 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
 .set-detail-main {
   padding: 32px 36px;
   display: flex; flex-direction: column; gap: 20px;
-  min-width: 0; max-width: 860px; width: 100%; margin: 0 auto;
+  min-width: 0; max-width: var(--page-max); width: 100%; margin: 0 auto;
 }
 
 .sd-hero {
@@ -3814,7 +3816,7 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
 .create-main {
   padding: 32px 36px;
   display: flex; flex-direction: column; gap: 20px;
-  min-width: 0; max-width: 720px; width: 100%; margin: 0 auto;
+  min-width: 0; max-width: var(--page-max); width: 100%; margin: 0 auto;
 }
 
 .visibility-toggle {
@@ -4392,7 +4394,7 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
 .sd-main {
   padding: 32px 36px;
   display: flex; flex-direction: column; gap: 24px;
-  max-width: 860px; width: 100%; margin: 0 auto;
+  max-width: var(--page-max); width: 100%; margin: 0 auto;
   scrollbar-width: none;
 }
 .sd-main::-webkit-scrollbar { display: none; }
@@ -5401,7 +5403,7 @@ body.dark .inv-purchase-date { background: var(--surface); border-color: var(--b
    DEPOSITS PAGE
    ══════════════════════════════════════════════════════════════ */
 .dep-main {
-  max-width: 860px; margin: 0 auto;
+  max-width: var(--page-max); margin: 0 auto;
   padding: 24px 20px 60px;
   display: flex; flex-direction: column; gap: 16px;
   width: 100%; box-sizing: border-box;
@@ -5982,7 +5984,7 @@ body.dark .dep-modal-apply { background: #6AAF8E; }
 /* ── Layout ── */
 .crd-main {
   flex: 1; padding: 28px 28px 48px;
-  max-width: 860px; width: 100%; box-sizing: border-box;
+  max-width: var(--page-max); width: 100%; box-sizing: border-box;
   margin: 0 auto;
   display: flex; flex-direction: column; gap: 16px;
   overflow-x: hidden;
