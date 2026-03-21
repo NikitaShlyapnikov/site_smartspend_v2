@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import PublicLayout from '../components/PublicLayout'
 import { useAuthModal } from '../components/AuthModal'
@@ -33,6 +33,66 @@ const CATEGORIES = [
 
 const VALID_CATS = CATEGORIES.map(c => c.id)
 
+// value = Set of selected ids; onChange(id) toggles; onChange('__clear__') clears all
+function FilterSelect({ items, value, onChange, placeholder }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handler(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', handler)
+    return () => document.removeEventListener('pointerdown', handler)
+  }, [open])
+
+  const selectable = items.filter(i => i.id !== 'all')
+  const selected   = selectable.filter(i => value.has(i.id))
+
+  return (
+    <div className="fsel-wrap" ref={ref}>
+      <div className="fsel-bar">
+        {selected.map(item => (
+          <button key={item.id} className="fsel-chip" onClick={() => onChange(item.id)}>
+            {item.label}
+            <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+              <line x1="2" y1="2" x2="8" y2="8"/><line x1="8" y1="2" x2="2" y2="8"/>
+            </svg>
+          </button>
+        ))}
+        <button className={`fsel-btn${open ? ' open' : ''}`} onClick={() => setOpen(o => !o)}>
+          {selected.length === 0 && <span>{placeholder}</span>}
+          <svg className="fsel-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+      </div>
+      {open && (
+        <div className="fsel-panel">
+          {value.size > 0 && (
+            <button className="fsel-clear" onClick={() => onChange('__clear__')}>Сбросить выбор</button>
+          )}
+          {selectable.map(item => (
+            <button
+              key={item.id}
+              className={`fsel-option${value.has(item.id) ? ' active' : ''}`}
+              onClick={() => onChange(item.id)}
+            >
+              {item.label}
+              {value.has(item.id) && (
+                <svg className="fsel-check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function fmtUsers(n) {
   if (n === null || n === undefined) return null
   if (n >= 10000) return Math.round(n / 1000) + 'k'
@@ -43,10 +103,10 @@ function fmtUsers(n) {
 export default function Catalog() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const initCat = VALID_CATS.includes(searchParams.get('cat')) ? searchParams.get('cat') : 'all'
+  const initCatId = VALID_CATS.includes(searchParams.get('cat')) && searchParams.get('cat') !== 'all' ? searchParams.get('cat') : null
   const authed = localStorage.getItem('ss_auth') === 'true'
 
-  const [cat, setCat]           = useState(initCat)
+  const [cat, setCat]           = useState(() => initCatId ? new Set([initCatId]) : new Set())
   const [typeFilter, setType]   = useState('all')
   const [sourceFilter, setSrc]  = useState('all')
   const [sortFilter, setSort]   = useState('popular')
@@ -71,19 +131,16 @@ export default function Catalog() {
     setSrc(id)
   }
 
-  // Counts per category (across all source/type filters)
-  const catCounts = {}
-  CATEGORIES.forEach(c => {
-    catCounts[c.id] = c.id === 'all'
-      ? catalogSets.length
-      : catalogSets.filter(s => s.category === c.id).length
-  })
+  function handleCatChange(id) {
+    if (id === '__clear__') { setCat(new Set()); return }
+    setCat(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  }
 
   const itemQuery = itemSearch.trim().toLowerCase()
 
   // Filter + sort
   let filtered = catalogSets.filter(s => {
-    if (cat !== 'all' && s.category !== cat) return false
+    if (cat.size > 0 && !cat.has(s.category)) return false
     if (typeFilter !== 'all' && s.type !== typeFilter) return false
     if (sourceFilter === 'liked') return likedSets.has(s.id)
     if (sourceFilter !== 'all' && s.source !== sourceFilter) return false
@@ -123,14 +180,12 @@ export default function Catalog() {
         <div id="sp-cat-filters" className="catalog-filters-bar">
           <div className="filters-block">
             {/* Row 1: categories */}
-            <div className="cats-scroll">
-              {CATEGORIES.map(c => (
-                <button key={c.id} className={`cat-btn${cat === c.id ? ' active' : ''}`} onClick={() => setCat(c.id)}>
-                  {c.label}
-                  <span className="cat-count">{catCounts[c.id]}</span>
-                </button>
-              ))}
-            </div>
+            <FilterSelect
+              items={CATEGORIES}
+              value={cat}
+              onChange={handleCatChange}
+              placeholder="Категории"
+            />
 
             {/* Row 1.5: item search */}
             <div className="catalog-search-row">

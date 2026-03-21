@@ -684,8 +684,12 @@ export default function Feed() {
 
   function handlePromoCat(id) {
     if (id === '__clear__') { setPromoCat(new Set()); setPromoCompany(new Set()); return }
+    const isRemoving = promoCat.has(id)
     setPromoCat(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
-    setPromoCompany(new Set())
+    if (isRemoving) {
+      const catCoIds = new Set((companies[id]?.list || []).map(c => c.id))
+      setPromoCompany(prev => { const n = new Set(prev); catCoIds.forEach(cid => n.delete(cid)); return n })
+    }
   }
 
   function handlePromoCompany(id) {
