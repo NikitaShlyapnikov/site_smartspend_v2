@@ -310,7 +310,7 @@ function PromoCard({ item }) {
 
 // ── PROMO SECTION (content only, filters live in Feed) ────────────────────────
 
-function PromoSection({ navigate, followed, hasSetup, promoCat, promoType, promoScope, actsFilter }) {
+function PromoSection({ navigate, followed, hasSetup, promoCat, promoCompany, promoType, promoScope, actsFilter }) {
   if (!hasSetup || (promoScope === 'mine' && followed.size === 0)) {
     return (
       <div className="promo-empty-state">
@@ -331,11 +331,12 @@ function PromoSection({ navigate, followed, hasSetup, promoCat, promoType, promo
     )
   }
 
-  const pool  = promoScope === 'mine' ? promoItems.filter(p => followed.has(p.companyId)) : promoItems
-  const byCat = promoCat === 'all'    ? pool        : pool.filter(p => p.category === promoCat)
+  const pool    = promoScope === 'mine' ? promoItems.filter(p => followed.has(p.companyId)) : promoItems
+  const byCat   = promoCat === 'all'    ? pool      : pool.filter(p => p.category === promoCat)
+  const byCo    = promoCompany === 'all' ? byCat    : byCat.filter(p => p.companyId === promoCompany)
 
   if (promoType === 'broadcast') {
-    const items = byCat.filter(p => p.type === 'broadcast')
+    const items = byCo.filter(p => p.type === 'broadcast')
     return (
       <div className="feed-list">
         {items.length === 0 ? (
@@ -349,7 +350,7 @@ function PromoSection({ navigate, followed, hasSetup, promoCat, promoType, promo
     )
   }
 
-  const events   = byCat.filter(p => p.type !== 'broadcast')
+  const events   = byCo.filter(p => p.type !== 'broadcast')
   const filtered = actsFilter === 'all' ? events : events.filter(p => p.promo_filter === actsFilter)
   return (
     <div className="feed-list">
@@ -607,10 +608,16 @@ export default function Feed() {
   // promo state
   const [followed]                    = useState(loadFollowed)
   const hasPromoSetup                 = !!localStorage.getItem('ss_promo_setup')
-  const [promoCat,    setPromoCat]    = useState('all')
-  const [promoType,   setPromoType]   = useState('broadcast')
-  const [promoScope,  setPromoScope]  = useState('mine')
-  const [actsFilter,  setActsFilter]  = useState('all')
+  const [promoCat,     setPromoCat]     = useState('all')
+  const [promoCompany, setPromoCompany] = useState('all')
+  const [promoType,    setPromoType]    = useState('broadcast')
+  const [promoScope,   setPromoScope]   = useState('mine')
+  const [actsFilter,   setActsFilter]   = useState('all')
+
+  function handlePromoCat(id) {
+    setPromoCat(id)
+    setPromoCompany('all')
+  }
   const [readIds, setReadIds] = useState(new Set())
   const [likedIds, setLikedIds] = useState(new Set())
   const [dislikedIds, setDislikedIds] = useState(new Set())
@@ -668,10 +675,10 @@ export default function Feed() {
     setMode(null); setCat('all'); setSort('popular_7d')
   }
 
-  const hasPromoFilters = promoCat !== 'all' || promoType !== 'broadcast' || promoScope !== 'mine' || actsFilter !== 'all'
+  const hasPromoFilters = promoCat !== 'all' || promoCompany !== 'all' || promoType !== 'broadcast' || promoScope !== 'mine' || actsFilter !== 'all'
 
   function resetPromoFilters() {
-    setPromoCat('all'); setPromoType('broadcast'); setPromoScope('mine'); setActsFilter('all')
+    setPromoCat('all'); setPromoCompany('all'); setPromoType('broadcast'); setPromoScope('mine'); setActsFilter('all')
   }
 
   const promoPool    = hasPromoSetup && (promoScope !== 'mine' || followed.size > 0)
@@ -800,10 +807,30 @@ export default function Feed() {
                     <button
                       key={c.id}
                       className={`cat-pill${promoCat === c.id ? ' active' : ''}${c.id !== 'all' && !PROMO_CATS_WITH_ITEMS.has(c.id) ? ' empty' : ''}`}
-                      onClick={() => setPromoCat(c.id)}
+                      onClick={() => handlePromoCat(c.id)}
                     >{c.label}</button>
                   ))}
                 </div>
+
+                {/* Row 1.5: company chips — appear when category selected */}
+                {promoCat !== 'all' && companies[promoCat]?.list?.length > 0 && (
+                  <div className="cats-scroll promo-company-row">
+                    <button
+                      className={`cat-pill cat-pill--co${promoCompany === 'all' ? ' active' : ''}`}
+                      onClick={() => setPromoCompany('all')}
+                    >Все</button>
+                    {companies[promoCat].list.map(c => (
+                      <button
+                        key={c.id}
+                        className={`cat-pill cat-pill--co${promoCompany === c.id ? ' active' : ''}`}
+                        onClick={() => setPromoCompany(c.id)}
+                      >
+                        <span className="co-pill-dot" style={{ background: c.color }} />
+                        {c.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 {/* Row 2: content type + company scope with visual separator */}
                 <div className="filters-mode-row">
@@ -859,6 +886,7 @@ export default function Feed() {
                 followed={followed}
                 hasSetup={hasPromoSetup}
                 promoCat={promoCat}
+                promoCompany={promoCompany}
                 promoType={promoType}
                 promoScope={promoScope}
                 actsFilter={actsFilter}
