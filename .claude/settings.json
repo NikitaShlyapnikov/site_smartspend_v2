@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(wc -l \"c:/Users/Administrator/Desktop/site_smartspend_v2/app/src/pages/\"*.jsx)"
+      "Bash(wc -l \"c:/Users/Administrator/Desktop/site_smartspend_v2/app/src/pages/\"*.jsx)",
+      "Bash(grep -o \"className=\"\"[^\"\"]*\" app/src/pages/*.jsx app/src/components/*.jsx)",
+      "Bash(grep -h \"className=\" app/src/pages/*.jsx)"
     ]
   }
 }
