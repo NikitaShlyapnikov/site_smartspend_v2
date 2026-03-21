@@ -179,38 +179,7 @@ export default function Catalog() {
         {/* Sticky Filters */}
         <div id="sp-cat-filters" className="catalog-filters-bar">
           <div className="filters-block">
-            {/* Row 1: categories */}
-            <FilterSelect
-              items={CATEGORIES}
-              value={cat}
-              onChange={handleCatChange}
-              placeholder="Категории"
-            />
-
-            {/* Row 1.5: item search */}
-            <div className="catalog-search-row">
-              <div className="catalog-search-wrap">
-                <svg className="catalog-search-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-                </svg>
-                <input
-                  className="catalog-search-input"
-                  type="text"
-                  placeholder="Поиск по составу набора..."
-                  value={itemSearch}
-                  onChange={e => setItemSearch(e.target.value)}
-                />
-                {itemSearch && (
-                  <button className="catalog-search-clear" onClick={() => setItemSearch('')}>
-                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
-                      <path d="M18 6L6 18M6 6l12 12"/>
-                    </svg>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Row 2: type · source · sort · count */}
+            {/* Row 1: type · source · sort · count */}
             <div className="filters-row2">
               {/* Тип */}
               <div className="seg-ctrl">
@@ -244,6 +213,37 @@ export default function Catalog() {
               </div>
 
               <span className="results-count">{filtered.length} {noun(filtered.length)}</span>
+            </div>
+
+            {/* Row 2: categories */}
+            <FilterSelect
+              items={CATEGORIES}
+              value={cat}
+              onChange={handleCatChange}
+              placeholder="Категории"
+            />
+
+            {/* Row 3: item search */}
+            <div className="catalog-search-row">
+              <div className="catalog-search-wrap">
+                <svg className="catalog-search-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                </svg>
+                <input
+                  className="catalog-search-input"
+                  type="text"
+                  placeholder="Поиск по составу набора..."
+                  value={itemSearch}
+                  onChange={e => setItemSearch(e.target.value)}
+                />
+                {itemSearch && (
+                  <button className="catalog-search-clear" onClick={() => setItemSearch('')}>
+                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
+                      <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -55,11 +55,6 @@ const ALL_COMPANIES_LIST = Object.entries(companies).flatMap(([catId, cat]) =>
   cat.list.map(c => ({ ...c, catId, catLabel: cat.label }))
 )
 
-const WHISPER_SORTS = [
-  { id: 'new',     label: 'Новые' },
-  { id: 'popular', label: 'Популярные' },
-  { id: 'works',   label: 'Работают' },
-]
 
 // Categories that have at least one promo item
 const PROMO_CATS_WITH_ITEMS = new Set(promoItems.map(p => p.category))
@@ -629,8 +624,11 @@ function whisperStatus(works, notWorks) {
 
 function WhisperCard({ item, myVote, onVote }) {
   const company = COMPANY_MAP[item.companyId]
-  const [copied,    setCopied]    = useState(false)
-  const [voteToast, setVoteToast] = useState(null)
+  const [copied,       setCopied]       = useState(false)
+  const [voteToast,    setVoteToast]    = useState(null)
+  const [showComments, setShowComments] = useState(false)
+  const [comments,     setComments]     = useState(item.comments || [])
+  const [commentText,  setCommentText]  = useState('')
   const toastTimer = useRef(null)
 
   const displayHistory = myVote ? [...item.history, myVote === 'works' ? 'w' : 'n'] : item.history
@@ -662,7 +660,8 @@ function WhisperCard({ item, myVote, onVote }) {
         <div className="whisper-company-info">
           <div className="whisper-company-name">{company?.name}</div>
           <div className="whisper-meta">
-            {timeAgo(item.addedAt)}{item.expires ? ` · до ${item.expires}` : ''}
+            {item.addedBy && <span className="whisper-author">@{item.addedBy}</span>}
+            <span>{timeAgo(item.addedAt)}{item.expires ? ` · до ${item.expires}` : ''}</span>
           </div>
         </div>
         <span className={`whisper-badge ${status.cls}`}>{status.label}</span>
@@ -736,7 +735,51 @@ function WhisperCard({ item, myVote, onVote }) {
             {voteToast === 'works' ? 'Голос учтён' : 'Спасибо за проверку'}
           </span>
         )}
+        <button className="whisper-comments-toggle" onClick={() => setShowComments(v => !v)}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          {comments.length > 0 ? comments.length : 'Комментировать'}
+        </button>
       </div>
+
+      {showComments && (
+        <div className="whisper-comments">
+          {comments.map((c, i) => (
+            <div key={i} className="whisper-comment">
+              <span className="whisper-comment-author">@{c.author}</span>
+              <span className="whisper-comment-text">{c.text}</span>
+            </div>
+          ))}
+          <div className="whisper-comment-form">
+            <input
+              className="whisper-comment-input"
+              placeholder="Добавить комментарий..."
+              value={commentText}
+              onChange={e => setCommentText(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && commentText.trim()) {
+                  setComments(prev => [...prev, { author: 'вы', text: commentText.trim(), time: 'только что' }])
+                  setCommentText('')
+                }
+              }}
+            />
+            <button
+              className="whisper-comment-submit"
+              disabled={!commentText.trim()}
+              onClick={() => {
+                if (!commentText.trim()) return
+                setComments(prev => [...prev, { author: 'вы', text: commentText.trim(), time: 'только что' }])
+                setCommentText('')
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -888,42 +931,26 @@ function AddWhisperModal({ onClose, onAdd }) {
 
 // ── WHISPER SECTION ───────────────────────────────────────────────────────────
 
-function WhisperSection({ items, promoCat, promoCompany, votes, onVote, onAdd }) {
-  const [sort, setSort]           = useState('new')
+function WhisperSection({ items, promoCat, promoCompany, promoScope, followed, votes, onVote, onAdd }) {
   const [showModal, setShowModal] = useState(false)
 
   let filtered = items.filter(item => {
+    if (promoScope === 'mine' && !followed.has(item.companyId)) return false
     if (promoCat.size > 0 && !promoCat.has(item.category)) return false
     if (promoCompany.size > 0 && !promoCompany.has(item.companyId)) return false
     return true
   })
 
-  filtered = [...filtered].sort((a, b) => {
-    if (sort === 'new') return b.addedAt - a.addedAt
-    if (sort === 'popular') {
-      return (b.works + b.notWorks) - (a.works + a.notWorks)
-    }
-    const rA = (a.works + (votes.get(a.id) === 'works' ? 1 : 0)) / Math.max(1, a.works + a.notWorks)
-    const rB = (b.works + (votes.get(b.id) === 'works' ? 1 : 0)) / Math.max(1, b.works + b.notWorks)
-    return rB - rA
-  })
+  filtered = [...filtered].sort((a, b) => b.addedAt - a.addedAt)
 
   return (
     <>
-      <div className="whisper-toolbar">
-        <div className="tab-group">
-          {WHISPER_SORTS.map(s => (
-            <button key={s.id} className={`tab-btn${sort === s.id ? ' active' : ''}`}
-              onClick={() => setSort(s.id)}>{s.label}</button>
-          ))}
-        </div>
-        <button className="whisper-add-btn" onClick={() => setShowModal(true)}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          Добавить
-        </button>
-      </div>
+      <button className="whisper-add-cta" onClick={() => setShowModal(true)}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        Поделиться скидкой или промокодом
+      </button>
 
       <div className="feed-list">
         {filtered.length === 0 ? (
@@ -1072,7 +1099,13 @@ export default function Feed() {
   }
 
   function addWhisper(item) {
-    setLocalWhispers(prev => [item, ...prev])
+    const co = COMPANY_MAP[item.companyId]
+    const enriched = { ...item, companyName: co?.name, companyAbbr: co?.abbr, companyColor: co?.color }
+    setLocalWhispers(prev => [enriched, ...prev])
+    try {
+      const saved = JSON.parse(localStorage.getItem('ss_account_whispers') || '[]')
+      localStorage.setItem('ss_account_whispers', JSON.stringify([enriched, ...saved]))
+    } catch {}
   }
 
   const [readIds, setReadIds] = useState(new Set())
@@ -1211,15 +1244,7 @@ export default function Feed() {
           <>
             <div id="sp-feed-filters" className={`filters-sticky${filtersScrolled ? ' scrolled' : ''}`}>
               <div className="filters-block">
-                {/* Row 1: categories */}
-                <FilterSelect
-                  items={CATEGORIES}
-                  value={cat}
-                  onChange={handleCatChange}
-                  placeholder="Категории"
-                />
-
-                {/* Row 2: modes + sort in one row */}
+                {/* Row 1: modes + sort */}
                 <div className="filters-mode-row">
                   <div className="tab-group">
                     {MODES.map(m => (
@@ -1229,6 +1254,14 @@ export default function Feed() {
                   </div>
                   <SortDropdown sort={sort} onSort={setSort} />
                 </div>
+
+                {/* Row 2: categories */}
+                <FilterSelect
+                  items={CATEGORIES}
+                  value={cat}
+                  onChange={handleCatChange}
+                  placeholder="Категории"
+                />
 
                 {/* Filter summary — shown inside sticky block */}
                 {hasFilters && (
@@ -1277,8 +1310,8 @@ export default function Feed() {
                     onClick={() => setPromoType('whisper')}>Подслушано</button>
                 </div>
 
-                {/* Row 2: scope — only for broadcast/events */}
-                {promoType !== 'whisper' && (
+                {/* Row 2: scope */}
+                {(
                   <div className="promo-scope-row">
                     <div className="tab-group">
                       <button className={`tab-btn${promoScope === 'mine' ? ' active' : ''}`}
@@ -1347,6 +1380,8 @@ export default function Feed() {
                   items={localWhispers}
                   promoCat={promoCat}
                   promoCompany={promoCompany}
+                  promoScope={promoScope}
+                  followed={followed}
                   votes={whisperVotes}
                   onVote={voteWhisper}
                   onAdd={addWhisper}

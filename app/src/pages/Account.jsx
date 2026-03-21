@@ -62,13 +62,15 @@ export default function Account() {
   const [profile, setProfile] = useState(initProfile)
   const [draft, setDraft] = useState(initProfile)
 
-  const [articles, setArticles] = useState(() => readLS('ss_account_articles', []))
-  const [sets, setSets] = useState(() => readLS('ss_account_sets', []))
-  const [subs] = useState(() => readLS('ss_account_subs', []))
+  const [articles,  setArticles]  = useState(() => readLS('ss_account_articles', []))
+  const [sets,      setSets]      = useState(() => readLS('ss_account_sets', []))
+  const [subs]                    = useState(() => readLS('ss_account_subs', []))
+  const [whispers,  setWhispers]  = useState(() => readLS('ss_account_whispers', []))
 
-  const [confirmArticle, setConfirmArticle] = useState(null) // article object to delete
-  const [showSpotlight, setShowSpotlight] = useState(false)
-  const [confirmSet, setConfirmSet] = useState(null)         // set object to delete
+  const [confirmArticle, setConfirmArticle] = useState(null)
+  const [confirmSet,     setConfirmSet]     = useState(null)
+  const [confirmWhisper, setConfirmWhisper] = useState(null)
+  const [showSpotlight, setShowSpotlight]   = useState(false)
 
   const [toast, showToast] = useToast()
 
@@ -133,11 +135,20 @@ export default function Account() {
     showToast('Набор удалён')
   }
 
+  function confirmDeleteWhisperFn() {
+    const updated = whispers.filter(w => w.id !== confirmWhisper.id)
+    setWhispers(updated)
+    localStorage.setItem('ss_account_whispers', JSON.stringify(updated))
+    setConfirmWhisper(null)
+    showToast('Запись удалена')
+  }
+
   // ── Tabs ───────────────────────────────────────────────────────────────────
 
   const TABS = [
     { id: 'articles', label: `Статьи · ${articles.length}` },
     { id: 'sets',     label: `Наборы · ${sets.length}` },
+    { id: 'whispers', label: `Подслушано · ${whispers.length}` },
     { id: 'subs',     label: `Подписки · ${subs.length}` },
   ]
 
@@ -398,6 +409,52 @@ export default function Account() {
           </div>
         )}
 
+        {/* Whispers */}
+        {tab === 'whispers' && (
+          <div className="acc-panel">
+            <div className="panel-header">
+              <span className="panel-title">Скидки и промокоды, которые вы добавили</span>
+            </div>
+
+            {whispers.length === 0 && (
+              <div className="acc-empty">
+                <div className="acc-empty-icon">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+                    <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+                  </svg>
+                </div>
+                <div className="acc-empty-title">Нет записей</div>
+                <div className="acc-empty-desc">Делитесь скидками и промокодами в разделе Промо → Подслушано</div>
+              </div>
+            )}
+
+            {whispers.map(w => (
+              <div key={w.id} className="acc-article-card">
+                <div className="acc-whisper-header">
+                  <div className="promo-logo" style={{ background: w.companyColor, width: 28, height: 28, fontSize: 10 }}>{w.companyAbbr}</div>
+                  <div>
+                    <div className="acc-whisper-company">{w.companyName}</div>
+                    <div className="acc-whisper-meta">{w.expires ? `до ${w.expires}` : 'бессрочно'}</div>
+                  </div>
+                </div>
+                <div className="acc-article-title" style={{ marginTop: 8 }}>{w.title}</div>
+                {w.code && (
+                  <div className="acc-whisper-code">{w.code}</div>
+                )}
+                <div className="acc-card-actions">
+                  <button className="acc-btn-delete" onClick={() => setConfirmWhisper(w)}>
+                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                    </svg>
+                    Удалить
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Subscriptions */}
         {tab === 'subs' && (
           <div className="acc-panel">
@@ -453,6 +510,15 @@ export default function Account() {
         desc={confirmSet ? `«${confirmSet.name}» будет удалён из вашего профиля.` : ''}
         onConfirm={confirmDeleteSet}
         onCancel={() => setConfirmSet(null)}
+      />
+
+      {/* Delete whisper confirm */}
+      <ConfirmModal
+        open={!!confirmWhisper}
+        title="Удалить запись?"
+        desc={confirmWhisper ? `«${confirmWhisper.title}» будет удалена из раздела Подслушано.` : ''}
+        onConfirm={confirmDeleteWhisperFn}
+        onCancel={() => setConfirmWhisper(null)}
       />
 
       {/* Toast */}
