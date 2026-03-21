@@ -331,8 +331,8 @@ function PromoSection({ navigate, followed, hasSetup, promoCat, promoCompany, pr
   }
 
   const pool    = promoScope === 'mine' ? promoItems.filter(p => followed.has(p.companyId)) : promoItems
-  const byCat   = promoCat === 'all'    ? pool      : pool.filter(p => p.category === promoCat)
-  const byCo    = promoCompany === 'all' ? byCat    : byCat.filter(p => p.companyId === promoCompany)
+  const byCat = promoCat.size === 0     ? pool  : pool.filter(p => promoCat.has(p.category))
+  const byCo  = promoCompany.size === 0 ? byCat : byCat.filter(p => promoCompany.has(p.companyId))
 
   if (promoType === 'broadcast') {
     const items = byCo.filter(p => p.type === 'broadcast')
@@ -595,6 +595,7 @@ function WelcomeTour({ onClose }) {
 
 // ── FILTER SELECT ─────────────────────────────────────────────────────────────
 
+// value = Set of selected ids; onChange(id) toggles id; onChange('__clear__') clears all
 function FilterSelect({ items, value, onChange, placeholder }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -608,22 +609,23 @@ function FilterSelect({ items, value, onChange, placeholder }) {
     return () => document.removeEventListener('pointerdown', handler)
   }, [open])
 
-  const selected = value !== 'all' ? items.find(i => i.id === value) : null
+  const selectable = items.filter(i => i.id !== 'all')
+  const selected   = selectable.filter(i => value.has(i.id))
 
   return (
     <div className="fsel-wrap" ref={ref}>
       <div className="fsel-bar">
-        {selected && (
-          <button className="fsel-chip" onClick={() => { onChange('all'); setOpen(false) }}>
-            {selected.color && <span className="fsel-chip-dot" style={{ background: selected.color }} />}
-            {selected.label}
+        {selected.map(item => (
+          <button key={item.id} className="fsel-chip" onClick={() => onChange(item.id)}>
+            {item.color && <span className="fsel-chip-dot" style={{ background: item.color }} />}
+            {item.label}
             <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
               <line x1="2" y1="2" x2="8" y2="8"/><line x1="8" y1="2" x2="2" y2="8"/>
             </svg>
           </button>
-        )}
+        ))}
         <button className={`fsel-btn${open ? ' open' : ''}`} onClick={() => setOpen(o => !o)}>
-          {!selected && <span>{placeholder}</span>}
+          {selected.length === 0 && <span>{placeholder}</span>}
           <svg className="fsel-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="6 9 12 15 18 9"/>
           </svg>
@@ -631,14 +633,22 @@ function FilterSelect({ items, value, onChange, placeholder }) {
       </div>
       {open && (
         <div className="fsel-panel">
-          {items.map(item => (
+          {value.size > 0 && (
+            <button className="fsel-clear" onClick={() => onChange('__clear__')}>Сбросить выбор</button>
+          )}
+          {selectable.map(item => (
             <button
               key={item.id}
-              className={`fsel-option${item.id === value ? ' active' : ''}`}
-              onClick={() => { onChange(item.id); setOpen(false) }}
+              className={`fsel-option${value.has(item.id) ? ' active' : ''}`}
+              onClick={() => onChange(item.id)}
             >
               {item.color && <span className="fsel-dot" style={{ background: item.color }} />}
               {item.label}
+              {value.has(item.id) && (
+                <svg className="fsel-check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              )}
             </button>
           ))}
         </div>
@@ -656,20 +666,31 @@ export default function Feed() {
   const [showSpotlight, setShowSpotlight] = useState(false)
   const [section,     setSection]     = useState(() => location.state?.promo ? 'promo' : 'articles')
   const [mode,        setMode]        = useState(null)
-  const [cat,         setCat]         = useState('all')
+  const [cat,         setCat]         = useState(new Set())
   const [sort,        setSort]        = useState('popular_7d')
   // promo state
   const [followed]                    = useState(loadFollowed)
   const hasPromoSetup                 = !!localStorage.getItem('ss_promo_setup')
-  const [promoCat,     setPromoCat]     = useState('all')
-  const [promoCompany, setPromoCompany] = useState('all')
+  const [promoCat,     setPromoCat]     = useState(new Set())
+  const [promoCompany, setPromoCompany] = useState(new Set())
   const [promoType,    setPromoType]    = useState('broadcast')
   const [promoScope,   setPromoScope]   = useState('mine')
   const [actsFilter,   setActsFilter]   = useState('all')
 
+  function handleCatChange(id) {
+    if (id === '__clear__') { setCat(new Set()); return }
+    setCat(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  }
+
   function handlePromoCat(id) {
-    setPromoCat(id)
-    setPromoCompany('all')
+    if (id === '__clear__') { setPromoCat(new Set()); setPromoCompany(new Set()); return }
+    setPromoCat(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+    setPromoCompany(new Set())
+  }
+
+  function handlePromoCompany(id) {
+    if (id === '__clear__') { setPromoCompany(new Set()); return }
+    setPromoCompany(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
   }
   const [readIds, setReadIds] = useState(new Set())
   const [likedIds, setLikedIds] = useState(new Set())
@@ -713,7 +734,7 @@ export default function Feed() {
     if (mode === 'subscriptions') return !!(item.authorId && feedAuthors[item.authorId]?.following)
     if (mode === 'my-sets')       return item.type === 'article' && item.setLink && MY_SET_TITLES.has(item.setLink.title)
 
-    if (cat !== 'all' && item.category !== cat) return false
+    if (cat.size > 0 && !cat.has(item.category)) return false
     return true
   })
 
@@ -721,27 +742,28 @@ export default function Feed() {
     sort === 'newest' ? (a, b) => b.ts - a.ts : (a, b) => b.pop - a.pop
   )
 
-  const hasFilters = mode || cat !== 'all' || sort !== 'popular_7d'
+  const hasFilters = mode || cat.size > 0 || sort !== 'popular_7d'
 
   function resetFilters() {
-    setMode(null); setCat('all'); setSort('popular_7d')
+    setMode(null); setCat(new Set()); setSort('popular_7d')
   }
 
-  const hasPromoFilters = promoCat !== 'all' || promoCompany !== 'all' || promoType !== 'broadcast' || promoScope !== 'mine' || actsFilter !== 'all'
+  const hasPromoFilters = promoCat.size > 0 || promoCompany.size > 0 || promoType !== 'broadcast' || promoScope !== 'mine' || actsFilter !== 'all'
 
   function resetPromoFilters() {
-    setPromoCat('all'); setPromoCompany('all'); setPromoType('broadcast'); setPromoScope('mine'); setActsFilter('all')
+    setPromoCat(new Set()); setPromoCompany(new Set()); setPromoType('broadcast'); setPromoScope('mine'); setActsFilter('all')
   }
 
-  const promoPool    = hasPromoSetup && (promoScope !== 'mine' || followed.size > 0)
+  const promoPool  = hasPromoSetup && (promoScope !== 'mine' || followed.size > 0)
     ? (promoScope === 'mine' ? promoItems.filter(p => followed.has(p.companyId)) : promoItems)
     : []
-  const promoByCat   = promoCat === 'all' ? promoPool : promoPool.filter(p => p.category === promoCat)
-  const promoCount   = promoType === 'broadcast'
-    ? promoByCat.filter(p => p.type === 'broadcast').length
+  const promoByCat = promoCat.size === 0 ? promoPool : promoPool.filter(p => promoCat.has(p.category))
+  const promoByCo  = promoCompany.size === 0 ? promoByCat : promoByCat.filter(p => promoCompany.has(p.companyId))
+  const promoCount = promoType === 'broadcast'
+    ? promoByCo.filter(p => p.type === 'broadcast').length
     : (actsFilter === 'all'
-      ? promoByCat.filter(p => p.type !== 'broadcast').length
-      : promoByCat.filter(p => p.type !== 'broadcast' && p.promo_filter === actsFilter).length)
+      ? promoByCo.filter(p => p.type !== 'broadcast').length
+      : promoByCo.filter(p => p.type !== 'broadcast' && p.promo_filter === actsFilter).length)
 
   function handleItemClick(item) {
     markRead(item.id)
@@ -801,7 +823,7 @@ export default function Feed() {
                 <FilterSelect
                   items={CATEGORIES}
                   value={cat}
-                  onChange={setCat}
+                  onChange={handleCatChange}
                   placeholder="Категории"
                 />
 
@@ -862,17 +884,18 @@ export default function Feed() {
                 />
 
                 {/* Row 1.5: companies — appear when category selected */}
-                {promoCat !== 'all' && companies[promoCat]?.list?.length > 0 && (
-                  <FilterSelect
-                    items={[
-                      { id: 'all', label: 'Все компании' },
-                      ...companies[promoCat].list.map(c => ({ id: c.id, label: c.name, color: c.color }))
-                    ]}
-                    value={promoCompany}
-                    onChange={setPromoCompany}
-                    placeholder="Компании"
-                  />
-                )}
+                {promoCat.size > 0 && (() => {
+                  const coItems = [...promoCat].flatMap(catId => companies[catId]?.list || [])
+                    .map(c => ({ id: c.id, label: c.name, color: c.color }))
+                  return coItems.length > 0 ? (
+                    <FilterSelect
+                      items={coItems}
+                      value={promoCompany}
+                      onChange={handlePromoCompany}
+                      placeholder="Компании"
+                    />
+                  ) : null
+                })()}
 
                 {/* Row 2: content type + company scope with visual separator */}
                 <div className="filters-mode-row">

@@ -331,6 +331,13 @@ body.dark .fsel-chip { background: var(--accent-green); }
 }
 .fsel-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 body.dark .fsel-option.active { background: var(--accent-green); border-color: var(--accent-green); color: #fff; }
+.fsel-check { margin-left: auto; flex-shrink: 0; opacity: 0.9; }
+.fsel-clear {
+  flex-basis: 100%; text-align: left; padding: 5px 12px;
+  font-size: 12px; color: var(--text-muted); background: none; border: none;
+  cursor: pointer; border-radius: var(--r-sm); transition: color 0.1s;
+}
+.fsel-clear:hover { color: var(--accent-green); }
 
 /* ── FEED PAGE ── */
 .feed-main {
