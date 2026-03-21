@@ -593,6 +593,60 @@ function WelcomeTour({ onClose }) {
   )
 }
 
+// ── FILTER SELECT ─────────────────────────────────────────────────────────────
+
+function FilterSelect({ items, value, onChange, placeholder }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handler(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', handler)
+    return () => document.removeEventListener('pointerdown', handler)
+  }, [open])
+
+  const selected = value !== 'all' ? items.find(i => i.id === value) : null
+
+  return (
+    <div className="fsel-wrap" ref={ref}>
+      <div className="fsel-bar">
+        {selected && (
+          <button className="fsel-chip" onClick={() => { onChange('all'); setOpen(false) }}>
+            {selected.color && <span className="fsel-chip-dot" style={{ background: selected.color }} />}
+            {selected.label}
+            <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+              <line x1="2" y1="2" x2="8" y2="8"/><line x1="8" y1="2" x2="2" y2="8"/>
+            </svg>
+          </button>
+        )}
+        <button className={`fsel-btn${open ? ' open' : ''}`} onClick={() => setOpen(o => !o)}>
+          {!selected && <span>{placeholder}</span>}
+          <svg className="fsel-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+      </div>
+      {open && (
+        <div className="fsel-panel">
+          {items.map(item => (
+            <button
+              key={item.id}
+              className={`fsel-option${item.id === value ? ' active' : ''}`}
+              onClick={() => { onChange(item.id); setOpen(false) }}
+            >
+              {item.color && <span className="fsel-dot" style={{ background: item.color }} />}
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── PAGE ──────────────────────────────────────────────────────────────────────
 
 export default function Feed() {
@@ -744,12 +798,12 @@ export default function Feed() {
             <div id="sp-feed-filters" className={`filters-sticky${filtersScrolled ? ' scrolled' : ''}`}>
               <div className="filters-block">
                 {/* Row 1: categories */}
-                <div className="cats-scroll">
-                  {CATEGORIES.map(c => (
-                    <button key={c.id} className={`cat-pill${cat === c.id ? ' active' : ''}`}
-                      onClick={() => setCat(c.id)}>{c.label}</button>
-                  ))}
-                </div>
+                <FilterSelect
+                  items={CATEGORIES}
+                  value={cat}
+                  onChange={setCat}
+                  placeholder="Категории"
+                />
 
                 {/* Row 2: modes + sort in one row */}
                 <div className="filters-mode-row">
@@ -799,35 +853,25 @@ export default function Feed() {
           <>
             <div className={`filters-sticky${filtersScrolled ? ' scrolled' : ''}`}>
               <div className="filters-block">
-                {/* Row 1: categories (disabled if no promo items in that category) */}
-                <div className="cats-scroll">
-                  {CATEGORIES.map(c => (
-                    <button
-                      key={c.id}
-                      className={`cat-pill${promoCat === c.id ? ' active' : ''}${c.id !== 'all' && !PROMO_CATS_WITH_ITEMS.has(c.id) ? ' empty' : ''}`}
-                      onClick={() => handlePromoCat(c.id)}
-                    >{c.label}</button>
-                  ))}
-                </div>
+                {/* Row 1: categories */}
+                <FilterSelect
+                  items={CATEGORIES.filter(c => c.id === 'all' || PROMO_CATS_WITH_ITEMS.has(c.id))}
+                  value={promoCat}
+                  onChange={handlePromoCat}
+                  placeholder="Категории"
+                />
 
-                {/* Row 1.5: company chips — appear when category selected */}
+                {/* Row 1.5: companies — appear when category selected */}
                 {promoCat !== 'all' && companies[promoCat]?.list?.length > 0 && (
-                  <div className="cats-scroll promo-company-row">
-                    <button
-                      className={`cat-pill cat-pill--co${promoCompany === 'all' ? ' active' : ''}`}
-                      onClick={() => setPromoCompany('all')}
-                    >Все</button>
-                    {companies[promoCat].list.map(c => (
-                      <button
-                        key={c.id}
-                        className={`cat-pill cat-pill--co${promoCompany === c.id ? ' active' : ''}`}
-                        onClick={() => setPromoCompany(c.id)}
-                      >
-                        <span className="co-pill-dot" style={{ background: c.color }} />
-                        {c.name}
-                      </button>
-                    ))}
-                  </div>
+                  <FilterSelect
+                    items={[
+                      { id: 'all', label: 'Все компании' },
+                      ...companies[promoCat].list.map(c => ({ id: c.id, label: c.name, color: c.color }))
+                    ]}
+                    value={promoCompany}
+                    onChange={setPromoCompany}
+                    placeholder="Компании"
+                  />
                 )}
 
                 {/* Row 2: content type + company scope with visual separator */}
