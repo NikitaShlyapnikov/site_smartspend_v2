@@ -6698,14 +6698,23 @@ body.dark .promo-empty-btn { background: #6AAF8E; }
   color: #fff;
 }
 
+/* Step transition animation */
+.cpicker-step-anim { animation-duration: 0.22s; animation-timing-function: ease; animation-fill-mode: both; }
+.cpicker-step-anim--fwd  { animation-name: stepFwd; }
+.cpicker-step-anim--back { animation-name: stepBack; }
+@keyframes stepFwd  { from { opacity: 0; transform: translateX(22px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes stepBack { from { opacity: 0; transform: translateX(-22px); } to { opacity: 1; transform: translateX(0); } }
+
 /* Reset row */
 .cpicker-reset-row {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
   margin-top: 16px; padding: 10px 14px;
   background: var(--surface-2); border: 1px solid var(--border);
   border-radius: var(--r-sm);
   font-size: 13px; color: var(--text-2);
 }
+.cpicker-reset-confirm-text { font-weight: 500; color: var(--text); }
+.cpicker-reset-confirm-btns { display: flex; gap: 8px; }
 .cpicker-reset-btn {
   background: none; border: none; padding: 0;
   font-size: 13px; font-weight: 600; color: var(--accent-green);
@@ -6713,6 +6722,68 @@ body.dark .promo-empty-btn { background: #6AAF8E; }
   transition: opacity 0.12s;
 }
 .cpicker-reset-btn:hover { opacity: 0.7; }
+.cpicker-reset-btn--cancel { color: var(--text-3); }
+.cpicker-reset-btn--danger { color: #B85555; }
+
+/* Tutorial overlay */
+.cpicker-tutorial-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  animation: overlayIn 0.2s ease;
+}
+body.app-body .cpicker-tutorial-overlay { left: 240px; }
+body.app-body.sidebar-collapsed .cpicker-tutorial-overlay { left: 56px; }
+@media (max-width: 768px) {
+  body.app-body .cpicker-tutorial-overlay,
+  body.app-body.sidebar-collapsed .cpicker-tutorial-overlay { left: 0; }
+}
+.cpicker-tutorial-card {
+  background: var(--surface);
+  border-radius: 20px; padding: 28px 24px 24px;
+  width: 100%; max-width: 340px; margin: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  animation: sheetUp 0.25s cubic-bezier(0.34, 1.3, 0.64, 1);
+}
+.cpicker-tutorial-title {
+  font-size: 18px; font-weight: 700; color: var(--text);
+  letter-spacing: -0.02em; text-align: center; margin-bottom: 24px;
+}
+.cpicker-tutorial-demos {
+  display: flex; align-items: stretch; gap: 0;
+  margin-bottom: 24px;
+}
+.cpicker-tutorial-demo {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 0 12px;
+}
+.cpicker-tutorial-sep {
+  width: 1px; background: var(--border); margin: 0 4px;
+}
+.cpicker-tutorial-demo-icon {
+  width: 56px; height: 56px; border-radius: 16px;
+  background: var(--accent-green-light); border: 1px solid var(--accent-green-border);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 4px;
+}
+.cpicker-tutorial-demo-icon--hold {
+  background: #EEF0FF; border-color: #C7D0F8;
+}
+body.dark .cpicker-tutorial-demo-icon--hold { background: #1A1C3A; border-color: #3040A0; }
+.cpicker-tutorial-demo-label {
+  font-size: 14px; font-weight: 700; color: var(--text); letter-spacing: -0.01em;
+}
+.cpicker-tutorial-demo-desc {
+  font-size: 12px; color: var(--text-3); text-align: center; line-height: 1.4;
+}
+.cpicker-tutorial-btn {
+  width: 100%; padding: 13px;
+  background: var(--accent-green); border: none; border-radius: var(--r-sm);
+  color: #fff; font-family: var(--sans); font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: opacity 0.15s; letter-spacing: -0.01em;
+}
+.cpicker-tutorial-btn:hover { opacity: 0.88; }
+body.dark .cpicker-tutorial-btn { background: #6AAF8E; }
 
 /* Actions */
 .cpicker-actions {

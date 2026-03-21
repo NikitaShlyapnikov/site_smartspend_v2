@@ -9,6 +9,23 @@ const CATEGORY_ORDER = [
 ]
 const HOLD_MS = 500
 
+const FLOAT_MAX = { coupons: 5, events: 3, broadcast: 1 }
+
+function floatLabel(type, n) {
+  if (type === 'coupons') {
+    const m = n % 10, c = n % 100
+    if (c >= 11 && c <= 14) return 'купонов'
+    if (m === 1) return 'купон'; if (m >= 2 && m <= 4) return 'купона'; return 'купонов'
+  }
+  if (type === 'events') {
+    const m = n % 10, c = n % 100
+    if (c >= 11 && c <= 14) return 'акций'
+    if (m === 1) return 'акция'; if (m >= 2 && m <= 4) return 'акции'; return 'акций'
+  }
+  if (type === 'broadcast') return 'рассылка'
+  return type
+}
+
 function loadSelected() {
   try { return new Set(JSON.parse(localStorage.getItem('ss_companies') || '[]')) }
   catch { return new Set() }
@@ -167,7 +184,13 @@ function CompanyCard({ company, selected, onToggle, onInfo }) {
     onToggle(company.id)
     setBouncing(true)
     const id = Date.now() + Math.random()
-    setFloats(f => [...f, { id, wasSelected, types: company.promoTypes || [] }])
+    const tags = wasSelected
+      ? [{ type: 'remove', label: 'убрано' }]
+      : (company.promoTypes || []).map(t => {
+          const count = Math.floor(Math.random() * (FLOAT_MAX[t] || 1)) + 1
+          return { type: t, label: `+${count} ${floatLabel(t, count)}` }
+        })
+    setFloats(f => [...f, { id, tags }])
     setTimeout(() => setFloats(f => f.filter(x => x.id !== id)), 950)
   }
 
@@ -197,32 +220,67 @@ function CompanyCard({ company, selected, onToggle, onInfo }) {
 
       {floats.map(f => (
         <div key={f.id} className="cpicker-float">
-          {f.wasSelected
-            ? <span className="cpicker-float-tag cpicker-float-tag--remove">убрано</span>
-            : f.types.map(t => (
-                <span key={t} className={`cpicker-float-tag cpicker-float-tag--${t}`}>
-                  {TYPE_META[t]?.label}
-                </span>
-              ))
-          }
+          {f.tags.map((tag, i) => (
+            <span key={i} className={`cpicker-float-tag cpicker-float-tag--${tag.type}`}>
+              {tag.label}
+            </span>
+          ))}
         </div>
       ))}
     </button>
   )
 }
 
+// ── TUTORIAL ──────────────────────────────────────────────────────────────────
+
+function Tutorial({ onDismiss }) {
+  return (
+    <div className="cpicker-tutorial-overlay" onPointerDown={onDismiss}>
+      <div className="cpicker-tutorial-card" onPointerDown={e => e.stopPropagation()}>
+        <div className="cpicker-tutorial-title">Как пользоваться</div>
+        <div className="cpicker-tutorial-demos">
+          <div className="cpicker-tutorial-demo">
+            <div className="cpicker-tutorial-demo-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+              </svg>
+            </div>
+            <div className="cpicker-tutorial-demo-label">Нажмите</div>
+            <div className="cpicker-tutorial-demo-desc">чтобы выбрать компанию</div>
+          </div>
+          <div className="cpicker-tutorial-sep"/>
+          <div className="cpicker-tutorial-demo">
+            <div className="cpicker-tutorial-demo-icon cpicker-tutorial-demo-icon--hold">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#818CF8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
+            <div className="cpicker-tutorial-demo-label">Удержите</div>
+            <div className="cpicker-tutorial-demo-desc">чтобы узнать подробнее</div>
+          </div>
+        </div>
+        <button className="cpicker-tutorial-btn" onClick={onDismiss}>Понятно</button>
+      </div>
+    </div>
+  )
+}
+
 // ── WIZARD STEP ───────────────────────────────────────────────────────────────
 
 function WizardStep({ catKey, selected, onToggle, onInfo, onReset }) {
+  const [confirmReset, setConfirmReset] = useState(false)
   const cat = companies[catKey]
   if (!cat) return null
+
+  function handleReset() {
+    onReset()
+    setConfirmReset(false)
+  }
+
   return (
     <div className="cpicker-step">
-      <div className="cpicker-step-label">Категория</div>
+      <div className="cpicker-step-label">Шаг</div>
       <div className="cpicker-step-title">{cat.label}</div>
-      <div className="cpicker-step-hint">
-        Нажмите чтобы выбрать · удержите чтобы узнать подробнее
-      </div>
       <div className="cpicker-grid">
         {cat.list.map(c => (
           <CompanyCard
@@ -236,8 +294,20 @@ function WizardStep({ catKey, selected, onToggle, onInfo, onReset }) {
       </div>
       {selected.size > 0 && (
         <div className="cpicker-reset-row">
-          <span>Выбрано {selected.size} {cNoun(selected.size)}</span>
-          <button className="cpicker-reset-btn" onClick={onReset}>Сбросить всё</button>
+          {confirmReset ? (
+            <>
+              <span className="cpicker-reset-confirm-text">Сбросить все {selected.size} {cNoun(selected.size)}?</span>
+              <div className="cpicker-reset-confirm-btns">
+                <button className="cpicker-reset-btn cpicker-reset-btn--cancel" onClick={() => setConfirmReset(false)}>Отмена</button>
+                <button className="cpicker-reset-btn cpicker-reset-btn--danger" onClick={handleReset}>Да, сбросить</button>
+              </div>
+            </>
+          ) : (
+            <>
+              <span>Выбрано {selected.size} {cNoun(selected.size)}</span>
+              <button className="cpicker-reset-btn" onClick={() => setConfirmReset(true)}>Начать с начала</button>
+            </>
+          )}
         </div>
       )}
     </div>
@@ -316,8 +386,17 @@ export default function CompanyPicker() {
   const isEdit = location.state?.edit === true
 
   const [step, setStep]         = useState(0)
+  const [dir, setDir]           = useState(1)
   const [selected, setSelected] = useState(loadSelected)
   const [infoCompany, setInfoCompany] = useState(null)
+  const [showTutorial, setShowTutorial] = useState(
+    () => !localStorage.getItem('ss_cpicker_tutorial')
+  )
+
+  function dismissTutorial() {
+    localStorage.setItem('ss_cpicker_tutorial', '1')
+    setShowTutorial(false)
+  }
 
   const totalSteps = CATEGORY_ORDER.length
   const isLastStep = step === totalSteps - 1
@@ -332,11 +411,13 @@ export default function CompanyPicker() {
   }
 
   function goNext() {
+    setDir(1)
     if (isLastStep) { setStep(totalSteps); return }
     setStep(s => s + 1)
   }
 
   function goBack() {
+    setDir(-1)
     if (step === 0) { navigate(-1); return }
     if (isSummary) { setStep(totalSteps - 1); return }
     setStep(s => s - 1)
@@ -352,7 +433,7 @@ export default function CompanyPicker() {
     navigate('/feed', { state: { promo: true } })
   }
 
-  const progress = Math.round((step / totalSteps) * 100)
+  const progress = Math.round(((step + 1) / totalSteps) * 100)
 
   return (
     <Layout>
@@ -385,9 +466,11 @@ export default function CompanyPicker() {
           {/* Content */}
           <div className="cpicker-content">
             {isSummary ? (
-              <Summary selected={selected} onFinish={finish} onBack={goBack} />
+              <div key="summary" className="cpicker-step-anim cpicker-step-anim--fwd">
+                <Summary selected={selected} onFinish={finish} onBack={goBack} />
+              </div>
             ) : (
-              <>
+              <div key={step} className={`cpicker-step-anim cpicker-step-anim--${dir > 0 ? 'fwd' : 'back'}`}>
                 <WizardStep
                   catKey={CATEGORY_ORDER[step]}
                   selected={selected}
@@ -396,19 +479,20 @@ export default function CompanyPicker() {
                   onReset={resetAll}
                 />
                 <div className="cpicker-actions">
-                  <button className="cpicker-btn-skip" onClick={goNext}>
-                    {isLastStep ? 'Пропустить' : 'Пропустить шаг'}
-                  </button>
+                  <button className="cpicker-btn-back" onClick={goBack}>← Назад</button>
                   <button className="cpicker-btn-next" onClick={goNext}>
-                    {isLastStep ? 'Готово' : 'Далее'}
+                    {isLastStep ? 'Готово' : 'Далее →'}
                   </button>
                 </div>
-              </>
+              </div>
             )}
           </div>
 
         </div>
       </main>
+
+      {/* Tutorial */}
+      {showTutorial && <Tutorial onDismiss={dismissTutorial} />}
 
       {/* Info sheet */}
       {infoCompany && (
