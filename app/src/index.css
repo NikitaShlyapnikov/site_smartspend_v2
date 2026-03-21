@@ -6672,6 +6672,25 @@ body.dark .feed-section-card.active.promo    { background: #A86828; border-color
 .promo-empty-btn:hover { opacity: 0.88; }
 body.dark .promo-empty-btn { background: #6AAF8E; }
 
+/* ── PROMO TYPE TABS ── */
+.promo-type-tabs {
+  display: flex; border-radius: var(--r-sm);
+  border: 1px solid var(--border); overflow: hidden;
+}
+.promo-type-tab {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 6px; background: var(--surface); border: none;
+  border-right: 1px solid var(--border);
+  font-size: 13px; font-weight: 500; color: var(--text-2);
+  cursor: pointer; font-family: var(--sans); transition: all 0.15s;
+}
+.promo-type-tab:last-child { border-right: none; }
+.promo-type-tab:hover:not(.active) { background: var(--surface-2); color: var(--text); }
+.promo-type-tab.active {
+  background: var(--text); color: var(--surface); font-weight: 600;
+}
+body.dark .promo-type-tab.active { background: var(--accent-green); color: #fff; }
+
 /* ── WHISPER SECTION ── */
 .whisper-toolbar {
   display: flex; align-items: center; gap: 10px;
@@ -6726,7 +6745,22 @@ body.dark .wh-question { background: #2A2208; color: #C8A830; border-color: #4A3
   color: var(--text);
 }
 
-.whisper-vote-row { display: flex; align-items: center; gap: 8px; }
+.whisper-first-check {
+  font-size: 11px; color: var(--text-3); font-style: italic;
+  padding: 2px 0;
+}
+.whisper-vote-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.whisper-vote-toast {
+  font-size: 11px; font-weight: 500; padding: 3px 8px;
+  border-radius: 10px; white-space: nowrap;
+  animation: wvt-in 0.18s ease, wvt-out 0.3s ease 1.6s forwards;
+}
+.wvt-works { background: #E8F5EE; color: #3A7A56; }
+.wvt-not   { background: #FBE8E8; color: #A03030; }
+body.dark .wvt-works { background: #0E2A1A; color: #6AAF8E; }
+body.dark .wvt-not   { background: #2A0E0E; color: #C86060; }
+@keyframes wvt-in  { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+@keyframes wvt-out { from { opacity: 1; } to { opacity: 0; } }
 .whisper-vote-btn {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 5px 10px; border-radius: 20px;

@@ -629,12 +629,24 @@ function whisperStatus(works, notWorks) {
 
 function WhisperCard({ item, myVote, onVote }) {
   const company = COMPANY_MAP[item.companyId]
-  const [copied, setCopied] = useState(false)
+  const [copied,    setCopied]    = useState(false)
+  const [voteToast, setVoteToast] = useState(null)
+  const toastTimer = useRef(null)
 
   const displayHistory = myVote ? [...item.history, myVote === 'works' ? 'w' : 'n'] : item.history
   const works    = displayHistory.filter(v => v === 'w').length
   const notWorks = displayHistory.filter(v => v === 'n').length
   const status   = whisperStatus(works, notWorks)
+
+  function handleVote(vote) {
+    const isToggleOff = myVote === vote
+    onVote(item.id, vote)
+    if (!isToggleOff) {
+      setVoteToast(vote)
+      clearTimeout(toastTimer.current)
+      toastTimer.current = setTimeout(() => setVoteToast(null), 2000)
+    }
+  }
 
   function copyCode(e) {
     e.stopPropagation()
@@ -694,27 +706,36 @@ function WhisperCard({ item, myVote, onVote }) {
         </div>
       )}
 
+      {displayHistory.length === 0 && !myVote && (
+        <div className="whisper-first-check">Будь первым, кто проверит</div>
+      )}
+
       <div className="whisper-vote-row">
         <button
           className={`whisper-vote-btn wvb-works${myVote === 'works' ? ' active' : ''}`}
-          onClick={() => onVote(item.id, 'works')}
+          onClick={() => handleVote('works')}
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill={myVote === 'works' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
             <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
           </svg>
-          Работает {works}
+          Работает{works > 0 ? ` ${works}` : ''}
         </button>
         <button
           className={`whisper-vote-btn wvb-not${myVote === 'not' ? ' active' : ''}`}
-          onClick={() => onVote(item.id, 'not')}
+          onClick={() => handleVote('not')}
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill={myVote === 'not' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
             <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
           </svg>
-          Не работает {notWorks}
+          Не работает{notWorks > 0 ? ` ${notWorks}` : ''}
         </button>
+        {voteToast && (
+          <span className={`whisper-vote-toast${voteToast === 'works' ? ' wvt-works' : ' wvt-not'}`}>
+            {voteToast === 'works' ? 'Голос учтён' : 'Спасибо за проверку'}
+          </span>
+        )}
       </div>
     </div>
   )
@@ -1268,18 +1289,37 @@ export default function Feed() {
                   ) : null
                 })()}
 
-                {/* Row 2: content type + company scope with visual separator */}
+                {/* Row 2: section tabs */}
+                <div className="promo-type-tabs">
+                  <button className={`promo-type-tab${promoType === 'broadcast' ? ' active' : ''}`}
+                    onClick={() => setPromoType('broadcast')}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.8a16 16 0 0 0 6 6l.85-.85a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.45 16a2 2 0 0 1 .47.92z"/>
+                    </svg>
+                    Рассылка
+                  </button>
+                  <button className={`promo-type-tab${promoType === 'events' ? ' active' : ''}`}
+                    onClick={() => setPromoType('events')}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                      <line x1="7" y1="7" x2="7.01" y2="7"/>
+                    </svg>
+                    Акции
+                  </button>
+                  <button className={`promo-type-tab${promoType === 'whisper' ? ' active' : ''}`}
+                    onClick={() => setPromoType('whisper')}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+                      <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+                    </svg>
+                    Подслушано
+                  </button>
+                </div>
+
+                {/* Row 3: scope (only for broadcast/events) */}
+                {promoType !== 'whisper' && (
                 <div className="filters-mode-row">
-                  <div className="tab-group">
-                    <button className={`tab-btn${promoType === 'broadcast' ? ' active' : ''}`}
-                      onClick={() => setPromoType('broadcast')}>Рассылка</button>
-                    <button className={`tab-btn${promoType === 'events' ? ' active' : ''}`}
-                      onClick={() => setPromoType('events')}>Акции</button>
-                    <button className={`tab-btn${promoType === 'whisper' ? ' active' : ''}`}
-                      onClick={() => setPromoType('whisper')}>Подслушано</button>
-                  </div>
-                  {promoType === 'whisper' && <span style={{ flex: 1 }} />}
-                  <div className="promo-scope-row" style={{ display: promoType === 'whisper' ? 'none' : undefined }}>
+                  <div className="promo-scope-row">
                     <div className="tab-group">
                       <button className={`tab-btn${promoScope === 'mine' ? ' active' : ''}`}
                         onClick={() => setPromoScope('mine')}>Мои компании</button>
@@ -1298,8 +1338,9 @@ export default function Feed() {
                     </button>
                   </div>
                 </div>
+                )}
 
-                {/* Row 3: acts filters with entry animation */}
+                {/* Row 4: acts filters with entry animation */}
                 {promoType === 'events' && (
                   <div className="cats-scroll filters-acts-row">
                     {ACTS_FILTERS.map(f => (
