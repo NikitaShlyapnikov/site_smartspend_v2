@@ -893,11 +893,21 @@ export const articles = [
 
 export const companies = {
   food:      { label: 'Еда и Супермаркеты',        list: [
-    { id: 'c-perekrestok', name: 'Перекрёсток',  abbr: 'Пе', color: '#4E8268', desc: 'Сеть супермаркетов с широким ассортиментом продуктов, кулинарией и готовыми блюдами. Карта лояльности с кешбэком.', promoTypes: ['events','broadcast'] },
-    { id: 'c-magnit',      name: 'Магнит',        abbr: 'Ма', color: '#DA4040', desc: 'Крупнейшая розничная сеть России. Магазины у дома, супермаркеты и аптеки по всей стране.', promoTypes: ['coupons','events'] },
-    { id: 'c-vkusvill',    name: 'ВкусВилл',      abbr: 'Вк', color: '#6DB880', desc: 'Натуральные продукты без лишних добавок. Акции на фермерские товары, молочку и заморозку.', promoTypes: ['coupons','broadcast'] },
-    { id: 'c-lenta',       name: 'Лента',          abbr: 'Ле', color: '#C8A840', desc: 'Гипермаркеты и супермаркеты по всей России. Клубная карта со скидками и кешбэком.', promoTypes: ['events','broadcast'] },
-    { id: 'c-samokat',     name: 'Самокат',        abbr: 'Са', color: '#F04060', desc: 'Доставка продуктов за 15 минут прямо домой. Купоны на первый заказ и регулярные акции.', promoTypes: ['coupons','events'] },
+    { id: 'c-perekrestok',  name: 'Перекрёсток',  abbr: 'Пе', color: '#4E8268', desc: 'Сеть супермаркетов с широким ассортиментом продуктов, кулинарией и готовыми блюдами. Карта лояльности с кешбэком.', promoTypes: ['events','broadcast'] },
+    { id: 'c-magnit',       name: 'Магнит',        abbr: 'Ма', color: '#DA4040', desc: 'Крупнейшая розничная сеть России. Магазины у дома, супермаркеты и аптеки по всей стране.', promoTypes: ['coupons','events'] },
+    { id: 'c-vkusvill',     name: 'ВкусВилл',      abbr: 'Вк', color: '#6DB880', desc: 'Натуральные продукты без лишних добавок. Акции на фермерские товары, молочку и заморозку.', promoTypes: ['coupons','broadcast'] },
+    { id: 'c-lenta',        name: 'Лента',          abbr: 'Ле', color: '#C8A840', desc: 'Гипермаркеты и супермаркеты по всей России. Клубная карта со скидками и кешбэком.', promoTypes: ['events','broadcast'] },
+    { id: 'c-samokat',      name: 'Самокат',        abbr: 'Са', color: '#F04060', desc: 'Доставка продуктов за 15 минут прямо домой. Купоны на первый заказ и регулярные акции.', promoTypes: ['coupons','events'] },
+    { id: 'c-pyaterochka',  name: 'Пятёрочка',     abbr: 'Пя', color: '#C83030', desc: 'Магазины у дома от X5 Group. Клубная карта и промо-купоны каждую неделю на продукты.', promoTypes: ['events','coupons'] },
+    { id: 'c-ashan',        name: 'АШАН',           abbr: 'АШ', color: '#DA4820', desc: 'Французская сеть гипермаркетов. Большой выбор, собственные торговые марки и ежедневные акции.', promoTypes: ['events','broadcast'] },
+    { id: 'c-metro',        name: 'Метро',          abbr: 'Ме', color: '#1A3A8A', desc: 'Оптовая сеть для бизнеса и частных покупателей. Товары крупным объёмом по низкой цене.', promoTypes: ['events','coupons'] },
+    { id: 'c-okmarket',     name: "О'кей",          abbr: 'ОК', color: '#E07028', desc: 'Гипермаркеты и супермаркеты. Широкий ассортимент, клубная карта и кешбэк на покупки.', promoTypes: ['events','broadcast'] },
+    { id: 'c-azbuka',       name: 'Азбука Вкуса',  abbr: 'АВ', color: '#2A2A2A', desc: 'Премиальные супермаркеты с редкими продуктами, фермерскими товарами и авторской кулинарией.', promoTypes: ['events','broadcast'] },
+    { id: 'c-miratorg',     name: 'Мираторг',       abbr: 'Мт', color: '#8A2020', desc: 'Крупнейший производитель мяса в России. Фирменные магазины с акциями на стейки и деликатесы.', promoTypes: ['events','coupons'] },
+    { id: 'c-sbermarket',   name: 'СберМаркет',     abbr: 'СМ', color: '#22C870', desc: 'Доставка продуктов из лучших супермаркетов за час. Кешбэк СберСпасибо и скидки для новых клиентов.', promoTypes: ['coupons','events'] },
+    { id: 'c-yandex-lavka', name: 'Яндекс Лавка',  abbr: 'ЯЛ', color: '#D4B010', desc: 'Экспресс-доставка продуктов за 15 минут. Свежие товары, уникальные позиции и регулярные промо.', promoTypes: ['coupons','events'] },
+    { id: 'c-fixprice',     name: 'Fix Price',       abbr: 'FP', color: '#2050A0', desc: 'Магазины фиксированных низких цен. Продукты, снеки и бытовые товары по единой цене.', promoTypes: ['events','coupons'] },
+    { id: 'c-globus',       name: 'Глобус',          abbr: 'Гл', color: '#3A7A50', desc: 'Немецкая сеть гипермаркетов с высоким стандартом качества. Собственное производство и акции.', promoTypes: ['events','broadcast'] },
   ]},
   cafe:      { label: 'Кафе, Бары, Рестораны',     list: [
     { id: 'c-vkusno',   name: 'Вкусно и точка',  abbr: 'Вт', color: '#DA4040', desc: 'Российская сеть фастфуда, бывший McDonald\'s. Бургеры, картошка, завтраки и наборы.', promoTypes: ['events','coupons'] },

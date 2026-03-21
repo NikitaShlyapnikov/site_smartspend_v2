@@ -6698,6 +6698,22 @@ body.dark .promo-empty-btn { background: #6AAF8E; }
   color: #fff;
 }
 
+/* Reset row */
+.cpicker-reset-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 16px; padding: 10px 14px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  font-size: 13px; color: var(--text-2);
+}
+.cpicker-reset-btn {
+  background: none; border: none; padding: 0;
+  font-size: 13px; font-weight: 600; color: var(--accent-green);
+  cursor: pointer; font-family: var(--sans);
+  transition: opacity 0.12s;
+}
+.cpicker-reset-btn:hover { opacity: 0.7; }
+
 /* Actions */
 .cpicker-actions {
   display: flex; gap: 10px;
@@ -6736,7 +6752,6 @@ body.dark .cpicker-check { background: #6AAF8E; }
 body.dark .cpicker-progress-bar { background: #6AAF8E; }
 
 /* Hold progress bar */
-.cpicker-company { overflow: hidden; }
 .cpicker-company::after {
   content: '';
   position: absolute;
@@ -6775,6 +6790,40 @@ body.dark .cpicker-progress-bar { background: #6AAF8E; }
   to { stroke-dashoffset: 0; }
 }
 
+/* Floating feedback text */
+.cpicker-float {
+  position: absolute;
+  bottom: calc(100% + 5px);
+  left: 50%;
+  pointer-events: none;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  animation: floatUp 0.9s ease-out forwards;
+}
+@keyframes floatUp {
+  0%   { opacity: 0;   transform: translateX(-50%) translateY(4px); }
+  18%  { opacity: 1;   transform: translateX(-50%) translateY(0); }
+  65%  { opacity: 1;   transform: translateX(-50%) translateY(-20px); }
+  100% { opacity: 0;   transform: translateX(-50%) translateY(-36px); }
+}
+.cpicker-float-tag {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.03em;
+  padding: 2px 8px; border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.cpicker-float-tag--coupons   { background: #F9C96A; color: #7A4A00; }
+.cpicker-float-tag--events    { background: #818CF8; color: #fff; }
+.cpicker-float-tag--broadcast { background: #4ADE80; color: #064E1A; }
+.cpicker-float-tag--remove    { background: #E0E0DC; color: #888; }
+body.dark .cpicker-float-tag--coupons   { background: #7A5010; color: #D4A050; }
+body.dark .cpicker-float-tag--events    { background: #3040A0; color: #818CF8; }
+body.dark .cpicker-float-tag--broadcast { background: #166534; color: #4ADE80; }
+body.dark .cpicker-float-tag--remove    { background: #2A2A28; color: #666; }
+
 /* Holding visual state */
 .cpicker-company.holding {
   border-color: var(--accent-green-border);
@@ -6789,6 +6838,12 @@ body.dark .cpicker-progress-bar { background: #6AAF8E; }
   background: rgba(0,0,0,0.45);
   display: flex; align-items: flex-end; justify-content: center;
   animation: overlayIn 0.18s ease;
+}
+body.app-body .info-sheet-overlay { left: 240px; }
+body.app-body.sidebar-collapsed .info-sheet-overlay { left: 56px; }
+@media (max-width: 768px) {
+  body.app-body .info-sheet-overlay,
+  body.app-body.sidebar-collapsed .info-sheet-overlay { left: 0; }
 }
 @keyframes overlayIn {
   from { opacity: 0; }

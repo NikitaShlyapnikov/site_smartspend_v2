@@ -118,6 +118,7 @@ function CompanyInfoSheet({ company, selected, onToggle, onClose }) {
 function CompanyCard({ company, selected, onToggle, onInfo }) {
   const [holding, setHolding] = useState(false)
   const [bouncing, setBouncing] = useState(false)
+  const [floats, setFloats] = useState([])
   const holdTimer = useRef(null)
   const firedRef  = useRef(false)
   const startPos  = useRef(null)
@@ -162,8 +163,12 @@ function CompanyCard({ company, selected, onToggle, onInfo }) {
 
   function handleClick() {
     if (firedRef.current) { firedRef.current = false; return }
+    const wasSelected = selected
     onToggle(company.id)
     setBouncing(true)
+    const id = Date.now() + Math.random()
+    setFloats(f => [...f, { id, wasSelected, types: company.promoTypes || [] }])
+    setTimeout(() => setFloats(f => f.filter(x => x.id !== id)), 950)
   }
 
   return (
@@ -189,13 +194,26 @@ function CompanyCard({ company, selected, onToggle, onInfo }) {
           </svg>
         </div>
       )}
+
+      {floats.map(f => (
+        <div key={f.id} className="cpicker-float">
+          {f.wasSelected
+            ? <span className="cpicker-float-tag cpicker-float-tag--remove">убрано</span>
+            : f.types.map(t => (
+                <span key={t} className={`cpicker-float-tag cpicker-float-tag--${t}`}>
+                  {TYPE_META[t]?.label}
+                </span>
+              ))
+          }
+        </div>
+      ))}
     </button>
   )
 }
 
 // ── WIZARD STEP ───────────────────────────────────────────────────────────────
 
-function WizardStep({ catKey, selected, onToggle, onInfo }) {
+function WizardStep({ catKey, selected, onToggle, onInfo, onReset }) {
   const cat = companies[catKey]
   if (!cat) return null
   return (
@@ -216,6 +234,12 @@ function WizardStep({ catKey, selected, onToggle, onInfo }) {
           />
         ))}
       </div>
+      {selected.size > 0 && (
+        <div className="cpicker-reset-row">
+          <span>Выбрано {selected.size} {cNoun(selected.size)}</span>
+          <button className="cpicker-reset-btn" onClick={onReset}>Сбросить всё</button>
+        </div>
+      )}
     </div>
   )
 }
@@ -318,6 +342,10 @@ export default function CompanyPicker() {
     setStep(s => s - 1)
   }
 
+  function resetAll() {
+    setSelected(new Set())
+  }
+
   function finish() {
     saveSelected(selected)
     localStorage.setItem('ss_promo_setup', '1')
@@ -365,6 +393,7 @@ export default function CompanyPicker() {
                   selected={selected}
                   onToggle={toggle}
                   onInfo={setInfoCompany}
+                  onReset={resetAll}
                 />
                 <div className="cpicker-actions">
                   <button className="cpicker-btn-skip" onClick={goNext}>
