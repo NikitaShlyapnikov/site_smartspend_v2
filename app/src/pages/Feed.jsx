@@ -1267,58 +1267,18 @@ export default function Feed() {
           <>
             <div className={`filters-sticky${filtersScrolled ? ' scrolled' : ''}`}>
               <div className="filters-block">
-                {/* Row 1: categories */}
-                <FilterSelect
-                  items={CATEGORIES.filter(c => c.id === 'all' || PROMO_CATS_WITH_ITEMS.has(c.id))}
-                  value={promoCat}
-                  onChange={handlePromoCat}
-                  placeholder="Категории"
-                />
-
-                {/* Row 1.5: companies — appear when category selected */}
-                {promoCat.size > 0 && (() => {
-                  const coItems = [...promoCat].flatMap(catId => companies[catId]?.list || [])
-                    .map(c => ({ id: c.id, label: c.name, color: c.color }))
-                  return coItems.length > 0 ? (
-                    <FilterSelect
-                      items={coItems}
-                      value={promoCompany}
-                      onChange={handlePromoCompany}
-                      placeholder="Компании"
-                    />
-                  ) : null
-                })()}
-
-                {/* Row 2: section tabs */}
+                {/* Row 1: section tabs */}
                 <div className="promo-type-tabs">
                   <button className={`promo-type-tab${promoType === 'broadcast' ? ' active' : ''}`}
-                    onClick={() => setPromoType('broadcast')}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.8a16 16 0 0 0 6 6l.85-.85a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.45 16a2 2 0 0 1 .47.92z"/>
-                    </svg>
-                    Рассылка
-                  </button>
+                    onClick={() => setPromoType('broadcast')}>Рассылка</button>
                   <button className={`promo-type-tab${promoType === 'events' ? ' active' : ''}`}
-                    onClick={() => setPromoType('events')}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-                      <line x1="7" y1="7" x2="7.01" y2="7"/>
-                    </svg>
-                    Акции
-                  </button>
+                    onClick={() => setPromoType('events')}>Акции</button>
                   <button className={`promo-type-tab${promoType === 'whisper' ? ' active' : ''}`}
-                    onClick={() => setPromoType('whisper')}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
-                      <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
-                    </svg>
-                    Подслушано
-                  </button>
+                    onClick={() => setPromoType('whisper')}>Подслушано</button>
                 </div>
 
-                {/* Row 3: scope (only for broadcast/events) */}
+                {/* Row 2: scope — only for broadcast/events */}
                 {promoType !== 'whisper' && (
-                <div className="filters-mode-row">
                   <div className="promo-scope-row">
                     <div className="tab-group">
                       <button className={`tab-btn${promoScope === 'mine' ? ' active' : ''}`}
@@ -1337,10 +1297,31 @@ export default function Feed() {
                       Изменить
                     </button>
                   </div>
-                </div>
                 )}
 
-                {/* Row 4: acts filters with entry animation */}
+                {/* Row 3: category filter */}
+                <FilterSelect
+                  items={CATEGORIES.filter(c => c.id === 'all' || PROMO_CATS_WITH_ITEMS.has(c.id))}
+                  value={promoCat}
+                  onChange={handlePromoCat}
+                  placeholder="Категории"
+                />
+
+                {/* Row 3.5: companies — appear when category selected */}
+                {promoCat.size > 0 && (() => {
+                  const coItems = [...promoCat].flatMap(catId => companies[catId]?.list || [])
+                    .map(c => ({ id: c.id, label: c.name, color: c.color }))
+                  return coItems.length > 0 ? (
+                    <FilterSelect
+                      items={coItems}
+                      value={promoCompany}
+                      onChange={handlePromoCompany}
+                      placeholder="Компании"
+                    />
+                  ) : null
+                })()}
+
+                {/* Row 4: acts sub-filter */}
                 {promoType === 'events' && (
                   <div className="cats-scroll filters-acts-row">
                     {ACTS_FILTERS.map(f => (
@@ -1350,7 +1331,7 @@ export default function Feed() {
                   </div>
                 )}
 
-                {/* Filter summary — shown inside sticky block */}
+                {/* Filter summary */}
                 {hasPromoFilters && (
                   <div className="filter-summary">
                     <span>{promoCount} {noun(promoCount)}</span>

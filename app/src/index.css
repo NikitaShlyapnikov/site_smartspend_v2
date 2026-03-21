@@ -6544,9 +6544,6 @@ body.dark .feed-section-card.active.promo    { background: #A86828; border-color
 /* Promo scope row (мои/все компании + gear button) */
 .promo-scope-row {
   display: flex; align-items: center; gap: 8px;
-  padding-left: 12px;
-  border-left: 1px solid var(--border);
-  flex-shrink: 0;
 }
 .promo-settings-btn {
   display: flex; align-items: center; gap: 5px;
