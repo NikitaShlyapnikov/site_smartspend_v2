@@ -247,16 +247,17 @@ export default function Article() {
   const [toast, setToast] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [showAddToSet, setShowAddToSet] = useState(false)
-  const [reactions, setReactions] = useState(() =>
-    (article?.reactions?.length ? article.reactions : [{ emoji: '🔥', count: 14 }, { emoji: '💡', count: 8 }, { emoji: '😍', count: 5 }]).map(r => ({ ...r }))
-  )
   const [myReactions, setMyReactions] = useState(new Set())
   const [showPicker, setShowPicker] = useState(false)
   const [noteText, setNoteText] = useState(() => { try { return localStorage.getItem(`ss_note_${id}`) || '' } catch { return '' } })
   const [showNote, setShowNote] = useState(false)
+  const [reactions, setReactions] = useState(() => {
+    const found = articles.find(a => a.id === id)
+    const src = found?.reactions?.length ? found.reactions : [{ emoji: '🔥', count: 14 }, { emoji: '💡', count: 8 }, { emoji: '😍', count: 5 }]
+    return src.map(r => ({ ...r }))
+  })
 
   const isMine = isMyArticle(id)
-
   const article = articles.find(a => a.id === id)
 
   if (!article) {
