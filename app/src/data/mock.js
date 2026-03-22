@@ -2,22 +2,22 @@
 export const feedAuthors = {
   a1: {
     name: 'Анна Соколова', initials: 'АС', color: '#7DAF92', following: true,
-    handle: '@anna_sokolova', followers: 4200, articles: 23,
+    handle: '@anna_sokolova', followers: 4200, articles: 23, sets: 8,
     desc: 'Пишу о правильном питании и осознанном потреблении. Веду наборы для здорового образа жизни.',
   },
   a2: {
     name: 'Максим Лебедев', initials: 'МЛ', color: '#8A9EB8', following: true,
-    handle: '@m_lebedev', followers: 2800, articles: 17,
+    handle: '@m_lebedev', followers: 2800, articles: 17, sets: 5,
     desc: 'Финансовый аналитик. Разбираю расходы на авто, технику и digital-сервисы.',
   },
   a3: {
     name: 'Оля Петрова', initials: 'ОП', color: '#C4A882', following: false,
-    handle: '@olya_p', followers: 1900, articles: 12,
+    handle: '@olya_p', followers: 1900, articles: 12, sets: 3,
     desc: 'Семейный бюджет с тремя детьми. Подписки, еда, одежда — всё без лишних трат.',
   },
   a4: {
     name: 'Иван Козлов', initials: 'ИК', color: '#B89AAE', following: false,
-    handle: '@i_kozlov', followers: 870, articles: 8,
+    handle: '@i_kozlov', followers: 870, articles: 8, sets: 2,
     desc: 'Бытовые расходы: химия, техника, ремонт. Где сэкономить без потери качества.',
   },
   anon:  {

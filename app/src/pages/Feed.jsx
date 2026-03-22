@@ -82,6 +82,7 @@ function AuthorPopoverCard({ author, authorId, navigate, onMouseEnter, onMouseLe
         <div className="ap-meta">
           {typeof author.followers === 'number' ? author.followers.toLocaleString('ru') : author.followers} подписчиков
           {author.articles > 0 && <> · {author.articles} статей</>}
+          {author.sets > 0 && <> · {author.sets} наборов</>}
         </div>
       )}
       {/* Row 4: description */}
@@ -148,7 +149,7 @@ function AuthorChip({ author, authorId, navigate }) {
   )
 }
 
-function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeToggle, onDislikeToggle, onBookmarkToggle, onClick, navigate }) {
+function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeToggle, onDislikeToggle, onBookmarkToggle, onCategoryClick, onClick, navigate }) {
   const author = feedAuthors[item.authorId]
   const catLabel = CATEGORIES.find(c => c.id === item.category)?.label
 
@@ -158,17 +159,21 @@ function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeTo
       <div className="fa-author-row">
         <AuthorChip author={author} authorId={item.authorId} navigate={navigate} />
         {catLabel && catLabel !== 'Все' && (
-          <><span className="fa-sep">·</span><span className="fa-category">{catLabel}</span></>
+          <>
+            <span className="fa-sep">·</span>
+            <button
+              className="fa-category"
+              onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}
+            >{catLabel}</button>
+          </>
         )}
       </div>
 
       <h2 className="fa-title">{item.title}</h2>
       <p className="fa-preview">{item.preview}</p>
 
-      {/* Bottom row: time + actions */}
+      {/* Bottom row: actions + time */}
       <div className="fa-bottom" onClick={e => e.stopPropagation()}>
-        <span className="fa-time">{item.time}</span>
-        <div className="f-spacer" />
         <button className={`fa-action-btn${isLiked ? ' liked' : ''}`} onClick={() => onLikeToggle(item.id)} title="Нравится">
           <svg width="16" height="16" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
@@ -195,6 +200,8 @@ function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeTo
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
           </svg>
         </button>
+        <div className="f-spacer" />
+        <span className="fa-time">{item.time}</span>
       </div>
 
     </article>
@@ -565,6 +572,11 @@ export default function Feed() {
     el.addEventListener('scroll', () => setFiltersScrolled(el.scrollTop > 8), { passive: true })
   }, [])
 
+  function handleCategoryQuickFilter(catId) {
+    setCat(new Set([catId]))
+    setMode(null)
+  }
+
   function handleCatChange(id) {
     if (id === '__clear__') { setCat(new Set()); return }
     setCat(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
@@ -681,6 +693,7 @@ export default function Feed() {
                 onLikeToggle={toggleLike}
                 onDislikeToggle={toggleDislike}
                 onBookmarkToggle={toggleBookmark}
+                onCategoryClick={handleCategoryQuickFilter}
                 onClick={handleItemClick}
                 navigate={navigate}
               />

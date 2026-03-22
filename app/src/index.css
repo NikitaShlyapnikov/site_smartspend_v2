@@ -559,7 +559,13 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
 .fa-author-row .author-avatar-sm { width: 28px; height: 28px; font-size: 10px; }
 .fa-author-row .author-name-inline { font-size: 13px; font-weight: 500; }
 .fa-sep { font-size: 11px; color: var(--text-3); user-select: none; }
-.fa-category { font-size: 12px; color: var(--text-3); letter-spacing: -0.01em; }
+.fa-category {
+  font-size: 12px; color: var(--text-3); letter-spacing: -0.01em;
+  background: none; border: none; cursor: pointer; padding: 0;
+  font-family: var(--sans);
+  transition: color 0.12s;
+}
+.fa-category:hover { color: var(--accent-green); }
 
 .fa-title {
   font-size: 22px; font-weight: 700;
