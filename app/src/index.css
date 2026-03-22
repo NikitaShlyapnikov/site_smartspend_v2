@@ -7960,3 +7960,118 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
     padding: 0 8px;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   PROFILE PAGE — MOBILE COMPONENT FIXES
+   Fixes for overflow and cramped components on 360-768px
+══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* ── Global: prevent any element from breaking layout ── */
+  .profile-main * { max-width: 100%; word-break: break-word; }
+  .profile-main .entry-tile-value,
+  .profile-main .cap-value,
+  .profile-main .bl-value,
+  .profile-main .emo-tile-value { word-break: normal; overflow-wrap: break-word; }
+
+  /* ── Entry tiles: compact on mobile ── */
+  .entry-tile { padding: 12px 12px; }
+  .entry-tile-value { font-size: 16px; }
+
+  /* ── Profile card inner elements ── */
+  .combined-top { padding: 16px; }
+  .combined-bottom { padding: 16px; }
+  .cap-value { font-size: 26px; }
+  .bl-row.income .bl-value { font-size: 18px; }
+  .bl-row.remainder .bl-value { font-size: 16px; }
+
+  /* ── Forecast summary: fix negative margins ── */
+  .forecast-summary {
+    margin: 12px 0 0;
+    border-radius: var(--r-sm);
+    padding: 12px;
+  }
+
+  /* ── EmoSpend tiles ── */
+  .emo-tile-value { font-size: 18px; }
+  .emo-rate-row { flex-direction: column; align-items: flex-start; }
+
+  /* ── Section heading: wrap on narrow screens ── */
+  .section-heading { flex-wrap: wrap; gap: 6px; align-items: center; }
+  .section-title { font-size: 13px; }
+
+  /* ── Envelopes layout ── */
+  .env-row { flex-wrap: wrap; gap: 6px; }
+  .env-name { flex: 1; min-width: 0; }
+
+  /* ── Profile deposit section ── */
+  .dep-list-item { flex-wrap: wrap; gap: 8px; }
+
+  /* ── Cards section grid ── */
+  .acc-sets-grid { grid-template-columns: 1fr; }
+
+  /* ── Inventory summary grid ── */
+  .inv-summary-row { grid-template-columns: 1fr !important; }
+
+  /* ── bl-row: don't let value overflow ── */
+  .bl-row { flex-wrap: nowrap; gap: 8px; min-width: 0; }
+  .bl-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bl-value { flex-shrink: 0; max-width: 50%; word-break: break-all; white-space: nowrap; }
+  .bl-row.sub .bl-label { white-space: normal; }
+
+  /* ── Profile card: overflow clip ── */
+  .profile-card { overflow: hidden; }
+}
+
+@media (max-width: 480px) {
+
+  /* ── Entry tiles: stack vertically ── */
+  .entry-tiles {
+    flex-direction: column;
+  }
+  .entry-tile-divider { width: 100%; height: 1px; flex-shrink: 0; }
+  .entry-tile { padding: 12px 16px; }
+  .entry-tile-value { font-size: 18px; }
+
+  /* ── Capital value ── */
+  .cap-value { font-size: 22px; }
+  .emo-tile-value { font-size: 16px; }
+
+  /* ── Forecast summary ── */
+  .forecast-summary {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin: 10px 0 0;
+    padding: 12px 14px;
+  }
+
+  /* ── Rate selector ── */
+  .rate-selector { flex-wrap: wrap; gap: 4px; }
+  .rate-btn { flex: 1; min-width: 60px; }
+
+  /* ── BL rows: smaller income ── */
+  .bl-row.income { padding: 14px 16px; }
+  .bl-row.income .bl-value { font-size: 16px; }
+  .bl-row.income .bl-label { font-size: 13px; }
+  .bl-row { padding: 10px 16px; }
+
+  /* ── Combined sections ── */
+  .combined-top { padding: 14px 16px; }
+  .combined-bottom { padding: 14px 16px; }
+}
+
+@media (max-width: 360px) {
+
+  /* ── Tightest profile ── */
+  .entry-tile { padding: 10px 12px; }
+  .entry-tile-value { font-size: 16px; }
+  .cap-value { font-size: 20px; }
+  .emo-tile { padding: 12px; }
+  .emo-tile-value { font-size: 15px; }
+  .bl-row { padding: 9px 12px; }
+  .bl-row.income { padding: 12px; }
+  .bl-row.income .bl-value { font-size: 15px; }
+  .combined-top, .combined-bottom { padding: 12px; }
+  .forecast-summary { padding: 10px 12px; }
+}
