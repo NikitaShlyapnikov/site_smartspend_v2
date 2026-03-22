@@ -4232,11 +4232,12 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
 
   body.app-body #root > main,
   body.sidebar-collapsed.app-body #root > main {
-    height: auto;
-    overflow-y: visible;
+    height: 100svh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
     padding-top: calc(var(--top-bar-h) + 8px);
     padding-bottom: calc(var(--bottom-nav-h) + 16px);
-    min-height: 100vh;
     width: 100%;
     box-sizing: border-box;
   }
@@ -4313,9 +4314,9 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
   .mobile-nav-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 
   /* ── PAGE-SPECIFIC MOBILE TWEAKS ── */
+  /* Self-padded pages: container sets horizontal inset */
   .profile-main,
   .inventory-main,
-  .feed-main,
   .set-detail-main,
   .article-main,
   .account-main {
@@ -4326,6 +4327,8 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
     padding-left: 16px;
     padding-right: 16px;
   }
+
+  /* Child-padded pages (feed/catalog/notif): padding lives on children only */
   .catalog-header,
   .catalog-filters-bar,
   .catalog-scroll {
@@ -4333,10 +4336,21 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
     padding-right: 16px;
   }
 
-  .profile-main { padding-top: 20px; }
-  .inventory-main { padding-top: 20px; }
-  .catalog-header { padding-top: 20px; }
-  .feed-main { padding-top: 20px; }
+  /* Reset page-main heights: scrolling handled by #root > main */
+  .feed-main,
+  .catalog-main,
+  .notif-main {
+    height: auto;
+    overflow: visible;
+    max-width: 100%;
+  }
+  .feed-scroll,
+  .catalog-scroll,
+  .notif-scroll {
+    overflow-y: visible;
+    flex: none;
+  }
+  .filters-sticky { position: static; }
 
   /* Catalog grid → single column on mobile */
   .catalog-grid { grid-template-columns: 1fr; }
@@ -7648,10 +7662,6 @@ button:disabled,
   body.app-body aside {
     display: none;
   }
-  body.app-body #root > main {
-    height: 100svh;
-  }
-
   /* Adjust info-sheet overlay */
   body.app-body .info-sheet-overlay { left: 0; }
 
@@ -7723,31 +7733,17 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   /* ── Variables ── */
   :root { --page-max: 100%; }
 
-  /* ── Notifications: disable fixed-height scroll on mobile ── */
-  .notif-main {
-    height: auto;
-    overflow: visible;
-    max-width: 100%;
-  }
-  .notif-scroll {
-    overflow-y: visible;
-    flex: none;
-  }
-
-  /* ── All page main containers: reset padding ── */
+  /* ── All page main containers: padding & overflow ── */
+  /* Self-padded pages: add horizontal padding */
   .set-detail-main,
   .article-main,
   .create-main,
   .sd-main {
-    padding: 20px 16px 32px;
-  }
-  .profile-main {
-    padding: 20px 16px 32px;
-    overflow-y: visible;
-    height: auto;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
-  /* ── Profile tabs: horizontal scroll, full width ── */
+  /* ── Profile tabs: horizontal scroll ── */
   .profile-tabs {
     align-self: stretch;
     overflow-x: auto;
@@ -7768,34 +7764,6 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   }
   .acc-tabs::-webkit-scrollbar { display: none; }
   .acc-tab { flex-shrink: 0; }
-
-  /* ── Feed: fix height so page doesn't cut off ── */
-  .feed-main {
-    height: auto;
-    overflow: visible;
-    max-width: 100%;
-  }
-  .feed-scroll {
-    overflow-y: visible;
-    flex: none;
-    padding-bottom: 32px;
-  }
-  .filters-sticky {
-    position: static;
-    top: unset;
-  }
-
-  /* ── Catalog: same fix ── */
-  .catalog-main {
-    height: auto;
-    overflow: visible;
-    max-width: 100%;
-  }
-  .catalog-scroll {
-    overflow-y: visible;
-    flex: none;
-    padding-bottom: 32px;
-  }
 
   /* ── Catalog grid 2-col on mid-mobile (480px catches 1-col) ── */
   .catalog-grid {
