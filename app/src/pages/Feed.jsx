@@ -83,7 +83,7 @@ function AuthorPopoverCard({ author, authorId, navigate, onMouseEnter, onMouseLe
             className={`ap-follow-btn${following ? ' following' : ''}${followAnim ? ' follow-pop' : ''}`}
             onClick={handleFollow}
           >
-            {following ? 'Вы подписаны' : 'Подписаться'}
+            {following ? 'Отменить подписку' : 'Подписаться'}
           </button>
         )}
       </div>
@@ -143,7 +143,7 @@ function AuthorBottomSheet({ author, authorId, navigate, onClose }) {
               className={`ap-follow-btn${following ? ' following' : ''}${followAnim ? ' follow-pop' : ''}`}
               onClick={handleFollow}
             >
-              {following ? 'Вы подписаны' : 'Подписаться'}
+              {following ? 'Отменить подписку' : 'Подписаться'}
             </button>
           )}
         </div>
@@ -236,14 +236,23 @@ function AuthorChip({ author, authorId, navigate }) {
   )
 }
 
+const EMOJI_ANIM = { '🔥':'fire','😂':'laugh','💡':'bulb','🤯':'mindblown','💸':'money','👏':'clap','❤️':'heart','✨':'sparkle','🎉':'party','💪':'flex' }
+const EMOJI_DUR  = { fire:900, laugh:650, bulb:1400, mindblown:1100, money:1000, clap:500, heart:1000, sparkle:1200, party:750, flex:1100 }
+
 function ReactionPill({ emoji, count, active, onToggle }) {
   const [popping, setPopping] = useState(false)
+  const [emojiAnim, setEmojiAnim] = useState(false)
   const [particles, setParticles] = useState([])
 
   function handleClick(e) {
     e.stopPropagation()
     setPopping(true)
     setTimeout(() => setPopping(false), 400)
+    const key = EMOJI_ANIM[emoji]
+    if (key) {
+      setEmojiAnim(true)
+      setTimeout(() => setEmojiAnim(false), EMOJI_DUR[key] + 50)
+    }
     if (!active) {
       const newP = Array.from({ length: 6 }, (_, i) => ({
         id: Date.now() + i,
@@ -262,7 +271,7 @@ function ReactionPill({ emoji, count, active, onToggle }) {
         className={`fa-reaction${active ? ' active' : ''}${popping ? ' popping' : ''}`}
         onClick={handleClick}
       >
-        <span className={`r-emoji${emoji === '🔥' ? ' r-emoji--fire' : ''}`}>{emoji}</span>
+        <span className={`r-emoji${emojiAnim && EMOJI_ANIM[emoji] ? ` r-emoji--${EMOJI_ANIM[emoji]}` : ''}`}>{emoji}</span>
         <span className="r-count">{count}</span>
       </button>
       {particles.map(p => (
