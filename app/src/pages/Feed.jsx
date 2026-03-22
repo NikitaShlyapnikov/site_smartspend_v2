@@ -58,6 +58,7 @@ function AuthorPopoverCard({ author, authorId, navigate, onMouseEnter, onMouseLe
 
   return (
     <div className="author-popover" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onClick={e => e.stopPropagation()}>
+      {/* Row 1: avatar + follow button */}
       <div className="ap-top">
         <div className="ap-avatar" style={{ background: author.color }}>
           {isDeleted
@@ -65,25 +66,26 @@ function AuthorPopoverCard({ author, authorId, navigate, onMouseEnter, onMouseLe
             : author.initials
           }
         </div>
-        <div className="ap-info">
-          <button className="ap-name" onClick={handleNameClick}>{author.name}</button>
-          {author.followers != null && (
-            <div className="ap-meta">
-              {typeof author.followers === 'number' ? author.followers.toLocaleString('ru') : author.followers} подписчиков
-              {author.articles > 0 && <> · {author.articles} статей</>}
-            </div>
-          )}
-        </div>
+        {!isDeleted && (
+          <button
+            className={`ap-follow-btn${following ? ' following' : ''}`}
+            onClick={() => setFollowing(f => !f)}
+          >
+            {following ? 'Вы подписаны' : 'Подписаться'}
+          </button>
+        )}
       </div>
-      {author.desc && <p className="ap-desc">{author.desc}</p>}
-      {!isDeleted && (
-        <button
-          className={`ap-follow-btn${following ? ' following' : ''}`}
-          onClick={() => setFollowing(f => !f)}
-        >
-          {following ? 'Вы подписаны' : 'Подписаться'}
-        </button>
+      {/* Row 2: name */}
+      <button className="ap-name" onClick={handleNameClick}>{author.name}</button>
+      {/* Row 3: followers */}
+      {author.followers != null && (
+        <div className="ap-meta">
+          {typeof author.followers === 'number' ? author.followers.toLocaleString('ru') : author.followers} подписчиков
+          {author.articles > 0 && <> · {author.articles} статей</>}
+        </div>
       )}
+      {/* Row 4: description */}
+      {author.desc && <p className="ap-desc">{author.desc}</p>}
     </div>
   )
 }
@@ -153,49 +155,43 @@ function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeTo
   return (
     <article className={`feed-article${isRead ? ' read' : ''}`} onClick={() => onClick(item)}>
 
-      {/* Left: main content */}
-      <div className="fa-main">
-        <div className="fa-author-row">
-          <AuthorChip author={author} authorId={item.authorId} navigate={navigate} />
-          {catLabel && catLabel !== 'Все' && (
-            <><span className="fa-sep">·</span><span className="fa-category">{catLabel}</span></>
-          )}
-        </div>
-        <h2 className="fa-title">{item.title}</h2>
-        <p className="fa-preview">{item.preview}</p>
-        <span className="fa-time">{item.time}</span>
+      <div className="fa-author-row">
+        <AuthorChip author={author} authorId={item.authorId} navigate={navigate} />
+        {catLabel && catLabel !== 'Все' && (
+          <><span className="fa-sep">·</span><span className="fa-category">{catLabel}</span></>
+        )}
       </div>
 
-      {/* Right: action panel */}
-      <div className="fa-actions" onClick={e => e.stopPropagation()}>
+      <h2 className="fa-title">{item.title}</h2>
+      <p className="fa-preview">{item.preview}</p>
+
+      {/* Bottom row: time + actions */}
+      <div className="fa-bottom" onClick={e => e.stopPropagation()}>
+        <span className="fa-time">{item.time}</span>
+        <div className="f-spacer" />
         <button className={`fa-action-btn${isLiked ? ' liked' : ''}`} onClick={() => onLikeToggle(item.id)} title="Нравится">
-          <svg width="20" height="20" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="16" height="16" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
             <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
           </svg>
-          <span>{item.likes + (isLiked ? 1 : 0)}</span>
+          {item.likes + (isLiked ? 1 : 0)}
         </button>
-
         {item.comments != null && (
           <div className="fa-action-stat">
-            <svg width="19" height="19" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
-            <span>{item.comments}</span>
+            {item.comments}
           </div>
         )}
-
-        <div className="fa-actions-sep" />
-
         <button className={`fa-action-btn fa-action-dislike${isDisliked ? ' active' : ''}`} onClick={() => onDislikeToggle(item.id)} title="Не нравится">
-          <svg width="20" height="20" fill={isDisliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="16" height="16" fill={isDisliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
             <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
           </svg>
         </button>
-
         <button className={`fa-action-btn fa-action-bookmark${isBookmarked ? ' active' : ''}`} onClick={() => onBookmarkToggle(item.id)} title="В избранное">
-          <svg width="20" height="20" fill={isBookmarked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="16" height="16" fill={isBookmarked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
           </svg>
         </button>
