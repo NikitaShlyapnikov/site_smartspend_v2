@@ -60,7 +60,11 @@ function AuthorPopoverCard({ author, authorId, navigate, onMouseEnter, onMouseLe
     <div className="author-popover" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onClick={e => e.stopPropagation()}>
       {/* Row 1: avatar + follow button */}
       <div className="ap-top">
-        <div className="ap-avatar" style={{ background: author.color }}>
+        <div
+          className="ap-avatar"
+          style={{ background: author.color, cursor: isDeleted ? 'default' : 'pointer' }}
+          onClick={isDeleted ? undefined : handleNameClick}
+        >
           {isDeleted
             ? <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a8 8 0 0 0-8 8v10l3-3 3 3 3-3 3 3 3-3V10a8 8 0 0 0-8-8zm-2.5 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>
             : author.initials
@@ -174,7 +178,7 @@ function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeTo
 
       {/* Bottom row: actions + time */}
       <div className="fa-bottom" onClick={e => e.stopPropagation()}>
-        <button className={`fa-action-btn${isLiked ? ' liked' : ''}`} onClick={() => onLikeToggle(item.id)} title="Нравится">
+        <button className={`fa-action-btn fa-action-like${isLiked ? ' liked' : ''}`} onClick={() => onLikeToggle(item.id)} title="Нравится">
           <svg width="16" height="16" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
             <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>

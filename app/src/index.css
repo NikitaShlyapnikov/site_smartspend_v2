@@ -590,32 +590,41 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
 
 .fa-action-btn {
   display: inline-flex; align-items: center; gap: 5px;
-  background: none; border: none; cursor: pointer;
+  background: none; border: 1px solid var(--border); cursor: pointer;
   padding: 5px 8px; border-radius: 7px;
-  color: var(--text-3);
+  color: var(--text-2);
   font-size: 12px; font-family: var(--mono);
-  transition: color 0.12s, background 0.12s;
+  transition: color 0.12s, background 0.12s, border-color 0.12s;
 }
-.fa-action-btn svg { opacity: 0.32; transition: opacity 0.12s, fill 0.12s; flex-shrink: 0; }
-.fa-action-btn:hover { background: var(--surface-2); }
-.fa-action-btn:hover svg { opacity: 0.6; }
+.fa-action-btn svg { opacity: 0.65; transition: opacity 0.12s, fill 0.12s; flex-shrink: 0; }
+.fa-action-btn:hover { background: var(--surface-2); border-color: var(--text-3); }
+.fa-action-btn:hover svg { opacity: 0.9; }
+
+/* Like and comments — prominent stat buttons */
+.fa-action-like, .fa-action-comments {
+  border-color: var(--text-3);
+  color: var(--text-2);
+}
+.fa-action-like svg, .fa-action-comments svg { opacity: 0.75; }
 
 /* Like */
-.fa-action-btn.liked { color: var(--accent-green); }
+.fa-action-btn.liked { color: var(--accent-green); border-color: var(--accent-green); }
 .fa-action-btn.liked svg { opacity: 1; fill: var(--accent-green); stroke: var(--accent-green); }
-body.dark .fa-action-btn.liked { color: #6AAF8E; }
+body.dark .fa-action-btn.liked { color: #6AAF8E; border-color: #6AAF8E; }
 body.dark .fa-action-btn.liked svg { fill: #6AAF8E; stroke: #6AAF8E; }
 
 /* Dislike */
+.fa-action-dislike { border-color: transparent; }
 .fa-action-dislike:hover { color: #B85555; }
-.fa-action-dislike.active { color: #B85555; }
+.fa-action-dislike.active { color: #B85555; border-color: transparent; }
 .fa-action-dislike.active svg { opacity: 1; fill: #B85555; stroke: #B85555; }
 body.dark .fa-action-dislike.active { color: #E07070; }
 body.dark .fa-action-dislike.active svg { fill: #E07070; stroke: #E07070; }
 
 /* Bookmark */
+.fa-action-bookmark { border-color: transparent; }
 .fa-action-bookmark:hover { color: var(--accent-green); }
-.fa-action-bookmark.active { color: var(--accent-green); }
+.fa-action-bookmark.active { color: var(--accent-green); border-color: transparent; }
 .fa-action-bookmark.active svg { opacity: 1; fill: var(--accent-green); stroke: var(--accent-green); }
 body.dark .fa-action-bookmark.active { color: #6AAF8E; }
 body.dark .fa-action-bookmark.active svg { fill: #6AAF8E; stroke: #6AAF8E; }
@@ -623,11 +632,12 @@ body.dark .fa-action-bookmark.active svg { fill: #6AAF8E; stroke: #6AAF8E; }
 /* Comments — read-only */
 .fa-action-stat {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 5px 8px;
-  color: var(--text-3);
+  padding: 5px 8px; border-radius: 7px;
+  border: 1px solid var(--text-3);
+  color: var(--text-2);
   font-size: 12px; font-family: var(--mono);
 }
-.fa-action-stat svg { opacity: 0.28; flex-shrink: 0; }
+.fa-action-stat svg { opacity: 0.65; flex-shrink: 0; }
 
 /* ── Author hover popover ── */
 .author-chip-wrap {
