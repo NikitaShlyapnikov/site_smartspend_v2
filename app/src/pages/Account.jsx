@@ -157,12 +157,19 @@ export default function Account() {
     <Layout>
       <main className="account-main">
 
+        {/* Page title */}
+        <div>
+          <div className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            Аккаунт
+            <HelpButton seenKey="ss_spl_account" onOpen={() => setShowSpotlight(true)} />
+          </div>
+        </div>
+
         {/* Profile header */}
         <div id="sp-acc-header" className="user-header">
           <div className="user-avatar-large">
             <span>{initials}</span>
           </div>
-          <HelpButton seenKey="ss_spl_account" onOpen={() => setShowSpotlight(true)} />
 
           <div className="user-info">
             <div className="user-name-line">
