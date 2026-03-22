@@ -158,6 +158,52 @@ function renderBlock(block, i) {
   }
 }
 
+const REACTION_EMOJIS = ['🔥','💡','😍','🤯','💸','🤮','🤔','👏','😮','💪','🎯','🙏']
+
+function EmojiPicker({ onPick, onClose }) {
+  const ref = useRef(null)
+  useEffect(() => {
+    function handler(e) { if (ref.current && !ref.current.contains(e.target)) onClose() }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [onClose])
+  return (
+    <div className="emoji-picker" ref={ref}>
+      {REACTION_EMOJIS.map(emoji => (
+        <button key={emoji} className="ep-btn" onClick={() => { onPick(emoji); onClose() }}>{emoji}</button>
+      ))}
+    </div>
+  )
+}
+
+function ArticleReactionPill({ emoji, count, active, onToggle }) {
+  const [popping, setPopping] = useState(false)
+  const [particles, setParticles] = useState([])
+  function handleClick() {
+    setPopping(true)
+    setTimeout(() => setPopping(false), 400)
+    if (!active) {
+      const newP = Array.from({ length: 5 }, (_, i) => ({
+        id: Date.now() + i, angle: i * 72 + Math.random() * 20 - 10, dist: 20 + Math.random() * 10,
+      }))
+      setParticles(newP)
+      setTimeout(() => setParticles([]), 600)
+    }
+    onToggle(emoji)
+  }
+  return (
+    <div className="r-pill-wrap">
+      <button className={`fa-reaction${active ? ' active' : ''}${popping ? ' popping' : ''}`} onClick={handleClick}>
+        <span className="r-emoji">{emoji}</span>
+        <span className="r-count">{count}</span>
+      </button>
+      {particles.map(p => (
+        <span key={p.id} className="r-particle" style={{ '--angle': `${p.angle}deg`, '--dist': `${p.dist}px` }}>{emoji}</span>
+      ))}
+    </div>
+  )
+}
+
 function isMyArticle(articleId) {
   try {
     const ids = JSON.parse(localStorage.getItem('ss_my_article_ids')) || []
@@ -201,6 +247,13 @@ export default function Article() {
   const [toast, setToast] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [showAddToSet, setShowAddToSet] = useState(false)
+  const [reactions, setReactions] = useState(() =>
+    (article?.reactions?.length ? article.reactions : [{ emoji: '🔥', count: 14 }, { emoji: '💡', count: 8 }, { emoji: '😍', count: 5 }]).map(r => ({ ...r }))
+  )
+  const [myReactions, setMyReactions] = useState(new Set())
+  const [showPicker, setShowPicker] = useState(false)
+  const [noteText, setNoteText] = useState(() => { try { return localStorage.getItem(`ss_note_${id}`) || '' } catch { return '' } })
+  const [showNote, setShowNote] = useState(false)
 
   const isMine = isMyArticle(id)
 
@@ -277,6 +330,26 @@ export default function Article() {
     setLikedComments(prev => { const next = new Set(prev); next.delete(idx); return next })
   }
 
+  function toggleReaction(emoji) {
+    setMyReactions(prev => {
+      const next = new Set(prev)
+      const hadIt = next.has(emoji)
+      hadIt ? next.delete(emoji) : next.add(emoji)
+      setReactions(rs => {
+        const existing = rs.find(r => r.emoji === emoji)
+        if (existing) return rs.map(r => r.emoji === emoji ? { ...r, count: r.count + (hadIt ? -1 : 1) } : r).filter(r => r.count > 0)
+        return [...rs, { emoji, count: 1 }]
+      })
+      return next
+    })
+  }
+
+  function saveNote() {
+    try { localStorage.setItem(`ss_note_${id}`, noteText) } catch {}
+    setShowNote(false)
+    showToastMsg(noteText.trim() ? 'Заметка сохранена' : 'Заметка удалена')
+  }
+
   function showToastMsg(msg) {
     setToast(msg)
     setTimeout(() => setToast(null), 2200)
@@ -323,10 +396,6 @@ export default function Article() {
         {/* Hero card */}
         <div className="hero-card">
           <div className="hero-body">
-            <div className="hero-badges">
-              {article.articleType && <span className="article-type-badge">{article.articleType}</span>}
-              {article.catLabel && <span className="cat-badge">{article.catLabel}</span>}
-            </div>
             <div className="hero-title">{article.title}</div>
             <div className="hero-desc">{article.preview}</div>
 
@@ -396,6 +465,12 @@ export default function Article() {
                 </svg>
                 Добавить к набору
               </button>
+              <button className="btn-secondary" onClick={() => setShowNote(n => !n)}>
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                </svg>
+                {noteText.trim() ? 'Моя заметка' : 'Добавить заметку'}
+              </button>
               {/* UC-31 / UC-33: кнопки для своих статей */}
               {isMine && (
                 <>
@@ -414,6 +489,30 @@ export default function Article() {
                 </>
               )}
             </div>
+          {showNote && (
+            <div className="note-editor">
+              <textarea
+                className="note-textarea"
+                placeholder="Личная заметка к статье — видна только вам..."
+                value={noteText}
+                onChange={e => setNoteText(e.target.value)}
+                rows={3}
+                autoFocus
+              />
+              <div className="note-actions">
+                <button className="note-save" onClick={saveNote}>Сохранить</button>
+                <button className="note-cancel" onClick={() => setShowNote(false)}>Отмена</button>
+              </div>
+            </div>
+          )}
+          {!showNote && noteText.trim() && (
+            <div className="note-display" onClick={() => setShowNote(true)}>
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.5 }}>
+                <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+              <span>{noteText}</span>
+            </div>
+          )}
           </div>
 
           {/* Author inside hero */}
@@ -518,6 +617,22 @@ export default function Article() {
                 <span className="section-count">{article.comments.length}</span>
               </div>
             </div>
+
+            {/* Emoji reactions */}
+            <div className="art-reactions-row">
+              {reactions.map(r => (
+                <ArticleReactionPill key={r.emoji} emoji={r.emoji} count={r.count} active={myReactions.has(r.emoji)} onToggle={toggleReaction} />
+              ))}
+              <div style={{ position: 'relative' }}>
+                <button className="ar-add-btn" onClick={() => setShowPicker(p => !p)} title="Добавить реакцию">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+                  </svg>
+                </button>
+                {showPicker && <EmojiPicker onPick={emoji => { toggleReaction(emoji); setShowPicker(false) }} onClose={() => setShowPicker(false)} />}
+              </div>
+            </div>
+
             <div className="comments-subheader">
               <div className="csort">
                 <button className={`c-sort-btn${commentSort === 'new' ? ' active' : ''}`} onClick={() => setCommentSort('new')}>Новые</button>

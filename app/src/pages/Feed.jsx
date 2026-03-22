@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
@@ -14,7 +15,7 @@ const FEED_SPOTLIGHT = [
 const MODES = [
   { id: 'subscriptions', label: 'Подписки' },
   { id: 'my-sets',       label: 'Мои наборы' },
-  { id: 'liked',         label: 'Понравившиеся' },
+  { id: 'liked',         label: 'Закладки' },
 ]
 
 const CATEGORIES = [
@@ -95,27 +96,87 @@ function AuthorPopoverCard({ author, authorId, navigate, onMouseEnter, onMouseLe
   )
 }
 
+function AuthorBottomSheet({ author, authorId, navigate, onClose }) {
+  const [following, setFollowing] = useState(author.following || false)
+  const isDeleted = author.type === 'deleted'
+  const touchStartY = useRef(0)
+
+  function handleNameClick() {
+    onClose()
+    navigate(`/author/${authorId}`, { state: { ...author, id: authorId } })
+  }
+  function onTouchStart(e) { touchStartY.current = e.touches[0].clientY }
+  function onTouchMove(e) { if (e.touches[0].clientY - touchStartY.current > 64) onClose() }
+
+  return createPortal(
+    <>
+      <div className="abs-backdrop" onClick={onClose} />
+      <div className="author-bottom-sheet" onTouchStart={onTouchStart} onTouchMove={onTouchMove}>
+        <div className="abs-handle" />
+        <div className="ap-top">
+          <div
+            className="ap-avatar"
+            style={{ background: author.color, cursor: isDeleted ? 'default' : 'pointer' }}
+            onClick={isDeleted ? undefined : handleNameClick}
+          >
+            {isDeleted
+              ? <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a8 8 0 0 0-8 8v10l3-3 3 3 3-3 3 3 3-3V10a8 8 0 0 0-8-8zm-2.5 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>
+              : author.initials
+            }
+          </div>
+          {!isDeleted && (
+            <button
+              className={`ap-follow-btn${following ? ' following' : ''}`}
+              onClick={() => setFollowing(f => !f)}
+            >
+              {following ? 'Вы подписаны' : 'Подписаться'}
+            </button>
+          )}
+        </div>
+        <button className="ap-name" onClick={handleNameClick}>{author.name}</button>
+        {author.followers != null && (
+          <div className="ap-meta">
+            {typeof author.followers === 'number' ? author.followers.toLocaleString('ru') : author.followers} подписчиков
+            {author.articles > 0 && <> · {author.articles} статей</>}
+            {author.sets > 0 && <> · {author.sets} наборов</>}
+          </div>
+        )}
+        {author.desc && <p className="ap-desc">{author.desc}</p>}
+      </div>
+    </>,
+    document.body
+  )
+}
+
 function AuthorChip({ author, authorId, navigate }) {
   const [showCard, setShowCard] = useState(false)
+  const [showSheet, setShowSheet] = useState(false)
   const showTimer = useRef(null)
   const hideTimer = useRef(null)
 
   if (!author) return null
 
+  const isTouch = () => window.matchMedia('(hover: none)').matches
+  const isDeleted = author.type === 'deleted'
+
   function handleClick(e) {
     e.stopPropagation()
-    navigate(`/author/${authorId}`, { state: { ...author, id: authorId } })
+    if (isTouch()) {
+      setShowSheet(true)
+    } else {
+      navigate(`/author/${authorId}`, { state: { ...author, id: authorId } })
+    }
   }
   function onEnter() {
+    if (isTouch()) return
     clearTimeout(hideTimer.current)
     showTimer.current = setTimeout(() => setShowCard(true), 350)
   }
   function onLeave() {
+    if (isTouch()) return
     clearTimeout(showTimer.current)
     hideTimer.current = setTimeout(() => setShowCard(false), 180)
   }
-
-  const isDeleted = author.type === 'deleted'
 
   return (
     <span className="author-chip-wrap" onMouseEnter={onEnter} onMouseLeave={onLeave}>
@@ -147,6 +208,14 @@ function AuthorChip({ author, authorId, navigate }) {
           navigate={navigate}
           onMouseEnter={() => clearTimeout(hideTimer.current)}
           onMouseLeave={onLeave}
+        />
+      )}
+      {showSheet && (
+        <AuthorBottomSheet
+          author={author}
+          authorId={authorId}
+          navigate={navigate}
+          onClose={() => setShowSheet(false)}
         />
       )}
     </span>
@@ -809,9 +878,25 @@ export default function Feed() {
           <div id="sp-feed-list" className="feed-list">
             {filtered.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-icon">🔍</div>
-                <div className="empty-title">Ничего не найдено</div>
-                <div className="empty-desc">Попробуйте изменить фильтры</div>
+                {mode === 'liked' && bookmarkedIds.size === 0 ? (
+                  <>
+                    <div className="empty-icon">🔖</div>
+                    <div className="empty-title">Закладок пока нет</div>
+                    <div className="empty-desc">Нажмите <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:'middle',margin:'0 2px'}}><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> на любой статье, чтобы сохранить её сюда</div>
+                  </>
+                ) : mode === 'subscriptions' ? (
+                  <>
+                    <div className="empty-icon">👥</div>
+                    <div className="empty-title">Нет подписок</div>
+                    <div className="empty-desc">Подпишитесь на авторов через карточку профиля, чтобы видеть их статьи здесь</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="empty-icon">🔍</div>
+                    <div className="empty-title">Ничего не найдено</div>
+                    <div className="empty-desc">Попробуйте изменить фильтры</div>
+                  </>
+                )}
               </div>
             ) : filtered.map(item => (
               <ArticleCard key={item.id} item={item}
