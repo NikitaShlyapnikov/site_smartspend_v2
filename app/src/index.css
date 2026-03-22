@@ -705,6 +705,24 @@ button.fa-action-stat--btn:hover svg { opacity: 0.55; }
   transition: background 0.12s, border-color 0.12s;
 }
 .fa-reaction .r-emoji { font-size: 14px; line-height: 1; }
+
+/* 🔥 Fire flicker animation */
+@keyframes fireFlicker {
+  0%   { transform: scaleX(1)    scaleY(1)    rotate(0deg);    filter: brightness(1)    drop-shadow(0 1px 4px rgba(255,120,0,0.45)); }
+  12%  { transform: scaleX(0.93) scaleY(1.14) rotate(-2deg);  filter: brightness(1.3)  drop-shadow(0 0 8px rgba(255,60,0,0.75)); }
+  25%  { transform: scaleX(1.05) scaleY(0.92) rotate(1.5deg); filter: brightness(0.92) drop-shadow(0 1px 3px rgba(255,140,0,0.35)); }
+  40%  { transform: scaleX(0.96) scaleY(1.1)  rotate(-1deg);  filter: brightness(1.2)  drop-shadow(0 0 7px rgba(255,80,0,0.65)); }
+  55%  { transform: scaleX(1.03) scaleY(0.96) rotate(1deg);   filter: brightness(1)    drop-shadow(0 1px 4px rgba(255,120,0,0.4)); }
+  70%  { transform: scaleX(0.97) scaleY(1.07) rotate(-1.5deg);filter: brightness(1.15) drop-shadow(0 0 6px rgba(255,90,0,0.6)); }
+  85%  { transform: scaleX(1.02) scaleY(0.97) rotate(0.5deg); filter: brightness(1.05) drop-shadow(0 1px 3px rgba(255,130,0,0.4)); }
+  100% { transform: scaleX(1)    scaleY(1)    rotate(0deg);    filter: brightness(1)    drop-shadow(0 1px 4px rgba(255,120,0,0.45)); }
+}
+.r-emoji--fire {
+  display: inline-block;
+  transform-origin: bottom center;
+  animation: fireFlicker 0.9s ease-in-out infinite;
+  will-change: transform, filter;
+}
 .fa-reaction .r-count { font-size: 11px; font-family: var(--mono); color: var(--text-3); transition: color 0.12s; }
 .fa-reaction:hover { background: var(--surface-2); border-color: var(--text-3); }
 .fa-reaction.active { background: var(--surface-2); border-color: var(--accent-green); }

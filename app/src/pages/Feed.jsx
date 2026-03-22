@@ -262,7 +262,7 @@ function ReactionPill({ emoji, count, active, onToggle }) {
         className={`fa-reaction${active ? ' active' : ''}${popping ? ' popping' : ''}`}
         onClick={handleClick}
       >
-        <span className="r-emoji">{emoji}</span>
+        <span className={`r-emoji${emoji === '🔥' ? ' r-emoji--fire' : ''}`}>{emoji}</span>
         <span className="r-count">{count}</span>
       </button>
       {particles.map(p => (
