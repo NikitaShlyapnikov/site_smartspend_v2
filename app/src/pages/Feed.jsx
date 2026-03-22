@@ -45,19 +45,6 @@ const MY_SET_TITLES = new Set([
   'Базовый уход за кошкой',
 ])
 
-const CAT_COLORS = {
-  food:       '#7DAF92',
-  cafe:       '#C4A882',
-  transport:  '#9696B8',
-  home:       '#B8A87A',
-  clothes:    '#8A9EB8',
-  leisure:    '#A8B4A0',
-  health:     '#B89AAE',
-  education:  '#B8C49A',
-  travel:     '#9BBCC8',
-  other:      '#B0A8B0',
-}
-
 // ── ARTICLE CARD ──────────────────────────────────────────────────────────────
 
 function AuthorChip({ author, authorId, navigate }) {
@@ -101,47 +88,38 @@ function AuthorChip({ author, authorId, navigate }) {
 function ArticleCard({ item, isRead, isLiked, onLikeToggle, onClick, navigate }) {
   const author = feedAuthors[item.authorId]
   const catLabel = CATEGORIES.find(c => c.id === item.category)?.label
-  const catColor = CAT_COLORS[item.category]
 
   return (
-    <div
-      className={`card feed-card${isRead ? ' read' : ''}`}
-      style={catColor ? { '--cat-color': catColor } : undefined}
-      onClick={() => onClick(item)}
-    >
-      {/* Meta: type + category */}
-      <div className="feed-card-meta">
-        <span className="feed-type-badge">
-          <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-          </svg>
-          Статья
-        </span>
-        {catLabel && catLabel !== 'Все' && (
-          <span className="feed-cat-chip">{catLabel}</span>
-        )}
-      </div>
+    <article className={`feed-article${isRead ? ' read' : ''}`} onClick={() => onClick(item)}>
 
-      {/* Content */}
-      <div className="feed-card-body">
-        <div className="article-title">{item.title}</div>
-        <div className="article-preview">{item.preview}</div>
-        {item.setLink && (
-          <div className="feed-set-link" onClick={e => e.stopPropagation()}>
-            <span className="feed-set-dot" style={{ background: item.setLink.color }} />
-            <span className="feed-set-label">Набор: {item.setLink.title}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Footer */}
-      <div className="feed-card-footer">
+      {/* Author · Category · Time */}
+      <div className="fa-author-row">
         <AuthorChip author={author} authorId={item.authorId} navigate={navigate} />
-        <span className="feed-time">{item.time}</span>
+        {catLabel && catLabel !== 'Все' && (
+          <><span className="fa-sep">·</span><span className="fa-category">{catLabel}</span></>
+        )}
+        <span className="fa-sep">·</span>
+        <span className="fa-time">{item.time}</span>
+      </div>
+
+      {/* Title */}
+      <h2 className="fa-title">{item.title}</h2>
+
+      {/* Preview */}
+      <p className="fa-preview">{item.preview}</p>
+
+      {/* Meta: set-link + stats */}
+      <div className="fa-meta">
+        {item.setLink && (
+          <span className="fa-set-chip" onClick={e => e.stopPropagation()}>
+            <span className="fa-set-dot" style={{ background: item.setLink.color }} />
+            {item.setLink.title}
+          </span>
+        )}
         <div className="f-spacer" />
+        {item.readTime && <span className="fa-readtime">{item.readTime} мин</span>}
         <button
-          className={`liked-btn${isLiked ? ' liked' : ''}`}
+          className={`fa-like-btn${isLiked ? ' liked' : ''}`}
           onClick={e => { e.stopPropagation(); onLikeToggle(item.id) }}
         >
           <svg width="13" height="13" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -151,22 +129,16 @@ function ArticleCard({ item, isRead, isLiked, onLikeToggle, onClick, navigate })
           {item.likes + (isLiked ? 1 : 0)}
         </button>
         {item.comments != null && (
-          <div className="a-stat">
+          <div className="fa-stat">
             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
             {item.comments}
           </div>
         )}
-        <div className="a-stat">
-          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-          {item.views.toLocaleString('ru')}
-        </div>
       </div>
-    </div>
+
+    </article>
   )
 }
 
