@@ -153,14 +153,53 @@ function AuthorChip({ author, authorId, navigate }) {
   )
 }
 
+function ReactionPill({ emoji, count, active, onToggle }) {
+  const [popping, setPopping] = useState(false)
+  const [particles, setParticles] = useState([])
+
+  function handleClick(e) {
+    e.stopPropagation()
+    setPopping(true)
+    setTimeout(() => setPopping(false), 400)
+    if (!active) {
+      const newP = Array.from({ length: 6 }, (_, i) => ({
+        id: Date.now() + i,
+        angle: i * 60 + Math.random() * 20 - 10,
+        dist: 22 + Math.random() * 10,
+      }))
+      setParticles(newP)
+      setTimeout(() => setParticles([]), 600)
+    }
+    onToggle(emoji)
+  }
+
+  return (
+    <div className="r-pill-wrap">
+      <button
+        className={`fa-reaction${active ? ' active' : ''}${popping ? ' popping' : ''}`}
+        onClick={handleClick}
+      >
+        <span className="r-emoji">{emoji}</span>
+        <span className="r-count">{count}</span>
+      </button>
+      {particles.map(p => (
+        <span
+          key={p.id}
+          className="r-particle"
+          style={{ '--angle': `${p.angle}deg`, '--dist': `${p.dist}px` }}
+        >{emoji}</span>
+      ))}
+    </div>
+  )
+}
+
 function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeToggle, onDislikeToggle, onBookmarkToggle, onCategoryClick, onClick, navigate }) {
   const author = feedAuthors[item.authorId]
   const catLabel = CATEGORIES.find(c => c.id === item.category)?.label
   const [reactions, setReactions] = useState(() => (item.reactions || []).map(r => ({ ...r })))
   const [myReactions, setMyReactions] = useState(new Set())
 
-  function toggleReaction(e, emoji) {
-    e.stopPropagation()
+  function toggleReaction(emoji) {
     setMyReactions(prev => {
       const next = new Set(prev)
       const hadIt = next.has(emoji)
@@ -221,14 +260,13 @@ function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeTo
           <>
             <span className="fa-reactions-sep" />
             {reactions.map(r => (
-              <button
+              <ReactionPill
                 key={r.emoji}
-                className={`fa-reaction${myReactions.has(r.emoji) ? ' active' : ''}`}
-                onClick={e => toggleReaction(e, r.emoji)}
-              >
-                <span className="r-emoji">{r.emoji}</span>
-                <span className="r-count">{r.count}</span>
-              </button>
+                emoji={r.emoji}
+                count={r.count}
+                active={myReactions.has(r.emoji)}
+                onToggle={toggleReaction}
+              />
             ))}
           </>
         )}

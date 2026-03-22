@@ -634,6 +634,9 @@ body.dark .fa-action-bookmark.active svg { fill: #6AAF8E; stroke: #6AAF8E; }
   display: inline-block; width: 1px; height: 16px;
   background: var(--border); margin: 0 4px; flex-shrink: 0;
 }
+.r-pill-wrap {
+  position: relative; display: inline-flex;
+}
 .fa-reaction {
   display: inline-flex; align-items: center; gap: 4px;
   background: none; border: 1px solid var(--border); cursor: pointer;
@@ -647,6 +650,28 @@ body.dark .fa-action-bookmark.active svg { fill: #6AAF8E; stroke: #6AAF8E; }
 .fa-reaction.active .r-count { color: var(--accent-green); }
 body.dark .fa-reaction.active { border-color: #6AAF8E; }
 body.dark .fa-reaction.active .r-count { color: #6AAF8E; }
+
+/* Pop animation */
+@keyframes rPop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.4); }
+  65%  { transform: scale(0.88); }
+  100% { transform: scale(1); }
+}
+.fa-reaction.popping { animation: rPop 0.38s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+
+/* Particles */
+@keyframes rParticle {
+  0%   { transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0)            scale(1);   opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(var(--angle)) translateX(var(--dist))  scale(0.2); opacity: 0; }
+}
+.r-particle {
+  position: absolute; top: 50%; left: 50%;
+  pointer-events: none; user-select: none;
+  font-size: 13px; line-height: 1;
+  animation: rParticle 0.55s ease-out forwards;
+  z-index: 10;
+}
 
 /* ── Author hover popover ── */
 .author-chip-wrap {
