@@ -158,19 +158,30 @@ function renderBlock(block, i) {
   }
 }
 
-const REACTION_EMOJIS = ['🔥','💡','😍','🤯','💸','🤮','🤔','👏','😮','💪','🎯','🙏']
+const REACTION_EMOJIS = [
+  '🔥','💡','😍','🤯','💸','🤮','🤔','👏',
+  '😮','💪','🎯','🙏','❤️','😂','🥰','😅',
+  '💯','✨','🎉','👀','🥲','😤','🫡','🤝',
+]
 
 function EmojiPicker({ onPick, onClose }) {
+  const [popping, setPopping] = useState(null)
   const ref = useRef(null)
   useEffect(() => {
     function handler(e) { if (ref.current && !ref.current.contains(e.target)) onClose() }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [onClose])
+
+  function handlePick(emoji) {
+    setPopping(emoji)
+    setTimeout(() => { onPick(emoji); onClose() }, 260)
+  }
+
   return (
     <div className="emoji-picker" ref={ref}>
       {REACTION_EMOJIS.map(emoji => (
-        <button key={emoji} className="ep-btn" onClick={() => { onPick(emoji); onClose() }}>{emoji}</button>
+        <button key={emoji} className={`ep-btn${popping === emoji ? ' ep-pop' : ''}`} onClick={() => handlePick(emoji)}>{emoji}</button>
       ))}
     </div>
   )
@@ -392,68 +403,50 @@ export default function Article() {
             <div className="hero-title">{article.title}</div>
             <div className="hero-desc">{article.preview}</div>
 
-            <div className="hero-stats">
-              <div className="hstat">
-                <div className="hstat-val">
-                  <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                  </svg>
-                  {fmtNum(article.views)}
-                </div>
-                <div className="hstat-lbl">просмотров</div>
+            <div className="art-meta-row">
+              <div className="fa-action-stat">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+                {fmtNum(article.views)}
               </div>
-              <div className="hstat">
-                <div className="hstat-val" style={{ fontSize: '15px', color: 'var(--text-2)' }}>{article.date}</div>
-                <div className="hstat-lbl">опубликовано</div>
-              </div>
-              {article.readTime && (
-                <div className="hstat">
-                  <div className="hstat-val" style={{ fontSize: '15px', color: 'var(--text-2)' }}>{article.readTime} мин</div>
-                  <div className="hstat-lbl">время чтения</div>
-                </div>
-              )}
-            </div>
-
-            <div className="hero-actions">
-              <button className={`btn-liked${liked ? ' liked' : ''}`} onClick={toggleLike}>
-                <svg width="14" height="14" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <button className={`fa-action-btn${liked ? ' liked' : ''}`} onClick={toggleLike} title="Нравится">
+                <svg width="15" height="15" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
                   <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
                 </svg>
-                Нравится
+                {article.likes + (liked ? 1 : 0)}
               </button>
-              <button className={`btn-liked btn-disliked${disliked ? ' disliked' : ''}`} onClick={toggleDislike}>
-                <svg width="14" height="14" fill={disliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <button className={`fa-action-btn fa-action-dislike${disliked ? ' active' : ''}`} onClick={toggleDislike} title="Не нравится">
+                <svg width="15" height="15" fill={disliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
                   <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
                 </svg>
-                Не нравится
               </button>
-              <button className="btn-secondary" onClick={() => setShowAddToSet(true)}>
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <button className="fa-action-btn" onClick={() => setShowAddToSet(true)} title="Добавить к набору">
+                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                  <circle cx="19" cy="19" r="4" fill="var(--surface)" stroke="currentColor" strokeWidth="2"/>
-                  <path d="M19 17v4M17 19h4"/>
+                  <circle cx="19" cy="19" r="3.5" fill="var(--surface)" stroke="currentColor" strokeWidth="1.8"/>
+                  <path d="M19 17.5v3M17.5 19h3"/>
                 </svg>
-                Добавить к набору
+                К набору
               </button>
-              {/* UC-31 / UC-33: кнопки для своих статей */}
               {isMine && (
                 <>
-                  <button className="btn-secondary btn-author-edit" onClick={handleEditArticle}>
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <button className="fa-action-btn" onClick={handleEditArticle} title="Редактировать">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
                     </svg>
-                    Редактировать
                   </button>
-                  <button className="btn-secondary btn-author-delete" onClick={() => setConfirmDelete(true)}>
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <button className="fa-action-btn fa-action-dislike" onClick={() => setConfirmDelete(true)} title="Удалить">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
                     </svg>
-                    Удалить
                   </button>
                 </>
               )}
+              <div className="f-spacer" />
+              <span className="fa-time">{article.date}{article.readTime ? ` · ${article.readTime} мин` : ''}</span>
             </div>
           </div>
 
@@ -554,6 +547,7 @@ export default function Article() {
 
             {/* Emoji reactions */}
             <div className="art-reactions-row">
+              <span className="art-reactions-label">Что вы думаете?</span>
               {reactions.map(r => (
                 <ArticleReactionPill key={r.emoji} emoji={r.emoji} count={r.count} active={myReactions.has(r.emoji)} onToggle={toggleReaction} />
               ))}

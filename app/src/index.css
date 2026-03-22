@@ -3990,7 +3990,18 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
 }
 .c-submit:hover { background: var(--accent-green-light); color: var(--accent-green); border-color: var(--accent-green-border); }
 
+/* Article meta row (feed-style) */
+.art-meta-row {
+  display: flex; align-items: center; gap: 4px;
+  margin-top: 20px; padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
 /* Article emoji reactions row */
+.art-reactions-label {
+  font-size: 12px; color: var(--text-3); font-weight: 500;
+  white-space: nowrap; margin-right: 4px; letter-spacing: -0.01em;
+}
 .art-reactions-row {
   display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
   padding: 12px 24px; border-bottom: 1px solid var(--border);
@@ -4004,19 +4015,26 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
 .ar-add-btn:hover { color: var(--text-2); border-color: var(--text-3); background: var(--surface-2); }
 .emoji-picker {
   position: absolute; bottom: calc(100% + 8px); left: 0;
-  display: flex; flex-wrap: wrap; gap: 4px;
-  width: 220px; padding: 10px;
+  display: flex; flex-wrap: wrap; gap: 2px;
+  width: 256px; padding: 10px;
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,0.12);
   z-index: 200; animation: apIn 0.14s ease;
 }
 .ep-btn {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 36px; height: 36px; border-radius: 8px;
-  background: none; border: none; cursor: pointer; font-size: 20px;
+  width: 40px; height: 40px; border-radius: 8px;
+  background: none; border: none; cursor: pointer; font-size: 22px;
   transition: background 0.1s; line-height: 1;
 }
 .ep-btn:hover { background: var(--surface-2); }
+@keyframes epPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.55); }
+  70%  { transform: scale(0.85); }
+  100% { transform: scale(1); }
+}
+.ep-btn.ep-pop { animation: epPop 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
 
 /* Note editor */
 .note-editor {
