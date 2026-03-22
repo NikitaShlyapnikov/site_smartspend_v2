@@ -7711,3 +7711,284 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   outline-offset: 0;
   border-color: var(--accent-green-border);
 }
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE — COMPREHENSIVE RESPONSIVE RULES
+   Breakpoints: 768px (mobile), 480px (small phone), 360px (min)
+══════════════════════════════════════════════════════════════ */
+
+/* ── 768px: all pages ── */
+@media (max-width: 768px) {
+
+  /* ── Variables ── */
+  :root { --page-max: 100%; }
+
+  /* ── Notifications: disable fixed-height scroll on mobile ── */
+  .notif-main {
+    height: auto;
+    overflow: visible;
+    max-width: 100%;
+  }
+  .notif-scroll {
+    overflow-y: visible;
+    flex: none;
+  }
+
+  /* ── All page main containers: reset padding ── */
+  .set-detail-main,
+  .article-main,
+  .create-main,
+  .sd-main {
+    padding: 20px 16px 32px;
+  }
+  .profile-main {
+    padding: 20px 16px 32px;
+    overflow-y: visible;
+    height: auto;
+  }
+
+  /* ── Profile tabs: horizontal scroll, full width ── */
+  .profile-tabs {
+    align-self: stretch;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+  }
+  .profile-tabs::-webkit-scrollbar { display: none; }
+  .profile-tab { flex-shrink: 0; }
+
+  /* ── Account tabs: horizontal scroll ── */
+  .acc-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+    padding-bottom: 0;
+  }
+  .acc-tabs::-webkit-scrollbar { display: none; }
+  .acc-tab { flex-shrink: 0; }
+
+  /* ── Feed: fix height so page doesn't cut off ── */
+  .feed-main {
+    height: auto;
+    overflow: visible;
+    max-width: 100%;
+  }
+  .feed-scroll {
+    overflow-y: visible;
+    flex: none;
+    padding-bottom: 32px;
+  }
+  .filters-sticky {
+    position: static;
+    top: unset;
+  }
+
+  /* ── Catalog: same fix ── */
+  .catalog-main {
+    height: auto;
+    overflow: visible;
+    max-width: 100%;
+  }
+  .catalog-scroll {
+    overflow-y: visible;
+    flex: none;
+    padding-bottom: 32px;
+  }
+
+  /* ── Catalog grid 2-col on mid-mobile (480px catches 1-col) ── */
+  .catalog-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  /* ── Inventory ── */
+  .inventory-main { max-width: 100%; }
+  .inventory-grid { grid-template-columns: 1fr; }
+
+  /* ── Editor ── */
+  .editor-main { height: auto; }
+  .editor-scroll {
+    padding: 16px 16px 40px;
+    overflow-y: visible;
+    flex: none;
+  }
+  .editor-toolbar {
+    padding: 10px 16px;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .fmt-group { flex-wrap: wrap; }
+
+  /* ── Create Set item row: 2-col (name + qty), then price on next line ── */
+  .item-row {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 6px;
+  }
+  .item-row > :nth-child(2) { grid-row: 2; grid-column: 1; font-size: 13px; }
+  .item-row > :nth-child(3) { grid-row: 2; grid-column: 2; font-size: 13px; }
+  .item-row > :last-child  { grid-row: 1; grid-column: 2; }
+
+  /* ── Set detail items table: horizontal scroll ── */
+  .sd-items-table-wrap,
+  .inv-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
+  .sd-items-table,
+  .inv-table {
+    min-width: 520px;
+  }
+
+  /* ── Hero cards ── */
+  .article-hero-inner { flex-direction: column; gap: 12px; }
+  .sd-hero { flex-direction: column; gap: 16px; }
+
+  /* ── Form sections ── */
+  .form-section { padding: 16px; }
+  .form-row { flex-direction: column; gap: 12px; }
+  .form-row > * { flex: none; width: 100%; }
+
+  /* ── Settings rows: stack label + control ── */
+  .settings-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .settings-row-right { flex-shrink: 0; }
+
+  /* ── Stats & summary cards ── */
+  .stat-cards-row,
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  /* ── Category chips: wrap nicely ── */
+  .chips-row, .category-chips {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* ── Budget lines ── */
+  .bl-row { flex-wrap: wrap; gap: 8px; }
+  .bl-name { min-width: 0; flex: 1; }
+
+  /* ── Page header with action button: stack ── */
+  .page-header-inner,
+  .catalog-page-header,
+  .inv-page-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  /* ── Typography ── */
+  .page-title { font-size: 20px; }
+  .section-title { font-size: 16px; }
+  h2 { font-size: 18px; }
+}
+
+/* ── 480px: small phones ── */
+@media (max-width: 480px) {
+
+  /* ── Single column everywhere ── */
+  .catalog-grid { grid-template-columns: 1fr; gap: 8px; }
+  .stat-cards-row,
+  .stats-row { grid-template-columns: 1fr; }
+  .achievements-grid { grid-template-columns: repeat(2, 1fr); }
+  .acc-sets-grid { grid-template-columns: 1fr; }
+  .entry-tiles { grid-template-columns: 1fr; }
+
+  /* ── Tighter padding ── */
+  .set-detail-main,
+  .article-main,
+  .create-main,
+  .sd-main,
+  .profile-main { padding: 16px 12px 28px; }
+  .page-header, .catalog-header, .notif-header { padding: 16px 12px 0; }
+  .filters-sticky { padding: 8px 12px 6px; }
+  .catalog-filters-bar { padding: 8px 12px 6px; }
+  .feed-scroll { padding: 12px 12px 24px; }
+  .catalog-scroll { padding: 12px 12px 24px; }
+  .notif-scroll { padding: 8px 12px 24px; }
+  .notif-filters { padding: 8px 12px 0; }
+  .inventory-main { padding: 16px 12px; }
+  .settings-inner { padding: 16px 12px; }
+  .account-main { padding: 16px 12px; }
+  .editor-scroll { padding: 12px 12px 32px; }
+  .editor-toolbar { padding: 8px 12px; }
+  .form-section { padding: 14px 12px; }
+
+  /* ── Font sizes ── */
+  .page-title { font-size: 18px; }
+  .section-title { font-size: 15px; }
+
+  /* ── User header on account/profile ── */
+  .user-header { padding: 14px; gap: 12px; }
+  .user-avatar-large { width: 60px; height: 60px; font-size: 22px; }
+  .user-display-name { font-size: 19px; }
+
+  /* ── Cards: reduce border-radius ── */
+  .feed-card,
+  .set-card,
+  .profile-section-card,
+  .settings-section,
+  .account-section { border-radius: 12px; }
+
+  /* ── Bottom nav label hidden on very small ── */
+  .mobile-nav-label { font-size: 9px; }
+
+  /* ── Chips tighter ── */
+  .category-chip, .notif-filter-btn { padding: 6px 12px; font-size: 12px; }
+
+  /* ── Table horizontal scroll tighter offset ── */
+  .sd-items-table-wrap,
+  .inv-table-wrap {
+    margin: 0 -12px;
+    padding: 0 12px;
+  }
+}
+
+/* ── 360px: absolute minimum ── */
+@media (max-width: 360px) {
+
+  /* ── Minimum padding ── */
+  .set-detail-main,
+  .article-main,
+  .create-main,
+  .sd-main,
+  .profile-main { padding: 12px 8px 24px; }
+  .page-header, .catalog-header, .notif-header { padding: 12px 8px 0; }
+  .filters-sticky,
+  .catalog-filters-bar { padding: 8px 8px 6px; }
+  .feed-scroll,
+  .catalog-scroll { padding: 10px 8px 20px; }
+  .notif-scroll { padding: 8px 8px 20px; }
+  .notif-filters { padding: 8px 8px 0; }
+  .inventory-main { padding: 12px 8px; }
+  .settings-inner { padding: 12px 8px; }
+  .account-main { padding: 12px 8px; }
+  .editor-scroll { padding: 10px 8px 28px; }
+  .editor-toolbar { padding: 6px 8px; gap: 2px; }
+  .form-section { padding: 12px 8px; }
+
+  /* ── Font ── */
+  .page-title { font-size: 17px; }
+
+  /* ── Bottom nav ── */
+  .mobile-nav-label { display: none; }
+  .mobile-nav-icon { width: 22px; height: 22px; }
+
+  /* ── Cards ── */
+  .feed-card, .set-card { border-radius: 10px; }
+
+  /* ── Table ── */
+  .sd-items-table-wrap,
+  .inv-table-wrap {
+    margin: 0 -8px;
+    padding: 0 8px;
+  }
+}
