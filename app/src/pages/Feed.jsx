@@ -193,6 +193,80 @@ function ReactionPill({ emoji, count, active, onToggle }) {
   )
 }
 
+function LikeBtn({ liked, count, onToggle }) {
+  const [anim, setAnim] = useState(false)
+  const [sparks, setSparks] = useState([])
+  function handleClick() {
+    setAnim(true)
+    setTimeout(() => setAnim(false), 480)
+    if (!liked) {
+      const s = Array.from({ length: 6 }, (_, i) => ({
+        id: Date.now() + i,
+        angle: i * 60 + Math.random() * 18 - 9,
+        dist: 16 + Math.random() * 8,
+      }))
+      setSparks(s)
+      setTimeout(() => setSparks([]), 560)
+    }
+    onToggle()
+  }
+  return (
+    <div className="action-wrap">
+      <button className={`fa-action-btn${liked ? ' liked' : ''}${anim ? ' like-pop' : ''}`} onClick={handleClick} title="Нравится">
+        <svg width="16" height="16" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+          <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+        </svg>
+        {count}
+      </button>
+      {sparks.map(s => (
+        <span key={s.id} className="like-spark" style={{ '--angle': `${s.angle}deg`, '--dist': `${s.dist}px` }}>✦</span>
+      ))}
+    </div>
+  )
+}
+
+function DislikeBtn({ disliked, onToggle }) {
+  const [anim, setAnim] = useState(false)
+  function handleClick() {
+    setAnim(true)
+    setTimeout(() => setAnim(false), 420)
+    onToggle()
+  }
+  return (
+    <button className={`fa-action-btn fa-action-dislike${disliked ? ' active' : ''}${anim ? ' dislike-shake' : ''}`} onClick={handleClick} title="Не нравится">
+      <svg width="16" height="16" fill={disliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+        <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+      </svg>
+    </button>
+  )
+}
+
+function BookmarkBtn({ bookmarked, onToggle }) {
+  const [anim, setAnim] = useState(false)
+  const [fly, setFly] = useState(false)
+  function handleClick() {
+    setAnim(true)
+    setTimeout(() => setAnim(false), 420)
+    if (!bookmarked) {
+      setFly(true)
+      setTimeout(() => setFly(false), 520)
+    }
+    onToggle()
+  }
+  return (
+    <div className="action-wrap">
+      <button className={`fa-action-btn fa-action-bookmark${bookmarked ? ' active' : ''}${anim ? ' bookmark-snap' : ''}`} onClick={handleClick} title="В избранное">
+        <svg width="16" height="16" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+        </svg>
+      </button>
+      {fly && <span className="bookmark-fly">✦</span>}
+    </div>
+  )
+}
+
 function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeToggle, onDislikeToggle, onBookmarkToggle, onCategoryClick, onClick, navigate }) {
   const author = feedAuthors[item.authorId]
   const catLabel = CATEGORIES.find(c => c.id === item.category)?.label
@@ -230,13 +304,7 @@ function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeTo
 
       {/* Bottom row: actions + time */}
       <div className="fa-bottom" onClick={e => e.stopPropagation()}>
-        <button className={`fa-action-btn${isLiked ? ' liked' : ''}`} onClick={() => onLikeToggle(item.id)} title="Нравится">
-          <svg width="16" height="16" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
-            <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
-          </svg>
-          {item.likes + (isLiked ? 1 : 0)}
-        </button>
+        <LikeBtn liked={isLiked} count={item.likes + (isLiked ? 1 : 0)} onToggle={() => onLikeToggle(item.id)} />
         {item.comments != null && (
           <div className="fa-action-stat">
             <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -245,17 +313,8 @@ function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeTo
             {item.comments}
           </div>
         )}
-        <button className={`fa-action-btn fa-action-dislike${isDisliked ? ' active' : ''}`} onClick={() => onDislikeToggle(item.id)} title="Не нравится">
-          <svg width="16" height="16" fill={isDisliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
-            <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
-          </svg>
-        </button>
-        <button className={`fa-action-btn fa-action-bookmark${isBookmarked ? ' active' : ''}`} onClick={() => onBookmarkToggle(item.id)} title="В избранное">
-          <svg width="16" height="16" fill={isBookmarked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-          </svg>
-        </button>
+        <DislikeBtn disliked={isDisliked} onToggle={() => onDislikeToggle(item.id)} />
+        <BookmarkBtn bookmarked={isBookmarked} onToggle={() => onBookmarkToggle(item.id)} />
         {reactions.length > 0 && (
           <>
             <span className="fa-reactions-sep" />

@@ -629,6 +629,64 @@ body.dark .fa-action-bookmark.active svg { fill: #6AAF8E; stroke: #6AAF8E; }
 }
 .fa-action-stat svg { opacity: 0.28; flex-shrink: 0; }
 
+/* Action button wrappers (for particle positioning) */
+.action-wrap { position: relative; display: inline-flex; }
+
+/* ── Like animation ── */
+@keyframes likeJump {
+  0%   { transform: scale(1)    translateY(0); }
+  30%  { transform: scale(1.35) translateY(-5px); }
+  60%  { transform: scale(0.88) translateY(1px); }
+  85%  { transform: scale(1.08) translateY(-1px); }
+  100% { transform: scale(1)    translateY(0); }
+}
+.fa-action-btn.like-pop { animation: likeJump 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+
+@keyframes likeSpark {
+  0%   { transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0)            scale(1);   opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(var(--angle)) translateX(var(--dist))  scale(0);   opacity: 0; }
+}
+.like-spark {
+  position: absolute; top: 40%; left: 30%;
+  pointer-events: none; user-select: none;
+  font-size: 8px; color: var(--accent-green);
+  animation: likeSpark 0.52s ease-out forwards;
+  z-index: 10;
+}
+
+/* ── Dislike animation ── */
+@keyframes dislikeShake {
+  0%   { transform: translateX(0)    translateY(0); }
+  18%  { transform: translateX(-3px) translateY(2px); }
+  36%  { transform: translateX(3px)  translateY(2px); }
+  54%  { transform: translateX(-2px) translateY(1px); }
+  72%  { transform: translateX(2px)  translateY(0); }
+  100% { transform: translateX(0)    translateY(0); }
+}
+.fa-action-btn.dislike-shake { animation: dislikeShake 0.38s ease; }
+
+/* ── Bookmark animation ── */
+@keyframes bookmarkSnap {
+  0%   { transform: scale(1)    translateY(0); }
+  25%  { transform: scale(0.72) translateY(3px); }
+  60%  { transform: scale(1.28) translateY(-3px); }
+  85%  { transform: scale(0.95) translateY(0); }
+  100% { transform: scale(1)    translateY(0); }
+}
+.fa-action-btn.bookmark-snap { animation: bookmarkSnap 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+
+@keyframes bookmarkFly {
+  0%   { transform: translateX(-50%) translateY(0)     scale(1);   opacity: 1; }
+  100% { transform: translateX(-50%) translateY(-20px) scale(0.4); opacity: 0; }
+}
+.bookmark-fly {
+  position: absolute; bottom: 100%; left: 50%;
+  pointer-events: none; user-select: none;
+  font-size: 10px; color: var(--accent-green);
+  animation: bookmarkFly 0.48s ease-out forwards;
+  z-index: 10;
+}
+
 /* Reactions */
 .fa-reactions-sep {
   display: inline-block; width: 1px; height: 16px;
