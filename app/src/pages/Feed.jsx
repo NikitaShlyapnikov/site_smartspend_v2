@@ -156,6 +156,19 @@ function AuthorChip({ author, authorId, navigate }) {
 function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeToggle, onDislikeToggle, onBookmarkToggle, onCategoryClick, onClick, navigate }) {
   const author = feedAuthors[item.authorId]
   const catLabel = CATEGORIES.find(c => c.id === item.category)?.label
+  const [reactions, setReactions] = useState(() => (item.reactions || []).map(r => ({ ...r })))
+  const [myReactions, setMyReactions] = useState(new Set())
+
+  function toggleReaction(e, emoji) {
+    e.stopPropagation()
+    setMyReactions(prev => {
+      const next = new Set(prev)
+      const hadIt = next.has(emoji)
+      hadIt ? next.delete(emoji) : next.add(emoji)
+      setReactions(rs => rs.map(r => r.emoji === emoji ? { ...r, count: r.count + (hadIt ? -1 : 1) } : r))
+      return next
+    })
+  }
 
   return (
     <article className={`feed-article${isRead ? ' read' : ''}`} onClick={() => onClick(item)}>
@@ -204,6 +217,21 @@ function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeTo
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
           </svg>
         </button>
+        {reactions.length > 0 && (
+          <>
+            <span className="fa-reactions-sep" />
+            {reactions.map(r => (
+              <button
+                key={r.emoji}
+                className={`fa-reaction${myReactions.has(r.emoji) ? ' active' : ''}`}
+                onClick={e => toggleReaction(e, r.emoji)}
+              >
+                <span className="r-emoji">{r.emoji}</span>
+                <span className="r-count">{r.count}</span>
+              </button>
+            ))}
+          </>
+        )}
         <div className="f-spacer" />
         <span className="fa-time">{item.time}</span>
       </div>
