@@ -85,21 +85,19 @@ function AuthorChip({ author, authorId, navigate }) {
   )
 }
 
-function ArticleCard({ item, isRead, isLiked, onLikeToggle, onClick, navigate }) {
+function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeToggle, onDislikeToggle, onBookmarkToggle, onClick, navigate }) {
   const author = feedAuthors[item.authorId]
   const catLabel = CATEGORIES.find(c => c.id === item.category)?.label
 
   return (
     <article className={`feed-article${isRead ? ' read' : ''}`} onClick={() => onClick(item)}>
 
-      {/* Author · Category · Time */}
+      {/* Author · Category */}
       <div className="fa-author-row">
         <AuthorChip author={author} authorId={item.authorId} navigate={navigate} />
         {catLabel && catLabel !== 'Все' && (
           <><span className="fa-sep">·</span><span className="fa-category">{catLabel}</span></>
         )}
-        <span className="fa-sep">·</span>
-        <span className="fa-time">{item.time}</span>
       </div>
 
       {/* Title */}
@@ -108,19 +106,14 @@ function ArticleCard({ item, isRead, isLiked, onLikeToggle, onClick, navigate })
       {/* Preview */}
       <p className="fa-preview">{item.preview}</p>
 
-      {/* Meta: set-link + stats */}
+      {/* Bottom row: time · spacer · likes · comments · dislike · bookmark */}
       <div className="fa-meta">
-        {item.setLink && (
-          <span className="fa-set-chip" onClick={e => e.stopPropagation()}>
-            <span className="fa-set-dot" style={{ background: item.setLink.color }} />
-            {item.setLink.title}
-          </span>
-        )}
+        <span className="fa-time">{item.time}</span>
         <div className="f-spacer" />
-        {item.readTime && <span className="fa-readtime">{item.readTime} мин</span>}
         <button
           className={`fa-like-btn${isLiked ? ' liked' : ''}`}
           onClick={e => { e.stopPropagation(); onLikeToggle(item.id) }}
+          title="Нравится"
         >
           <svg width="13" height="13" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
@@ -136,6 +129,25 @@ function ArticleCard({ item, isRead, isLiked, onLikeToggle, onClick, navigate })
             {item.comments}
           </div>
         )}
+        <button
+          className={`fa-icon-btn fa-dislike-btn${isDisliked ? ' active' : ''}`}
+          onClick={e => { e.stopPropagation(); onDislikeToggle(item.id) }}
+          title="Не нравится"
+        >
+          <svg width="13" height="13" fill={isDisliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+            <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+          </svg>
+        </button>
+        <button
+          className={`fa-icon-btn fa-bookmark-btn${isBookmarked ? ' active' : ''}`}
+          onClick={e => { e.stopPropagation(); onBookmarkToggle(item.id) }}
+          title="В избранное"
+        >
+          <svg width="13" height="13" fill={isBookmarked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        </button>
       </div>
 
     </article>
@@ -494,8 +506,10 @@ export default function Feed() {
   const [mode,        setMode]        = useState(null)
   const [cat,         setCat]         = useState(new Set())
   const [sort,        setSort]        = useState('popular_7d')
-  const [readIds, setReadIds] = useState(new Set())
-  const [likedIds, setLikedIds] = useState(new Set())
+  const [readIds,       setReadIds]       = useState(new Set())
+  const [likedIds,      setLikedIds]      = useState(new Set())
+  const [dislikedIds,   setDislikedIds]   = useState(new Set())
+  const [bookmarkedIds, setBookmarkedIds] = useState(new Set())
   const [filtersScrolled, setFiltersScrolled] = useState(false)
 
   const feedScrollRef = useCallback(el => {
@@ -515,9 +529,21 @@ export default function Feed() {
 
   function toggleLike(id) {
     setLikedIds(prev => {
-      const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
-      return next
+      const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next
+    })
+    setDislikedIds(prev => { const next = new Set(prev); next.delete(id); return next })
+  }
+
+  function toggleDislike(id) {
+    setDislikedIds(prev => {
+      const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next
+    })
+    setLikedIds(prev => { const next = new Set(prev); next.delete(id); return next })
+  }
+
+  function toggleBookmark(id) {
+    setBookmarkedIds(prev => {
+      const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next
     })
   }
 
@@ -603,7 +629,11 @@ export default function Feed() {
               <ArticleCard key={item.id} item={item}
                 isRead={readIds.has(item.id)}
                 isLiked={likedIds.has(item.id)}
+                isDisliked={dislikedIds.has(item.id)}
+                isBookmarked={bookmarkedIds.has(item.id)}
                 onLikeToggle={toggleLike}
+                onDislikeToggle={toggleDislike}
+                onBookmarkToggle={toggleBookmark}
                 onClick={handleItemClick}
                 navigate={navigate}
               />

@@ -559,7 +559,6 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
 .fa-author-row .author-name-inline { font-size: 13px; font-weight: 500; }
 .fa-sep { font-size: 11px; color: var(--text-3); user-select: none; line-height: 1; }
 .fa-category { font-size: 12px; color: var(--text-3); letter-spacing: -0.01em; }
-.fa-time { font-size: 12px; color: var(--text-3); font-family: var(--mono); }
 
 .fa-title {
   font-size: 19px; font-weight: 700;
@@ -573,21 +572,16 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
   overflow: hidden; word-break: break-word;
 }
 .fa-meta {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 6px;
 }
-.fa-set-chip {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 11px; color: var(--text-2);
-  background: var(--surface-2); border: 1px solid var(--border);
-  border-radius: 20px; padding: 3px 10px 3px 7px; letter-spacing: -0.01em;
-}
-.fa-set-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.fa-readtime { font-size: 11px; color: var(--text-3); font-family: var(--mono); }
+.fa-time { font-size: 12px; color: var(--text-3); font-family: var(--mono); }
+
+/* Like button (with count) */
 .fa-like-btn {
   display: flex; align-items: center; gap: 4px;
   font-size: 11px; color: var(--text-3); font-family: var(--mono);
   background: none; border: none; cursor: pointer;
-  padding: 2px 4px; border-radius: 5px;
+  padding: 4px 6px; border-radius: 6px;
   transition: color 0.12s, background 0.12s;
 }
 .fa-like-btn:hover { background: var(--surface-2); color: var(--accent-green); }
@@ -597,11 +591,39 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
 .fa-like-btn.liked svg { opacity: 1; fill: var(--accent-green); stroke: var(--accent-green); }
 body.dark .fa-like-btn.liked { color: #6AAF8E; }
 body.dark .fa-like-btn.liked svg { fill: #6AAF8E; stroke: #6AAF8E; }
+
+/* Comments stat */
 .fa-stat {
   display: flex; align-items: center; gap: 4px;
   font-size: 11px; color: var(--text-3); font-family: var(--mono);
+  padding: 4px 2px;
 }
 .fa-stat svg { opacity: 0.4; flex-shrink: 0; }
+
+/* Icon-only buttons: dislike + bookmark */
+.fa-icon-btn {
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer;
+  padding: 4px 5px; border-radius: 6px; color: var(--text-3);
+  transition: color 0.12s, background 0.12s;
+}
+.fa-icon-btn svg { opacity: 0.3; transition: opacity 0.12s, fill 0.12s; }
+.fa-icon-btn:hover { background: var(--surface-2); }
+.fa-icon-btn:hover svg { opacity: 0.6; }
+
+/* Dislike — red accent */
+.fa-dislike-btn:hover { color: #B85555; }
+.fa-dislike-btn.active { color: #B85555; }
+.fa-dislike-btn.active svg { opacity: 1; fill: #B85555; stroke: #B85555; }
+body.dark .fa-dislike-btn.active { color: #E07070; }
+body.dark .fa-dislike-btn.active svg { fill: #E07070; stroke: #E07070; }
+
+/* Bookmark — green accent */
+.fa-bookmark-btn:hover { color: var(--accent-green); }
+.fa-bookmark-btn.active { color: var(--accent-green); }
+.fa-bookmark-btn.active svg { opacity: 1; fill: var(--accent-green); stroke: var(--accent-green); }
+body.dark .fa-bookmark-btn.active { color: #6AAF8E; }
+body.dark .fa-bookmark-btn.active svg { fill: #6AAF8E; stroke: #6AAF8E; }
 
 .filter-summary {
   display: flex; align-items: center; gap: 8px;
