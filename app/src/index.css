@@ -4225,13 +4225,16 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
   /* Full-width single column — override both normal and collapsed-sidebar specificity */
   body.app-body #root,
   body.sidebar-collapsed.app-body #root {
-    grid-template-columns: 1fr;
-    height: auto;
-    overflow: visible;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 
   body.app-body #root > main,
   body.sidebar-collapsed.app-body #root > main {
+    grid-column: 1 / -1;
+    grid-row: 1;
     height: 100svh;
     overflow-y: auto;
     overflow-x: hidden;
@@ -7655,12 +7658,24 @@ button:disabled,
 
 /* Mobile: hide sidebar entirely, show bottom nav feel */
 @media (max-width: 768px) {
-  body.app-body #root {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr;
+  /* Override ALL grid variants — including collapsed sidebar (higher specificity) */
+  body.app-body #root,
+  body.sidebar-collapsed.app-body #root {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+    height: auto !important;
+    overflow: visible !important;
   }
-  body.app-body aside {
-    display: none;
+  /* main always spans the single column, regardless of fixed siblings */
+  body.app-body #root > main,
+  body.sidebar-collapsed.app-body #root > main {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    width: 100%;
+  }
+  body.app-body aside,
+  body.sidebar-collapsed.app-body aside {
+    display: none !important;
   }
   /* Adjust info-sheet overlay */
   body.app-body .info-sheet-overlay { left: 0; }
