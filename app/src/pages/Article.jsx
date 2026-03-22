@@ -249,8 +249,6 @@ export default function Article() {
   const [showAddToSet, setShowAddToSet] = useState(false)
   const [myReactions, setMyReactions] = useState(new Set())
   const [showPicker, setShowPicker] = useState(false)
-  const [noteText, setNoteText] = useState(() => { try { return localStorage.getItem(`ss_note_${id}`) || '' } catch { return '' } })
-  const [showNote, setShowNote] = useState(false)
   const [reactions, setReactions] = useState(() => {
     const found = articles.find(a => a.id === id)
     const src = found?.reactions?.length ? found.reactions : [{ emoji: '🔥', count: 14 }, { emoji: '💡', count: 8 }, { emoji: '😍', count: 5 }]
@@ -345,12 +343,6 @@ export default function Article() {
     })
   }
 
-  function saveNote() {
-    try { localStorage.setItem(`ss_note_${id}`, noteText) } catch {}
-    setShowNote(false)
-    showToastMsg(noteText.trim() ? 'Заметка сохранена' : 'Заметка удалена')
-  }
-
   function showToastMsg(msg) {
     setToast(msg)
     setTimeout(() => setToast(null), 2200)
@@ -410,30 +402,16 @@ export default function Article() {
                 </div>
                 <div className="hstat-lbl">просмотров</div>
               </div>
-              <div className="hstat clickable" onClick={toggleLike}>
-                <div className="hstat-val" style={liked ? { color: '#4E8268' } : {}}>
-                  <svg width="18" height="18" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
-                    <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
-                  </svg>
-                  {article.likes + (liked ? 1 : 0)}
-                </div>
-                <div className="hstat-lbl">нравится</div>
-              </div>
-              <div className="hstat clickable" onClick={toggleDislike}>
-                <div className="hstat-val" style={disliked ? { color: '#B85555' } : {}}>
-                  <svg width="18" height="18" fill={disliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
-                    <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
-                  </svg>
-                  {(article.dislikes || 0) + (disliked ? 1 : 0)}
-                </div>
-                <div className="hstat-lbl">не нравится</div>
-              </div>
               <div className="hstat">
                 <div className="hstat-val" style={{ fontSize: '15px', color: 'var(--text-2)' }}>{article.date}</div>
-                <div className="hstat-lbl">дата публикации</div>
+                <div className="hstat-lbl">опубликовано</div>
               </div>
+              {article.readTime && (
+                <div className="hstat">
+                  <div className="hstat-val" style={{ fontSize: '15px', color: 'var(--text-2)' }}>{article.readTime} мин</div>
+                  <div className="hstat-lbl">время чтения</div>
+                </div>
+              )}
             </div>
 
             <div className="hero-actions">
@@ -451,13 +429,6 @@ export default function Article() {
                 </svg>
                 Не нравится
               </button>
-              <button className="btn-secondary" onClick={() => showToastMsg('Ссылка скопирована')}>
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                  <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-                </svg>
-                Поделиться
-              </button>
               <button className="btn-secondary" onClick={() => setShowAddToSet(true)}>
                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
@@ -465,12 +436,6 @@ export default function Article() {
                   <path d="M19 17v4M17 19h4"/>
                 </svg>
                 Добавить к набору
-              </button>
-              <button className="btn-secondary" onClick={() => setShowNote(n => !n)}>
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                </svg>
-                {noteText.trim() ? 'Моя заметка' : 'Добавить заметку'}
               </button>
               {/* UC-31 / UC-33: кнопки для своих статей */}
               {isMine && (
@@ -490,30 +455,6 @@ export default function Article() {
                 </>
               )}
             </div>
-          {showNote && (
-            <div className="note-editor">
-              <textarea
-                className="note-textarea"
-                placeholder="Личная заметка к статье — видна только вам..."
-                value={noteText}
-                onChange={e => setNoteText(e.target.value)}
-                rows={3}
-                autoFocus
-              />
-              <div className="note-actions">
-                <button className="note-save" onClick={saveNote}>Сохранить</button>
-                <button className="note-cancel" onClick={() => setShowNote(false)}>Отмена</button>
-              </div>
-            </div>
-          )}
-          {!showNote && noteText.trim() && (
-            <div className="note-display" onClick={() => setShowNote(true)}>
-              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.5 }}>
-                <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-              </svg>
-              <span>{noteText}</span>
-            </div>
-          )}
           </div>
 
           {/* Author inside hero */}
@@ -536,14 +477,6 @@ export default function Article() {
               }})}>
               <div className="author-name">{article.author}</div>
               {article.authorBio && <div className="author-bio">{article.authorBio}</div>}
-              {article.authorSetLink && set && (
-                <div className="author-set-link" onClick={() => navigate(`/set/${set.id}`)}>
-                  <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                  </svg>
-                  {article.authorSetLink}
-                </div>
-              )}
             </div>
             <button
               className={`btn-follow${isFollowing ? ' following' : ''}`}

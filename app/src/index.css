@@ -3756,7 +3756,7 @@ body.dark .article-type-badge { background: #1A2820; color: #7AAF96; border-colo
 
 .hero-card {
   background: var(--surface); border-radius: var(--r);
-  box-shadow: var(--shadow); overflow: hidden;
+  border: 1px solid var(--border); overflow: hidden;
 }
 .hero-body { padding: 28px 32px 20px; }
 .hero-badges { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
@@ -3843,7 +3843,7 @@ body.dark .btn-follow.following { background: #1A2820; color: #7AAF96; border-co
 /* Content card */
 .content-card {
   background: var(--surface); border-radius: var(--r);
-  box-shadow: var(--shadow); padding: 32px;
+  border: 1px solid var(--border); padding: 32px;
 }
 .content-body { font-size: 16px; line-height: 1.75; color: var(--text-2); letter-spacing: -0.01em; }
 .content-body h2 { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; margin: 32px 0 16px; }
@@ -3908,7 +3908,7 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
 /* Section card (comments) */
 .section-card {
   background: var(--surface); border-radius: var(--r);
-  box-shadow: var(--shadow); overflow: hidden;
+  border: 1px solid var(--border); overflow: hidden;
 }
 .section-header {
   padding: 15px 24px;
