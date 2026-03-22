@@ -47,41 +47,102 @@ const MY_SET_TITLES = new Set([
 
 // ── ARTICLE CARD ──────────────────────────────────────────────────────────────
 
-function AuthorChip({ author, authorId, navigate }) {
-  if (!author) return null
+function AuthorPopoverCard({ author, authorId, navigate, onMouseEnter, onMouseLeave }) {
+  const [following, setFollowing] = useState(author.following || false)
+  const isDeleted = author.type === 'deleted'
 
-  function handleAuthorClick(e) {
+  function handleNameClick(e) {
     e.stopPropagation()
     navigate(`/author/${authorId}`, { state: { ...author, id: authorId } })
   }
 
-  if (author.type === 'anonymous') {
-    return (
-      <button className="author-chip" onClick={handleAuthorClick}>
-        <div className="author-avatar-sm" style={{ background: author.color }}>{author.initials}</div>
-        <span className="author-name-inline">{author.name}</span>
-      </button>
-    )
+  return (
+    <div className="author-popover" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onClick={e => e.stopPropagation()}>
+      <div className="ap-top">
+        <div className="ap-avatar" style={{ background: author.color }}>
+          {isDeleted
+            ? <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a8 8 0 0 0-8 8v10l3-3 3 3 3-3 3 3 3-3V10a8 8 0 0 0-8-8zm-2.5 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>
+            : author.initials
+          }
+        </div>
+        <div className="ap-info">
+          <button className="ap-name" onClick={handleNameClick}>{author.name}</button>
+          {author.followers != null && (
+            <div className="ap-meta">
+              {typeof author.followers === 'number' ? author.followers.toLocaleString('ru') : author.followers} подписчиков
+              {author.articles > 0 && <> · {author.articles} статей</>}
+            </div>
+          )}
+        </div>
+      </div>
+      {author.desc && <p className="ap-desc">{author.desc}</p>}
+      {!isDeleted && (
+        <button
+          className={`ap-follow-btn${following ? ' following' : ''}`}
+          onClick={() => setFollowing(f => !f)}
+        >
+          {following ? 'Вы подписаны' : 'Подписаться'}
+        </button>
+      )}
+    </div>
+  )
+}
+
+function AuthorChip({ author, authorId, navigate }) {
+  const [showCard, setShowCard] = useState(false)
+  const showTimer = useRef(null)
+  const hideTimer = useRef(null)
+
+  if (!author) return null
+
+  function handleClick(e) {
+    e.stopPropagation()
+    navigate(`/author/${authorId}`, { state: { ...author, id: authorId } })
+  }
+  function onEnter() {
+    clearTimeout(hideTimer.current)
+    showTimer.current = setTimeout(() => setShowCard(true), 350)
+  }
+  function onLeave() {
+    clearTimeout(showTimer.current)
+    hideTimer.current = setTimeout(() => setShowCard(false), 180)
   }
 
-  if (author.type === 'deleted') {
-    return (
-      <button className="author-chip author-chip--ghost" onClick={handleAuthorClick} title="Аккаунт удалён">
-        <span className="author-avatar-sm author-avatar-ghost">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2a8 8 0 0 0-8 8v10l3-3 3 3 3-3 3 3 3-3V10a8 8 0 0 0-8-8zm-2.5 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
-          </svg>
-        </span>
-        <span className="author-name-inline author-name--special">Привидение</span>
-      </button>
-    )
-  }
+  const isDeleted = author.type === 'deleted'
 
   return (
-    <button className="author-chip" onClick={handleAuthorClick}>
-      <div className="author-avatar-sm" style={{ background: author.color }}>{author.initials}</div>
-      <span className="author-name-inline">{author.name}</span>
-    </button>
+    <span className="author-chip-wrap" onMouseEnter={onEnter} onMouseLeave={onLeave}>
+      <button
+        className={`author-chip${isDeleted ? ' author-chip--ghost' : ''}`}
+        onClick={handleClick}
+        title={isDeleted ? 'Аккаунт удалён' : undefined}
+      >
+        {isDeleted ? (
+          <>
+            <span className="author-avatar-sm author-avatar-ghost">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2a8 8 0 0 0-8 8v10l3-3 3 3 3-3 3 3 3-3V10a8 8 0 0 0-8-8zm-2.5 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+              </svg>
+            </span>
+            <span className="author-name-inline author-name--special">Привидение</span>
+          </>
+        ) : (
+          <>
+            <div className="author-avatar-sm" style={{ background: author.color }}>{author.initials}</div>
+            <span className="author-name-inline">{author.name}</span>
+          </>
+        )}
+      </button>
+      {showCard && (
+        <AuthorPopoverCard
+          author={author}
+          authorId={authorId}
+          navigate={navigate}
+          onMouseEnter={() => clearTimeout(hideTimer.current)}
+          onMouseLeave={onLeave}
+        />
+      )}
+    </span>
   )
 }
 
@@ -92,59 +153,49 @@ function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeTo
   return (
     <article className={`feed-article${isRead ? ' read' : ''}`} onClick={() => onClick(item)}>
 
-      {/* Author · Category */}
-      <div className="fa-author-row">
-        <AuthorChip author={author} authorId={item.authorId} navigate={navigate} />
-        {catLabel && catLabel !== 'Все' && (
-          <><span className="fa-sep">·</span><span className="fa-category">{catLabel}</span></>
-        )}
+      {/* Left: main content */}
+      <div className="fa-main">
+        <div className="fa-author-row">
+          <AuthorChip author={author} authorId={item.authorId} navigate={navigate} />
+          {catLabel && catLabel !== 'Все' && (
+            <><span className="fa-sep">·</span><span className="fa-category">{catLabel}</span></>
+          )}
+        </div>
+        <h2 className="fa-title">{item.title}</h2>
+        <p className="fa-preview">{item.preview}</p>
+        <span className="fa-time">{item.time}</span>
       </div>
 
-      {/* Title */}
-      <h2 className="fa-title">{item.title}</h2>
-
-      {/* Preview */}
-      <p className="fa-preview">{item.preview}</p>
-
-      {/* Bottom row: time · spacer · likes · comments · dislike · bookmark */}
-      <div className="fa-meta">
-        <span className="fa-time">{item.time}</span>
-        <div className="f-spacer" />
-        <button
-          className={`fa-like-btn${isLiked ? ' liked' : ''}`}
-          onClick={e => { e.stopPropagation(); onLikeToggle(item.id) }}
-          title="Нравится"
-        >
-          <svg width="13" height="13" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {/* Right: action panel */}
+      <div className="fa-actions" onClick={e => e.stopPropagation()}>
+        <button className={`fa-action-btn${isLiked ? ' liked' : ''}`} onClick={() => onLikeToggle(item.id)} title="Нравится">
+          <svg width="20" height="20" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
             <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
           </svg>
-          {item.likes + (isLiked ? 1 : 0)}
+          <span>{item.likes + (isLiked ? 1 : 0)}</span>
         </button>
+
         {item.comments != null && (
-          <div className="fa-stat">
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+          <div className="fa-action-stat">
+            <svg width="19" height="19" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
-            {item.comments}
+            <span>{item.comments}</span>
           </div>
         )}
-        <button
-          className={`fa-icon-btn fa-dislike-btn${isDisliked ? ' active' : ''}`}
-          onClick={e => { e.stopPropagation(); onDislikeToggle(item.id) }}
-          title="Не нравится"
-        >
-          <svg width="13" height="13" fill={isDisliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+
+        <div className="fa-actions-sep" />
+
+        <button className={`fa-action-btn fa-action-dislike${isDisliked ? ' active' : ''}`} onClick={() => onDislikeToggle(item.id)} title="Не нравится">
+          <svg width="20" height="20" fill={isDisliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
             <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
           </svg>
         </button>
-        <button
-          className={`fa-icon-btn fa-bookmark-btn${isBookmarked ? ' active' : ''}`}
-          onClick={e => { e.stopPropagation(); onBookmarkToggle(item.id) }}
-          title="В избранное"
-        >
-          <svg width="13" height="13" fill={isBookmarked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+
+        <button className={`fa-action-btn fa-action-bookmark${isBookmarked ? ' active' : ''}`} onClick={() => onBookmarkToggle(item.id)} title="В избранное">
+          <svg width="20" height="20" fill={isBookmarked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
           </svg>
         </button>
