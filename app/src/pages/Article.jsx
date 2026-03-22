@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import PublicLayout from '../components/PublicLayout'
 import { articles } from '../data/mock'
@@ -263,6 +263,27 @@ function ArticleDislikeBtn({ disliked, onToggle }) {
   )
 }
 
+function ArticleBookmarkBtn({ bookmarked, onToggle }) {
+  const [anim, setAnim] = useState(false)
+  const [fly, setFly] = useState(false)
+  function handleClick() {
+    setAnim(true)
+    setTimeout(() => setAnim(false), 420)
+    if (!bookmarked) { setFly(true); setTimeout(() => setFly(false), 520) }
+    onToggle()
+  }
+  return (
+    <div className="action-wrap">
+      <button className={`fa-action-btn fa-action-bookmark${bookmarked ? ' active' : ''}${anim ? ' bookmark-snap' : ''}`} onClick={handleClick} title="В закладки">
+        <svg width="15" height="15" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+        </svg>
+      </button>
+      {fly && <span className="bookmark-fly">✦</span>}
+    </div>
+  )
+}
+
 function FollowBtn({ following, onToggle }) {
   const [anim, setAnim] = useState(false)
   function handleClick(e) {
@@ -313,8 +334,10 @@ function ConfirmDeleteModal({ open, onConfirm, onCancel }) {
 export default function Article() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const commentsRef = useRef(null)
   const [liked, setLiked] = useState(false)
   const [disliked, setDisliked] = useState(false)
+  const [bookmarked, setBookmarked] = useState(false)
   const [following, setFollowing] = useState(() => articles.find(a => a.id === id)?.following || false)
   const [commentSort, setCommentSort] = useState('new')
   const [commentInput, setCommentInput] = useState('')
@@ -478,14 +501,15 @@ export default function Article() {
               </div>
               <ArticleLikeBtn liked={liked} count={article.likes + (liked ? 1 : 0)} onToggle={toggleLike} />
               {article.comments?.length > 0 && (
-                <div className="fa-action-stat">
+                <button className="fa-action-stat fa-action-stat--btn" onClick={() => commentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
                   <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                   </svg>
                   {article.comments.length}
-                </div>
+                </button>
               )}
               <ArticleDislikeBtn disliked={disliked} onToggle={toggleDislike} />
+              <ArticleBookmarkBtn bookmarked={bookmarked} onToggle={() => setBookmarked(b => !b)} />
               <div className="f-spacer" />
               <span className="fa-time">{article.date}{article.readTime ? ` · ${article.readTime} мин` : ''}</span>
             </div>
@@ -600,7 +624,7 @@ export default function Article() {
 
         {/* Comments */}
         {article.comments && article.comments.length > 0 && (
-          <div className="section-card">
+          <div className="section-card" ref={commentsRef}>
             <div className="section-header">
               <div className="section-title">
                 Комментарии

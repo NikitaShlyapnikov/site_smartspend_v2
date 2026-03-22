@@ -628,6 +628,9 @@ body.dark .fa-action-bookmark.active svg { fill: #6AAF8E; stroke: #6AAF8E; }
   font-size: 12px; font-family: var(--mono);
 }
 .fa-action-stat svg { opacity: 0.28; flex-shrink: 0; }
+button.fa-action-stat--btn { background: none; border: none; cursor: pointer; transition: color 0.15s; }
+button.fa-action-stat--btn:hover { color: var(--text); }
+button.fa-action-stat--btn:hover svg { opacity: 0.55; }
 
 /* Action button wrappers (for particle positioning) */
 .action-wrap { position: relative; display: inline-flex; }
@@ -776,6 +779,7 @@ body.dark .fa-reaction.active .r-count { color: #6AAF8E; }
 }
 body.dark .ap-follow-btn { background: #E8E6E0; color: #141412; }
 body.dark .ap-follow-btn.following { background: var(--surface-2); color: var(--text-2); }
+.ap-follow-btn.follow-pop { animation: followPop 0.45s cubic-bezier(0.34,1.56,0.64,1) both; }
 
 /* Row 2: name */
 .ap-name {

@@ -50,11 +50,18 @@ const MY_SET_TITLES = new Set([
 
 function AuthorPopoverCard({ author, authorId, navigate, onMouseEnter, onMouseLeave }) {
   const [following, setFollowing] = useState(author.following || false)
+  const [followAnim, setFollowAnim] = useState(false)
   const isDeleted = author.type === 'deleted'
 
   function handleNameClick(e) {
     e.stopPropagation()
     navigate(`/author/${authorId}`, { state: { ...author, id: authorId } })
+  }
+
+  function handleFollow() {
+    setFollowAnim(true)
+    setTimeout(() => setFollowAnim(false), 450)
+    setFollowing(f => !f)
   }
 
   return (
@@ -73,8 +80,8 @@ function AuthorPopoverCard({ author, authorId, navigate, onMouseEnter, onMouseLe
         </div>
         {!isDeleted && (
           <button
-            className={`ap-follow-btn${following ? ' following' : ''}`}
-            onClick={() => setFollowing(f => !f)}
+            className={`ap-follow-btn${following ? ' following' : ''}${followAnim ? ' follow-pop' : ''}`}
+            onClick={handleFollow}
           >
             {following ? 'Вы подписаны' : 'Подписаться'}
           </button>
@@ -98,6 +105,7 @@ function AuthorPopoverCard({ author, authorId, navigate, onMouseEnter, onMouseLe
 
 function AuthorBottomSheet({ author, authorId, navigate, onClose }) {
   const [following, setFollowing] = useState(author.following || false)
+  const [followAnim, setFollowAnim] = useState(false)
   const isDeleted = author.type === 'deleted'
   const touchStartY = useRef(0)
 
@@ -107,6 +115,12 @@ function AuthorBottomSheet({ author, authorId, navigate, onClose }) {
   }
   function onTouchStart(e) { touchStartY.current = e.touches[0].clientY }
   function onTouchMove(e) { if (e.touches[0].clientY - touchStartY.current > 64) onClose() }
+
+  function handleFollow() {
+    setFollowAnim(true)
+    setTimeout(() => setFollowAnim(false), 450)
+    setFollowing(f => !f)
+  }
 
   return createPortal(
     <>
@@ -126,8 +140,8 @@ function AuthorBottomSheet({ author, authorId, navigate, onClose }) {
           </div>
           {!isDeleted && (
             <button
-              className={`ap-follow-btn${following ? ' following' : ''}`}
-              onClick={() => setFollowing(f => !f)}
+              className={`ap-follow-btn${following ? ' following' : ''}${followAnim ? ' follow-pop' : ''}`}
+              onClick={handleFollow}
             >
               {following ? 'Вы подписаны' : 'Подписаться'}
             </button>
