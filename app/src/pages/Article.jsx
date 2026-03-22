@@ -76,7 +76,7 @@ function AddToSetModal({ articleId, onClose, onSaved }) {
     <div className="add-to-set-overlay">
       <div className="add-to-set-modal" ref={ref}>
         <div className="ats-header">
-          <div className="ats-title">Добавить к набору</div>
+          <div className="ats-title">Прикрепить статью к набору</div>
           <button className="ats-close" onClick={onClose}>
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -91,7 +91,7 @@ function AddToSetModal({ articleId, onClose, onSaved }) {
           </div>
         ) : (
           <>
-            <div className="ats-desc">Выберите набор, к которому хотите прикрепить эту статью:</div>
+            <div className="ats-desc">Статья будет сохранена в выбранном наборе — так вы сможете быстро найти её через раздел Инвентарь. Выберите набор:</div>
             <div className="ats-list">
               {sets.map(s => {
                 const isLinked = linked.includes(s.id)
@@ -215,6 +215,72 @@ function ArticleReactionPill({ emoji, count, active, onToggle }) {
   )
 }
 
+function ArticleLikeBtn({ liked, count, onToggle }) {
+  const [anim, setAnim] = useState(false)
+  const [sparks, setSparks] = useState([])
+  function handleClick() {
+    setAnim(true)
+    setTimeout(() => setAnim(false), 480)
+    if (!liked) {
+      const s = Array.from({ length: 6 }, (_, i) => ({
+        id: Date.now() + i, angle: i * 60 + Math.random() * 18 - 9, dist: 16 + Math.random() * 8,
+      }))
+      setSparks(s)
+      setTimeout(() => setSparks([]), 560)
+    }
+    onToggle()
+  }
+  return (
+    <div className="action-wrap">
+      <button className={`fa-action-btn${liked ? ' liked' : ''}${anim ? ' like-pop' : ''}`} onClick={handleClick} title="Нравится">
+        <svg width="15" height="15" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+          <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+        </svg>
+        {count}
+      </button>
+      {sparks.map(s => (
+        <span key={s.id} className="like-spark" style={{ '--angle': `${s.angle}deg`, '--dist': `${s.dist}px` }}>✦</span>
+      ))}
+    </div>
+  )
+}
+
+function ArticleDislikeBtn({ disliked, onToggle }) {
+  const [anim, setAnim] = useState(false)
+  function handleClick() {
+    setAnim(true)
+    setTimeout(() => setAnim(false), 420)
+    onToggle()
+  }
+  return (
+    <button className={`fa-action-btn fa-action-dislike${disliked ? ' active' : ''}${anim ? ' dislike-shake' : ''}`} onClick={handleClick} title="Не нравится">
+      <svg width="15" height="15" fill={disliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+        <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+      </svg>
+    </button>
+  )
+}
+
+function FollowBtn({ following, onToggle }) {
+  const [anim, setAnim] = useState(false)
+  function handleClick(e) {
+    e.stopPropagation()
+    setAnim(true)
+    setTimeout(() => setAnim(false), 450)
+    onToggle()
+  }
+  return (
+    <button
+      className={`btn-follow${following ? ' following' : ''}${anim ? ' follow-pop' : ''}`}
+      onClick={handleClick}
+    >
+      {following ? 'Подписан' : 'Подписаться'}
+    </button>
+  )
+}
+
 function isMyArticle(articleId) {
   try {
     const ids = JSON.parse(localStorage.getItem('ss_my_article_ids')) || []
@@ -249,7 +315,7 @@ export default function Article() {
   const navigate = useNavigate()
   const [liked, setLiked] = useState(false)
   const [disliked, setDisliked] = useState(false)
-  const [following, setFollowing] = useState(false)
+  const [following, setFollowing] = useState(() => articles.find(a => a.id === id)?.following || false)
   const [commentSort, setCommentSort] = useState('new')
   const [commentInput, setCommentInput] = useState('')
   const [likedComments, setLikedComments] = useState(new Set())
@@ -307,7 +373,7 @@ export default function Article() {
     )
   }
 
-  const isFollowing = following || article.following
+  const isFollowing = following
   const set = article.setLink
 
   const sortedComments = [...(article.comments || [])].sort(
@@ -410,43 +476,45 @@ export default function Article() {
                 </svg>
                 {fmtNum(article.views)}
               </div>
-              <button className={`fa-action-btn${liked ? ' liked' : ''}`} onClick={toggleLike} title="Нравится">
-                <svg width="15" height="15" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
-                  <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
-                </svg>
-                {article.likes + (liked ? 1 : 0)}
-              </button>
-              <button className={`fa-action-btn fa-action-dislike${disliked ? ' active' : ''}`} onClick={toggleDislike} title="Не нравится">
-                <svg width="15" height="15" fill={disliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
-                  <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
-                </svg>
-              </button>
-              <button className="fa-action-btn" onClick={() => setShowAddToSet(true)} title="Добавить к набору">
-                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <ArticleLikeBtn liked={liked} count={article.likes + (liked ? 1 : 0)} onToggle={toggleLike} />
+              {article.comments?.length > 0 && (
+                <div className="fa-action-stat">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  {article.comments.length}
+                </div>
+              )}
+              <ArticleDislikeBtn disliked={disliked} onToggle={toggleDislike} />
+              <div className="f-spacer" />
+              <span className="fa-time">{article.date}{article.readTime ? ` · ${article.readTime} мин` : ''}</span>
+            </div>
+
+            <div className="art-actions-row">
+              <button className="btn-secondary art-add-set-btn" onClick={() => setShowAddToSet(true)}>
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                  <circle cx="19" cy="19" r="3.5" fill="var(--surface)" stroke="currentColor" strokeWidth="1.8"/>
+                  <circle cx="19" cy="19" r="3.5" fill="var(--surface)" stroke="currentColor" strokeWidth="2"/>
                   <path d="M19 17.5v3M17.5 19h3"/>
                 </svg>
-                К набору
+                Добавить к набору
               </button>
               {isMine && (
                 <>
-                  <button className="fa-action-btn" onClick={handleEditArticle} title="Редактировать">
-                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <button className="btn-secondary" onClick={handleEditArticle}>
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
                     </svg>
+                    Редактировать
                   </button>
-                  <button className="fa-action-btn fa-action-dislike" onClick={() => setConfirmDelete(true)} title="Удалить">
-                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <button className="btn-secondary btn-author-delete" onClick={() => setConfirmDelete(true)}>
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
                     </svg>
+                    Удалить
                   </button>
                 </>
               )}
-              <div className="f-spacer" />
-              <span className="fa-time">{article.date}{article.readTime ? ` · ${article.readTime} мин` : ''}</span>
             </div>
           </div>
 
@@ -471,12 +539,7 @@ export default function Article() {
               <div className="author-name">{article.author}</div>
               {article.authorBio && <div className="author-bio">{article.authorBio}</div>}
             </div>
-            <button
-              className={`btn-follow${isFollowing ? ' following' : ''}`}
-              onClick={() => setFollowing(f => !f)}
-            >
-              {isFollowing ? 'Подписан' : 'Подписаться'}
-            </button>
+            <FollowBtn following={isFollowing} onToggle={() => setFollowing(f => !f)} />
           </div>
         </div>
 
