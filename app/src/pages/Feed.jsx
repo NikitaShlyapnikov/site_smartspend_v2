@@ -45,6 +45,19 @@ const MY_SET_TITLES = new Set([
   'Базовый уход за кошкой',
 ])
 
+const CAT_COLORS = {
+  food:       '#7DAF92',
+  cafe:       '#C4A882',
+  transport:  '#9696B8',
+  home:       '#B8A87A',
+  clothes:    '#8A9EB8',
+  leisure:    '#A8B4A0',
+  health:     '#B89AAE',
+  education:  '#B8C49A',
+  travel:     '#9BBCC8',
+  other:      '#B0A8B0',
+}
+
 // ── ARTICLE CARD ──────────────────────────────────────────────────────────────
 
 function AuthorChip({ author, authorId, navigate }) {
@@ -85,43 +98,58 @@ function AuthorChip({ author, authorId, navigate }) {
   )
 }
 
-function ArticleCard({ item, isRead, isLiked, isDisliked, onLikeToggle, onDislikeToggle, onClick, navigate }) {
+function ArticleCard({ item, isRead, isLiked, onLikeToggle, onClick, navigate }) {
   const author = feedAuthors[item.authorId]
+  const catLabel = CATEGORIES.find(c => c.id === item.category)?.label
+  const catColor = CAT_COLORS[item.category]
+
   return (
-    <div className={`card${isRead ? ' read' : ''}`} onClick={() => onClick(item)}>
-      <div className="article-body">
-        <div className="article-header">
-          <div className="article-header-top">
-            <AuthorChip author={author} authorId={item.authorId} navigate={navigate} />
-            <span className="article-time-chip">{item.time}</span>
-          </div>
-          <div className="article-title">{item.title}</div>
-        </div>
-        <div className="article-preview">{item.preview}</div>
+    <div
+      className={`card feed-card${isRead ? ' read' : ''}`}
+      style={catColor ? { '--cat-color': catColor } : undefined}
+      onClick={() => onClick(item)}
+    >
+      {/* Meta: type + category */}
+      <div className="feed-card-meta">
+        <span className="feed-type-badge">
+          <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          Статья
+        </span>
+        {catLabel && catLabel !== 'Все' && (
+          <span className="feed-cat-chip">{catLabel}</span>
+        )}
       </div>
-      <div className="article-footer">
-        <div className="vote-row">
-          <button
-            className={`liked-btn${isLiked ? ' liked' : ''}`}
-            onClick={e => { e.stopPropagation(); onLikeToggle(item.id) }}
-          >
-            <svg width="13" height="13" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
-              <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
-            </svg>
-            {item.likes + (isLiked ? 1 : 0)}
-          </button>
-          <button
-            className={`liked-btn disliked-btn${isDisliked ? ' disliked' : ''}`}
-            onClick={e => { e.stopPropagation(); onDislikeToggle(item.id) }}
-          >
-            <svg width="13" height="13" fill={isDisliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
-              <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
-            </svg>
-            {(item.dislikes || 0) + (isDisliked ? 1 : 0)}
-          </button>
-        </div>
+
+      {/* Content */}
+      <div className="feed-card-body">
+        <div className="article-title">{item.title}</div>
+        <div className="article-preview">{item.preview}</div>
+        {item.setLink && (
+          <div className="feed-set-link" onClick={e => e.stopPropagation()}>
+            <span className="feed-set-dot" style={{ background: item.setLink.color }} />
+            <span className="feed-set-label">Набор: {item.setLink.title}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="feed-card-footer">
+        <AuthorChip author={author} authorId={item.authorId} navigate={navigate} />
+        <span className="feed-time">{item.time}</span>
+        <div className="f-spacer" />
+        <button
+          className={`liked-btn${isLiked ? ' liked' : ''}`}
+          onClick={e => { e.stopPropagation(); onLikeToggle(item.id) }}
+        >
+          <svg width="13" height="13" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+            <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+          </svg>
+          {item.likes + (isLiked ? 1 : 0)}
+        </button>
         {item.comments != null && (
           <div className="a-stat">
             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -137,13 +165,6 @@ function ArticleCard({ item, isRead, isLiked, isDisliked, onLikeToggle, onDislik
           </svg>
           {item.views.toLocaleString('ru')}
         </div>
-        <div className="f-spacer" />
-        {item.setLink && (
-          <div className="set-link">
-            <div className="set-dot" style={{ background: item.setLink.color }} />
-            <span className="set-link-label">Набор: {item.setLink.title}</span>
-          </div>
-        )}
       </div>
     </div>
   )
@@ -503,7 +524,6 @@ export default function Feed() {
   const [sort,        setSort]        = useState('popular_7d')
   const [readIds, setReadIds] = useState(new Set())
   const [likedIds, setLikedIds] = useState(new Set())
-  const [dislikedIds, setDislikedIds] = useState(new Set())
   const [filtersScrolled, setFiltersScrolled] = useState(false)
 
   const feedScrollRef = useCallback(el => {
@@ -527,16 +547,6 @@ export default function Feed() {
       next.has(id) ? next.delete(id) : next.add(id)
       return next
     })
-    setDislikedIds(prev => { const next = new Set(prev); next.delete(id); return next })
-  }
-
-  function toggleDislike(id) {
-    setDislikedIds(prev => {
-      const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
-      return next
-    })
-    setLikedIds(prev => { const next = new Set(prev); next.delete(id); return next })
   }
 
   function toggleMode(m) {
@@ -621,9 +631,7 @@ export default function Feed() {
               <ArticleCard key={item.id} item={item}
                 isRead={readIds.has(item.id)}
                 isLiked={likedIds.has(item.id)}
-                isDisliked={dislikedIds.has(item.id)}
                 onLikeToggle={toggleLike}
-                onDislikeToggle={toggleDislike}
                 onClick={handleItemClick}
                 navigate={navigate}
               />
