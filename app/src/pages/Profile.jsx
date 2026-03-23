@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
@@ -789,10 +790,18 @@ export default function Profile() {
     navigate(`/catalog?cat=${catalogCat}`)
   }
 
-  const visibleCats = CATEGORIES.filter(cat => {
-    const sets = envelopes[cat.id] || []
-    return sets.length > 0 || (personalByCat[cat.id] || []).length > 0 || editMode
-  })
+  const visibleCats = CATEGORIES
+    .filter(cat => {
+      const sets = envelopes[cat.id] || []
+      return sets.length > 0 || (personalByCat[cat.id] || []).length > 0 || editMode
+    })
+    .sort((a, b) => {
+      const totalA = (envelopes[a.id] || []).filter(x => !x.paused).reduce((s, x) => s + x.amount, 0)
+        + (personalByCat[a.id] || []).reduce((s, i) => s + calcItemMonthly(i), 0)
+      const totalB = (envelopes[b.id] || []).filter(x => !x.paused).reduce((s, x) => s + x.amount, 0)
+        + (personalByCat[b.id] || []).reduce((s, i) => s + calcItemMonthly(i), 0)
+      return totalB - totalA
+    })
 
   return (
     <Layout>
@@ -806,33 +815,15 @@ export default function Profile() {
             </div>
             <div className="entry-subtitle">{greetingSubtitle}</div>
           </div>
-          <div className="entry-tiles">
-            <div className="entry-tile">
-              <div className="entry-tile-label">Доход</div>
-              <div className="entry-tile-value">{income.toLocaleString('ru')} ₽</div>
-            </div>
-            <div className="entry-tile-divider" />
-            <div className="entry-tile">
-              <div className="entry-tile-label">Расходы</div>
-              <div className="entry-tile-value">{totalExpenses.toLocaleString('ru')} ₽</div>
-              {income > 0 && <div className="entry-tile-sub">{Math.round((totalExpenses / income) * 100)}% дохода</div>}
-            </div>
-            <div className="entry-tile-divider" />
-            <div className="entry-tile highlight">
-              <div className="entry-tile-label">Откладывается</div>
-              <div className="entry-tile-value">{savings.toLocaleString('ru')} ₽</div>
-              {income > 0 && <div className="entry-tile-sub">{Math.round((savings / income) * 100)}% дохода</div>}
-            </div>
-          </div>
         </div>
 
         {/* Финансовая картина */}
         <div id="sp-finance">
           <div className="section-heading">
-            <span className="section-title">Финансовая картина · {updatedAt}</span>
+            <span className="section-title">Финансовая картина{updatedAt ? ` · ${updatedAt}` : ''}</span>
             <button id="sp-btn-finance" className="section-link" onClick={() => setFinOpen(true)}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-              Редактировать
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              Обновить данные
             </button>
           </div>
           <div className="profile-card">
@@ -1094,6 +1085,15 @@ export default function Profile() {
           </button>
         </div>
       </main>
+      {editMode && createPortal(
+        <div className="env-edit-toolbar">
+          <button className="env-edit-done-btn" onClick={() => setEditMode(false)}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Готово
+          </button>
+        </div>,
+        document.body
+      )}
       <FinancialModal
         open={finOpen}
         initialData={finance}
