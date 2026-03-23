@@ -4,6 +4,61 @@ import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import { companies, promoItems, whisperItems as whisperItemsMock } from '../data/mock'
 
+const WHISPER_EMOJIS = [
+  '🔥','💡','😍','🤯','💸','🤮','🤔','👏',
+  '😮','💪','🎯','🙏','❤️','😂','🥰','😅',
+  '💯','✨','🎉','👀','🥲','😤','🫡','🤝',
+]
+
+function WhisperEmojiPicker({ onPick, onClose }) {
+  const [popping, setPopping] = useState(null)
+  const ref = useRef(null)
+  useEffect(() => {
+    function handler(e) { if (ref.current && !ref.current.contains(e.target)) onClose() }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [onClose])
+  function handlePick(emoji) {
+    setPopping(emoji)
+    setTimeout(() => { onPick(emoji); onClose() }, 260)
+  }
+  return (
+    <div className="emoji-picker" ref={ref}>
+      {WHISPER_EMOJIS.map(emoji => (
+        <button key={emoji} className={`ep-btn${popping === emoji ? ' ep-pop' : ''}`} onClick={() => handlePick(emoji)}>{emoji}</button>
+      ))}
+    </div>
+  )
+}
+
+function WhisperReactionPill({ emoji, count, active, onToggle }) {
+  const [popping, setPopping] = useState(false)
+  const [particles, setParticles] = useState([])
+  function handleClick() {
+    setPopping(true)
+    setTimeout(() => setPopping(false), 400)
+    if (!active) {
+      const newP = Array.from({ length: 5 }, (_, i) => ({
+        id: Date.now() + i, angle: i * 72 + Math.random() * 20 - 10, dist: 18 + Math.random() * 8,
+      }))
+      setParticles(newP)
+      setTimeout(() => setParticles([]), 600)
+    }
+    onToggle(emoji)
+  }
+  return (
+    <div className="r-pill-wrap">
+      <button className={`fa-reaction${active ? ' active' : ''}${popping ? ' popping' : ''}`} onClick={handleClick}>
+        <span className="r-emoji">{emoji}</span>
+        <span className="r-count">{count}</span>
+      </button>
+      {particles.map(p => (
+        <span key={p.id} className="r-particle" style={{ '--angle': `${p.angle}deg`, '--dist': `${p.dist}px` }}>{emoji}</span>
+      ))}
+    </div>
+  )
+}
+
 const PROMO_SPOTLIGHT = [
   { targetId: 'sp-promo-tabs',  title: 'Разделы промо',   desc: 'Рассылка — письма от компаний. Акции — скидки и купоны. Подслушано — промокоды от сообщества.' },
   { targetId: 'sp-promo-scope', title: 'Мои компании',    desc: 'Фильтруй по компаниям из вашего списка или смотри все доступные предложения.' },
@@ -272,6 +327,9 @@ function WhisperCard({ item, myVote, onVote, navigate }) {
   const [commentText,  setCommentText]  = useState('')
   const [worksAnim,    setWorksAnim]    = useState(false)
   const [notAnim,      setNotAnim]      = useState(false)
+  const [reactions,    setReactions]    = useState(item.reactions || [])
+  const [myReactions,  setMyReactions]  = useState(new Set())
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const toastTimer = useRef(null)
 
   const displayHistory = myVote ? [...item.history, myVote === 'works' ? 'w' : 'n'] : item.history
@@ -289,6 +347,20 @@ function WhisperCard({ item, myVote, onVote, navigate }) {
       clearTimeout(toastTimer.current)
       toastTimer.current = setTimeout(() => setVoteToast(null), 2000)
     }
+  }
+
+  function toggleReaction(emoji) {
+    setMyReactions(prev => {
+      const next = new Set(prev)
+      const hadIt = next.has(emoji)
+      hadIt ? next.delete(emoji) : next.add(emoji)
+      setReactions(rs => {
+        const existing = rs.find(r => r.emoji === emoji)
+        if (existing) return rs.map(r => r.emoji === emoji ? { ...r, count: r.count + (hadIt ? -1 : 1) } : r).filter(r => r.count > 0)
+        return [...rs, { emoji, count: 1 }]
+      })
+      return next
+    })
   }
 
   function copyCode(e) {
@@ -333,13 +405,14 @@ function WhisperCard({ item, myVote, onVote, navigate }) {
 
       {displayHistory.length > 0 && (
         <div className="whisper-history">
-          {displayHistory.slice(-40).map((v, i) => {
-            const isMine = i === displayHistory.length - 1 && !!myVote
+          {displayHistory.slice(-40).map((v, i, arr) => {
+            const isMine = i === arr.length - 1 && !!myVote
+            const brightness = arr.length <= 1 ? 1 : 0.25 + 0.75 * (i / (arr.length - 1))
             return (
               <div
                 key={isMine ? `mine-${myVote}` : i}
                 className={`wvh-stripe${isMine ? ' wvh-mine' : ''}`}
-                style={{ background: v === 'w' ? '#8EBA9E' : '#C89090' }}
+                style={{ background: v === 'w' ? '#5E9478' : '#B85555', opacity: brightness }}
               />
             )
           })}
@@ -352,18 +425,10 @@ function WhisperCard({ item, myVote, onVote, navigate }) {
 
       <div className="fa-bottom whisper-actions">
         <button className={`fa-action-btn wvb-works${myVote === 'works' ? ' active' : ''}${worksAnim ? ' wv-works-pop' : ''}`} onClick={() => handleVote('works')}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill={myVote === 'works' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
-            <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
-          </svg>
-          Работает{works > 0 ? ` · ${works}` : ''}
+          👍 Работает{works > 0 ? ` · ${works}` : ''}
         </button>
         <button className={`fa-action-btn wvb-not${myVote === 'not' ? ' active' : ''}${notAnim ? ' wv-not-shake' : ''}`} onClick={() => handleVote('not')}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill={myVote === 'not' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
-            <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
-          </svg>
-          Не работает{notWorks > 0 ? ` · ${notWorks}` : ''}
+          👎 Не работает{notWorks > 0 ? ` · ${notWorks}` : ''}
         </button>
         {voteToast && (
           <span className={`whisper-vote-toast${voteToast === 'works' ? ' wvt-works' : ' wvt-not'}`}>
@@ -381,6 +446,23 @@ function WhisperCard({ item, myVote, onVote, navigate }) {
 
       {showComments && (
         <div className="whisper-comments">
+          {/* Emoji reactions */}
+          <div className="whisper-reactions-row">
+            <span className="art-reactions-label">Что думаете?</span>
+            {reactions.map(r => (
+              <WhisperReactionPill key={r.emoji} emoji={r.emoji} count={r.count} active={myReactions.has(r.emoji)} onToggle={toggleReaction} />
+            ))}
+            <div style={{ position: 'relative' }}>
+              <button className="ar-add-btn" onClick={() => setShowEmojiPicker(v => !v)}>+</button>
+              {showEmojiPicker && (
+                <WhisperEmojiPicker
+                  onPick={emoji => { toggleReaction(emoji); setShowEmojiPicker(false) }}
+                  onClose={() => setShowEmojiPicker(false)}
+                />
+              )}
+            </div>
+          </div>
+
           {comments.map((c, i) => (
             <div key={i} className="whisper-comment">
               <div className="whisper-comment-top">
