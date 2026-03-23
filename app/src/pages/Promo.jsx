@@ -99,6 +99,12 @@ const ACTS_FILTERS = [
   { id: 'regular',     label: 'Обычная' },
 ]
 
+function ConditionBadge({ filter }) {
+  const f = filter || 'regular'
+  if (f === 'regular') return null
+  return <div className={`promo-type-badge promo-type-badge--cond promo-type-badge--cond-${f}`}>{ACTS_FILTERS.find(a => a.id === f)?.label}</div>
+}
+
 const CATEGORIES = [
   { id: 'all',        label: 'Все'                   },
   { id: 'food',       label: 'Еда и Супермаркеты'    },
@@ -187,19 +193,28 @@ function FilterSelect({ items, value, onChange, placeholder }) {
 
 // ── PROMO INTERACTIONS (shared: vote bar + comments) ───────────────────────────
 
+function getIni(author) {
+  if (!author || author === 'вы') return 'ВЫ'
+  const parts = author.trim().split(/[\s_]/)
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
+  return author.slice(0, 2).toUpperCase()
+}
+
 function PromoInteractions({ initHistory = [], initComments = [], extraAction }) {
-  const [myVote,       setMyVote]       = useState(null)
-  const [worksAnim,    setWorksAnim]    = useState(false)
-  const [notAnim,      setNotAnim]      = useState(false)
-  const [showComments, setShowComments] = useState(false)
-  const [comments,     setComments]     = useState(initComments)
-  const [commentText,  setCommentText]  = useState('')
-  const [reactions,    setReactions]    = useState([])
-  const [myReactions,  setMyReactions]  = useState(new Set())
+  const [myVote,          setMyVote]          = useState(null)
+  const [worksAnim,       setWorksAnim]       = useState(false)
+  const [notAnim,         setNotAnim]         = useState(false)
+  const [showComments,    setShowComments]    = useState(false)
+  const [comments,        setComments]        = useState(initComments)
+  const [commentText,     setCommentText]     = useState('')
+  const [reactions,       setReactions]       = useState([])
+  const [myReactions,     setMyReactions]     = useState(new Set())
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
-  const [justAdded,    setJustAdded]    = useState(null)
-  const [commentSort,  setCommentSort]  = useState('new')
-  const [visibleCount, setVisibleCount] = useState(10)
+  const [justAdded,       setJustAdded]       = useState(null)
+  const [commentSort,     setCommentSort]     = useState('new')
+  const [visibleCount,    setVisibleCount]    = useState(10)
+  const [likedComments,   setLikedComments]   = useState(new Set())
+  const [dislikedComments,setDislikedComments]= useState(new Set())
 
   const displayHistory = myVote ? [...initHistory, myVote === 'works' ? 'w' : 'n'] : initHistory
   const works    = displayHistory.filter(v => v === 'w').length
@@ -225,6 +240,28 @@ function PromoInteractions({ initHistory = [], initComments = [], extraAction })
       return next
     })
   }
+
+  function toggleCommentLike(i) {
+    setLikedComments(prev => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n })
+    setDislikedComments(prev => { const n = new Set(prev); n.delete(i); return n })
+  }
+  function toggleCommentDislike(i) {
+    setDislikedComments(prev => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n })
+    setLikedComments(prev => { const n = new Set(prev); n.delete(i); return n })
+  }
+
+  function submitComment(e) {
+    e?.preventDefault()
+    if (!commentText.trim()) return
+    setComments(prev => [...prev, { author: 'вы', text: commentText.trim(), ts: Date.now(), likes: 0 }])
+    setCommentText('')
+  }
+
+  const sorted = commentSort === 'top'
+    ? [...comments].sort((a, b) => (b.likes || 0) - (a.likes || 0))
+    : [...comments].reverse()
+  const visible   = sorted.slice(0, visibleCount)
+  const remaining = sorted.length - visibleCount
 
   return (
     <>
@@ -270,6 +307,7 @@ function PromoInteractions({ initHistory = [], initComments = [], extraAction })
 
       {showComments && (
         <div className="whisper-comments">
+          {/* Emoji reactions */}
           <div className="whisper-reactions-row">
             <span className="art-reactions-label">Что думаете?</span>
             {reactions.map(r => (
@@ -286,66 +324,63 @@ function PromoInteractions({ initHistory = [], initComments = [], extraAction })
             </div>
           </div>
 
+          {/* Sort header */}
           {comments.length > 0 && (
-            <div className="comments-subheader" style={{ marginBottom: 6 }}>
-              <div className="csort">
+            <div className="comments-subheader">
+              <div className="csort" style={{ marginLeft: 'auto' }}>
                 <button className={`c-sort-btn${commentSort === 'new' ? ' active' : ''}`} onClick={() => { setCommentSort('new'); setVisibleCount(10) }}>Новые</button>
                 <button className={`c-sort-btn${commentSort === 'top' ? ' active' : ''}`} onClick={() => { setCommentSort('top'); setVisibleCount(10) }}>Популярные</button>
               </div>
             </div>
           )}
 
-          {(() => {
-            const sorted = commentSort === 'top'
-              ? [...comments].sort((a, b) => (b.likes || 0) - (a.likes || 0))
-              : [...comments].reverse()
-            const visible = sorted.slice(0, visibleCount)
-            const remaining = sorted.length - visibleCount
-            return (
-              <>
-                {visible.map((c, i) => (
-                  <div key={i} className="whisper-comment">
-                    <div className="whisper-comment-top">
-                      <span className="whisper-comment-author">@{c.author || c.ini}</span>
-                      <span className="whisper-comment-time">{c.ts ? fmtCommentTime(c.ts) : c.date}</span>
-                    </div>
-                    <span className="whisper-comment-text">{c.text}</span>
+          {/* Comment list */}
+          <div className="comments-list">
+            {visible.map((c, idx) => (
+              <div key={idx} className="comment-item">
+                <div className="c-avatar">{getIni(c.author || c.ini)}</div>
+                <div className="c-body">
+                  <div className="c-header">
+                    <span className="c-name">{c.name || `@${c.author || 'вы'}`}</span>
+                    <span className="c-date">{c.ts ? fmtCommentTime(c.ts) : (c.date || c.time || '')}</span>
                   </div>
-                ))}
-                {remaining > 0 && (
-                  <div className="show-more-row">
-                    <button className="btn-show" onClick={() => setVisibleCount(v => v + 20)}>
-                      Показать ещё {Math.min(remaining, 20)}
-                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                        <polyline points="6 9 12 15 18 9"/>
+                  <div className="c-text">{c.text}</div>
+                  <div className="c-actions">
+                    <button className={`c-like${likedComments.has(idx) ? ' liked' : ''}`} onClick={() => toggleCommentLike(idx)}>
+                      <svg width="11" height="11" fill={likedComments.has(idx) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                        <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
                       </svg>
+                      {(c.likes || 0) + (likedComments.has(idx) ? 1 : 0)}
+                    </button>
+                    <button className={`c-like c-dislike${dislikedComments.has(idx) ? ' disliked' : ''}`} onClick={() => toggleCommentDislike(idx)}>
+                      <svg width="11" height="11" fill={dislikedComments.has(idx) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+                        <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                      </svg>
+                      {(c.dislikes || 0) + (dislikedComments.has(idx) ? 1 : 0)}
                     </button>
                   </div>
-                )}
-              </>
-            )
-          })()}
-
-          <div className="whisper-comment-form">
-            <input className="whisper-comment-input" placeholder="Добавить комментарий..." value={commentText}
-              onChange={e => setCommentText(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && commentText.trim()) {
-                  setComments(prev => [...prev, { author: 'вы', text: commentText.trim(), ts: Date.now(), likes: 0 }])
-                  setCommentText('')
-                }
-              }}
-            />
-            <button className="whisper-comment-submit" disabled={!commentText.trim()} onClick={() => {
-              if (!commentText.trim()) return
-              setComments(prev => [...prev, { author: 'вы', text: commentText.trim(), ts: Date.now(), likes: 0 }])
-              setCommentText('')
-            }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-              </svg>
-            </button>
+                </div>
+              </div>
+            ))}
+            {remaining > 0 && (
+              <div className="show-more-row">
+                <button className="btn-show" onClick={() => setVisibleCount(v => v + 20)}>
+                  Показать ещё {Math.min(remaining, 20)}
+                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
+
+          {/* Input */}
+          <form className="comments-input" onSubmit={submitComment}>
+            <input className="c-input" placeholder="Написать комментарий..." value={commentText} onChange={e => setCommentText(e.target.value)} />
+            <button type="submit" className="c-submit">Отправить</button>
+          </form>
         </div>
       )}
     </>
@@ -360,7 +395,7 @@ function BroadcastCard({ item, onCategoryClick, onCompanyClick }) {
   return (
     <div className="broadcast-card">
       <div className="pc-header">
-        <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId, item.category)}>
+        <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId)}>
           <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
           <div className="promo-company-info">
             <div className="promo-company-name">{company?.name}</div>
@@ -401,49 +436,39 @@ function PromoCard({ item, onCategoryClick, onCompanyClick }) {
   }
 
   return (
-    <div className="promo-card">
-      <div className="promo-card-top">
-        <div className="pc-header">
-          <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId, item.category)}>
-            <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
-            <div className="promo-company-info">
-              <div className="promo-company-name">{company?.name}</div>
-              <div className="promo-expires">до {item.expires}</div>
+    <div className="whisper-card">
+      <div className="pc-header">
+        <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId)}>
+          <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
+          <div className="whisper-company-info">
+            <div className="whisper-company-name">{company?.name}</div>
+            <div className="whisper-meta">
+              <span>{item.expires ? `до ${item.expires}` : ''}</span>
             </div>
-          </button>
-          {catLabel && catLabel !== 'Все' && (
-            <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
-          )}
-          <div className={`promo-type-badge promo-type-badge--${item.type}`}>
-            {item.type === 'event' ? 'Акция' : 'Купон'}
           </div>
-        </div>
-        <div className="promo-title">{item.title}</div>
-        {item.desc && <div className="promo-desc">{item.desc}</div>}
+        </button>
+        {catLabel && catLabel !== 'Все' && (
+          <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
+        )}
+        <ConditionBadge filter={item.promo_filter} />
       </div>
-      {item.type === 'coupon' && item.code && (
-        <div className="promo-code-row">
-          <div className="promo-code">{item.code}</div>
+
+      <div className="whisper-title">{item.title}</div>
+      {item.desc && <div className="whisper-desc">{item.desc}</div>}
+
+      {item.code && (
+        <div className="whisper-code-row">
+          <div className="whisper-code">{item.code}</div>
           <button className={`fa-action-btn pc-copy-btn${copied ? ' copied' : ''}`} onClick={copyCode}>
             {copied ? (
-              <>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-                Скопировано
-              </>
+              <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Скопировано</>
             ) : (
-              <>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                </svg>
-                Скопировать
-              </>
+              <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Скопировать</>
             )}
           </button>
         </div>
       )}
+
       <PromoInteractions />
     </div>
   )
@@ -471,6 +496,75 @@ function fmtCommentTime(ts) {
   return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) + ` в ${time}`
 }
 
+// ── WHISPER AUTHOR CHIP ────────────────────────────────────────────────────────
+
+const AUTHOR_COLORS = ['#7B9E8A','#8A7B9E','#9E8A7B','#7B8A9E','#9E7B8A','#8A9E7B','#7B9E9E']
+
+function authorFromUsername(username) {
+  const parts = username.split(/[_\s]/)
+  const name = parts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ')
+  const initials = parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : username.slice(0, 2).toUpperCase()
+  const colorIdx = username.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % AUTHOR_COLORS.length
+  return {
+    name,
+    initials,
+    color: AUTHOR_COLORS[colorIdx],
+    followers: 80 + (username.length * 17),
+    articles: username.length % 6,
+    sets: username.length % 9,
+  }
+}
+
+function WhisperAuthorChip({ username, navigate }) {
+  const [showCard, setShowCard] = useState(false)
+  const showTimer = useRef(null)
+  const hideTimer = useRef(null)
+  const author = authorFromUsername(username)
+
+  function isTouch() { return window.matchMedia('(hover: none)').matches }
+
+  function onEnter() {
+    if (isTouch()) return
+    clearTimeout(hideTimer.current)
+    showTimer.current = setTimeout(() => setShowCard(true), 350)
+  }
+  function onLeave() {
+    if (isTouch()) return
+    clearTimeout(showTimer.current)
+    hideTimer.current = setTimeout(() => setShowCard(false), 180)
+  }
+  function handleClick(e) {
+    e.stopPropagation()
+    navigate(`/author/${username}`, { state: { name: author.name, initials: author.initials, color: author.color, followers: author.followers } })
+  }
+
+  return (
+    <span className="author-chip-wrap" onMouseEnter={onEnter} onMouseLeave={onLeave}>
+      <button className="whisper-author" onClick={handleClick}>@{username}</button>
+      {showCard && (
+        <div
+          className="author-popover"
+          onMouseEnter={() => clearTimeout(hideTimer.current)}
+          onMouseLeave={onLeave}
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="ap-top">
+            <div className="ap-avatar" style={{ background: author.color, cursor: 'pointer' }} onClick={handleClick}>
+              {author.initials}
+            </div>
+          </div>
+          <button className="ap-name" onClick={handleClick}>{author.name}</button>
+          <div className="ap-meta">
+            {author.followers} подписчиков
+            {author.articles > 0 && <> · {author.articles} статей</>}
+            {author.sets > 0 && <> · {author.sets} наборов</>}
+          </div>
+        </div>
+      )}
+    </span>
+  )
+}
+
 // ── WHISPER CARD ───────────────────────────────────────────────────────────────
 
 function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompanyClick }) {
@@ -487,8 +581,10 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
   const [myReactions,  setMyReactions]  = useState(new Set())
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [justAdded,    setJustAdded]    = useState(null)
-  const [commentSort,  setCommentSort]  = useState('new')
-  const [visibleCount, setVisibleCount] = useState(10)
+  const [commentSort,      setCommentSort]      = useState('new')
+  const [visibleCount,     setVisibleCount]     = useState(10)
+  const [likedComments,    setLikedComments]    = useState(new Set())
+  const [dislikedComments, setDislikedComments] = useState(new Set())
   const toastTimer = useRef(null)
 
   const displayHistory = myVote ? [...item.history, myVote === 'works' ? 'w' : 'n'] : item.history
@@ -522,6 +618,15 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
     })
   }
 
+  function toggleCommentLike(i) {
+    setLikedComments(prev => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n })
+    setDislikedComments(prev => { const n = new Set(prev); n.delete(i); return n })
+  }
+  function toggleCommentDislike(i) {
+    setDislikedComments(prev => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n })
+    setLikedComments(prev => { const n = new Set(prev); n.delete(i); return n })
+  }
+
   function copyCode(e) {
     e.stopPropagation()
     navigator.clipboard.writeText(item.code).catch(() => {})
@@ -532,15 +637,13 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
   return (
     <div className={`whisper-card${cardMood ? ` whisper-card--${cardMood}` : ''}`}>
       <div className="pc-header">
-        <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId, item.category)}>
+        <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId)}>
           <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
           <div className="whisper-company-info">
             <div className="whisper-company-name">{company?.name}</div>
             <div className="whisper-meta">
               {item.addedBy && (
-                <button className="whisper-author" onClick={e => { e.stopPropagation(); navigate(`/author/${item.addedBy}`, { state: { name: item.addedBy, handle: `@${item.addedBy}` } }) }}>
-                  @{item.addedBy}
-                </button>
+                <WhisperAuthorChip username={item.addedBy} navigate={navigate} />
               )}
               <span>{timeAgo(item.addedAt)}{item.expires ? ` · до ${item.expires}` : ''}</span>
             </div>
@@ -549,7 +652,7 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
         {catLabel && catLabel !== 'Все' && (
           <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
         )}
-        <div className="promo-type-badge promo-type-badge--whisper">Сообщество</div>
+        <ConditionBadge filter={item.promo_filter} />
       </div>
 
       <div className="whisper-title">{item.title}</div>
@@ -637,7 +740,7 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
 
           {comments.length > 0 && (
             <div className="comments-subheader" style={{ marginBottom: 6 }}>
-              <div className="csort">
+              <div className="csort" style={{ marginLeft: 'auto' }}>
                 <button className={`c-sort-btn${commentSort === 'new' ? ' active' : ''}`} onClick={() => { setCommentSort('new'); setVisibleCount(10) }}>Новые</button>
                 <button className={`c-sort-btn${commentSort === 'top' ? ' active' : ''}`} onClick={() => { setCommentSort('top'); setVisibleCount(10) }}>Популярные</button>
               </div>
@@ -652,15 +755,36 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
             const remaining = sorted.length - visibleCount
             return (
               <>
-                {visible.map((c, i) => (
-                  <div key={i} className="whisper-comment">
-                    <div className="whisper-comment-top">
-                      <span className="whisper-comment-author">@{c.author}</span>
-                      <span className="whisper-comment-time">{c.ts ? fmtCommentTime(c.ts) : c.time}</span>
+                <div className="comments-list">
+                  {visible.map((c, idx) => (
+                    <div key={idx} className="comment-item">
+                      <div className="c-avatar">{getIni(c.author)}</div>
+                      <div className="c-body">
+                        <div className="c-header">
+                          <span className="c-name">@{c.author || 'вы'}</span>
+                          <span className="c-date">{c.ts ? fmtCommentTime(c.ts) : c.time}</span>
+                        </div>
+                        <div className="c-text">{c.text}</div>
+                        <div className="c-actions">
+                          <button className={`c-like${likedComments.has(idx) ? ' liked' : ''}`} onClick={() => toggleCommentLike(idx)}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill={likedComments.has(idx) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                              <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                            </svg>
+                            {(c.likes || 0) + (likedComments.has(idx) ? 1 : 0)}
+                          </button>
+                          <button className={`c-like c-dislike${dislikedComments.has(idx) ? ' disliked' : ''}`} onClick={() => toggleCommentDislike(idx)}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill={dislikedComments.has(idx) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+                              <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                            </svg>
+                            {(c.dislikes || 0) + (dislikedComments.has(idx) ? 1 : 0)}
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <span className="whisper-comment-text">{c.text}</span>
-                  </div>
-                ))}
+                  ))}
+                </div>
                 {remaining > 0 && (
                   <div className="show-more-row">
                     <button className="btn-show" onClick={() => setVisibleCount(v => v + 20)}>
@@ -675,26 +799,17 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
             )
           })()}
 
-          <div className="whisper-comment-form">
-            <input className="whisper-comment-input" placeholder="Добавить комментарий..." value={commentText}
+          <form className="comments-input" onSubmit={e => {
+            e.preventDefault()
+            if (!commentText.trim()) return
+            setComments(prev => [...prev, { author: 'вы', text: commentText.trim(), ts: Date.now(), likes: 0 }])
+            setCommentText('')
+          }}>
+            <input className="c-input" placeholder="Написать комментарий..." value={commentText}
               onChange={e => setCommentText(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && commentText.trim()) {
-                  setComments(prev => [...prev, { author: 'вы', text: commentText.trim(), ts: Date.now(), likes: 0 }])
-                  setCommentText('')
-                }
-              }}
             />
-            <button className="whisper-comment-submit" disabled={!commentText.trim()} onClick={() => {
-              if (!commentText.trim()) return
-              setComments(prev => [...prev, { author: 'вы', text: commentText.trim(), ts: Date.now(), likes: 0 }])
-              setCommentText('')
-            }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-              </svg>
-            </button>
-          </div>
+            <button type="submit" className="c-submit" disabled={!commentText.trim()}>Отправить</button>
+          </form>
         </div>
       )}
     </div>
@@ -740,8 +855,7 @@ export default function Promo() {
     setPromoCompany(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
   }
 
-  function handleCompanyClick(companyId, categoryId) {
-    setPromoCat(new Set([categoryId]))
+  function handleCompanyClick(companyId) {
     setPromoCompany(new Set([companyId]))
   }
 

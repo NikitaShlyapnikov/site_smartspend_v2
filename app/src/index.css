@@ -7209,6 +7209,25 @@ body.dark .feed-section-card.active.promo    { background: #A86828; border-color
   color: #8A6AAF;
   border: 1px solid rgba(160,140,184,0.22);
 }
+.promo-type-badge--official {
+  background: rgba(78,130,104,0.12);
+  color: #4E8268;
+  border: 1px solid rgba(78,130,104,0.22);
+}
+/* Condition badges (non-broadcast) */
+.promo-type-badge--cond { font-size: 11px; }
+.promo-type-badge--cond-new_clients {
+  background: rgba(78,110,184,0.12); color: #4A72B8; border: 1px solid rgba(78,110,184,0.22);
+}
+.promo-type-badge--cond-referral {
+  background: rgba(176,136,64,0.12); color: #A07828; border: 1px solid rgba(176,136,64,0.22);
+}
+.promo-type-badge--cond-birthday {
+  background: rgba(184,78,140,0.12); color: #B84E8C; border: 1px solid rgba(184,78,140,0.22);
+}
+.promo-type-badge--cond-holiday {
+  background: rgba(123,94,167,0.12); color: #7B5EA7; border: 1px solid rgba(123,94,167,0.22);
+}
 /* Clickable company header button in promo cards */
 .promo-co-btn {
   display: flex; align-items: center; gap: 10px;
