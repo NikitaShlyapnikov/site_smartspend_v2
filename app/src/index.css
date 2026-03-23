@@ -1137,7 +1137,6 @@ body.dark .cat-btn-liked.active { background: #8A2020; border-color: #8A2020; co
   transform: translateY(-1px);
 }
 body.dark .catalog-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
-.card-accent-bar { height: 3px; flex-shrink: 0; }
 .card-body { padding: 16px 18px 14px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
 .card-badges { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
 .card-title { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
@@ -1164,6 +1163,42 @@ body.dark .catalog-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
 .articles-count svg { opacity: 0.35; flex-shrink: 0; }
 .private-label { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-3); font-family: var(--mono); }
 .private-label svg { opacity: 0.35; }
+.card-items-count { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-3); font-family: var(--mono); }
+.card-items-count svg { opacity: 0.35; }
+
+/* Category badge (clickable) on catalog card */
+.cat-badge {
+  font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 5px;
+  background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border);
+  cursor: pointer; transition: background .12s, color .12s;
+}
+.cat-badge:hover { background: var(--accent-green-light); color: var(--accent-green); border-color: transparent; }
+
+/* Author row on catalog card */
+.card-author-row {
+  padding: 0 18px 10px;
+  display: flex; align-items: center;
+}
+
+/* Card actions row (like/dislike/comments/bookmark) */
+.card-actions {
+  border-top: 1px solid var(--border);
+  padding: 8px 14px;
+  display: flex; align-items: center; gap: 2px;
+}
+.ca-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 9px; border-radius: 7px;
+  font-size: 12px; color: var(--text-3);
+  background: none; border: none; cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.ca-btn:hover { background: var(--hover); color: var(--text-2); }
+.ca-like.active { color: var(--accent-green); }
+.ca-dislike.active { color: #B85555; }
+.ca-bookmark.active { color: var(--accent-green); }
+.ca-comments:hover { color: var(--text-2); }
+.card-actions .ca-bookmark { margin-left: auto; }
 
 .empty-state { grid-column: 1/-1; padding: 56px 24px; text-align: center; }
 .empty-state-icon { font-size: 28px; margin-bottom: 12px; opacity: 0.4; }

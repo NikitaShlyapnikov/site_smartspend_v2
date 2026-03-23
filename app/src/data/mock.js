@@ -146,6 +146,7 @@ export const catalogSets = [
     amount: 42000, amountLabel: 'руб / сезон',
     items: ['Футболки (5 шт)', 'Джинсы (2 шт)', 'Кроссовки', 'Куртка'], more: 6,
     users: 9300, added: '2024-01-20', articles: 9,
+    likes: 412, dislikes: 18, comments: 24,
   },
   {
     id: 's7', source: 'community', category: 'clothes', type: 'extra', color: '#B89AAE',
@@ -154,6 +155,7 @@ export const catalogSets = [
     amount: 7200, amountLabel: 'руб',
     items: ['Рубашки (3 шт)', 'Классические брюки', 'Туфли', 'Пиджак'], more: 3,
     users: 2800, added: '2024-06-05', articles: 3,
+    addedBy: 'alex_fashion', likes: 87, dislikes: 5, comments: 11,
   },
   {
     id: 's8', source: 'community', category: 'clothes', type: 'extra', color: '#A8A89A',
@@ -162,6 +164,7 @@ export const catalogSets = [
     amount: 4100, amountLabel: 'руб',
     items: ['Лосины / шорты', 'Спортивные футболки', 'Кроссовки беговые'], more: 2,
     users: 5200, added: '2024-05-18', articles: 0,
+    addedBy: 'fit_pro', likes: 193, dislikes: 9, comments: 7,
   },
   // ── ПИТАНИЕ ────────────────────────────────────────────────
   {
@@ -171,6 +174,7 @@ export const catalogSets = [
     amount: 12000, amountLabel: 'руб / месяц',
     items: ['Крупы', 'Овощи и фрукты', 'Мясо и рыба', 'Молочные продукты'], more: 4,
     users: 14200, added: '2024-01-15', articles: 18,
+    likes: 841, dislikes: 33, comments: 56,
   },
   {
     id: 's9', source: 'ss', category: 'food', type: 'extra', color: '#C4A882',
@@ -179,6 +183,7 @@ export const catalogSets = [
     amount: 3500, amountLabel: 'руб / месяц',
     items: ['Шоколад и конфеты', 'Кофе и чай', 'Соки и напитки'], more: 2,
     users: 8700, added: '2024-02-10', articles: 4,
+    likes: 304, dislikes: 41, comments: 18,
   },
   {
     id: 's10', source: 'ss', category: 'food', type: 'extra', color: '#9AB8A8',
@@ -187,6 +192,7 @@ export const catalogSets = [
     amount: 16500, amountLabel: 'руб / месяц',
     items: ['Протеин', 'Куриная грудка', 'Греческий йогурт', 'Овсянка'], more: 3,
     users: 4100, added: '2024-03-22', articles: 11,
+    likes: 178, dislikes: 12, comments: 9,
   },
   {
     id: 's11', source: 'own', category: 'food', type: 'extra', color: '#B8A8B8',
@@ -195,6 +201,7 @@ export const catalogSets = [
     amount: 9400, amountLabel: 'руб / месяц',
     items: ['Гречка', 'Куриное филе', 'Творог', 'Яйца'], more: 5,
     users: null, added: '2025-01-03', articles: 0, private: true,
+    likes: 0, dislikes: 0, comments: 0,
   },
   // ── ДОМ ────────────────────────────────────────────────────
   {
@@ -204,6 +211,7 @@ export const catalogSets = [
     amount: 2200, amountLabel: 'руб / месяц',
     items: ['Стиральный порошок', 'Средство для посуды', 'Чистящие'], more: 4,
     users: 11500, added: '2024-01-15', articles: 6,
+    likes: 523, dislikes: 14, comments: 31,
   },
   {
     id: 's12', source: 'ss', category: 'home', type: 'extra', color: '#C4B496',
@@ -212,6 +220,7 @@ export const catalogSets = [
     amount: 3800, amountLabel: 'руб / месяц',
     items: ['Свечи', 'Пледы и подушки', 'Комнатные растения'], more: 2,
     users: 3400, added: '2024-04-11', articles: 5,
+    likes: 147, dislikes: 6, comments: 14,
   },
   // ── ЗДОРОВЬЕ ───────────────────────────────────────────────
   {
@@ -221,6 +230,7 @@ export const catalogSets = [
     amount: 4500, amountLabel: 'руб / месяц',
     items: ['Шампунь', 'Гель для душа', 'Крем', 'Зубная паста'], more: 3,
     users: 7800, added: '2024-01-15', articles: 7,
+    likes: 361, dislikes: 8, comments: 22,
   },
   {
     id: 's13', source: 'community', category: 'health', type: 'extra', color: '#A0B4C8',
@@ -229,6 +239,7 @@ export const catalogSets = [
     amount: 4500, amountLabel: 'руб / месяц',
     items: ['Пенка для умывания', 'Тонер', 'Увлажняющий крем', 'Санскрин'], more: 2,
     users: 5600, added: '2024-07-30', articles: 12,
+    addedBy: 'k_beauty_fan', likes: 274, dislikes: 7, comments: 33,
   },
   // ── ТРАНСПОРТ ──────────────────────────────────────────────
   {
@@ -238,6 +249,7 @@ export const catalogSets = [
     amount: 3200, amountLabel: 'руб / месяц',
     items: ['Проездной ЕТК', 'Такси (резерв)'], more: 0,
     users: 8100, added: '2024-01-20', articles: 2,
+    likes: 389, dislikes: 22, comments: 15,
   },
   // ── ДОСУГ ──────────────────────────────────────────────────
   {
@@ -247,6 +259,7 @@ export const catalogSets = [
     amount: 5200, amountLabel: 'руб / месяц',
     items: ['Netflix', 'Spotify', 'Яндекс.Плюс', 'Спортзал', 'Книги'], more: 0,
     users: null, added: '2025-03-01', articles: 0, private: true,
+    likes: 0, dislikes: 0, comments: 0,
   },
   // ── ПОДАРКИ ────────────────────────────────────────────────
   {
@@ -256,6 +269,7 @@ export const catalogSets = [
     amount: 2500, amountLabel: 'руб / месяц',
     items: ['День рождения (×4)', 'НГ и праздники', 'Спонтанные подарки'], more: 0,
     users: 6200, added: '2024-02-28', articles: 8,
+    likes: 218, dislikes: 11, comments: 19,
   },
 ]
 
