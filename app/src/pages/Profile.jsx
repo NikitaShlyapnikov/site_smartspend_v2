@@ -356,24 +356,24 @@ function SetCard({ set, onDelete, onOpen, onPause, editMode }) {
       <div className="set-card-name">{set.name}</div>
       {isPaused && <div className="set-card-paused-label">На паузе</div>}
       <div className="set-card-bottom">
-        <span className="set-card-amount">{!isPaused && set.amount ? set.amount.toLocaleString('ru') + ' ₽' : '—'}</span>
-        <span className="set-card-period">{!isPaused ? '/ мес' : ''}</span>
+        <span className={`set-card-amount${isPaused ? ' muted' : ''}`}>{set.amount ? set.amount.toLocaleString('ru') + ' ₽' : '—'}</span>
+        <span className="set-card-period">/ мес</span>
       </div>
-      {!editMode && set.source !== 'personal' && (
+      {set.source !== 'personal' && (
         <button
-          className={`set-pause-btn${isPaused ? ' playing' : ''}`}
+          className={`set-pause-btn${isPaused ? ' playing' : ''}${editMode ? ' always-show' : ''}`}
           onClick={e => { e.stopPropagation(); onPause() }}
           title={isPaused ? 'Запустить' : 'Поставить на паузу'}
         >
           {isPaused ? (
-            <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           ) : (
-            <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
           )}
         </button>
       )}
       {editMode && set.source !== 'personal' && (
-        <button className="set-delete" onClick={onDelete} title="Удалить набор">✕</button>
+        <button className="set-delete" onClick={e => { e.stopPropagation(); onDelete() }} title="Удалить набор">✕</button>
       )}
     </div>
   )

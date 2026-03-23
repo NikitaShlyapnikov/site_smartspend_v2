@@ -3538,12 +3538,13 @@ body.dark .emo-tile--accent .emo-tile-sub { color: #4E8268; }
   display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
 }
 .set-card-amount { font-family: var(--mono); font-size: 15px; font-weight: 400; letter-spacing: -0.01em; color: var(--text); }
+.set-card-amount.muted { color: var(--text-3); }
 .set-card-period { font-size: 10px; color: var(--text-3); white-space: nowrap; }
 
-/* Pause button */
+/* Pause button — нормальный режим: слева, появляется при hover */
 .set-pause-btn {
-  position: absolute; top: -7px; right: -7px;
-  width: 20px; height: 20px; border-radius: 50%;
+  position: absolute; top: -10px; left: -10px;
+  width: 26px; height: 26px; border-radius: 50%;
   background: var(--surface); border: 1.5px solid var(--border);
   color: var(--text-3); cursor: pointer;
   display: flex; align-items: center; justify-content: center;
@@ -3556,11 +3557,13 @@ body.dark .emo-tile--accent .emo-tile-sub { color: #4E8268; }
   background: rgba(91,143,212,0.1);
 }
 .set-pause-btn.playing:hover { background: rgba(91,143,212,0.18); }
+/* В режиме редактирования — пауза слева, всегда видна */
+.set-pause-btn.always-show { opacity: 1; }
 
-/* Delete button (edit mode) */
+/* Delete button (edit mode) — справа */
 .set-delete {
-  display: flex; position: absolute; top: -7px; right: -7px;
-  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; position: absolute; top: -10px; right: -10px;
+  width: 26px; height: 26px; border-radius: 50%;
   background: #E05252; color: #fff; border: 2px solid var(--surface);
   align-items: center; justify-content: center;
   cursor: pointer; font-size: 12px; line-height: 1;
@@ -5437,6 +5440,57 @@ body.dark .sd-inline-input { background: var(--surface-3); color: var(--text); }
   color: var(--text-3); cursor: pointer; transition: all 0.12s; flex-shrink: 0;
 }
 .c-emoji-btn:hover { background: var(--accent-green-light); color: var(--accent-green); border-color: var(--accent-green-border); }
+
+/* Personal set: parent reference */
+.sd-parent-ref {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+  font-size: 12px; color: var(--text-3);
+}
+.sd-parent-link {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font-size: 12px; color: var(--accent-green); text-decoration: underline;
+  text-decoration-color: transparent; transition: text-decoration-color 0.15s;
+}
+.sd-parent-link:hover { text-decoration-color: var(--accent-green); }
+
+/* Notes section */
+.sd-notes-empty { padding: 16px 20px; }
+.sd-notes-empty-text { font-size: 13px; color: var(--text-3); line-height: 1.5; }
+.sd-notes-list { padding: 4px 0; }
+.sd-note-item {
+  padding: 12px 20px; border-bottom: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.sd-note-item:last-child { border-bottom: none; }
+.sd-note-text { font-size: 14px; color: var(--text); line-height: 1.5; white-space: pre-wrap; }
+.sd-note-footer { display: flex; align-items: center; justify-content: space-between; }
+.sd-note-date { font-size: 11px; color: var(--text-3); }
+.sd-note-delete {
+  background: none; border: none; padding: 4px; cursor: pointer;
+  color: var(--text-3); display: flex; align-items: center;
+  border-radius: 4px; transition: color 0.15s, background 0.15s;
+}
+.sd-note-delete:hover { color: #B85555; background: rgba(184,85,85,0.08); }
+.sd-note-form {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 20px; border-top: 1px solid var(--border);
+}
+.sd-note-input {
+  flex: 1; background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 12px; font-size: 14px; color: var(--text);
+  font-family: var(--sans); outline: none; transition: border-color 0.15s;
+}
+.sd-note-input:focus { border-color: var(--accent-green-border); }
+.sd-note-input::placeholder { color: var(--text-3); }
+.sd-note-submit {
+  width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0;
+  background: var(--accent-green); color: #fff; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.15s;
+}
+.sd-note-submit:disabled { opacity: 0.35; cursor: default; }
+.sd-note-submit:not(:disabled):hover { opacity: 0.85; }
 
 /* add-to-profile toast */
 .sd-add-toast {

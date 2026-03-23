@@ -234,6 +234,10 @@ export default function SetDetail() {
       return Object.values(envData).some(list => list.some(e => e.id === id))
     } catch { return false }
   })
+  const [notes, setNotes] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(`ss_set_notes_${id}`) || '[]') } catch { return [] }
+  })
+  const [noteText, setNoteText] = useState('')
   const [liked, setLiked]         = useState(() => {
     try { return new Set(JSON.parse(localStorage.getItem('ss_catalog_likes') || '[]')).has(id) } catch { return false }
   })
@@ -288,6 +292,20 @@ export default function SetDetail() {
     setCmtText('')
     setCmtToast(true)
     setTimeout(() => setCmtToast(false), 2200)
+  }
+  function addNote(e) {
+    e.preventDefault()
+    if (!noteText.trim()) return
+    const note = { id: Date.now(), text: noteText.trim(), createdAt: new Date().toLocaleDateString('ru') }
+    const next = [note, ...notes]
+    setNotes(next)
+    try { localStorage.setItem(`ss_set_notes_${id}`, JSON.stringify(next)) } catch {}
+    setNoteText('')
+  }
+  function deleteNote(noteId) {
+    const next = notes.filter(n => n.id !== noteId)
+    setNotes(next)
+    try { localStorage.setItem(`ss_set_notes_${id}`, JSON.stringify(next)) } catch {}
   }
   const [reactions, setReactions] = useState([{ emoji: '🔥', count: 8 }, { emoji: '💡', count: 5 }, { emoji: '👏', count: 3 }])
   const [myReactions, setMyReactions] = useState(new Set())
@@ -487,6 +505,9 @@ export default function SetDetail() {
     </PublicLayout>
   )
 
+  const isPersonal = added
+  const fromCatalog = isPersonal && (set?.source === 'ss' || set?.source === 'community')
+
   const tableItems   = items.length > 0 ? items : null
   const totalMonthly = tableItems
     ? tableItems.reduce((s, i) => s + itemMonthly(i, scale), 0)
@@ -533,14 +554,23 @@ export default function SetDetail() {
       <main className="sd-main">
         {/* Breadcrumb */}
         <div className="breadcrumb">
-          <span className="breadcrumb-item" onClick={() => navigate('/catalog')}>Наборы</span>
-          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
-          {catLabel && <>
-            <span className="breadcrumb-item" onClick={() => navigate(`/catalog?cat=${set.category}`)}>{catLabel}</span>
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
-          </>}
+          {isPersonal ? (
+            <>
+              <span className="breadcrumb-item" onClick={() => navigate('/profile')}>Профиль</span>
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+            </>
+          ) : (
+            <>
+              <span className="breadcrumb-item" onClick={() => navigate('/catalog')}>Наборы</span>
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+              {catLabel && <>
+                <span className="breadcrumb-item" onClick={() => navigate(`/catalog?cat=${set.category}`)}>{catLabel}</span>
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+              </>}
+            </>
+          )}
           <span className="breadcrumb-current">{set.title}</span>
-          <HelpButton seenKey="ss_spl_setdetail" onOpen={() => setShowSpotlight(true)} />
+          {!isPersonal && <HelpButton seenKey="ss_spl_setdetail" onOpen={() => setShowSpotlight(true)} />}
         </div>
 
         {/* ── HERO CARD ── */}
@@ -552,7 +582,7 @@ export default function SetDetail() {
             {/* Meta + actions row */}
             <div className="art-meta-row">
               {set.added && <span className="fa-time">{fmtDate(set.added)}</span>}
-              {set.users != null && (
+              {!isPersonal && set.users != null && (
                 <><div className="art-meta-sep" />
                 <div className="fa-action-stat">
                   <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -562,8 +592,8 @@ export default function SetDetail() {
                   {fmtNum(set.users)}
                 </div></>
               )}
-              <LikeBtn liked={liked} count={(catalog?.likes || 0) + (liked ? 1 : 0)} onToggle={toggleLike} />
-              {comments.length > 0 && (
+              {!isPersonal && <LikeBtn liked={liked} count={(catalog?.likes || 0) + (liked ? 1 : 0)} onToggle={toggleLike} />}
+              {!isPersonal && comments.length > 0 && (
                 <div className="fa-action-stat fa-action-stat--link"
                   onClick={() => document.getElementById('sd-comments-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
                   <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -572,7 +602,7 @@ export default function SetDetail() {
                   {comments.length}
                 </div>
               )}
-              {allArticles.length > 0 && (
+              {!isPersonal && allArticles.length > 0 && (
                 <div className="fa-action-stat fa-action-stat--link"
                   onClick={() => document.getElementById('sd-articles-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
                   <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -583,8 +613,8 @@ export default function SetDetail() {
                   {allArticles.length}
                 </div>
               )}
-              <DislikeBtn disliked={disliked} onToggle={toggleDislike} />
-              <BookmarkBtn bookmarked={bookmarked} onToggle={() => setBookmarked(b => !b)} />
+              {!isPersonal && <DislikeBtn disliked={disliked} onToggle={toggleDislike} />}
+              {!isPersonal && <BookmarkBtn bookmarked={bookmarked} onToggle={() => setBookmarked(b => !b)} />}
               {!isDefault && (
                 <span className="sd-modified-badge">
                   <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -598,8 +628,8 @@ export default function SetDetail() {
             </div>
           </div>
 
-          {/* Author block at bottom of hero */}
-          {detail?.author && (
+          {/* Author block at bottom of hero — hidden for personal sets */}
+          {detail?.author && !isPersonal && (
             <div className="hero-author">
               <div className="author-avatar" style={{ background: `linear-gradient(135deg, ${color}, #B8A0C8)`, cursor: 'pointer' }}
                 onClick={() => navigate('/author/' + (set.source || 'ss'), { state: {
@@ -623,6 +653,19 @@ export default function SetDetail() {
                 {detail.author.bio && <div className="author-bio">{detail.author.bio}</div>}
               </div>
               <FollowBtn following={following} onToggle={() => setFollowing(f => !f)} />
+            </div>
+          )}
+          {/* Parent set reference */}
+          {fromCatalog && (
+            <div className="sd-parent-ref">
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+                <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+              </svg>
+              <span>Из каталога:</span>
+              <button className="sd-parent-link" onClick={() => navigate('/catalog')}>
+                {set.source === 'ss' ? 'SmartSpend' : 'Сообщество'} — {set.title}
+              </button>
             </div>
           )}
         </div>
@@ -651,7 +694,7 @@ export default function SetDetail() {
                   {editMode ? (
                     <><svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Готово</>
                   ) : (
-                    <><svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> Настрой под себя</>
+                    <><svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> {isPersonal ? 'Редактировать' : 'Настрой под себя'}</>
                   )}
                 </button>
               </div>
@@ -801,8 +844,58 @@ export default function SetDetail() {
           </div>
         )}
 
-        {/* ── ARTICLES ── */}
-        {allArticles.length > 0 && (
+        {/* ── ARTICLES (public) / NOTES (personal) ── */}
+        {isPersonal ? (
+          <div className="sd-section-card">
+            <div className="sd-section-header">
+              <div className="sd-section-title">
+                Заметки
+                {notes.length > 0 && <span className="sd-section-count">{notes.length}</span>}
+              </div>
+              <button className="sd-btn-sm" onClick={() => navigate('/feed')}>
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 6h16M4 12h16M4 18h7"/>
+                </svg>
+                Из ленты
+              </button>
+            </div>
+            {notes.length === 0 && (
+              <div className="sd-notes-empty">
+                <div className="sd-notes-empty-text">Заметок пока нет. Добавьте мысли, наблюдения или прикрепите статьи из ленты.</div>
+              </div>
+            )}
+            {notes.length > 0 && (
+              <div className="sd-notes-list">
+                {notes.map(note => (
+                  <div key={note.id} className="sd-note-item">
+                    <div className="sd-note-text">{note.text}</div>
+                    <div className="sd-note-footer">
+                      <span className="sd-note-date">{note.createdAt}</span>
+                      <button className="sd-note-delete" onClick={() => deleteNote(note.id)} title="Удалить">
+                        <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <form className="sd-note-form" onSubmit={addNote}>
+              <input
+                className="sd-note-input"
+                placeholder="Добавить заметку…"
+                value={noteText}
+                onChange={e => setNoteText(e.target.value)}
+              />
+              <button type="submit" className="sd-note-submit" disabled={!noteText.trim()}>
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+              </button>
+            </form>
+          </div>
+        ) : allArticles.length > 0 && (
           <div id="sd-articles-section" className="sd-section-card">
             <div className="sd-section-header">
               <div className="sd-section-title">
@@ -858,7 +951,7 @@ export default function SetDetail() {
         )}
 
         {/* ── COMMENTS ── */}
-        {comments.length > 0 && (
+        {!isPersonal && comments.length > 0 && (
           <div id="sd-comments-section" className="sd-section-card">
             <div className="sd-section-header">
               <div className="sd-section-title">
