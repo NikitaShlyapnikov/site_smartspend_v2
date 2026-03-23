@@ -31,6 +31,60 @@ const fmtNum = n => {
 }
 const fmtDate = iso => new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })
 
+const CATEGORY_LABELS = {
+  food: 'Еда и Супермаркеты', clothes: 'Одежда и Обувь', home: 'Дом и Техника',
+  health: 'Красота и Здоровье', transport: 'Авто и Транспорт', leisure: 'Развлечения и Хобби',
+  gifts: 'Прочие расходы', education: 'Образование и Дети', travel: 'Путешествия и Отдых',
+}
+
+function LikeBtn({ liked, count, onToggle }) {
+  const [anim, setAnim] = useState(false)
+  const [sparks, setSparks] = useState([])
+  function handleClick() {
+    setAnim(true); setTimeout(() => setAnim(false), 480)
+    if (!liked) {
+      const s = Array.from({ length: 6 }, (_, i) => ({ id: Date.now() + i, angle: i * 60 + Math.random() * 18 - 9, dist: 16 + Math.random() * 8 }))
+      setSparks(s); setTimeout(() => setSparks([]), 560)
+    }
+    onToggle()
+  }
+  return (
+    <div className="action-wrap">
+      <button className={`fa-action-btn${liked ? ' liked' : ''}${anim ? ' like-pop' : ''}`} onClick={handleClick} title="Нравится">
+        <svg width="15" height="15" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+          <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+        </svg>
+        {count}
+      </button>
+      {sparks.map(s => <span key={s.id} className="like-spark" style={{ '--angle': `${s.angle}deg`, '--dist': `${s.dist}px` }}>✦</span>)}
+    </div>
+  )
+}
+
+function DislikeBtn({ disliked, onToggle }) {
+  const [anim, setAnim] = useState(false)
+  function handleClick() { setAnim(true); setTimeout(() => setAnim(false), 420); onToggle() }
+  return (
+    <button className={`fa-action-btn fa-action-dislike${disliked ? ' active' : ''}${anim ? ' dislike-shake' : ''}`} onClick={handleClick} title="Не нравится">
+      <svg width="15" height="15" fill={disliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+        <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+      </svg>
+    </button>
+  )
+}
+
+function FollowBtn({ following, onToggle }) {
+  const [anim, setAnim] = useState(false)
+  function handleClick(e) { e.stopPropagation(); setAnim(true); setTimeout(() => setAnim(false), 450); onToggle() }
+  return (
+    <button className={`btn-follow${following ? ' following' : ''}${anim ? ' follow-pop' : ''}`} onClick={handleClick}>
+      {following ? 'Отменить подписку' : 'Подписаться'}
+    </button>
+  )
+}
+
 function itemMonthly(item, scale) {
   return (item.basePrice * scale * item.qty) / (item.period * 12)
 }
@@ -65,8 +119,7 @@ export default function SetDetail() {
     try { return new Set(JSON.parse(localStorage.getItem('ss_catalog_dislikes') || '[]')).has(id) } catch { return false }
   })
 
-  function toggleLike(e) {
-    e.stopPropagation()
+  function toggleLike() {
     setLiked(prev => {
       const next = !prev
       try {
@@ -79,8 +132,7 @@ export default function SetDetail() {
     if (!liked) setDisliked(false)
   }
 
-  function toggleDislike(e) {
-    e.stopPropagation()
+  function toggleDislike() {
     setDisliked(prev => {
       const next = !prev
       try {
@@ -102,6 +154,7 @@ export default function SetDetail() {
   const [cmtText, setCmtText]     = useState('')
   const [likes, setLikes]         = useState({})
   const [dislikes, setDislikes]   = useState({})
+  const [following, setFollowing] = useState(false)
 
   // Modified = scale changed OR any item differs from defaults
   const isDefault = useMemo(() => {
@@ -290,6 +343,7 @@ export default function SetDetail() {
 
   const color    = set.color || '#4E8268'
   const srcLabel = { ss: 'SmartSpend', community: 'Сообщество', own: 'Мой набор' }[set.source] || 'SmartSpend'
+  const catLabel = CATEGORY_LABELS[set.category] || null
 
   const authorArticles = detail?.authorArticles || []
   const recArticles    = detail?.recArticles    || []
@@ -306,20 +360,67 @@ export default function SetDetail() {
       <main className="sd-main">
         {/* Breadcrumb */}
         <div className="breadcrumb">
-          <span className="breadcrumb-item" onClick={() => navigate('/catalog')}>Каталог</span>
+          <span className="breadcrumb-item" onClick={() => navigate('/catalog')}>Наборы</span>
           <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
           <span className="breadcrumb-current">{set.title}</span>
         </div>
 
         {/* ── HERO CARD ── */}
-        <div id="sp-sd-hero" className="sd-hero-card">
-          <div className="sd-hero-bar" style={{ background: color }} />
-          <div className="sd-hero-body">
-            <div className="sd-hero-badges">
-              <span className={`source-badge ${set.source}`}>{srcLabel}</span>
-              <span className={set.type === 'base' ? 'base-badge' : 'extra-badge'}>
-                {set.type === 'base' ? 'Основа' : 'Дополнение'}
-              </span>
+        <div id="sp-sd-hero" className="hero-card">
+          <div className="hero-body">
+            {/* Author + category row */}
+            <div className="fa-author-row" style={{ marginBottom: 14 }}>
+              {set.source === 'ss' ? (
+                <>
+                  <div className="author-avatar-sm" style={{ background: '#4E8268', fontSize: 9, fontWeight: 700 }}>SS</div>
+                  <span className="author-name-inline">SmartSpend</span>
+                </>
+              ) : detail?.author ? (
+                <>
+                  <div className="author-avatar-sm" style={{ background: color }}>{detail.author.initials}</div>
+                  <span className="author-name-inline">{detail.author.name}</span>
+                </>
+              ) : null}
+              {catLabel && <><span className="fa-sep">·</span><span className="fa-category">{catLabel}</span></>}
+              {set.type && <><span className="fa-sep">·</span><span className="fa-category">{set.type === 'base' ? 'Основа' : 'Дополнение'}</span></>}
+            </div>
+
+            <div className="hero-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {set.title}
+              <HelpButton seenKey="ss_spl_setdetail" onOpen={() => setShowSpotlight(true)} />
+            </div>
+            <div className="hero-desc">{set.desc}</div>
+
+            {/* Meta + actions row */}
+            <div className="art-meta-row">
+              {totalMonthly != null ? (
+                <span style={{ fontFamily: 'var(--mono)', color: 'var(--accent-green)', fontWeight: 600, fontSize: 14 }}>
+                  {fmtRub(totalMonthly)}/мес
+                </span>
+              ) : set.amount ? (
+                <span style={{ fontFamily: 'var(--mono)', color: 'var(--accent-green)', fontWeight: 600, fontSize: 14 }}>
+                  {fmtRub(set.amount)}/мес
+                </span>
+              ) : null}
+              {set.period && set.period !== '1 мес' && (
+                <><div className="art-meta-sep" /><span className="fa-time">{set.period}</span></>
+              )}
+              {set.users != null && (
+                <><div className="art-meta-sep" />
+                <div className="fa-action-stat">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+                  </svg>
+                  {fmtNum(set.users)}
+                </div></>
+              )}
+              {tableItems && (
+                <><div className="art-meta-sep" />
+                <span className="fa-time">{tableItems.length} позиций</span></>
+              )}
+              <LikeBtn liked={liked} count={(catalog?.likes || 0) + (liked ? 1 : 0)} onToggle={toggleLike} />
+              <DislikeBtn disliked={disliked} onToggle={toggleDislike} />
               {!isDefault && (
                 <span className="sd-modified-badge">
                   <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -328,74 +429,46 @@ export default function SetDetail() {
                   Под меня
                 </span>
               )}
-            </div>
-            <div className="sd-hero-title" style={{display:'flex',alignItems:'center',gap:8}}>
-              {set.title}
-              <HelpButton seenKey="ss_spl_setdetail" onOpen={() => setShowSpotlight(true)} />
-            </div>
-            <div className="sd-hero-desc">{set.desc}</div>
-
-            {/* Stats row */}
-            <div className="sd-hstats">
-              {totalMonthly != null ? (
-                <div className="sd-hstat">
-                  <div className="sd-hstat-val">{fmtRub(totalMonthly)}</div>
-                  <div className="sd-hstat-lbl">в месяц (амортизация)</div>
-                </div>
-              ) : set.amount ? (
-                <div className="sd-hstat">
-                  <div className="sd-hstat-val">{fmtRub(set.amount)}</div>
-                  <div className="sd-hstat-lbl">{set.amountLabel || 'стоимость'}</div>
-                </div>
-              ) : null}
-              {tableItems && (
-                <div className="sd-hstat">
-                  <div className="sd-hstat-val">{tableItems.length}</div>
-                  <div className="sd-hstat-lbl">позиций в наборе</div>
-                </div>
-              )}
-              {set.users != null && (
-                <div className="sd-hstat">
-                  <div className="sd-hstat-val">{fmtNum(set.users)}</div>
-                  <div className="sd-hstat-lbl">пользователей добавили</div>
-                </div>
-              )}
-              {set.added && (
-                <div className="sd-hstat">
-                  <div className="sd-hstat-val" style={{ fontSize: 15 }}>{fmtDate(set.added)}</div>
-                  <div className="sd-hstat-lbl">дата добавления</div>
-                </div>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="sd-hero-actions">
+              <div className="f-spacer" />
               <button id="sp-sd-add" className={`sd-btn-primary${added ? ' added' : ''}`}
                 onClick={!added ? handleAdd : undefined}>
-                {added ? <><CheckIcon /> Добавлено в конверт</> : <><PlusIcon /> Добавить в конверт</>}
+                {added ? <><CheckIcon /> В конверте</> : <><PlusIcon /> В конверт</>}
               </button>
               {added && (
-                <button className="sd-btn-remove" onClick={handleRemove}>
+                <button className="sd-btn-remove" onClick={handleRemove} title="Удалить из инвентаря">
                   <TrashIcon />
-                  Удалить из инвентаря
                 </button>
               )}
-              <button className={`btn-liked${liked ? ' liked' : ''}`} onClick={toggleLike}>
-                <svg width="14" height="14" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
-                  <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
-                </svg>
-                Нравится
-              </button>
-              <button className={`btn-liked btn-disliked${disliked ? ' disliked' : ''}`} onClick={toggleDislike}>
-                <svg width="14" height="14" fill={disliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
-                  <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
-                </svg>
-                Не нравится
-              </button>
             </div>
           </div>
+
+          {/* Author block at bottom of hero */}
+          {detail?.author && (
+            <div className="hero-author">
+              <div className="author-avatar" style={{ background: `linear-gradient(135deg, ${color}, #B8A0C8)`, cursor: 'pointer' }}
+                onClick={() => navigate('/author/' + (set.source || 'ss'), { state: {
+                  name: detail.author.name, ini: detail.author.initials,
+                  handle: detail.author.handle || ('@' + detail.author.name.toLowerCase().replace(/\s+/g, '_')),
+                  bio: detail.author.bio, color,
+                  followers: set.users ? set.users.toLocaleString('ru') : '—',
+                  articles: detail.authorArticles?.length ?? 0, sets: 1, following: false,
+                }})}>
+                {detail.author.initials}
+              </div>
+              <div className="author-info" style={{ cursor: 'pointer' }}
+                onClick={() => navigate('/author/' + (set.source || 'ss'), { state: {
+                  name: detail.author.name, ini: detail.author.initials,
+                  handle: detail.author.handle || ('@' + detail.author.name.toLowerCase().replace(/\s+/g, '_')),
+                  bio: detail.author.bio, color,
+                  followers: set.users ? set.users.toLocaleString('ru') : '—',
+                  articles: detail.authorArticles?.length ?? 0, sets: 1, following: false,
+                }})}>
+                <div className="author-name">{detail.author.name}</div>
+                {detail.author.bio && <div className="author-bio">{detail.author.bio}</div>}
+              </div>
+              <FollowBtn following={following} onToggle={() => setFollowing(f => !f)} />
+            </div>
+          )}
         </div>
 
         {/* ── ITEMS SECTION CARD ── */}
@@ -588,52 +661,13 @@ export default function SetDetail() {
           </div>
         )}
 
-        {/* ── AUTHOR / ABOUT CARD ── */}
-        {detail?.author && (
-          <div className="sd-intro-card">
-            <div className="sd-author-row" style={{ cursor: 'pointer' }} onClick={() => {
-              const handle = detail.author.handle || ('@' + detail.author.name.toLowerCase().replace(/\s+/g, '_'))
-              navigate('/author/' + (set.source || 'ss'), { state: {
-                name: detail.author.name,
-                ini: detail.author.initials,
-                handle,
-                bio: detail.author.bio,
-                followers: set.users ? set.users.toLocaleString('ru') : '—',
-                articles: detail.authorArticles?.length ?? 0,
-                sets: 1,
-                color,
-                following: false,
-              }})
-            }}>
-              <div className="sd-author-avatar" style={{ background: `linear-gradient(135deg, ${color}, #B8A0C8)` }}>
-                {detail.author.initials}
-              </div>
-              <div className="sd-author-info">
-                <div className="sd-author-name">{detail.author.name}</div>
-                <div className="sd-author-bio">{detail.author.bio}</div>
-              </div>
-              <button className="sd-author-link" onClick={e => {
-                e.stopPropagation()
-                const handle = detail.author.handle || ('@' + detail.author.name.toLowerCase().replace(/\s+/g, '_'))
-                navigate('/author/' + (set.source || 'ss'), { state: {
-                  name: detail.author.name, ini: detail.author.initials, handle,
-                  bio: detail.author.bio, followers: set.users ? set.users.toLocaleString('ru') : '—',
-                  articles: detail.authorArticles?.length ?? 0, sets: 1, color, following: false,
-                }})
-              }}>
-                Все наборы
-                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"
-                  strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-              </button>
+        {/* ── ABOUT CARD ── */}
+        {detail?.about && (
+          <div className="content-card">
+            <div className="content-body">
+              <h2>{detail.about.title}</h2>
+              {detail.about.paragraphs.map((p, i) => <p key={i}>{p}</p>)}
             </div>
-            {detail.about && <>
-              <div className="sd-intro-divider" />
-              <div className="sd-intro-label">О наборе</div>
-              <div className="sd-intro-title">{detail.about.title}</div>
-              <div className="sd-intro-text">
-                {detail.about.paragraphs.map((p, i) => <p key={i}>{p}</p>)}
-              </div>
-            </>}
           </div>
         )}
 

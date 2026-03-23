@@ -627,10 +627,7 @@ export default function Catalog() {
               ))}
             </div>
 
-            {/* Row 2: sort */}
-            <SortDropdown sort={sortFilter} onSort={setSort} />
-
-            {/* Row 3: item search */}
+            {/* Row 2: item search */}
             <div className="catalog-search-row">
               <div className="catalog-search-wrap">
                 <svg className="catalog-search-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -652,6 +649,9 @@ export default function Catalog() {
                 )}
               </div>
             </div>
+
+            {/* Row 3: sort */}
+            <SortDropdown sort={sortFilter} onSort={setSort} />
 
             {/* Row 4: categories */}
             <FilterSelect
