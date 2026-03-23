@@ -1045,6 +1045,21 @@ export default function Promo() {
               />
             </div>
 
+            {/* Companies — visible when category selected */}
+            {promoCat.size > 0 && (() => {
+              const coItems = [...promoCat]
+                .flatMap(catId => companies[catId]?.list || [])
+                .map(c => ({ id: c.id, label: c.name }))
+              return coItems.length > 0 ? (
+                <FilterSelect
+                  items={coItems}
+                  value={promoCompany}
+                  onChange={handlePromoCompany}
+                  placeholder="Компании"
+                />
+              ) : null
+            })()}
+
             {hasFilters && (
               <div className="filter-summary">
                 <span>{filtered.length} {noun(filtered.length)}</span>
