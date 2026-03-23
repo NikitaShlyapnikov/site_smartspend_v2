@@ -348,28 +348,11 @@ function TypeTag({ type, period }) {
   )
 }
 
-function SetCard({ set, catColor, onDelete, onOpen, editMode }) {
-  const sm = SOURCE_META[set.source] || SOURCE_META.custom
+function SetCard({ set, onDelete, onOpen, editMode }) {
   const isClickable = !editMode && (set.id || set.source === 'personal')
   return (
     <div className="set-card" onClick={isClickable ? onOpen : undefined} style={isClickable ? { cursor: 'pointer' } : {}}>
-      <div className="set-card-accent" style={{ background: catColor }} />
-      <div className="set-card-top">
-        <div className="set-source">
-          <SourceIcon source={set.source} />
-          <span className={`set-source-label ${sm.cls}`}>{sm.label}</span>
-        </div>
-        <div className="set-card-name">{set.name}</div>
-        <div className="set-card-meta">
-          <span className="set-meta-tag">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 000 4h6a2 2 0 000-4M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-            </svg>
-            {set.items} поз.
-          </span>
-          <TypeTag type={set.type} period={set.period} />
-        </div>
-      </div>
+      <div className="set-card-name">{set.name}</div>
       <div className="set-card-bottom">
         <span className="set-card-amount">{set.amount ? set.amount.toLocaleString('ru') + ' ₽' : '—'}</span>
         <span className="set-card-period">/ мес</span>
@@ -1001,10 +984,8 @@ export default function Profile() {
               return (
                 <div key={cat.id} className="envelope-card">
                   <div className="envelope-header">
-                    <div className="env-bar" style={{ background: cat.color }} />
                     <div className="env-info">
                       <div className="env-name">{cat.name}</div>
-                      <div className="env-desc">{desc}</div>
                     </div>
                     <div className="env-right">
                       <div className="env-total">{(hasSets || hasPersonal) ? total.toLocaleString('ru') + ' ₽' : '—'}</div>
@@ -1018,7 +999,6 @@ export default function Profile() {
                         <SetCard
                           key={idx}
                           set={set}
-                          catColor={cat.color}
                           editMode={editMode}
                           onDelete={() => deleteSet(cat.id, idx)}
                           onOpen={() => navigate(`/set/${set.id}`)}
@@ -1027,7 +1007,6 @@ export default function Profile() {
                       {hasPersonal && (
                         <SetCard
                           set={personalSet}
-                          catColor={cat.color}
                           editMode={editMode}
                           onOpen={() => navigate('/inventory')}
                         />
