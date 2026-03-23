@@ -468,7 +468,7 @@ function ForecastCollapsible({ open, onToggle, emoRate, dark, monthlyInvest, cap
     <div className="forecast-collapsible">
       <button className="forecast-toggle-row" onClick={onToggle}>
         <div className="forecast-toggle-left">
-          <span className="forecast-toggle-title">Прогноз накоплений · 10 лет</span>
+          <span className="forecast-toggle-title">Прогноз накоплений · 10 лет · чистая доходность 4% годовых</span>
           {!open && (
             <div className="forecast-toggle-pills">
               <span className="ftpill ftpill-cap">{capFmt}</span>
@@ -595,7 +595,7 @@ function ForecastChart({ emoRate, dark, monthlyInvest, capital, creditPayment, c
 
   return (
     <div className="forecast-inner">
-      <div className="forecast-inner-title">Прогноз накоплений · без учёта доходности</div>
+      <div className="forecast-inner-title">чистая доходность 4% годовых</div>
       <div className="forecast-legend">
         <span className="fc-legend-item"><span className="fc-dot capital" />Капитал</span>
         <span className="fc-legend-item"><span className="fc-dot emo" />EmoSpend / мес</span>
@@ -728,10 +728,11 @@ export default function Profile() {
 
   // Чистый доход = доход − жильё − кредиты (до конвертов)
   const netIncome = income > 0 ? Math.max(0, income - housing - credit) : 0
-  // Устойчивый бюджет конвертов = чистый доход + EmoSpend от капитала
-  // Если доход не указан — используем SmartSpend базу как минимум
-  const sustainableBudget = (income > 0 ? netIncome : SMART_SPEND_BASE) + emoMonthly
-  const envelopeDiff = grandTotal - sustainableBudget          // >0 превышение, <0 запас
+  // Если чистый доход + EmoSpend < ПМ — используем ПМ как гарантированный пол
+  const useBasePM = netIncome + emoMonthly <= SMART_SPEND_BASE
+  const budgetBase = useBasePM ? SMART_SPEND_BASE : netIncome
+  const sustainableBudget = budgetBase + emoMonthly
+  const envelopeDiff = grandTotal - sustainableBudget
   const neededCapital = envelopeDiff > 0
     ? Math.round(envelopeDiff * 12 / emoRate)
     : 0
@@ -828,18 +829,20 @@ export default function Profile() {
               Привет, {username.split(' ')[0]}
               <HelpButton seenKey="ss_spl_profile" onOpen={() => setShowSpotlight(true)} />
             </div>
-            <div className="entry-subtitle">{greetingSubtitle}</div>
           </div>
         </div>
 
         {/* Финансовая картина */}
         <div id="sp-finance">
           <div className="section-heading">
-            <span className="section-title">Финансовая картина{updatedAt ? ` · ${updatedAt}` : ''}</span>
-            <button id="sp-btn-finance" className="section-link" onClick={() => setFinOpen(true)}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-              Обновить данные
-            </button>
+            <span className="section-title">Финансовая картина</span>
+            <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:2}}>
+              <button id="sp-btn-finance" className="section-link" onClick={() => setFinOpen(true)}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                Обновить данные
+              </button>
+              {updatedAt && <span style={{fontSize:10,color:'var(--text-3)',letterSpacing:'0.01em'}}>{updatedAt}</span>}
+            </div>
           </div>
           <div className="profile-card">
             <div className="bl-row income">
@@ -879,11 +882,19 @@ export default function Profile() {
                 <div className="budget-block-title">Устойчивый бюджет конвертов</div>
 
                 <div className="budget-rows">
-                  <div className="budget-row">
-                    <span className="budget-row-label">Чистый доход</span>
-                    <span className="budget-row-hint">доход − жильё − кредиты</span>
-                    <span className="budget-row-value">{income > 0 ? netIncome.toLocaleString('ru') : '—'} ₽</span>
-                  </div>
+                  {useBasePM ? (
+                    <div className="budget-row">
+                      <span className="budget-row-label">ПМ РФ 2026</span>
+                      <span className="budget-row-hint">прожиточный минимум · гарантированный пол</span>
+                      <span className="budget-row-value">{SMART_SPEND_BASE.toLocaleString('ru')} ₽</span>
+                    </div>
+                  ) : (
+                    <div className="budget-row">
+                      <span className="budget-row-label">Чистый доход</span>
+                      <span className="budget-row-hint">доход − жильё − кредиты</span>
+                      <span className="budget-row-value">{netIncome.toLocaleString('ru')} ₽</span>
+                    </div>
+                  )}
                   <div className="budget-row">
                     <span className="budget-row-label">EmoSpend от капитала</span>
                     <span className="budget-row-hint">{Math.round(emoRate * 100)}% годовых ÷ 12</span>
@@ -891,41 +902,43 @@ export default function Profile() {
                   </div>
                   <div className="budget-row budget-row--total">
                     <span className="budget-row-label">Можно тратить</span>
-                    <span className="budget-row-hint" style={{fontSize:10}}>мин. SmartSpend {SMART_SPEND_BASE.toLocaleString('ru')} ₽ · ПМ РФ 2026</span>
                     <span className="budget-row-value">{sustainableBudget.toLocaleString('ru')} ₽</span>
                   </div>
                 </div>
 
-                {grandTotal > 0 && (
-                  <div className={`budget-status${envelopeDiff > 0 ? ' over' : ' ok'}`}>
-                    <div className="budget-status-row">
-                      <span className="budget-status-label">Конверты</span>
-                      <span className="budget-status-envelopes">{grandTotal.toLocaleString('ru')} ₽</span>
-                    </div>
-                    {envelopeDiff > 0 ? (
-                      <>
-                        <div className="budget-status-msg over">
-                          Превышение бюджета на <strong>{envelopeDiff.toLocaleString('ru')} ₽/мес</strong>
-                        </div>
-                        {neededCapital > 0 && (
-                          <div className="budget-needed">
-                            Для устойчивости нужен капитал&nbsp;<strong>~{neededCapital.toLocaleString('ru')} ₽</strong>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <div className="budget-status-msg ok">
-                        Можно потратить ещё <strong>{Math.abs(envelopeDiff).toLocaleString('ru')} ₽ в месяц</strong> — добавь наборы или оставь на спонтанные расходы
-                      </div>
-                    )}
-                  </div>
-                )}
                 {showPmWarn && (
                   <div className="budget-pm-warn">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
                     Чистый доход <strong>{netIncome.toLocaleString('ru')} ₽</strong> ниже прожиточного минимума ({SMART_SPEND_BASE.toLocaleString('ru')} ₽) — нужно увеличить доход.
                   </div>
                 )}
+
+                <div className={`budget-status${grandTotal === 0 ? ' empty' : envelopeDiff > 0 ? ' over' : ' ok'}`}>
+                  <div className="budget-status-row">
+                    <span className="budget-status-label">Конверты</span>
+                    <span className="budget-status-envelopes">{grandTotal > 0 ? `${grandTotal.toLocaleString('ru')} ₽` : '—'}</span>
+                  </div>
+                  {grandTotal === 0 ? (
+                    <div className="budget-status-msg empty">
+                      Заполни конверты — добавь наборы по категориям: еда, одежда, здоровье, транспорт. Система покажет, сколько остаётся на спонтанные расходы.
+                    </div>
+                  ) : envelopeDiff > 0 ? (
+                    <>
+                      <div className="budget-status-msg over">
+                        Превышение бюджета на <strong>{envelopeDiff.toLocaleString('ru')} ₽/мес</strong>
+                      </div>
+                      {neededCapital > 0 && (
+                        <div className="budget-needed">
+                          Для устойчивости нужен капитал&nbsp;<strong>~{neededCapital.toLocaleString('ru')} ₽</strong>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="budget-status-msg ok">
+                      Можно потратить ещё <strong>{Math.abs(envelopeDiff).toLocaleString('ru')} ₽ в месяц</strong>
+                    </div>
+                  )}
+                </div>
 
                 <div className="emo-rate-row">
                   <span className="emo-rate-label">Уровень EmoSpend:</span>
