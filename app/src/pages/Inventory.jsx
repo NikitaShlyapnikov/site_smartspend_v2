@@ -2,7 +2,16 @@ import { useState, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
-import { inventoryGroups, catalogSets } from '../data/mock'
+import { inventoryGroups } from '../data/mock'
+
+function loadPersonalSets() {
+  try {
+    const env = JSON.parse(localStorage.getItem('ss_envelopes') || '{}')
+    return Object.entries(env).flatMap(([catId, sets]) =>
+      (sets || []).map(s => ({ ...s, catId }))
+    )
+  } catch { return [] }
+}
 
 const INV_SPOTLIGHT = [
   { targetId: 'sp-inv-summary', btnId: null,            title: 'Сводка статусов',       desc: 'Карточки показывают сколько позиций требует внимания. Нажми на карточку — лента отфильтруется по статусу.' },
@@ -698,7 +707,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
             {hasSet ? (
               <>
                 <span style={{ color: 'var(--text-3)' }}>Набор:</span>
-                <Link to={`/set/${item.setId}`} className="inv-set-link" onClick={e => e.stopPropagation()}>
+                <Link to={`/set/${item.setId}`} state={{ fromProfile: true }} className="inv-set-link" onClick={e => e.stopPropagation()}>
                   {item.set}
                   <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -762,14 +771,14 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
   )
 }
 
-function AddItemForm({ groupId, groupSetCategories, onAdd, onCancel }) {
+function AddItemForm({ groupId, groupSetCategories, groupPersonalSets, onAdd, onCancel }) {
   const today = new Date().toISOString().slice(0, 10)
   const [form, setForm] = useState({
     name: '', type: 'consumable', price: '', qty: '', dailyUse: '', unit: 'г',
     wearLifeWeeks: '', purchaseDate: today, setId: '', wearQty: '1',
   })
   const set = k => v => setForm(p => ({ ...p, [k]: v }))
-  const groupSets = catalogSets.filter(s => groupSetCategories?.includes(s.category))
+  const groupSets = (groupPersonalSets || []).filter(s => groupSetCategories?.includes(s.catId))
 
   function handleSubmit() {
     if (!form.name.trim() || !form.price) return
@@ -854,7 +863,7 @@ function AddItemForm({ groupId, groupSetCategories, onAdd, onCancel }) {
             <div className="inv-add-form-lbl">Привязать к набору (необязательно)</div>
             <select className="inv-add-form-select" value={form.setId} onChange={e => set('setId')(e.target.value)}>
               <option value="">Личное — без набора</option>
-              {groupSets.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
+              {groupSets.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
         )}
@@ -887,6 +896,7 @@ export default function Inventory() {
     const extra = loadExtraItems().map(i => ({ ...i, isExtra: true }))
     return [...base, ...extra]
   })
+  const [personalSets] = useState(() => loadPersonalSets())
   const [openItem, setOpenItem] = useState(null)
   const [statusFilter, setStatusFilter] = useState(null)
   const [editMode, setEditMode] = useState(false)
@@ -1010,18 +1020,18 @@ export default function Inventory() {
 
   function doLinkSet(itemId, pickedSet) {
     setItems(prev => prev.map(i => i.id === itemId
-      ? { ...i, set: pickedSet.title, setId: pickedSet.id }
+      ? { ...i, set: pickedSet.name, setId: pickedSet.id }
       : i))
     setLinkToSetItem(null)
   }
 
   function doAddItem(groupId, form) {
     const id = 'i' + nextIdRef.current++
-    const pickedSet = form.setId ? catalogSets.find(s => s.id === form.setId) : null
+    const pickedSet = form.setId ? personalSets.find(s => s.id === form.setId) : null
     const base = {
       id, name: form.name.trim(), type: form.type, groupId,
       price: Number(form.price) || 0,
-      set: pickedSet?.title || null, setId: pickedSet?.id || null,
+      set: pickedSet?.name || null, setId: pickedSet?.id || null,
       isExtra: true,
     }
     if (form.type === 'consumable') {
@@ -1238,7 +1248,7 @@ export default function Inventory() {
 
                 {editMode && (
                   addFormGroup === group.id
-                    ? <AddItemForm groupId={group.id} groupSetCategories={group.setCategories} onAdd={doAddItem} onCancel={() => setAddFormGroup(null)} />
+                    ? <AddItemForm groupId={group.id} groupSetCategories={group.setCategories} groupPersonalSets={personalSets} onAdd={doAddItem} onCancel={() => setAddFormGroup(null)} />
                     : (
                       <button className="inv-add-toggle" onClick={() => {
                         setAddFormGroup(group.id)
@@ -1350,17 +1360,22 @@ export default function Inventory() {
         const linkItem = items.find(i => i.id === linkToSetItem)
         const linkGroup = linkItem ? ALL_GROUPS.find(g => g.id === linkItem.groupId) : null
         const pickerSets = linkGroup
-          ? catalogSets.filter(s => linkGroup.setCategories.includes(s.category))
-          : catalogSets
+          ? personalSets.filter(s => linkGroup.setCategories.includes(s.catId))
+          : personalSets
         return (
         <div className="inv-modal-overlay" onClick={() => setLinkToSetItem(null)}>
           <div className="inv-modal" onClick={e => e.stopPropagation()}>
             <div className="inv-modal-title">Привязать к набору</div>
             <div className="inv-set-picker-list">
+              {pickerSets.length === 0 && (
+                <div style={{ padding: '12px 0', color: 'var(--text-3)', fontSize: 13 }}>
+                  Нет личных наборов в этой категории.<br/>Добавьте наборы в профиле.
+                </div>
+              )}
               {pickerSets.map(s => (
                 <button key={s.id} className="inv-set-picker-item" onClick={() => doLinkSet(linkToSetItem, s)}>
-                  <div className="inv-set-picker-dot" style={{ background: s.color }} />
-                  <div className="inv-set-picker-name">{s.title}</div>
+                  <div className="inv-set-picker-dot" style={{ background: '#4E8268' }} />
+                  <div className="inv-set-picker-name">{s.name}</div>
                   <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)' }}>
                     <path d="M9 18l6-6-6-6" />
