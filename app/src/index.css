@@ -5442,6 +5442,8 @@ body.dark .sd-total-row td { background: #1A2820; }
   max-width: 100%;
 }
 .author-chip:hover { opacity: 0.72; }
+.author-chip--ss { cursor: default; }
+.author-chip--ss:hover { opacity: 1; }
 .author-avatar-anon {
   background: #E8E8E8; color: #888;
   border: 1.5px dashed #B0B0B0;

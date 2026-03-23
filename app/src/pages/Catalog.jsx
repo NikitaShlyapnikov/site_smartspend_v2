@@ -300,7 +300,18 @@ function BookmarkBtn({ bookmarked, onToggle }) {
   )
 }
 
-function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike, onBookmark, onCategoryClick, navigate, itemQuery }) {
+const SS_AUTHOR = { name: 'SmartSpend', initials: 'SS', color: '#4E8268', followers: null, articles: 0, sets: 0, isSmartSpend: true }
+
+function SmartSpendChip() {
+  return (
+    <span className="author-chip author-chip--ss">
+      <div className="author-avatar-sm" style={{ background: SS_AUTHOR.color, fontSize: 9, fontWeight: 700 }}>SS</div>
+      <span className="author-name-inline">SmartSpend</span>
+    </span>
+  )
+}
+
+function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike, onBookmark, onCategoryClick, navigate, username }) {
   const catLabel = CATEGORIES.find(c => c.id === set.category)?.label
   const totalItems = set.items.length + (set.more || 0)
   const [reactions, setReactions] = useState(() => (set.reactions || []).map(r => ({ ...r })))
@@ -316,26 +327,29 @@ function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike
     })
   }
 
-  const showFullCost = set.fullCost && set.fullCost !== set.monthly
+  const effectiveFullCost = set.fullCost || set.monthly || set.amount
+
+  const authorRow = set.source === 'ss'
+    ? <SmartSpendChip />
+    : set.source === 'own'
+      ? <AuthorChip username={username || 'я'} navigate={navigate} />
+      : set.addedBy
+        ? <AuthorChip username={set.addedBy} navigate={navigate} />
+        : null
 
   return (
     <div className="catalog-card" onClick={() => navigate(`/set/${set.id}`)}>
-      {set.addedBy && (
+      {authorRow && (
         <div className="card-author-row" onClick={e => e.stopPropagation()}>
-          <AuthorChip username={set.addedBy} navigate={navigate} />
+          {authorRow}
         </div>
       )}
       <div className="card-body">
-        <div className="card-badges">
-          <span className={`source-badge ${set.source}`}>
-            {set.source === 'ss' ? 'SmartSpend' : set.source === 'community' ? 'Сообщество' : 'Мой набор'}
-          </span>
-        </div>
         <div>
           <div className="card-title-row">
             <span className="card-title">{set.title}</span>
             {catLabel && (
-              <button className="cat-badge" onClick={e => { e.stopPropagation(); onCategoryClick(set.category) }}>
+              <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(set.category) }}>
                 {catLabel}
               </button>
             )}
@@ -353,15 +367,11 @@ function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike
           <div className="card-cost-val">{set.period || '—'}</div>
           <div className="card-cost-lbl">период</div>
         </div>
-        {showFullCost && (
-          <>
-            <div className="card-cost-sep" />
-            <div className="card-cost-item">
-              <div className="card-cost-val">{set.fullCost.toLocaleString('ru')} ₽</div>
-              <div className="card-cost-lbl">полная стоимость</div>
-            </div>
-          </>
-        )}
+        <div className="card-cost-sep" />
+        <div className="card-cost-item">
+          <div className="card-cost-val">{effectiveFullCost.toLocaleString('ru')} ₽</div>
+          <div className="card-cost-lbl">полная стоимость</div>
+        </div>
         <div className="card-cost-sep" />
         <div className="card-cost-item">
           <div className="card-cost-val">
@@ -396,7 +406,10 @@ function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike
           </>
         )}
         <div className="f-spacer" />
-        <div className="fa-time">{totalItems} позиций</div>
+        <div className="fa-time">
+          {totalItems} позиций
+          {set.articles > 0 && <> · {set.articles} {set.articles === 1 ? 'статья' : set.articles < 5 ? 'статьи' : 'статей'}</>}
+        </div>
       </div>
     </div>
   )
@@ -476,6 +489,7 @@ export default function Catalog() {
   const [searchParams] = useSearchParams()
   const initCatId = VALID_CATS.includes(searchParams.get('cat')) && searchParams.get('cat') !== 'all' ? searchParams.get('cat') : null
   const authed = localStorage.getItem('ss_auth') === 'true'
+  const username = localStorage.getItem('ss_username') || 'я'
 
   const [cat, setCat]             = useState(() => initCatId ? new Set([initCatId]) : new Set())
   const [sourceFilter, setSrc]    = useState('all')
@@ -529,6 +543,12 @@ export default function Catalog() {
       : (a, b) => (b.users || 0) - (a.users || 0)
   )
 
+  const hasFilters = cat.size > 0 || sourceFilter !== 'all' || sortFilter !== 'popular_7d' || itemSearch.trim() !== ''
+
+  function resetFilters() {
+    setCat(new Set()); setSrc('all'); setSort('popular_7d'); setItemSearch('')
+  }
+
   const fmtDate = iso => new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
 
   return (
@@ -569,7 +589,14 @@ export default function Catalog() {
               placeholder="Категории"
             />
 
-            {/* Row 3: item search */}
+            {hasFilters && (
+              <div className="filter-summary">
+                <span>{filtered.length} {noun(filtered.length)}</span>
+                <button className="reset-btn" onClick={resetFilters}>Сбросить</button>
+              </div>
+            )}
+
+            {/* Row 4: item search */}
             <div className="catalog-search-row">
               <div className="catalog-search-wrap">
                 <svg className="catalog-search-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -615,7 +642,7 @@ export default function Catalog() {
               onBookmark={() => { if (!requireAuth()) return; setLikedSets(prev => { const next = new Set(prev); next.has(set.id) ? next.delete(set.id) : next.add(set.id); saveLikes(next); return next }) }}
               onCategoryClick={handleCatChange}
               navigate={navigate}
-              itemQuery={itemQuery}
+              username={username}
             />
           ))}
 
