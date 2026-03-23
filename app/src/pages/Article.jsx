@@ -190,11 +190,12 @@ function EmojiPicker({ onPick, onClose }) {
 const EMOJI_ANIM = { '🔥':'fire','😂':'laugh','💡':'bulb','🤯':'mindblown','💸':'money','👏':'clap','❤️':'heart','✨':'sparkle','🎉':'party','💪':'flex' }
 const EMOJI_DUR  = { fire:900, laugh:650, bulb:1400, mindblown:1100, money:1000, clap:500, heart:1000, sparkle:1200, party:750, flex:1100 }
 
-function ArticleReactionPill({ emoji, count, active, onToggle }) {
+function ArticleReactionPill({ emoji, count, active, onToggle, autoAnimate }) {
   const [popping, setPopping] = useState(false)
   const [emojiAnim, setEmojiAnim] = useState(false)
   const [particles, setParticles] = useState([])
-  function handleClick() {
+
+  function triggerAnim(isNew) {
     setPopping(true)
     setTimeout(() => setPopping(false), 400)
     const key = EMOJI_ANIM[emoji]
@@ -202,15 +203,24 @@ function ArticleReactionPill({ emoji, count, active, onToggle }) {
       setEmojiAnim(true)
       setTimeout(() => setEmojiAnim(false), EMOJI_DUR[key] + 50)
     }
-    if (!active) {
+    if (isNew) {
       const newP = Array.from({ length: 5 }, (_, i) => ({
         id: Date.now() + i, angle: i * 72 + Math.random() * 20 - 10, dist: 20 + Math.random() * 10,
       }))
       setParticles(newP)
       setTimeout(() => setParticles([]), 600)
     }
+  }
+
+  useEffect(() => {
+    if (autoAnimate) triggerAnim(true)
+  }, [autoAnimate])
+
+  function handleClick() {
+    triggerAnim(!active)
     onToggle(emoji)
   }
+
   return (
     <div className="r-pill-wrap">
       <button className={`fa-reaction${active ? ' active' : ''}${popping ? ' popping' : ''}`} onClick={handleClick}>
@@ -358,6 +368,7 @@ export default function Article() {
   const [showAddToSet, setShowAddToSet] = useState(false)
   const [myReactions, setMyReactions] = useState(new Set())
   const [showPicker, setShowPicker] = useState(false)
+  const [justAdded, setJustAdded] = useState(null)
   const [reactions, setReactions] = useState(() => {
     const found = articles.find(a => a.id === id)
     const src = found?.reactions?.length ? found.reactions : [{ emoji: '🔥', count: 14 }, { emoji: '💡', count: 8 }, { emoji: '😍', count: 5 }]
@@ -641,7 +652,7 @@ export default function Article() {
             <div className="art-reactions-row">
               <span className="art-reactions-label">Что вы думаете?</span>
               {reactions.map(r => (
-                <ArticleReactionPill key={r.emoji} emoji={r.emoji} count={r.count} active={myReactions.has(r.emoji)} onToggle={toggleReaction} />
+                <ArticleReactionPill key={r.emoji} emoji={r.emoji} count={r.count} active={myReactions.has(r.emoji)} onToggle={toggleReaction} autoAnimate={justAdded === r.emoji} />
               ))}
               <div style={{ position: 'relative' }}>
                 <button className="ar-add-btn" onClick={() => setShowPicker(p => !p)} title="Добавить реакцию">
@@ -649,7 +660,7 @@ export default function Article() {
                     <circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
                   </svg>
                 </button>
-                {showPicker && <EmojiPicker onPick={emoji => { toggleReaction(emoji); setShowPicker(false) }} onClose={() => setShowPicker(false)} />}
+                {showPicker && <EmojiPicker onPick={emoji => { toggleReaction(emoji); setJustAdded(emoji); setTimeout(() => setJustAdded(null), 700); setShowPicker(false) }} onClose={() => setShowPicker(false)} />}
               </div>
             </div>
 

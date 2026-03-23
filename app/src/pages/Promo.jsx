@@ -31,21 +31,31 @@ function WhisperEmojiPicker({ onPick, onClose }) {
   )
 }
 
-function WhisperReactionPill({ emoji, count, active, onToggle }) {
+function WhisperReactionPill({ emoji, count, active, onToggle, autoAnimate }) {
   const [popping, setPopping] = useState(false)
   const [particles, setParticles] = useState([])
-  function handleClick() {
+
+  function triggerAnim(isNew) {
     setPopping(true)
     setTimeout(() => setPopping(false), 400)
-    if (!active) {
+    if (isNew) {
       const newP = Array.from({ length: 5 }, (_, i) => ({
         id: Date.now() + i, angle: i * 72 + Math.random() * 20 - 10, dist: 18 + Math.random() * 8,
       }))
       setParticles(newP)
       setTimeout(() => setParticles([]), 600)
     }
+  }
+
+  useEffect(() => {
+    if (autoAnimate) triggerAnim(true)
+  }, [autoAnimate])
+
+  function handleClick() {
+    triggerAnim(!active)
     onToggle(emoji)
   }
+
   return (
     <div className="r-pill-wrap">
       <button className={`fa-reaction${active ? ' active' : ''}${popping ? ' popping' : ''}`} onClick={handleClick}>
@@ -60,9 +70,26 @@ function WhisperReactionPill({ emoji, count, active, onToggle }) {
 }
 
 const PROMO_SPOTLIGHT = [
-  { targetId: 'sp-promo-tabs',  title: 'Разделы промо',   desc: 'Рассылка — письма от компаний. Акции — скидки и купоны. Подслушано — промокоды от сообщества.' },
+  { targetId: 'sp-promo-types', title: 'Фильтр по типу',  desc: 'Рассылка — официальные письма компаний. Акции и Купоны — скидки с промокодами. Сообщество — промокоды от пользователей.' },
   { targetId: 'sp-promo-scope', title: 'Мои компании',    desc: 'Фильтруй по компаниям из вашего списка или смотри все доступные предложения.' },
 ]
+
+const TYPE_CHIPS = [
+  { id: 'all',       label: 'Все' },
+  { id: 'broadcast', label: 'Рассылка' },
+  { id: 'event',     label: 'Акции' },
+  { id: 'coupon',    label: 'Купоны' },
+  { id: 'whisper',   label: 'Сообщество' },
+]
+
+function getSortKey(item) {
+  if (item.addedAt) return item.addedAt
+  if (item.ts) {
+    const s = String(item.ts)
+    return new Date(parseInt(s.slice(0,4)), parseInt(s.slice(4,6))-1, parseInt(s.slice(6,8))).getTime()
+  }
+  return 0
+}
 
 const ACTS_FILTERS = [
   { id: 'all',         label: 'Все' },
@@ -91,7 +118,7 @@ const COMPANY_MAP = Object.values(companies).flatMap(c => c.list).reduce((m, c) 
 const ALL_COMPANIES_LIST = Object.entries(companies).flatMap(([catId, cat]) =>
   cat.list.map(c => ({ ...c, catId, catLabel: cat.label }))
 )
-const PROMO_CATS_WITH_ITEMS = new Set(promoItems.map(p => p.category))
+const PROMO_CATS_WITH_ITEMS = new Set([...promoItems.map(p => p.category), ...whisperItemsMock.map(w => w.category)])
 
 function loadFollowed() {
   try { return new Set(JSON.parse(localStorage.getItem('ss_companies') || '[]')) }
@@ -161,22 +188,23 @@ function FilterSelect({ items, value, onChange, placeholder }) {
 
 // ── BROADCAST CARD ─────────────────────────────────────────────────────────────
 
-function BroadcastCard({ item, onCategoryClick }) {
+function BroadcastCard({ item, onCategoryClick, onCompanyClick }) {
   const company  = COMPANY_MAP[item.companyId]
   const catLabel = CATEGORIES.find(c => c.id === item.category)?.label
   return (
     <div className="broadcast-card">
       <div className="pc-header">
-        <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
-        <div className="promo-company-info">
-          <div className="promo-company-name">
-            {company?.name}
-            {catLabel && catLabel !== 'Все' && (
-              <><span className="fa-sep"> · </span><button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button></>
-            )}
+        <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId, item.category)}>
+          <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
+          <div className="promo-company-info">
+            <div className="promo-company-name">{company?.name}</div>
+            <div className="promo-expires">{item.channel} · {item.time}</div>
           </div>
-          <div className="promo-expires">{item.channel} · {item.time}</div>
-        </div>
+        </button>
+        {catLabel && catLabel !== 'Все' && (
+          <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
+        )}
+        <div className="promo-type-badge promo-type-badge--broadcast">Рассылка</div>
       </div>
       <div className="broadcast-text">{item.text}</div>
       <div className="fa-bottom">
@@ -195,7 +223,7 @@ function BroadcastCard({ item, onCategoryClick }) {
 
 // ── PROMO CARD ─────────────────────────────────────────────────────────────────
 
-function PromoCard({ item, onCategoryClick }) {
+function PromoCard({ item, onCategoryClick, onCompanyClick }) {
   const company  = COMPANY_MAP[item.companyId]
   const catLabel = CATEGORIES.find(c => c.id === item.category)?.label
   const [copied, setCopied] = useState(false)
@@ -211,16 +239,16 @@ function PromoCard({ item, onCategoryClick }) {
     <div className="promo-card">
       <div className="promo-card-top">
         <div className="pc-header">
-          <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
-          <div className="promo-company-info">
-            <div className="promo-company-name">
-              {company?.name}
-              {catLabel && catLabel !== 'Все' && (
-                <><span className="fa-sep"> · </span><button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button></>
-              )}
+          <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId, item.category)}>
+            <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
+            <div className="promo-company-info">
+              <div className="promo-company-name">{company?.name}</div>
+              <div className="promo-expires">до {item.expires}</div>
             </div>
-            <div className="promo-expires">до {item.expires}</div>
-          </div>
+          </button>
+          {catLabel && catLabel !== 'Все' && (
+            <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
+          )}
           <div className={`promo-type-badge promo-type-badge--${item.type}`}>
             {item.type === 'event' ? 'Акция' : 'Купон'}
           </div>
@@ -255,57 +283,6 @@ function PromoCard({ item, onCategoryClick }) {
   )
 }
 
-// ── PROMO SECTION ──────────────────────────────────────────────────────────────
-
-function PromoSection({ navigate, followed, hasSetup, promoCat, promoCompany, promoType, promoScope, actsFilter, onCategoryClick }) {
-  if (!hasSetup || (promoScope === 'mine' && followed.size === 0)) {
-    return (
-      <div className="promo-empty-state">
-        <div className="promo-empty-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            <polyline points="9 22 9 12 15 12 15 22"/>
-          </svg>
-        </div>
-        <div className="promo-empty-title">Выберите компании</div>
-        <div className="promo-empty-desc">Подпишитесь на компании, чьи акции и купоны хотите видеть</div>
-        <button className="promo-empty-btn" onClick={() => navigate('/company-picker')}>Подобрать компании</button>
-      </div>
-    )
-  }
-
-  const pool   = promoScope === 'mine' ? promoItems.filter(p => followed.has(p.companyId)) : promoItems
-  const byCat  = promoCat.size === 0     ? pool  : pool.filter(p => promoCat.has(p.category))
-  const byCo   = promoCompany.size === 0 ? byCat : byCat.filter(p => promoCompany.has(p.companyId))
-
-  if (promoType === 'broadcast') {
-    const items = byCo.filter(p => p.type === 'broadcast')
-    return (
-      <div className="feed-list">
-        {items.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-title">Рассылок нет</div>
-            <div className="empty-desc">Компании из выбранных категорий пока не публиковали рассылку</div>
-          </div>
-        ) : items.map(item => <BroadcastCard key={item.id} item={item} onCategoryClick={onCategoryClick} />)}
-      </div>
-    )
-  }
-
-  const events   = byCo.filter(p => p.type !== 'broadcast')
-  const filtered = actsFilter === 'all' ? events : events.filter(p => p.promo_filter === actsFilter)
-  return (
-    <div className="feed-list">
-      {filtered.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-title">Пока ничего нет</div>
-          <div className="empty-desc">Акций и купонов по выбранным фильтрам не найдено</div>
-        </div>
-      ) : filtered.map(item => <PromoCard key={item.id} item={item} onCategoryClick={onCategoryClick} />)}
-    </div>
-  )
-}
-
 // ── WHISPER HELPERS ────────────────────────────────────────────────────────────
 
 function timeAgo(ts) {
@@ -330,7 +307,7 @@ function fmtCommentTime(ts) {
 
 // ── WHISPER CARD ───────────────────────────────────────────────────────────────
 
-function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick }) {
+function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompanyClick }) {
   const company  = COMPANY_MAP[item.companyId]
   const catLabel = CATEGORIES.find(c => c.id === item.category)?.label
   const [copied,       setCopied]       = useState(false)
@@ -343,6 +320,9 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick }) {
   const [reactions,    setReactions]    = useState(item.reactions || [])
   const [myReactions,  setMyReactions]  = useState(new Set())
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [justAdded,    setJustAdded]    = useState(null)
+  const [commentSort,  setCommentSort]  = useState('new')
+  const [visibleCount, setVisibleCount] = useState(10)
   const toastTimer = useRef(null)
 
   const displayHistory = myVote ? [...item.history, myVote === 'works' ? 'w' : 'n'] : item.history
@@ -386,23 +366,24 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick }) {
   return (
     <div className={`whisper-card${cardMood ? ` whisper-card--${cardMood}` : ''}`}>
       <div className="pc-header">
-        <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
-        <div className="whisper-company-info">
-          <div className="whisper-company-name">
-            {company?.name}
-            {catLabel && catLabel !== 'Все' && (
-              <><span className="fa-sep"> · </span><button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button></>
-            )}
+        <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId, item.category)}>
+          <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
+          <div className="whisper-company-info">
+            <div className="whisper-company-name">{company?.name}</div>
+            <div className="whisper-meta">
+              {item.addedBy && (
+                <button className="whisper-author" onClick={e => { e.stopPropagation(); navigate(`/author/${item.addedBy}`, { state: { name: item.addedBy, handle: `@${item.addedBy}` } }) }}>
+                  @{item.addedBy}
+                </button>
+              )}
+              <span>{timeAgo(item.addedAt)}{item.expires ? ` · до ${item.expires}` : ''}</span>
+            </div>
           </div>
-          <div className="whisper-meta">
-            {item.addedBy && (
-              <button className="whisper-author" onClick={e => { e.stopPropagation(); navigate(`/author/${item.addedBy}`, { state: { name: item.addedBy, handle: `@${item.addedBy}` } }) }}>
-                @{item.addedBy}
-              </button>
-            )}
-            <span>{timeAgo(item.addedAt)}{item.expires ? ` · до ${item.expires}` : ''}</span>
-          </div>
-        </div>
+        </button>
+        {catLabel && catLabel !== 'Все' && (
+          <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
+        )}
+        <div className="promo-type-badge promo-type-badge--whisper">Сообщество</div>
       </div>
 
       <div className="whisper-title">{item.title}</div>
@@ -475,41 +456,72 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick }) {
           <div className="whisper-reactions-row">
             <span className="art-reactions-label">Что думаете?</span>
             {reactions.map(r => (
-              <WhisperReactionPill key={r.emoji} emoji={r.emoji} count={r.count} active={myReactions.has(r.emoji)} onToggle={toggleReaction} />
+              <WhisperReactionPill key={r.emoji} emoji={r.emoji} count={r.count} active={myReactions.has(r.emoji)} onToggle={toggleReaction} autoAnimate={justAdded === r.emoji} />
             ))}
             <div style={{ position: 'relative' }}>
               <button className="ar-add-btn" onClick={() => setShowEmojiPicker(v => !v)}>+</button>
               {showEmojiPicker && (
                 <WhisperEmojiPicker
-                  onPick={emoji => { toggleReaction(emoji); setShowEmojiPicker(false) }}
+                  onPick={emoji => { toggleReaction(emoji); setJustAdded(emoji); setTimeout(() => setJustAdded(null), 700); setShowEmojiPicker(false) }}
                   onClose={() => setShowEmojiPicker(false)}
                 />
               )}
             </div>
           </div>
 
-          {comments.map((c, i) => (
-            <div key={i} className="whisper-comment">
-              <div className="whisper-comment-top">
-                <span className="whisper-comment-author">@{c.author}</span>
-                <span className="whisper-comment-time">{c.ts ? fmtCommentTime(c.ts) : c.time}</span>
+          {comments.length > 0 && (
+            <div className="comments-subheader" style={{ marginBottom: 6 }}>
+              <div className="csort">
+                <button className={`c-sort-btn${commentSort === 'new' ? ' active' : ''}`} onClick={() => { setCommentSort('new'); setVisibleCount(10) }}>Новые</button>
+                <button className={`c-sort-btn${commentSort === 'top' ? ' active' : ''}`} onClick={() => { setCommentSort('top'); setVisibleCount(10) }}>Популярные</button>
               </div>
-              <span className="whisper-comment-text">{c.text}</span>
             </div>
-          ))}
+          )}
+
+          {(() => {
+            const sorted = commentSort === 'top'
+              ? [...comments].sort((a, b) => (b.likes || 0) - (a.likes || 0))
+              : [...comments].reverse()
+            const visible = sorted.slice(0, visibleCount)
+            const remaining = sorted.length - visibleCount
+            return (
+              <>
+                {visible.map((c, i) => (
+                  <div key={i} className="whisper-comment">
+                    <div className="whisper-comment-top">
+                      <span className="whisper-comment-author">@{c.author}</span>
+                      <span className="whisper-comment-time">{c.ts ? fmtCommentTime(c.ts) : c.time}</span>
+                    </div>
+                    <span className="whisper-comment-text">{c.text}</span>
+                  </div>
+                ))}
+                {remaining > 0 && (
+                  <div className="show-more-row">
+                    <button className="btn-show" onClick={() => setVisibleCount(v => v + 20)}>
+                      Показать ещё {Math.min(remaining, 20)}
+                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
+                    </button>
+                  </div>
+                )}
+              </>
+            )
+          })()}
+
           <div className="whisper-comment-form">
             <input className="whisper-comment-input" placeholder="Добавить комментарий..." value={commentText}
               onChange={e => setCommentText(e.target.value)}
               onKeyDown={e => {
                 if (e.key === 'Enter' && commentText.trim()) {
-                  setComments(prev => [...prev, { author: 'вы', text: commentText.trim(), ts: Date.now() }])
+                  setComments(prev => [...prev, { author: 'вы', text: commentText.trim(), ts: Date.now(), likes: 0 }])
                   setCommentText('')
                 }
               }}
             />
             <button className="whisper-comment-submit" disabled={!commentText.trim()} onClick={() => {
               if (!commentText.trim()) return
-              setComments(prev => [...prev, { author: 'вы', text: commentText.trim(), ts: Date.now() }])
+              setComments(prev => [...prev, { author: 'вы', text: commentText.trim(), ts: Date.now(), likes: 0 }])
               setCommentText('')
             }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -523,154 +535,16 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick }) {
   )
 }
 
-// ── ADD WHISPER MODAL ──────────────────────────────────────────────────────────
-
-function AddWhisperModal({ onClose, onAdd }) {
-  const [coSearch, setCoSearch] = useState('')
-  const [selCo,    setSelCo]    = useState(null)
-  const [title,    setTitle]    = useState('')
-  const [code,     setCode]     = useState('')
-  const [expires,  setExpires]  = useState('')
-
-  const filteredCos = coSearch.trim()
-    ? ALL_COMPANIES_LIST.filter(c => c.name.toLowerCase().includes(coSearch.trim().toLowerCase()))
-    : ALL_COMPANIES_LIST
-
-  const canSubmit = selCo && title.trim().length >= 5
-
-  function submit() {
-    if (!canSubmit) return
-    onAdd({
-      id: 'wh-u-' + Date.now(),
-      companyId: selCo.id,
-      category:  selCo.catId,
-      title:     title.trim(),
-      code:      code.trim() || null,
-      expires:   expires.trim() || null,
-      addedBy:   localStorage.getItem('ss_username') || 'вы',
-      addedAt:   Date.now(),
-      history:   [],
-      comments:  [],
-    })
-  }
-
-  return (
-    <div className="wm-overlay" onClick={onClose}>
-      <div className="wm-panel" onClick={e => e.stopPropagation()}>
-        <div className="wm-header">
-          <div className="wm-title">Поделиться скидкой</div>
-          <button className="wm-close" onClick={onClose}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
-
-        <div className="wm-body">
-          <div className="wm-field">
-            <label className="wm-label">Компания <span className="wm-req">*</span></label>
-            {selCo ? (
-              <div className="wm-selected-co">
-                <div className="promo-logo" style={{ background: selCo.color }}>{selCo.abbr}</div>
-                <span>{selCo.name}</span>
-                <button className="wm-change" onClick={() => { setSelCo(null); setCoSearch('') }}>изменить</button>
-              </div>
-            ) : (
-              <>
-                <input className="wm-input" placeholder="Поиск..." value={coSearch} onChange={e => setCoSearch(e.target.value)} autoFocus />
-                <div className="wm-co-list">
-                  {filteredCos.slice(0, 12).map(c => (
-                    <button key={c.id} className="wm-co-item" onClick={() => setSelCo(c)}>
-                      <div className="promo-logo" style={{ background: c.color, width: 22, height: 22, fontSize: 9 }}>{c.abbr}</div>
-                      <span>{c.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-
-          <div className="wm-field">
-            <label className="wm-label">Описание <span className="wm-req">*</span></label>
-            <textarea className="wm-input" placeholder="Скидка 20% при оплате через СБП..." value={title}
-              onChange={e => setTitle(e.target.value)} rows={2} />
-          </div>
-
-          <div className="wm-field">
-            <label className="wm-label">Промокод <span className="wm-optional">необязательно</span></label>
-            <input className="wm-input wm-mono" placeholder="SAVE20" value={code}
-              onChange={e => setCode(e.target.value.toUpperCase())} />
-          </div>
-
-          <div className="wm-field">
-            <label className="wm-label">Действует до <span className="wm-optional">необязательно</span></label>
-            <input className="wm-input" placeholder="31 марта" value={expires}
-              onChange={e => setExpires(e.target.value)} />
-          </div>
-        </div>
-
-        <div className="wm-footer">
-          <button className="wm-submit" disabled={!canSubmit} onClick={submit}>Поделиться</button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── WHISPER SECTION ────────────────────────────────────────────────────────────
-
-function WhisperSection({ items, promoCat, promoCompany, promoScope, followed, votes, onVote, onAdd, navigate, onCategoryClick }) {
-  const [showModal, setShowModal] = useState(false)
-
-  let filtered = items.filter(item => {
-    if (promoScope === 'mine' && !followed.has(item.companyId)) return false
-    if (promoCat.size > 0 && !promoCat.has(item.category)) return false
-    if (promoCompany.size > 0 && !promoCompany.has(item.companyId)) return false
-    return true
-  })
-  filtered = [...filtered].sort((a, b) => b.addedAt - a.addedAt)
-
-  return (
-    <>
-      <button className="whisper-add-cta" onClick={() => setShowModal(true)}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 5v14M5 12h14"/>
-        </svg>
-        Поделиться скидкой или промокодом
-      </button>
-      <div className="feed-list">
-        {filtered.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
-                <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
-              </svg>
-            </div>
-            <div className="empty-title">Пока ничего нет</div>
-            <div className="empty-desc">Будьте первым — поделитесь скидкой или промокодом</div>
-          </div>
-        ) : filtered.map(item => (
-          <WhisperCard key={item.id} item={item} myVote={votes.get(item.id) || null} onVote={onVote} navigate={navigate} onCategoryClick={onCategoryClick} />
-        ))}
-      </div>
-      {showModal && (
-        <AddWhisperModal onClose={() => setShowModal(false)} onAdd={item => { onAdd(item); setShowModal(false) }} />
-      )}
-    </>
-  )
-}
-
 // ── PAGE ───────────────────────────────────────────────────────────────────────
 
 export default function Promo() {
   const navigate = useNavigate()
   const [showSpotlight, setShowSpotlight] = useState(false)
 
-  const [followed]      = useState(loadFollowed)
-  const hasPromoSetup   = !!localStorage.getItem('ss_promo_setup')
+  const [followed]    = useState(loadFollowed)
+  const hasPromoSetup = !!localStorage.getItem('ss_promo_setup')
 
-  const [promoType,    setPromoType]    = useState('broadcast')
+  const [typeFilter,   setTypeFilter]   = useState('all')
   const [promoScope,   setPromoScope]   = useState('mine')
   const [promoCat,     setPromoCat]     = useState(new Set())
   const [promoCompany, setPromoCompany] = useState(new Set())
@@ -700,6 +574,11 @@ export default function Promo() {
     setPromoCompany(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
   }
 
+  function handleCompanyClick(companyId, categoryId) {
+    setPromoCat(new Set([categoryId]))
+    setPromoCompany(new Set([companyId]))
+  }
+
   function voteWhisper(id, vote) {
     setWhisperVotes(prev => {
       const n = new Map(prev)
@@ -708,39 +587,33 @@ export default function Promo() {
     })
   }
 
-  function addWhisper(item) {
-    const co = COMPANY_MAP[item.companyId]
-    const enriched = { ...item, companyName: co?.name, companyAbbr: co?.abbr, companyColor: co?.color }
-    setLocalWhispers(prev => [enriched, ...prev])
-    try {
-      const saved = JSON.parse(localStorage.getItem('ss_account_whispers') || '[]')
-      localStorage.setItem('ss_account_whispers', JSON.stringify([enriched, ...saved]))
-    } catch {}
-  }
+  // Unified pool: all items sorted by date descending
+  const unifiedPool = [
+    ...promoItems.map(p => ({ ...p, kind: p.type })),
+    ...localWhispers.map(w => ({ ...w, kind: 'whisper' })),
+  ].sort((a, b) => getSortKey(b) - getSortKey(a))
 
-  const promoPool  = hasPromoSetup && (promoScope !== 'mine' || followed.size > 0)
-    ? (promoScope === 'mine' ? promoItems.filter(p => followed.has(p.companyId)) : promoItems) : []
-  const promoByCat = promoCat.size === 0 ? promoPool : promoPool.filter(p => promoCat.has(p.category))
-  const promoByCo  = promoCompany.size === 0 ? promoByCat : promoByCat.filter(p => promoCompany.has(p.companyId))
-  const whisperFiltered = localWhispers.filter(item =>
-    (promoCat.size === 0 || promoCat.has(item.category)) &&
-    (promoCompany.size === 0 || promoCompany.has(item.companyId)) &&
-    (promoScope !== 'mine' || followed.has(item.companyId))
-  )
-  const promoCount = promoType === 'whisper'
-    ? whisperFiltered.length
-    : promoType === 'broadcast'
-      ? promoByCo.filter(p => p.type === 'broadcast').length
-      : (actsFilter === 'all' ? promoByCo.filter(p => p.type !== 'broadcast').length
-        : promoByCo.filter(p => p.type !== 'broadcast' && p.promo_filter === actsFilter).length)
+  const filtered = unifiedPool.filter(item => {
+    if (item.kind !== 'whisper') {
+      if (!hasPromoSetup) return false
+      if (promoScope === 'mine' && !followed.has(item.companyId)) return false
+    }
+    if (promoCat.size > 0 && !promoCat.has(item.category)) return false
+    if (promoCompany.size > 0 && !promoCompany.has(item.companyId)) return false
+    if (typeFilter !== 'all' && item.kind !== typeFilter) return false
+    if (item.kind === 'event' && actsFilter !== 'all' && item.promo_filter !== actsFilter) return false
+    return true
+  })
 
   const hasFilters = promoCat.size > 0 || promoCompany.size > 0 ||
-    promoType !== 'broadcast' || promoScope !== 'mine' || actsFilter !== 'all'
+    typeFilter !== 'all' || promoScope !== 'mine' || actsFilter !== 'all'
 
   function resetFilters() {
     setPromoCat(new Set()); setPromoCompany(new Set())
     setPromoScope('mine'); setActsFilter('all')
   }
+
+  const showActsFilter = typeFilter === 'event' || typeFilter === 'coupon' || typeFilter === 'all'
 
   return (
     <Layout>
@@ -754,11 +627,15 @@ export default function Promo() {
 
         <div className={`filters-sticky${filtersScrolled ? ' scrolled' : ''}`}>
           <div className="filters-block">
-            {/* Section tabs */}
-            <div id="sp-promo-tabs" className="promo-type-tabs">
-              <button className={`promo-type-tab${promoType === 'broadcast' ? ' active' : ''}`} onClick={() => setPromoType('broadcast')}>Рассылка</button>
-              <button className={`promo-type-tab${promoType === 'events' ? ' active' : ''}`} onClick={() => setPromoType('events')}>Акции</button>
-              <button className={`promo-type-tab${promoType === 'whisper' ? ' active' : ''}`} onClick={() => setPromoType('whisper')}>Подслушано</button>
+            {/* Type chips */}
+            <div id="sp-promo-types" className="cats-scroll promo-type-chips">
+              {TYPE_CHIPS.map(chip => (
+                <button
+                  key={chip.id}
+                  className={`cat-pill${typeFilter === chip.id ? ' active' : ''}`}
+                  onClick={() => setTypeFilter(chip.id)}
+                >{chip.label}</button>
+              ))}
             </div>
 
             {/* Scope */}
@@ -793,8 +670,8 @@ export default function Promo() {
               ) : null
             })()}
 
-            {/* Acts sub-filter */}
-            {promoType === 'events' && (
+            {/* Acts sub-filter — only for event/coupon type or "all" */}
+            {showActsFilter && (
               <div className="cats-scroll filters-acts-row">
                 {ACTS_FILTERS.map(f => (
                   <button key={f.id} className={`cat-pill${actsFilter === f.id ? ' active' : ''}`}
@@ -805,7 +682,7 @@ export default function Promo() {
 
             {hasFilters && (
               <div className="filter-summary">
-                <span>{promoCount} {noun(promoCount)}</span>
+                <span>{filtered.length} {noun(filtered.length)}</span>
                 <button className="reset-btn" onClick={resetFilters}>Сбросить</button>
               </div>
             )}
@@ -813,32 +690,34 @@ export default function Promo() {
         </div>
 
         <div className="feed-scroll" ref={scrollRef}>
-          {promoType === 'whisper' ? (
-            <WhisperSection
-              items={localWhispers}
-              promoCat={promoCat}
-              promoCompany={promoCompany}
-              promoScope={promoScope}
-              followed={followed}
-              votes={whisperVotes}
-              onVote={voteWhisper}
-              onAdd={addWhisper}
-              navigate={navigate}
-              onCategoryClick={handlePromoCat}
-            />
-          ) : (
-            <PromoSection
-              navigate={navigate}
-              followed={followed}
-              hasSetup={hasPromoSetup}
-              promoCat={promoCat}
-              promoCompany={promoCompany}
-              promoType={promoType}
-              promoScope={promoScope}
-              actsFilter={actsFilter}
-              onCategoryClick={handlePromoCat}
-            />
+          <button className="whisper-add-cta" onClick={() => navigate('/create-whisper')}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Поделиться скидкой или промокодом
+          </button>
+
+          {!hasPromoSetup && (typeFilter === 'all' || typeFilter === 'broadcast' || typeFilter === 'event' || typeFilter === 'coupon') && (
+            <div className="promo-setup-hint">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span>Рассылки и акции компаний появятся после <button className="promo-setup-link" onClick={() => navigate('/company-picker')}>выбора компаний</button></span>
+            </div>
           )}
+
+          <div className="feed-list">
+            {filtered.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-title">Ничего не найдено</div>
+                <div className="empty-desc">Попробуйте изменить фильтры или переключиться на «Все компании»</div>
+              </div>
+            ) : filtered.map(item => {
+              if (item.kind === 'broadcast') return <BroadcastCard key={item.id} item={item} onCategoryClick={handlePromoCat} onCompanyClick={handleCompanyClick} />
+              if (item.kind === 'whisper')   return <WhisperCard key={item.id} item={item} myVote={whisperVotes.get(item.id) || null} onVote={voteWhisper} navigate={navigate} onCategoryClick={handlePromoCat} onCompanyClick={handleCompanyClick} />
+              return <PromoCard key={item.id} item={item} onCategoryClick={handlePromoCat} onCompanyClick={handleCompanyClick} />
+            })}
+          </div>
         </div>
       </main>
       {showSpotlight && <SpotlightTour steps={PROMO_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}

@@ -7182,8 +7182,8 @@ body.dark .feed-section-card.active.promo    { background: #A86828; border-color
   color: #fff; flex-shrink: 0; letter-spacing: -0.02em;
 }
 .promo-company-info { flex: 1; min-width: 0; }
-.promo-company-name { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 0; flex-wrap: wrap; }
-.whisper-company-name { display: flex; align-items: center; flex-wrap: wrap; }
+.promo-company-name { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.whisper-company-name { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .promo-expires { font-size: 12px; color: var(--text-3); margin-top: 1px; }
 .promo-type-badge {
   padding: 3px 9px; border-radius: 6px;
@@ -7198,6 +7198,38 @@ body.dark .feed-section-card.active.promo    { background: #A86828; border-color
   background: rgba(176,136,64,0.12);
   color: #B08840;
   border: 1px solid rgba(176,136,64,0.2);
+}
+.promo-type-badge--broadcast {
+  background: rgba(138,158,184,0.15);
+  color: #5A7A9A;
+  border: 1px solid rgba(138,158,184,0.25);
+}
+.promo-type-badge--whisper {
+  background: rgba(160,140,184,0.13);
+  color: #8A6AAF;
+  border: 1px solid rgba(160,140,184,0.22);
+}
+/* Clickable company header button in promo cards */
+.promo-co-btn {
+  display: flex; align-items: center; gap: 10px;
+  background: none; border: none; padding: 0; cursor: pointer;
+  text-align: left; min-width: 0; flex: 1;
+  border-radius: 8px; transition: opacity .15s;
+}
+.promo-co-btn:hover { opacity: .75; }
+/* Type filter chips row */
+.promo-type-chips { gap: 6px; }
+/* Setup hint bar */
+.promo-setup-hint {
+  display: flex; align-items: center; gap: 7px;
+  margin: 0 0 12px; padding: 9px 14px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 10px; font-size: 12.5px; color: var(--text-2);
+}
+.promo-setup-link {
+  background: none; border: none; padding: 0; cursor: pointer;
+  color: var(--accent-green); font-size: inherit; text-decoration: underline;
+  text-decoration-style: dotted;
 }
 .promo-title {
   font-size: 15px; font-weight: 600; color: var(--text);
