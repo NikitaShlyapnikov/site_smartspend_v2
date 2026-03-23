@@ -235,7 +235,8 @@ function FinancialModal({ open, initialData, onSave, onClose }) {
   )
 }
 
-const SMART_SPEND_BASE = 15000 // 75% прожиточного минимума РФ (конверты, без жилья)
+const FEDERAL_PM_2026 = 20644  // Прожиточный минимум РФ 2026, ₽/мес
+const SMART_SPEND_BASE = Math.round(FEDERAL_PM_2026 * 0.75) // 75% — конверты (без жилья ~25%)
 
 const EMO_RATES = [
   { rate: 0.04, label: '4%', level: 'low' },
@@ -864,10 +865,6 @@ export default function Profile() {
               <div>
                 <div className="cap-label">Размер капитала</div>
                 <div className="cap-value">{capital.toLocaleString('ru')} ₽</div>
-                <div className="cap-meta">
-                  <span className="cap-period">Обновлено: {updatedAt}</span>
-                  <span className="cap-hint">Рекомендуется обновлять раз в год</span>
-                </div>
               </div>
             </div>
 
@@ -878,7 +875,7 @@ export default function Profile() {
                 <div className="budget-rows">
                   <div className="budget-row">
                     <span className="budget-row-label">SmartSpend база</span>
-                    <span className="budget-row-hint">75% прожиточного минимума РФ</span>
+                    <span className="budget-row-hint">75% федерального ПМ РФ 2026 ({FEDERAL_PM_2026.toLocaleString('ru')} ₽)</span>
                     <span className="budget-row-value">{SMART_SPEND_BASE.toLocaleString('ru')} ₽</span>
                   </div>
                   <div className="budget-row">
@@ -894,28 +891,32 @@ export default function Profile() {
 
                 {grandTotal > 0 && (
                   <div className={`budget-status${envelopeDiff > 0 ? ' over' : ' ok'}`}>
-                    <div className="budget-bar-wrap">
-                      <div
-                        className="budget-bar-fill"
-                        style={{ width: `${Math.min(100, Math.round(grandTotal / sustainableBudget * 100))}%` }}
-                      />
-                    </div>
                     <div className="budget-status-row">
-                      <span className="budget-status-label">
-                        Твои конверты: <strong>{grandTotal.toLocaleString('ru')} ₽</strong>
-                      </span>
-                      {envelopeDiff > 0 ? (
-                        <span className="budget-status-over">+{envelopeDiff.toLocaleString('ru')} ₽</span>
-                      ) : (
-                        <span className="budget-status-ok">−{Math.abs(envelopeDiff).toLocaleString('ru')} ₽ запас</span>
-                      )}
+                      <span className="budget-status-label">Конверты</span>
+                      <span className="budget-status-envelopes">{grandTotal.toLocaleString('ru')} ₽</span>
                     </div>
-                    {envelopeDiff > 0 && neededCapital > 0 && (
-                      <div className="budget-needed">
-                        Чтобы текущие конверты были устойчивы — нужен капитал&nbsp;
-                        <strong>~{neededCapital.toLocaleString('ru')} ₽</strong>
+                    {envelopeDiff > 0 ? (
+                      <>
+                        <div className="budget-status-msg over">
+                          Превышение бюджета на <strong>{envelopeDiff.toLocaleString('ru')} ₽/мес</strong>
+                        </div>
+                        {neededCapital > 0 && (
+                          <div className="budget-needed">
+                            Для устойчивости нужен капитал&nbsp;<strong>~{neededCapital.toLocaleString('ru')} ₽</strong>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="budget-status-msg ok">
+                        Можно потратить ещё <strong>{Math.abs(envelopeDiff).toLocaleString('ru')} ₽ в месяц</strong> — добавь наборы или оставь на спонтанные расходы
                       </div>
                     )}
+                  </div>
+                )}
+                {income > 0 && savings < FEDERAL_PM_2026 && (
+                  <div className="budget-pm-warn">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                    После всех расходов остаётся <strong>{savings.toLocaleString('ru')} ₽</strong> — меньше прожиточного минимума ({FEDERAL_PM_2026.toLocaleString('ru')} ₽). Рекомендуем пересмотреть конверты или увеличить доход.
                   </div>
                 )}
 
