@@ -2571,7 +2571,7 @@ body.dark {
 
 /* Summary chips row */
 .inv-chips-row {
-  display: flex; gap: 8px; flex-wrap: wrap;
+  display: flex; gap: 8px; flex-wrap: wrap; flex-shrink: 0;
 }
 .inv-chip {
   display: flex; align-items: center; gap: 6px;
@@ -2638,7 +2638,7 @@ body.dark .inv-chip--paused:hover, body.dark .inv-chip--paused.active { backgrou
 .inv-filter-clear:hover { color: var(--text); background: var(--surface-3); }
 
 /* Groups */
-.inv-groups { display: flex; flex-direction: column; gap: 16px; }
+.inv-groups { display: flex; flex-direction: column; gap: 16px; flex-shrink: 0; }
 
 .inv-section-card {
   background: var(--surface); border-radius: var(--r);
@@ -2664,6 +2664,54 @@ body.dark .inv-chip--paused:hover, body.dark .inv-chip--paused.active { backgrou
 }
 .inv-cat-count { font-size: 11px; color: var(--text-3); font-family: var(--mono); }
 .inv-cat-chevron { color: var(--text-3); }
+.inv-expand-all-btn {
+  font-size: 11px; font-weight: 500; color: var(--accent-green);
+  background: none; border: none; cursor: pointer; padding: 2px 4px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.inv-expand-all-btn:hover { opacity: 0.7; }
+
+/* Gallery toggle button */
+.inv-gallery-toggle {
+  display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0;
+  background: none; border: 1.5px solid var(--border); color: var(--text-3); cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.inv-gallery-toggle:hover { border-color: var(--accent-green); color: var(--accent-green); }
+.inv-gallery-toggle.active { background: var(--accent-green); border-color: var(--accent-green); color: #fff; }
+
+/* Gallery grid */
+.inv-gallery-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px; padding: 12px 16px;
+}
+.inv-gallery-card {
+  border-radius: 10px; overflow: hidden;
+  border: 1px solid var(--border); background: var(--surface-2);
+  display: flex; flex-direction: column;
+}
+.inv-gallery-photos {
+  display: flex; overflow-x: auto; gap: 2px;
+  scrollbar-width: none;
+}
+.inv-gallery-photos::-webkit-scrollbar { display: none; }
+.inv-gallery-img {
+  width: 100%; min-width: 100%; height: 140px;
+  object-fit: cover; flex-shrink: 0; display: block;
+}
+.inv-gallery-info { padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; }
+.inv-gallery-item-header { display: flex; align-items: center; gap: 6px; }
+.inv-gallery-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+.inv-gallery-dot--ok { background: var(--status-ok); }
+.inv-gallery-dot--soon { background: var(--status-soon); }
+.inv-gallery-dot--urgent { background: var(--status-urgent); }
+.inv-gallery-dot--overexploit { background: var(--status-over); }
+.inv-gallery-dot--paused { background: #5B8FD4; }
+.inv-gallery-item-name { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.3; }
+.inv-gallery-note { font-size: 11px; color: var(--text-3); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* Deficit hint in collapsed item row */
 .inv-deficit-inline {
@@ -2676,7 +2724,8 @@ body.dark .inv-chip--paused:hover, body.dark .inv-chip--paused.active { backgrou
 .inv-shopping-list {
   background: var(--surface); border-radius: var(--r);
   border: 1.5px solid var(--status-urgent-border);
-  box-shadow: var(--shadow); overflow: hidden;
+  box-shadow: var(--shadow); overflow: clip;
+  flex-shrink: 0;
 }
 .inv-shopping-header {
   display: flex; align-items: center; justify-content: space-between;

@@ -963,7 +963,8 @@ export default function Inventory() {
     return [...base, ...extra]
   })
   const [personalSets] = useState(() => loadPersonalSets())
-  const [openItem, setOpenItem] = useState(null)
+  const [openItems, setOpenItems] = useState(new Set())
+  const [galleryGroups, setGalleryGroups] = useState(new Set())
   const [statusFilter, setStatusFilter] = useState(null)
   const [editMode, setEditMode] = useState(false)
   const [showSpotlight, setShowSpotlight] = useState(false)
@@ -1092,7 +1093,7 @@ export default function Inventory() {
       syncExtra(next)
       return next
     })
-    if (openItem === id) setOpenItem(null)
+    setOpenItems(prev => { const s = new Set(prev); s.delete(id); return s })
     setDeleteConfirm(null)
   }
 
@@ -1277,6 +1278,29 @@ export default function Inventory() {
             const urgentCount = displayItems.filter(i => filterInfoMap[i.id]?.filterStatus === 'urgent').length
             const soonCount = displayItems.filter(i => filterInfoMap[i.id]?.filterStatus === 'soon').length
             const isCollapsed = !editMode && collapsedGroups.has(group.id) && !statusFilter
+            const groupOpenIds = displayItems.map(i => i.id)
+            const allOpen = groupOpenIds.length > 0 && groupOpenIds.every(id => openItems.has(id))
+            const isGallery = galleryGroups.has(group.id)
+            const photoItems = displayItems.filter(i => (i.notes?.photos?.length || 0) > 0)
+
+            function toggleAllInGroup(e) {
+              e.stopPropagation()
+              setOpenItems(prev => {
+                const s = new Set(prev)
+                if (allOpen) groupOpenIds.forEach(id => s.delete(id))
+                else groupOpenIds.forEach(id => s.add(id))
+                return s
+              })
+            }
+
+            function toggleGallery(e) {
+              e.stopPropagation()
+              setGalleryGroups(prev => {
+                const s = new Set(prev)
+                s.has(group.id) ? s.delete(group.id) : s.add(group.id)
+                return s
+              })
+            }
 
             return (
               <div key={group.id} className="inv-section-card">
@@ -1285,6 +1309,26 @@ export default function Inventory() {
                   {urgentCount > 0 && <span className="inv-cat-urgent">{urgentCount} срочно</span>}
                   {urgentCount === 0 && soonCount > 0 && <span className="inv-cat-soon">{soonCount} скоро</span>}
                   <span className="inv-cat-count">{groupItems.length} поз.</span>
+                  {!isCollapsed && photoItems.length > 0 && (
+                    <button className={`inv-gallery-toggle${isGallery ? ' active' : ''}`} onClick={toggleGallery} title={isGallery ? 'Список' : 'Галерея'}>
+                      {isGallery ? (
+                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                          <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+                        </svg>
+                      ) : (
+                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                          <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+                        </svg>
+                      )}
+                    </button>
+                  )}
+                  {!isCollapsed && !isGallery && displayItems.length > 1 && (
+                    <button className="inv-expand-all-btn" onClick={toggleAllInGroup}>
+                      {allOpen ? 'Свернуть' : 'Развернуть все'}
+                    </button>
+                  )}
                   <svg className="inv-cat-chevron" width="13" height="13" fill="none" stroke="currentColor"
                     viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                     style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }}>
@@ -1292,13 +1336,40 @@ export default function Inventory() {
                   </svg>
                 </div>
 
-                {!isCollapsed && <div className="inv-section-items">
+                {!isCollapsed && isGallery && photoItems.length > 0 && (
+                  <div className="inv-gallery-grid">
+                    {photoItems.map(item => {
+                      const photos = item.notes?.photos || []
+                      const noteText = item.notes?.text || ''
+                      const info = infoMap[item.id]
+                      const statusCls = item.paused ? 'paused' : (info?.status || 'ok')
+                      return (
+                        <div key={item.id} className="inv-gallery-card">
+                          <div className="inv-gallery-photos">
+                            {photos.map((p, i) => (
+                              <img key={i} src={p.url} alt={p.name} className="inv-gallery-img" />
+                            ))}
+                          </div>
+                          <div className="inv-gallery-info">
+                            <div className="inv-gallery-item-header">
+                              <span className={`inv-gallery-dot inv-gallery-dot--${statusCls}`} />
+                              <span className="inv-gallery-item-name">{item.name}</span>
+                            </div>
+                            {noteText && <div className="inv-gallery-note">{noteText}</div>}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {!isCollapsed && !isGallery && <div className="inv-section-items">
                   {displayItems.map(item => (
                     <InventoryItem
                       key={item.id}
                       item={item}
-                      open={openItem === item.id}
-                      onToggle={() => setOpenItem(prev => prev === item.id ? null : item.id)}
+                      open={openItems.has(item.id)}
+                      onToggle={() => setOpenItems(prev => { const s = new Set(prev); s.has(item.id) ? s.delete(item.id) : s.add(item.id); return s })}
                       override={overrides[item.id] ?? null}
                       onOverrideChange={v => {
                         const iid = item.id
