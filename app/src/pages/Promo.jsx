@@ -161,8 +161,9 @@ function FilterSelect({ items, value, onChange, placeholder }) {
 
 // ── BROADCAST CARD ─────────────────────────────────────────────────────────────
 
-function BroadcastCard({ item }) {
-  const company = COMPANY_MAP[item.companyId]
+function BroadcastCard({ item, onCategoryClick }) {
+  const company  = COMPANY_MAP[item.companyId]
+  const catLabel = CATEGORIES.find(c => c.id === item.category)?.label
   return (
     <div className="broadcast-card">
       <div className="pc-header">
@@ -174,6 +175,9 @@ function BroadcastCard({ item }) {
       </div>
       <div className="broadcast-text">{item.text}</div>
       <div className="fa-bottom">
+        {catLabel && catLabel !== 'Все' && (
+          <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
+        )}
         <div className="f-spacer" />
         <a href={item.url} target="_blank" rel="noopener noreferrer" className="fa-action-btn" onClick={e => e.stopPropagation()}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -189,8 +193,9 @@ function BroadcastCard({ item }) {
 
 // ── PROMO CARD ─────────────────────────────────────────────────────────────────
 
-function PromoCard({ item }) {
-  const company = COMPANY_MAP[item.companyId]
+function PromoCard({ item, onCategoryClick }) {
+  const company  = COMPANY_MAP[item.companyId]
+  const catLabel = CATEGORIES.find(c => c.id === item.category)?.label
   const [copied, setCopied] = useState(false)
 
   function copyCode(e) {
@@ -215,6 +220,9 @@ function PromoCard({ item }) {
         </div>
         <div className="promo-title">{item.title}</div>
         {item.desc && <div className="promo-desc">{item.desc}</div>}
+        {catLabel && catLabel !== 'Все' && (
+          <button className="fa-category" style={{ marginTop: 6 }} onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
+        )}
       </div>
       {item.type === 'coupon' && item.code && (
         <div className="promo-code-row">
@@ -245,7 +253,7 @@ function PromoCard({ item }) {
 
 // ── PROMO SECTION ──────────────────────────────────────────────────────────────
 
-function PromoSection({ navigate, followed, hasSetup, promoCat, promoCompany, promoType, promoScope, actsFilter }) {
+function PromoSection({ navigate, followed, hasSetup, promoCat, promoCompany, promoType, promoScope, actsFilter, onCategoryClick }) {
   if (!hasSetup || (promoScope === 'mine' && followed.size === 0)) {
     return (
       <div className="promo-empty-state">
@@ -275,7 +283,7 @@ function PromoSection({ navigate, followed, hasSetup, promoCat, promoCompany, pr
             <div className="empty-title">Рассылок нет</div>
             <div className="empty-desc">Компании из выбранных категорий пока не публиковали рассылку</div>
           </div>
-        ) : items.map(item => <BroadcastCard key={item.id} item={item} />)}
+        ) : items.map(item => <BroadcastCard key={item.id} item={item} onCategoryClick={onCategoryClick} />)}
       </div>
     )
   }
@@ -289,7 +297,7 @@ function PromoSection({ navigate, followed, hasSetup, promoCat, promoCompany, pr
           <div className="empty-title">Пока ничего нет</div>
           <div className="empty-desc">Акций и купонов по выбранным фильтрам не найдено</div>
         </div>
-      ) : filtered.map(item => <PromoCard key={item.id} item={item} />)}
+      ) : filtered.map(item => <PromoCard key={item.id} item={item} onCategoryClick={onCategoryClick} />)}
     </div>
   )
 }
@@ -318,8 +326,9 @@ function fmtCommentTime(ts) {
 
 // ── WHISPER CARD ───────────────────────────────────────────────────────────────
 
-function WhisperCard({ item, myVote, onVote, navigate }) {
-  const company = COMPANY_MAP[item.companyId]
+function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick }) {
+  const company  = COMPANY_MAP[item.companyId]
+  const catLabel = CATEGORIES.find(c => c.id === item.category)?.label
   const [copied,       setCopied]       = useState(false)
   const [voteToast,    setVoteToast]    = useState(null)
   const [showComments, setShowComments] = useState(false)
@@ -389,6 +398,9 @@ function WhisperCard({ item, myVote, onVote, navigate }) {
 
       <div className="whisper-title">{item.title}</div>
       {item.desc && <div className="whisper-desc">{item.desc.slice(0, 140)}</div>}
+      {catLabel && catLabel !== 'Все' && (
+        <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
+      )}
 
       {item.code && (
         <div className="whisper-code-row">
@@ -407,12 +419,11 @@ function WhisperCard({ item, myVote, onVote, navigate }) {
         <div className="whisper-history">
           {displayHistory.slice(-40).map((v, i, arr) => {
             const isMine = i === arr.length - 1 && !!myVote
-            const brightness = arr.length <= 1 ? 1 : 0.25 + 0.75 * (i / (arr.length - 1))
             return (
               <div
                 key={isMine ? `mine-${myVote}` : i}
                 className={`wvh-stripe${isMine ? ' wvh-mine' : ''}`}
-                style={{ background: v === 'w' ? '#5E9478' : '#B85555', opacity: brightness }}
+                style={{ background: v === 'w' ? '#5E9478' : '#B85555' }}
               />
             )
           })}
@@ -425,10 +436,18 @@ function WhisperCard({ item, myVote, onVote, navigate }) {
 
       <div className="fa-bottom whisper-actions">
         <button className={`fa-action-btn wvb-works${myVote === 'works' ? ' active' : ''}${worksAnim ? ' wv-works-pop' : ''}`} onClick={() => handleVote('works')}>
-          👍 Работает{works > 0 ? ` · ${works}` : ''}
+          <svg width="13" height="13" viewBox="0 0 24 24" fill={myVote === 'works' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+            <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+          </svg>
+          Работает{works > 0 ? ` · ${works}` : ''}
         </button>
         <button className={`fa-action-btn wvb-not${myVote === 'not' ? ' active' : ''}${notAnim ? ' wv-not-shake' : ''}`} onClick={() => handleVote('not')}>
-          👎 Не работает{notWorks > 0 ? ` · ${notWorks}` : ''}
+          <svg width="13" height="13" viewBox="0 0 24 24" fill={myVote === 'not' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+            <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+          </svg>
+          Не работает{notWorks > 0 ? ` · ${notWorks}` : ''}
         </button>
         {voteToast && (
           <span className={`whisper-vote-toast${voteToast === 'works' ? ' wvt-works' : ' wvt-not'}`}>
@@ -594,7 +613,7 @@ function AddWhisperModal({ onClose, onAdd }) {
 
 // ── WHISPER SECTION ────────────────────────────────────────────────────────────
 
-function WhisperSection({ items, promoCat, promoCompany, promoScope, followed, votes, onVote, onAdd, navigate }) {
+function WhisperSection({ items, promoCat, promoCompany, promoScope, followed, votes, onVote, onAdd, navigate, onCategoryClick }) {
   const [showModal, setShowModal] = useState(false)
 
   let filtered = items.filter(item => {
@@ -626,7 +645,7 @@ function WhisperSection({ items, promoCat, promoCompany, promoScope, followed, v
             <div className="empty-desc">Будьте первым — поделитесь скидкой или промокодом</div>
           </div>
         ) : filtered.map(item => (
-          <WhisperCard key={item.id} item={item} myVote={votes.get(item.id) || null} onVote={onVote} navigate={navigate} />
+          <WhisperCard key={item.id} item={item} myVote={votes.get(item.id) || null} onVote={onVote} navigate={navigate} onCategoryClick={onCategoryClick} />
         ))}
       </div>
       {showModal && (
@@ -799,6 +818,7 @@ export default function Promo() {
               onVote={voteWhisper}
               onAdd={addWhisper}
               navigate={navigate}
+              onCategoryClick={handlePromoCat}
             />
           ) : (
             <PromoSection
@@ -810,6 +830,7 @@ export default function Promo() {
               promoType={promoType}
               promoScope={promoScope}
               actsFilter={actsFilter}
+              onCategoryClick={handlePromoCat}
             />
           )}
         </div>
