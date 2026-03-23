@@ -39,7 +39,7 @@ const SOURCE_MODES = [
   { id: 'ss',        label: 'SmartSpend' },
   { id: 'community', label: 'Сообщество' },
   { id: 'own',       label: 'Мои' },
-  { id: 'liked',     label: 'Понравившиеся' },
+  { id: 'liked',     label: 'Избранное' },
 ]
 
 const SORT_OPTIONS = [
@@ -73,7 +73,7 @@ function SortDropdown({ sort, onSort }) {
           <polyline points="6 9 12 15 18 9"/>
         </svg>
       </button>
-      <div className={`sort-dropdown${open ? ' open' : ''}`}>
+      <div className={`sort-dropdown sort-dropdown--left${open ? ' open' : ''}`}>
         {groups.map((grp, gi) => (
           <div key={grp}>
             {gi > 0 && <div className="sort-divider" />}
@@ -409,26 +409,27 @@ export default function Catalog() {
             const totalItems = set.items.length + (set.more || 0)
             return (
             <div key={set.id} className="catalog-card" onClick={() => navigate(`/set/${set.id}`)}>
+              {set.addedBy && (
+                <div className="card-author-row" onClick={e => e.stopPropagation()}>
+                  <AuthorChip username={set.addedBy} navigate={navigate} />
+                </div>
+              )}
               <div className="card-body">
                 <div className="card-badges">
-                  {catLabel && (
-                    <button className="cat-badge" onClick={e => { e.stopPropagation(); handleCatChange(set.category) }}>
-                      {catLabel}
-                    </button>
-                  )}
                   <span className={`source-badge ${set.source}`}>
                     {set.source === 'ss' ? 'SmartSpend' : set.source === 'community' ? 'Сообщество' : 'Мой набор'}
                   </span>
                 </div>
                 <div>
-                  <div className="card-title">{set.title}</div>
+                  <div className="card-title-row">
+                    <span className="card-title">{set.title}</span>
+                    {catLabel && (
+                      <button className="cat-badge" onClick={e => { e.stopPropagation(); handleCatChange(set.category) }}>
+                        {catLabel}
+                      </button>
+                    )}
+                  </div>
                   <div className="card-desc">{set.desc}</div>
-                </div>
-                <div className="card-items">
-                  {set.items.slice(0, 4).map((t, i) => (
-                    <span key={i} className={`card-item-tag${itemQuery && t.toLowerCase().includes(itemQuery) ? ' match' : ''}`}>{t}</span>
-                  ))}
-                  {totalItems > 4 && <span className="card-item-more">+{totalItems - 4}</span>}
                 </div>
               </div>
               <div className="card-footer">
@@ -463,11 +464,6 @@ export default function Catalog() {
                   </div>
                 </div>
               </div>
-              {set.addedBy && (
-                <div className="card-author-row" onClick={e => e.stopPropagation()}>
-                  <AuthorChip username={set.addedBy} navigate={navigate} />
-                </div>
-              )}
               <div className="card-actions" onClick={e => e.stopPropagation()}>
                 <button className={`ca-btn ca-like${myVote === 'like' ? ' active' : ''}`} onClick={e => voteSet(set.id, 'like', e)}>
                   <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
