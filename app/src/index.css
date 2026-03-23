@@ -1189,25 +1189,26 @@ body.dark .catalog-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
   display: flex; align-items: center;
 }
 
-/* Card actions row (like/dislike/comments/bookmark) */
-.card-actions {
+/* Card cost info row */
+.card-cost-row {
+  display: flex; align-items: stretch; gap: 0;
+  padding: 0 18px 14px;
+  flex-wrap: wrap;
+}
+.card-cost-sep {
+  width: 1px; background: var(--border); margin: 0 14px; flex-shrink: 0;
+}
+.card-cost-item { display: flex; flex-direction: column; gap: 2px; }
+.card-cost-monthly .card-cost-val { color: var(--accent-green); }
+.card-cost-val { font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--text-1); line-height: 1.2; }
+.card-cost-lbl { font-size: 10px; color: var(--text-3); }
+
+/* Card bottom (fa-bottom style) */
+.card-bottom {
+  display: flex; align-items: center; gap: 4px;
+  padding: 8px 10px;
   border-top: 1px solid var(--border);
-  padding: 8px 14px;
-  display: flex; align-items: center; gap: 2px;
 }
-.ca-btn {
-  display: flex; align-items: center; gap: 5px;
-  padding: 5px 9px; border-radius: 7px;
-  font-size: 12px; color: var(--text-3);
-  background: none; border: none; cursor: pointer;
-  transition: background .12s, color .12s;
-}
-.ca-btn:hover { background: var(--hover); color: var(--text-2); }
-.ca-like.active { color: var(--accent-green); }
-.ca-dislike.active { color: #B85555; }
-.ca-bookmark.active { color: var(--accent-green); }
-.ca-comments:hover { color: var(--text-2); }
-.card-actions .ca-bookmark { margin-left: auto; }
 
 .empty-state { grid-column: 1/-1; padding: 56px 24px; text-align: center; }
 .empty-state-icon { font-size: 28px; margin-bottom: 12px; opacity: 0.4; }

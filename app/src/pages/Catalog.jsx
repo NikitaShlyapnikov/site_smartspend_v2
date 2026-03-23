@@ -193,6 +193,215 @@ function AuthorChip({ username, navigate }) {
   )
 }
 
+// ── FEED-STYLE ACTIONS ────────────────────────────────────────────────────────
+
+const EMOJI_ANIM = { '🔥':'fire','😂':'laugh','💡':'bulb','🤯':'mindblown','💸':'money','👏':'clap','❤️':'heart','✨':'sparkle','🎉':'party','💪':'flex' }
+const EMOJI_DUR  = { fire:900, laugh:650, bulb:1400, mindblown:1100, money:1000, clap:500, heart:1000, sparkle:1200, party:750, flex:1100 }
+
+function ReactionPill({ emoji, count, active, onToggle }) {
+  const [popping, setPopping] = useState(false)
+  const [emojiAnim, setEmojiAnim] = useState(false)
+  const [particles, setParticles] = useState([])
+
+  function handleClick(e) {
+    e.stopPropagation()
+    setPopping(true)
+    setTimeout(() => setPopping(false), 400)
+    const key = EMOJI_ANIM[emoji]
+    if (key) { setEmojiAnim(true); setTimeout(() => setEmojiAnim(false), EMOJI_DUR[key] + 50) }
+    if (!active) {
+      const newP = Array.from({ length: 6 }, (_, i) => ({ id: Date.now() + i, angle: i * 60 + Math.random() * 20 - 10, dist: 22 + Math.random() * 10 }))
+      setParticles(newP)
+      setTimeout(() => setParticles([]), 600)
+    }
+    onToggle(emoji)
+  }
+
+  return (
+    <div className="r-pill-wrap">
+      <button className={`fa-reaction${active ? ' active' : ''}${popping ? ' popping' : ''}`} onClick={handleClick}>
+        <span className={`r-emoji${emojiAnim && EMOJI_ANIM[emoji] ? ` r-emoji--${EMOJI_ANIM[emoji]}` : ''}`}>{emoji}</span>
+        <span className="r-count">{count}</span>
+      </button>
+      {particles.map(p => (
+        <span key={p.id} className="r-particle" style={{ '--angle': `${p.angle}deg`, '--dist': `${p.dist}px` }}>{emoji}</span>
+      ))}
+    </div>
+  )
+}
+
+function LikeBtn({ liked, count, onToggle }) {
+  const [anim, setAnim] = useState(false)
+  const [sparks, setSparks] = useState([])
+  function handleClick(e) {
+    e.stopPropagation()
+    setAnim(true)
+    setTimeout(() => setAnim(false), 480)
+    if (!liked) {
+      const s = Array.from({ length: 6 }, (_, i) => ({ id: Date.now() + i, angle: i * 60 + Math.random() * 18 - 9, dist: 16 + Math.random() * 8 }))
+      setSparks(s)
+      setTimeout(() => setSparks([]), 560)
+    }
+    onToggle()
+  }
+  return (
+    <div className="action-wrap">
+      <button className={`fa-action-btn${liked ? ' liked' : ''}${anim ? ' like-pop' : ''}`} onClick={handleClick} title="Нравится">
+        <svg width="16" height="16" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+          <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+        </svg>
+        {count}
+      </button>
+      {sparks.map(s => (
+        <span key={s.id} className="like-spark" style={{ '--angle': `${s.angle}deg`, '--dist': `${s.dist}px` }}>✦</span>
+      ))}
+    </div>
+  )
+}
+
+function DislikeBtn({ disliked, onToggle }) {
+  const [anim, setAnim] = useState(false)
+  function handleClick(e) {
+    e.stopPropagation()
+    setAnim(true)
+    setTimeout(() => setAnim(false), 420)
+    onToggle()
+  }
+  return (
+    <button className={`fa-action-btn fa-action-dislike${disliked ? ' active' : ''}${anim ? ' dislike-shake' : ''}`} onClick={handleClick} title="Не нравится">
+      <svg width="16" height="16" fill={disliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+        <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+      </svg>
+    </button>
+  )
+}
+
+function BookmarkBtn({ bookmarked, onToggle }) {
+  const [anim, setAnim] = useState(false)
+  const [fly, setFly] = useState(false)
+  function handleClick(e) {
+    e.stopPropagation()
+    setAnim(true)
+    setTimeout(() => setAnim(false), 420)
+    if (!bookmarked) { setFly(true); setTimeout(() => setFly(false), 520) }
+    onToggle()
+  }
+  return (
+    <div className="action-wrap">
+      <button className={`fa-action-btn fa-action-bookmark${bookmarked ? ' active' : ''}${anim ? ' bookmark-snap' : ''}`} onClick={handleClick} title="В избранное">
+        <svg width="16" height="16" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+        </svg>
+      </button>
+      {fly && <span className="bookmark-fly">✦</span>}
+    </div>
+  )
+}
+
+function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike, onBookmark, onCategoryClick, navigate, itemQuery }) {
+  const catLabel = CATEGORIES.find(c => c.id === set.category)?.label
+  const totalItems = set.items.length + (set.more || 0)
+  const [reactions, setReactions] = useState(() => (set.reactions || []).map(r => ({ ...r })))
+  const [myReactions, setMyReactions] = useState(new Set())
+
+  function toggleReaction(emoji) {
+    setMyReactions(prev => {
+      const next = new Set(prev)
+      const hadIt = next.has(emoji)
+      hadIt ? next.delete(emoji) : next.add(emoji)
+      setReactions(rs => rs.map(r => r.emoji === emoji ? { ...r, count: r.count + (hadIt ? -1 : 1) } : r))
+      return next
+    })
+  }
+
+  const showFullCost = set.fullCost && set.fullCost !== set.monthly
+
+  return (
+    <div className="catalog-card" onClick={() => navigate(`/set/${set.id}`)}>
+      {set.addedBy && (
+        <div className="card-author-row" onClick={e => e.stopPropagation()}>
+          <AuthorChip username={set.addedBy} navigate={navigate} />
+        </div>
+      )}
+      <div className="card-body">
+        <div className="card-badges">
+          <span className={`source-badge ${set.source}`}>
+            {set.source === 'ss' ? 'SmartSpend' : set.source === 'community' ? 'Сообщество' : 'Мой набор'}
+          </span>
+        </div>
+        <div>
+          <div className="card-title-row">
+            <span className="card-title">{set.title}</span>
+            {catLabel && (
+              <button className="cat-badge" onClick={e => { e.stopPropagation(); onCategoryClick(set.category) }}>
+                {catLabel}
+              </button>
+            )}
+          </div>
+          <div className="card-desc">{set.desc}</div>
+        </div>
+      </div>
+      <div className="card-cost-row">
+        <div className="card-cost-item card-cost-monthly">
+          <div className="card-cost-val">{(set.monthly || set.amount).toLocaleString('ru')} ₽</div>
+          <div className="card-cost-lbl">в месяц</div>
+        </div>
+        <div className="card-cost-sep" />
+        <div className="card-cost-item">
+          <div className="card-cost-val">{set.period || '—'}</div>
+          <div className="card-cost-lbl">период</div>
+        </div>
+        {showFullCost && (
+          <>
+            <div className="card-cost-sep" />
+            <div className="card-cost-item">
+              <div className="card-cost-val">{set.fullCost.toLocaleString('ru')} ₽</div>
+              <div className="card-cost-lbl">полная стоимость</div>
+            </div>
+          </>
+        )}
+        <div className="card-cost-sep" />
+        <div className="card-cost-item">
+          <div className="card-cost-val">
+            {set.private ? (
+              <span style={{display:'flex',alignItems:'center',gap:3}}>
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                Приватный
+              </span>
+            ) : fmtUsers(set.users)}
+          </div>
+          <div className="card-cost-lbl">подписчиков</div>
+        </div>
+      </div>
+      <div className="card-bottom" onClick={e => e.stopPropagation()}>
+        <LikeBtn liked={isLiked} count={(set.likes || 0) + (isLiked ? 1 : 0)} onToggle={onLike} />
+        {set.comments > 0 && (
+          <button className="fa-action-stat fa-action-stat--btn" onClick={() => navigate(`/set/${set.id}`)}>
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            {set.comments}
+          </button>
+        )}
+        <DislikeBtn disliked={isDisliked} onToggle={onDislike} />
+        <BookmarkBtn bookmarked={isBookmarked} onToggle={onBookmark} />
+        {reactions.length > 0 && (
+          <>
+            <span className="fa-reactions-sep" />
+            {reactions.map(r => (
+              <ReactionPill key={r.emoji} emoji={r.emoji} count={r.count} active={myReactions.has(r.emoji)} onToggle={toggleReaction} />
+            ))}
+          </>
+        )}
+        <div className="f-spacer" />
+        <div className="fa-time">{totalItems} позиций</div>
+      </div>
+    </div>
+  )
+}
+
 // ── FILTER SELECT ─────────────────────────────────────────────────────────────
 
 // value = Set of selected ids; onChange(id) toggles; onChange('__clear__') clears all
@@ -273,7 +482,8 @@ export default function Catalog() {
   const [sortFilter, setSort]     = useState('popular_7d')
   const [likedSets, setLikedSets] = useState(loadLikes)
   const [itemSearch, setItemSearch] = useState('')
-  const [setVotes, setSetVotes] = useState(new Map()) // id → 'like'|'dislike'
+  const [catalogLikes, setCatalogLikes] = useState(new Set())
+  const [catalogDislikes, setCatalogDislikes] = useState(new Set())
   const { modal: authModal, requireAuth } = useAuthModal()
   const [showSpotlight, setShowSpotlight] = useState(false)
 
@@ -284,16 +494,6 @@ export default function Catalog() {
       const next = new Set(prev)
       next.has(id) ? next.delete(id) : next.add(id)
       saveLikes(next)
-      return next
-    })
-  }
-
-  function voteSet(id, type, e) {
-    e.stopPropagation()
-    if (!requireAuth()) return
-    setSetVotes(prev => {
-      const next = new Map(prev)
-      next.set(id, next.get(id) === type ? null : type)
       return next
     })
   }
@@ -403,97 +603,21 @@ export default function Catalog() {
               <div className="empty-state-title">Наборов не найдено</div>
               <div className="empty-state-desc">Попробуйте изменить фильтры</div>
             </div>
-          ) : filtered.map(set => {
-            const myVote = setVotes.get(set.id) || null
-            const catLabel = CATEGORIES.find(c => c.id === set.category)?.label
-            const totalItems = set.items.length + (set.more || 0)
-            return (
-            <div key={set.id} className="catalog-card" onClick={() => navigate(`/set/${set.id}`)}>
-              {set.addedBy && (
-                <div className="card-author-row" onClick={e => e.stopPropagation()}>
-                  <AuthorChip username={set.addedBy} navigate={navigate} />
-                </div>
-              )}
-              <div className="card-body">
-                <div className="card-badges">
-                  <span className={`source-badge ${set.source}`}>
-                    {set.source === 'ss' ? 'SmartSpend' : set.source === 'community' ? 'Сообщество' : 'Мой набор'}
-                  </span>
-                </div>
-                <div>
-                  <div className="card-title-row">
-                    <span className="card-title">{set.title}</span>
-                    {catLabel && (
-                      <button className="cat-badge" onClick={e => { e.stopPropagation(); handleCatChange(set.category) }}>
-                        {catLabel}
-                      </button>
-                    )}
-                  </div>
-                  <div className="card-desc">{set.desc}</div>
-                </div>
-              </div>
-              <div className="card-footer">
-                <div className="card-amount-left">
-                  <div className="card-amount">{set.amount.toLocaleString('ru')} ₽</div>
-                  <div className="card-amount-label">{set.amountLabel}</div>
-                </div>
-                <div className="card-meta-right">
-                  {set.private ? (
-                    <div className="private-label">
-                      <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                        <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4"/>
-                      </svg>
-                      Приватный
-                    </div>
-                  ) : (
-                    <div className="users-count">
-                      <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                        <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
-                      </svg>
-                      {fmtUsers(set.users)}
-                    </div>
-                  )}
-                  <div className="card-date">{fmtDate(set.added)}</div>
-                  <div className="card-items-count">
-                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
-                      <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
-                    </svg>
-                    {totalItems}
-                  </div>
-                </div>
-              </div>
-              <div className="card-actions" onClick={e => e.stopPropagation()}>
-                <button className={`ca-btn ca-like${myVote === 'like' ? ' active' : ''}`} onClick={e => voteSet(set.id, 'like', e)}>
-                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
-                    <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
-                  </svg>
-                  {(set.likes || 0) + (myVote === 'like' ? 1 : 0)}
-                </button>
-                <button className={`ca-btn ca-dislike${myVote === 'dislike' ? ' active' : ''}`} onClick={e => voteSet(set.id, 'dislike', e)}>
-                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
-                    <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
-                  </svg>
-                  {(set.dislikes || 0) + (myVote === 'dislike' ? 1 : 0)}
-                </button>
-                <button className="ca-btn ca-comments" onClick={() => navigate(`/set/${set.id}`)}>
-                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                  </svg>
-                  {set.comments || 0}
-                </button>
-                <button className={`ca-btn ca-bookmark${likedSets.has(set.id) ? ' active' : ''}`} onClick={e => toggleLike(set.id, e)}>
-                  <svg width="13" height="13" fill={likedSets.has(set.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-            )
-          })}
+          ) : filtered.map(set => (
+            <CatalogCard
+              key={set.id}
+              set={set}
+              isLiked={catalogLikes.has(set.id)}
+              isDisliked={catalogDislikes.has(set.id)}
+              isBookmarked={likedSets.has(set.id)}
+              onLike={() => { if (!requireAuth()) return; setCatalogLikes(prev => { const n = new Set(prev); n.has(set.id) ? n.delete(set.id) : n.add(set.id); if (n.has(set.id)) setCatalogDislikes(p => { const d = new Set(p); d.delete(set.id); return d }); return n }) }}
+              onDislike={() => { if (!requireAuth()) return; setCatalogDislikes(prev => { const n = new Set(prev); n.has(set.id) ? n.delete(set.id) : n.add(set.id); if (n.has(set.id)) setCatalogLikes(p => { const l = new Set(p); l.delete(set.id); return l }); return n }) }}
+              onBookmark={() => { if (!requireAuth()) return; setLikedSets(prev => { const next = new Set(prev); next.has(set.id) ? next.delete(set.id) : next.add(set.id); saveLikes(next); return next }) }}
+              onCategoryClick={handleCatChange}
+              navigate={navigate}
+              itemQuery={itemQuery}
+            />
+          ))}
 
           {/* "Мои" hint card */}
           {sourceFilter === 'own' && (
