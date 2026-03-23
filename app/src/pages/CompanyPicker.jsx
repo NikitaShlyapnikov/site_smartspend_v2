@@ -358,7 +358,7 @@ export default function CompanyPicker() {
   function finish() {
     saveSelected(selected)
     localStorage.setItem('ss_promo_setup', '1')
-    navigate('/feed', { state: { promo: true } })
+    navigate('/promo')
   }
 
   const progress = Math.round(((step + 1) / totalSteps) * 100)

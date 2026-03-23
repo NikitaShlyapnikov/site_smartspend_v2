@@ -324,16 +324,6 @@ function PromoInteractions({ initHistory = [], initComments = [], extraAction })
             </div>
           </div>
 
-          {/* Sort header */}
-          {comments.length > 0 && (
-            <div className="comments-subheader">
-              <div className="csort" style={{ marginLeft: 'auto' }}>
-                <button className={`c-sort-btn${commentSort === 'new' ? ' active' : ''}`} onClick={() => { setCommentSort('new'); setVisibleCount(10) }}>Новые</button>
-                <button className={`c-sort-btn${commentSort === 'top' ? ' active' : ''}`} onClick={() => { setCommentSort('top'); setVisibleCount(10) }}>Популярные</button>
-              </div>
-            </div>
-          )}
-
           {/* Comment list */}
           <div className="comments-list">
             {visible.map((c, idx) => (
@@ -398,13 +388,15 @@ function BroadcastCard({ item, onCategoryClick, onCompanyClick }) {
         <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId)}>
           <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
           <div className="promo-company-info">
-            <div className="promo-company-name">{company?.name}</div>
+            <div className="promo-company-name">
+              {company?.name}
+              {catLabel && catLabel !== 'Все' && (
+                <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
+              )}
+            </div>
             <div className="promo-expires">{item.channel} · {item.time}</div>
           </div>
         </button>
-        {catLabel && catLabel !== 'Все' && (
-          <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
-        )}
         <div className="promo-type-badge promo-type-badge--broadcast">Рассылка</div>
       </div>
       <div className="broadcast-text">{item.text}</div>
@@ -441,15 +433,17 @@ function PromoCard({ item, onCategoryClick, onCompanyClick }) {
         <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId)}>
           <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
           <div className="whisper-company-info">
-            <div className="whisper-company-name">{company?.name}</div>
+            <div className="whisper-company-name">
+              {company?.name}
+              {catLabel && catLabel !== 'Все' && (
+                <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
+              )}
+            </div>
             <div className="whisper-meta">
               <span>{item.expires ? `до ${item.expires}` : ''}</span>
             </div>
           </div>
         </button>
-        {catLabel && catLabel !== 'Все' && (
-          <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
-        )}
         <ConditionBadge filter={item.promo_filter} />
       </div>
 
@@ -516,7 +510,9 @@ function authorFromUsername(username) {
 }
 
 function WhisperAuthorChip({ username, navigate }) {
-  const [showCard, setShowCard] = useState(false)
+  const [showCard, setShowCard]   = useState(false)
+  const [following, setFollowing] = useState(false)
+  const [followAnim, setFollowAnim] = useState(false)
   const showTimer = useRef(null)
   const hideTimer = useRef(null)
   const author = authorFromUsername(username)
@@ -533,14 +529,20 @@ function WhisperAuthorChip({ username, navigate }) {
     clearTimeout(showTimer.current)
     hideTimer.current = setTimeout(() => setShowCard(false), 180)
   }
-  function handleClick(e) {
+  function handleNameClick(e) {
     e.stopPropagation()
     navigate(`/author/${username}`, { state: { name: author.name, initials: author.initials, color: author.color, followers: author.followers } })
+  }
+  function handleFollow(e) {
+    e.stopPropagation()
+    setFollowAnim(true)
+    setTimeout(() => setFollowAnim(false), 450)
+    setFollowing(f => !f)
   }
 
   return (
     <span className="author-chip-wrap" onMouseEnter={onEnter} onMouseLeave={onLeave}>
-      <button className="whisper-author" onClick={handleClick}>@{username}</button>
+      <button className="whisper-author" onClick={handleNameClick}>@{username}</button>
       {showCard && (
         <div
           className="author-popover"
@@ -549,11 +551,17 @@ function WhisperAuthorChip({ username, navigate }) {
           onClick={e => e.stopPropagation()}
         >
           <div className="ap-top">
-            <div className="ap-avatar" style={{ background: author.color, cursor: 'pointer' }} onClick={handleClick}>
+            <div className="ap-avatar" style={{ background: author.color, cursor: 'pointer' }} onClick={handleNameClick}>
               {author.initials}
             </div>
+            <button
+              className={`ap-follow-btn${following ? ' following' : ''}${followAnim ? ' follow-pop' : ''}`}
+              onClick={handleFollow}
+            >
+              {following ? 'Отменить подписку' : 'Подписаться'}
+            </button>
           </div>
-          <button className="ap-name" onClick={handleClick}>{author.name}</button>
+          <button className="ap-name" onClick={handleNameClick}>{author.name}</button>
           <div className="ap-meta">
             {author.followers} подписчиков
             {author.articles > 0 && <> · {author.articles} статей</>}
@@ -637,21 +645,21 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
   return (
     <div className={`whisper-card${cardMood ? ` whisper-card--${cardMood}` : ''}`}>
       <div className="pc-header">
-        <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId)}>
-          <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
-          <div className="whisper-company-info">
-            <div className="whisper-company-name">{company?.name}</div>
-            <div className="whisper-meta">
-              {item.addedBy && (
-                <WhisperAuthorChip username={item.addedBy} navigate={navigate} />
+        <div className="whisper-co-block">
+          <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId)}>
+            <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
+            <div className="whisper-company-name">
+              {company?.name}
+              {catLabel && catLabel !== 'Все' && (
+                <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
               )}
-              <span>{timeAgo(item.addedAt)}{item.expires ? ` · до ${item.expires}` : ''}</span>
             </div>
+          </button>
+          <div className="whisper-meta">
+            {item.addedBy && <WhisperAuthorChip username={item.addedBy} navigate={navigate} />}
+            <span>{timeAgo(item.addedAt)}{item.expires ? ` · до ${item.expires}` : ''}</span>
           </div>
-        </button>
-        {catLabel && catLabel !== 'Все' && (
-          <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
-        )}
+        </div>
         <ConditionBadge filter={item.promo_filter} />
       </div>
 
@@ -738,19 +746,8 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
             </div>
           </div>
 
-          {comments.length > 0 && (
-            <div className="comments-subheader" style={{ marginBottom: 6 }}>
-              <div className="csort" style={{ marginLeft: 'auto' }}>
-                <button className={`c-sort-btn${commentSort === 'new' ? ' active' : ''}`} onClick={() => { setCommentSort('new'); setVisibleCount(10) }}>Новые</button>
-                <button className={`c-sort-btn${commentSort === 'top' ? ' active' : ''}`} onClick={() => { setCommentSort('top'); setVisibleCount(10) }}>Популярные</button>
-              </div>
-            </div>
-          )}
-
           {(() => {
-            const sorted = commentSort === 'top'
-              ? [...comments].sort((a, b) => (b.likes || 0) - (a.likes || 0))
-              : [...comments].reverse()
+            const sorted = [...comments].reverse()
             const visible = sorted.slice(0, visibleCount)
             const remaining = sorted.length - visibleCount
             return (
@@ -885,8 +882,8 @@ export default function Promo() {
     } else if (typeFilter !== 'all') {
       if (item.kind !== typeFilter) return false
     }
-    // actsFilter applies to all non-broadcast items
-    if (item.kind !== 'broadcast' && actsFilter !== 'all') {
+    // broadcasts have no promo_filter (always 'regular'), so hide them when actsFilter is active
+    if (actsFilter !== 'all') {
       if ((item.promo_filter || 'regular') !== actsFilter) return false
     }
     return true
@@ -915,7 +912,7 @@ export default function Promo() {
 
         <div className={`filters-sticky${filtersScrolled ? ' scrolled' : ''}`}>
           <div className="filters-block">
-            {/* Type chips */}
+            {/* Row 1: Type chips */}
             <div id="sp-promo-types" className="cats-scroll promo-type-chips">
               {TYPE_CHIPS.map(chip => (
                 <button
@@ -925,6 +922,32 @@ export default function Promo() {
                 >{chip.label}</button>
               ))}
             </div>
+
+            {/* Row 2: Acts sub-filter */}
+            {showActsFilter && (
+              <div className="cats-scroll filters-acts-row">
+                {ACTS_FILTERS.map(f => (
+                  <button key={f.id} className={`cat-pill${actsFilter === f.id ? ' active' : ''}`}
+                    onClick={() => setActsFilter(f.id)}>{f.label}</button>
+                ))}
+              </div>
+            )}
+
+            {/* Row 3: Companies */}
+            <FilterSelect
+              items={ALL_COMPANIES_LIST.map(c => ({ id: c.id, label: c.name }))}
+              value={promoCompany}
+              onChange={handlePromoCompany}
+              placeholder="Компании"
+            />
+
+            {/* Row 4: Categories */}
+            <FilterSelect
+              items={CATEGORIES.filter(c => c.id === 'all' || PROMO_CATS_WITH_ITEMS.has(c.id))}
+              value={promoCat}
+              onChange={handlePromoCat}
+              placeholder="Категории"
+            />
 
             {/* Scope */}
             <div id="sp-promo-scope" className="promo-scope-row">
@@ -940,33 +963,6 @@ export default function Promo() {
                 Изменить
               </button>
             </div>
-
-            {/* Categories */}
-            <FilterSelect
-              items={CATEGORIES.filter(c => c.id === 'all' || PROMO_CATS_WITH_ITEMS.has(c.id))}
-              value={promoCat}
-              onChange={handlePromoCat}
-              placeholder="Категории"
-            />
-
-            {/* Companies */}
-            {promoCat.size > 0 && (() => {
-              const coItems = [...promoCat].flatMap(catId => companies[catId]?.list || [])
-                .map(c => ({ id: c.id, label: c.name, color: c.color }))
-              return coItems.length > 0 ? (
-                <FilterSelect items={coItems} value={promoCompany} onChange={handlePromoCompany} placeholder="Компании" />
-              ) : null
-            })()}
-
-            {/* Acts sub-filter — only for event/coupon type or "all" */}
-            {showActsFilter && (
-              <div className="cats-scroll filters-acts-row">
-                {ACTS_FILTERS.map(f => (
-                  <button key={f.id} className={`cat-pill${actsFilter === f.id ? ' active' : ''}`}
-                    onClick={() => setActsFilter(f.id)}>{f.label}</button>
-                ))}
-              </div>
-            )}
 
             {hasFilters && (
               <div className="filter-summary">
