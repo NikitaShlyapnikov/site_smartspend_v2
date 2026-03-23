@@ -595,7 +595,6 @@ function ForecastChart({ emoRate, dark, monthlyInvest, capital, creditPayment, c
 
   return (
     <div className="forecast-inner">
-      <div className="forecast-inner-title">чистая доходность 4% годовых</div>
       <div className="forecast-legend">
         <span className="fc-legend-item"><span className="fc-dot capital" />Капитал</span>
         <span className="fc-legend-item"><span className="fc-dot emo" />EmoSpend / мес</span>
@@ -862,8 +861,7 @@ export default function Profile() {
             <div className={`bl-row remainder${savings < 0 ? ' remainder--deficit' : savingsPct >= 20 ? ' remainder--good' : ''}`}>
               <span className="bl-label">Остаток — к инвестированию</span>
               <span className="bl-value">
-                {savings < 0 ? '−' : ''}{Math.abs(savings).toLocaleString('ru')} ₽
-                {income > 0 && <span className="bl-tag">{Math.round((savings / income) * 100)}%</span>}
+                {savings < 0 ? '−' : ''}{Math.abs(savings).toLocaleString('ru')} ₽{income > 0 && <> <span className="bl-tag">{Math.round((savings / income) * 100)}%</span></>}
               </span>
             </div>
           </div>
@@ -893,7 +891,7 @@ export default function Profile() {
                 <div className="budget-rows">
                   {useBasePM ? (
                     <div className="budget-row">
-                      <span className="budget-row-label">ПМ РФ 2026</span>
+                      <span className="budget-row-label">Базовый минимум</span>
                       <span className="budget-row-hint">прожиточный минимум · гарантированный пол</span>
                       <span className="budget-row-value">{SMART_SPEND_BASE.toLocaleString('ru')} ₽</span>
                     </div>
@@ -918,7 +916,7 @@ export default function Profile() {
                 {showPmWarn && (
                   <div className="budget-pm-warn">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-                    Чистый доход <strong>{netIncome.toLocaleString('ru')} ₽</strong> ниже прожиточного минимума ({SMART_SPEND_BASE.toLocaleString('ru')} ₽) — нужно увеличить доход.
+                    Чистый доход <strong>{netIncome.toLocaleString('ru')} ₽</strong> ниже базового минимума — нужно увеличить доход.
                   </div>
                 )}
 
