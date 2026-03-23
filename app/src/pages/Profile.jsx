@@ -235,6 +235,8 @@ function FinancialModal({ open, initialData, onSave, onClose }) {
   )
 }
 
+const SMART_SPEND_BASE = 15000 // 75% прожиточного минимума РФ (конверты, без жилья)
+
 const EMO_RATES = [
   { rate: 0.04, label: '4%', level: 'low' },
   { rate: 0.05, label: '5%', level: 'medium' },
@@ -723,6 +725,12 @@ export default function Profile() {
   const emoAnnual = Math.round(capital * emoRate)
   const emoMonthly = Math.round(emoAnnual / 12)
 
+  const sustainableBudget = SMART_SPEND_BASE + emoMonthly
+  const envelopeDiff = grandTotal - sustainableBudget          // >0 превышение, <0 запас
+  const neededCapital = grandTotal > SMART_SPEND_BASE
+    ? Math.round((grandTotal - SMART_SPEND_BASE) * 12 / emoRate)
+    : 0
+
   const savingsPct = income > 0 ? Math.round((savings / income) * 100) : 0
   const greetingSubtitle = (() => {
     if (!income || income <= 0) {
@@ -864,35 +872,67 @@ export default function Profile() {
             </div>
 
             <div className="combined-bottom">
-              <div>
-                <div className="emo-title">EmoSpend</div>
-                <div className="emo-subtitle">Покупки на повседневные желания без вреда для роста капитала</div>
-              </div>
-              <div className="emo-main">
-                <div className="emo-tile emo-tile--accent">
-                  <div className="emo-tile-label">В месяц</div>
-                  <div className="emo-tile-value">{emoMonthly.toLocaleString('ru')} ₽</div>
-                  <div className="emo-tile-sub">можно потратить</div>
+              <div className="budget-block">
+                <div className="budget-block-title">Устойчивый бюджет конвертов</div>
+
+                <div className="budget-rows">
+                  <div className="budget-row">
+                    <span className="budget-row-label">SmartSpend база</span>
+                    <span className="budget-row-hint">75% прожиточного минимума РФ</span>
+                    <span className="budget-row-value">{SMART_SPEND_BASE.toLocaleString('ru')} ₽</span>
+                  </div>
+                  <div className="budget-row">
+                    <span className="budget-row-label">EmoSpend от капитала</span>
+                    <span className="budget-row-hint">{Math.round(emoRate * 100)}% годовых ÷ 12</span>
+                    <span className="budget-row-value">+ {emoMonthly.toLocaleString('ru')} ₽</span>
+                  </div>
+                  <div className="budget-row budget-row--total">
+                    <span className="budget-row-label">Можно тратить</span>
+                    <span className="budget-row-value">{sustainableBudget.toLocaleString('ru')} ₽</span>
+                  </div>
                 </div>
-                <div className="emo-tile">
-                  <div className="emo-tile-label">В год</div>
-                  <div className="emo-tile-value">{emoAnnual.toLocaleString('ru')} ₽</div>
-                  <div className="emo-tile-sub">{Math.round(emoRate * 100)}% от капитала</div>
-                </div>
-              </div>
-              <div className="emo-rate-row">
-                <span className="emo-rate-label">Уровень удовольствия:</span>
-                <div id="sp-btn-emo" className="rate-selector">
-                  {EMO_RATES.map(r => (
-                    <button
-                      key={r.rate}
-                      className={`rate-btn rate-${r.level}${emoRate === r.rate ? ' active' : ''}`}
-                      onClick={() => setEmoRate(r.rate)}
-                    >
-                      <span className="rate-pct">{r.label}</span>
-                      <span className="rate-level">{r.level}</span>
-                    </button>
-                  ))}
+
+                {grandTotal > 0 && (
+                  <div className={`budget-status${envelopeDiff > 0 ? ' over' : ' ok'}`}>
+                    <div className="budget-bar-wrap">
+                      <div
+                        className="budget-bar-fill"
+                        style={{ width: `${Math.min(100, Math.round(grandTotal / sustainableBudget * 100))}%` }}
+                      />
+                    </div>
+                    <div className="budget-status-row">
+                      <span className="budget-status-label">
+                        Твои конверты: <strong>{grandTotal.toLocaleString('ru')} ₽</strong>
+                      </span>
+                      {envelopeDiff > 0 ? (
+                        <span className="budget-status-over">+{envelopeDiff.toLocaleString('ru')} ₽</span>
+                      ) : (
+                        <span className="budget-status-ok">−{Math.abs(envelopeDiff).toLocaleString('ru')} ₽ запас</span>
+                      )}
+                    </div>
+                    {envelopeDiff > 0 && neededCapital > 0 && (
+                      <div className="budget-needed">
+                        Чтобы текущие конверты были устойчивы — нужен капитал&nbsp;
+                        <strong>~{neededCapital.toLocaleString('ru')} ₽</strong>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="emo-rate-row">
+                  <span className="emo-rate-label">Уровень EmoSpend:</span>
+                  <div id="sp-btn-emo" className="rate-selector">
+                    {EMO_RATES.map(r => (
+                      <button
+                        key={r.rate}
+                        className={`rate-btn rate-${r.level}${emoRate === r.rate ? ' active' : ''}`}
+                        onClick={() => setEmoRate(r.rate)}
+                      >
+                        <span className="rate-pct">{r.label}</span>
+                        <span className="rate-level">{r.level}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
