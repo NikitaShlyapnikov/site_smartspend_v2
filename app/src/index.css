@@ -2646,12 +2646,12 @@ body.dark .inv-chip--paused:hover, body.dark .inv-chip--paused.active { backgrou
 }
 .inv-cat-header {
   display: flex; align-items: center; gap: 10px;
-  padding: 10px 16px;
+  padding: 14px 16px;
   background: var(--surface-2);
   border-bottom: 1px solid var(--border);
 }
 .inv-cat-bar { width: 3px; height: 18px; border-radius: 2px; flex-shrink: 0; }
-.inv-cat-name { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; letter-spacing: -0.01em; }
+.inv-cat-name { font-size: 15px; font-weight: 600; color: var(--text); flex: 1; letter-spacing: -0.01em; }
 .inv-cat-urgent {
   font-size: 10px; font-weight: 600; color: var(--status-urgent);
   background: var(--status-urgent-bg); border: 1px solid var(--status-urgent-border);
@@ -2674,9 +2674,11 @@ body.dark .inv-chip--paused:hover, body.dark .inv-chip--paused.active { backgrou
 /* Gallery toggle button */
 .inv-gallery-toggle {
   display: flex; align-items: center; justify-content: center;
-  width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0;
+  height: 26px; padding: 0 10px; border-radius: 6px; flex-shrink: 0;
+  font-size: 12px; font-weight: 500;
   background: none; border: 1.5px solid var(--border); color: var(--text-3); cursor: pointer;
   transition: border-color 0.15s, color 0.15s, background 0.15s;
+  white-space: nowrap;
 }
 .inv-gallery-toggle:hover { border-color: var(--accent-green); color: var(--accent-green); }
 .inv-gallery-toggle.active { background: var(--accent-green); border-color: var(--accent-green); color: #fff; }
@@ -2685,7 +2687,9 @@ body.dark .inv-chip--paused:hover, body.dark .inv-chip--paused.active { backgrou
 .inv-gallery-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 10px; padding: 12px 16px;
+  animation: fadeIn 0.18s ease;
 }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 .inv-gallery-card {
   border-radius: 10px; overflow: hidden;
   border: 1px solid var(--border); background: var(--surface-2);
@@ -2766,7 +2770,7 @@ body.dark .inv-chip--paused:hover, body.dark .inv-chip--paused.active { backgrou
 
 .inv-item-main {
   display: flex; align-items: center; gap: 14px;
-  padding: 12px 16px; cursor: pointer; user-select: none;
+  padding: 14px 16px; cursor: pointer; user-select: none;
 }
 .inv-item-right { text-align: right; flex-shrink: 0; }
 .inv-amount-val { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text); }
@@ -2775,7 +2779,7 @@ body.dark .inv-chip--paused:hover, body.dark .inv-chip--paused.active { backgrou
 .inv-chevron.open { transform: rotate(180deg); }
 
 /* Ring */
-.ring-wrap { flex-shrink: 0; position: relative; width: 44px; height: 44px; }
+.ring-wrap { flex-shrink: 0; position: relative; width: 48px; height: 48px; }
 .ring-bg { fill: none; stroke: var(--surface-3); stroke-width: 3.5; }
 .ring-fg { fill: none; stroke-width: 3.5; stroke-linecap: round; transition: stroke-dasharray 0.4s; }
 .ring-ok .ring-fg { stroke: var(--status-ok); }
@@ -2796,8 +2800,8 @@ body.dark .inv-chip--paused:hover, body.dark .inv-chip--paused.active { backgrou
 
 /* Inv info */
 .inv-info { flex: 1; min-width: 0; }
-.inv-name { font-size: 14px; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.inv-remainder { font-size: 12px; color: var(--text-3); letter-spacing: -0.01em; margin-top: 2px; }
+.inv-name { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inv-remainder { font-size: 13px; color: var(--text-3); letter-spacing: -0.01em; margin-top: 2px; }
 .inv-remainder.urgent { color: var(--status-urgent); font-weight: 600; }
 .inv-remainder.soon { color: var(--status-soon); font-weight: 500; }
 .inv-remainder.overexploit { color: var(--status-over); font-weight: 600; }

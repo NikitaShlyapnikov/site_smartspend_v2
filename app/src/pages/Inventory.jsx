@@ -156,7 +156,7 @@ function Ring({ pct, ringNum, ringUnit, status, paused }) {
     : 'ring-ok'
   return (
     <div className={`ring-wrap ${cls}`}>
-      <svg viewBox="0 0 44 44" width="44" height="44" style={{ transform: 'rotate(-90deg)' }}>
+      <svg viewBox="0 0 44 44" width="48" height="48" style={{ transform: 'rotate(-90deg)' }}>
         <circle className="ring-bg" cx="22" cy="22" r={r} />
         <circle className="ring-fg" cx="22" cy="22" r={r} strokeDasharray={`${dash} ${circ}`} strokeDashoffset="0" />
       </svg>
@@ -1081,8 +1081,13 @@ export default function Inventory() {
   function toggleGroupCollapse(groupId) {
     setCollapsedGroups(prev => {
       const next = new Set(prev)
-      if (next.has(groupId)) next.delete(groupId)
-      else next.add(groupId)
+      if (next.has(groupId)) {
+        next.delete(groupId)
+      } else {
+        next.add(groupId)
+        // автовыход из галереи при сворачивании
+        setGalleryGroups(g => { const gs = new Set(g); gs.delete(groupId); return gs })
+      }
       return next
     })
   }
@@ -1311,18 +1316,8 @@ export default function Inventory() {
                   {urgentCount === 0 && soonCount > 0 && <span className="inv-cat-soon">{soonCount} скоро</span>}
                   <span className="inv-cat-count">{groupItems.length} поз.</span>
                   {!isCollapsed && photoItems.length > 0 && (
-                    <button className={`inv-gallery-toggle${isGallery ? ' active' : ''}`} onClick={toggleGallery} title={isGallery ? 'Список' : 'Галерея'}>
-                      {isGallery ? (
-                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
-                          <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
-                        </svg>
-                      ) : (
-                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                          <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-                        </svg>
-                      )}
+                    <button className={`inv-gallery-toggle${isGallery ? ' active' : ''}`} onClick={toggleGallery}>
+                      {isGallery ? 'Список' : 'Галерея'}
                     </button>
                   )}
                   {!isCollapsed && !isGallery && displayItems.length > 1 && (
