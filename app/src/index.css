@@ -2713,6 +2713,14 @@ body.dark .inv-chip--paused:hover, body.dark .inv-chip--paused.active { backgrou
 .inv-gallery-item-name { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.3; }
 .inv-gallery-note { font-size: 11px; color: var(--text-3); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
+/* Gallery lightbox caption */
+.inv-gallery-lb-caption {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 10px 14px; background: rgba(0,0,0,0.7); border-radius: 0 0 10px 10px;
+}
+.inv-gallery-lb-name { font-size: 13px; font-weight: 600; color: #fff; }
+.inv-gallery-lb-note { font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.4; }
+
 /* Deficit hint in collapsed item row */
 .inv-deficit-inline {
   font-size: 11px; color: var(--status-urgent); font-weight: 500;
@@ -2751,16 +2759,10 @@ body.dark .inv-chip--paused:hover, body.dark .inv-chip--paused.active { backgrou
 .inv-shopping-item-qty { font-size: 12px; font-family: var(--mono); color: var(--text-2); min-width: 60px; text-align: right; }
 .inv-shopping-item-cost { font-size: 12px; font-family: var(--mono); font-weight: 600; color: var(--status-urgent); min-width: 70px; text-align: right; }
 
-.inv-section-items { display: flex; flex-direction: column; }
-.inv-item + .inv-item { border-top: 1px solid var(--border); }
-
+.inv-section-items { display: flex; flex-direction: column; gap: 1px; background: var(--border); }
 .inv-item { background: var(--surface); overflow: hidden; transition: background 0.12s; }
-.inv-item:hover { background: var(--surface-2); }
-.inv-item.open { background: var(--surface-2); box-shadow: inset 0 0 0 1.5px var(--accent-green-border); position: relative; z-index: 2; }
-.inv-item.status-urgent .inv-item-main { border-left: 3px solid var(--status-urgent); }
-.inv-item.status-soon .inv-item-main { border-left: 3px solid var(--status-soon); }
-.inv-item.status-overexploit .inv-item-main { border-left: 3px solid var(--status-over); }
-.inv-item:not(.status-urgent):not(.status-soon):not(.status-overexploit) .inv-item-main { border-left: 3px solid transparent; }
+.inv-item:hover:not(.open) { background: var(--surface-2); }
+.inv-item.open { background: var(--surface-2); position: relative; z-index: 2; border-top: 2px solid var(--accent-green); margin-top: -1px; }
 
 .inv-item-main {
   display: flex; align-items: center; gap: 14px;

@@ -965,6 +965,7 @@ export default function Inventory() {
   const [personalSets] = useState(() => loadPersonalSets())
   const [openItems, setOpenItems] = useState(new Set())
   const [galleryGroups, setGalleryGroups] = useState(new Set())
+  const [galleryLightbox, setGalleryLightbox] = useState(null) // { photos: [{url,name,itemName}], index }
   const [statusFilter, setStatusFilter] = useState(null)
   const [editMode, setEditMode] = useState(false)
   const [showSpotlight, setShowSpotlight] = useState(false)
@@ -1279,7 +1280,7 @@ export default function Inventory() {
             const soonCount = displayItems.filter(i => filterInfoMap[i.id]?.filterStatus === 'soon').length
             const isCollapsed = !editMode && collapsedGroups.has(group.id) && !statusFilter
             const groupOpenIds = displayItems.map(i => i.id)
-            const allOpen = groupOpenIds.length > 0 && groupOpenIds.every(id => openItems.has(id))
+            const anyOpen = groupOpenIds.some(id => openItems.has(id))
             const isGallery = galleryGroups.has(group.id)
             const photoItems = displayItems.filter(i => (i.notes?.photos?.length || 0) > 0)
 
@@ -1287,7 +1288,7 @@ export default function Inventory() {
               e.stopPropagation()
               setOpenItems(prev => {
                 const s = new Set(prev)
-                if (allOpen) groupOpenIds.forEach(id => s.delete(id))
+                if (anyOpen) groupOpenIds.forEach(id => s.delete(id))
                 else groupOpenIds.forEach(id => s.add(id))
                 return s
               })
@@ -1326,7 +1327,7 @@ export default function Inventory() {
                   )}
                   {!isCollapsed && !isGallery && displayItems.length > 1 && (
                     <button className="inv-expand-all-btn" onClick={toggleAllInGroup}>
-                      {allOpen ? 'Свернуть' : 'Развернуть все'}
+                      {anyOpen ? 'Свернуть все' : 'Развернуть все'}
                     </button>
                   )}
                   <svg className="inv-cat-chevron" width="13" height="13" fill="none" stroke="currentColor"
@@ -1336,32 +1337,43 @@ export default function Inventory() {
                   </svg>
                 </div>
 
-                {!isCollapsed && isGallery && photoItems.length > 0 && (
-                  <div className="inv-gallery-grid">
-                    {photoItems.map(item => {
-                      const photos = item.notes?.photos || []
-                      const noteText = item.notes?.text || ''
-                      const info = infoMap[item.id]
-                      const statusCls = item.paused ? 'paused' : (info?.status || 'ok')
-                      return (
-                        <div key={item.id} className="inv-gallery-card">
-                          <div className="inv-gallery-photos">
-                            {photos.map((p, i) => (
-                              <img key={i} src={p.url} alt={p.name} className="inv-gallery-img" />
-                            ))}
-                          </div>
-                          <div className="inv-gallery-info">
-                            <div className="inv-gallery-item-header">
-                              <span className={`inv-gallery-dot inv-gallery-dot--${statusCls}`} />
-                              <span className="inv-gallery-item-name">{item.name}</span>
+                {!isCollapsed && isGallery && photoItems.length > 0 && (() => {
+                  // flat array of all photos across all items for lightbox navigation
+                  const flatPhotos = photoItems.flatMap(item =>
+                    (item.notes?.photos || []).map(p => ({ ...p, itemName: item.name, noteText: item.notes?.text || '' }))
+                  )
+                  return (
+                    <div className="inv-gallery-grid">
+                      {photoItems.map(item => {
+                        const photos = item.notes?.photos || []
+                        const noteText = item.notes?.text || ''
+                        const info = infoMap[item.id]
+                        const statusCls = item.paused ? 'paused' : (info?.status || 'ok')
+                        // index of first photo of this item in flatPhotos
+                        const firstIdx = flatPhotos.findIndex(p => p.itemName === item.name && p.url === photos[0]?.url)
+                        return (
+                          <div key={item.id} className="inv-gallery-card">
+                            <div className="inv-gallery-photos">
+                              {photos.map((p, i) => (
+                                <img key={i} src={p.url} alt={p.name} className="inv-gallery-img"
+                                  style={{ cursor: 'pointer' }}
+                                  onClick={() => setGalleryLightbox({ photos: flatPhotos, index: firstIdx + i })}
+                                />
+                              ))}
                             </div>
-                            {noteText && <div className="inv-gallery-note">{noteText}</div>}
+                            <div className="inv-gallery-info">
+                              <div className="inv-gallery-item-header">
+                                <span className={`inv-gallery-dot inv-gallery-dot--${statusCls}`} />
+                                <span className="inv-gallery-item-name">{item.name}</span>
+                              </div>
+                              {noteText && <div className="inv-gallery-note">{noteText}</div>}
+                            </div>
                           </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
+                        )
+                      })}
+                    </div>
+                  )
+                })()}
 
                 {!isCollapsed && !isGallery && <div className="inv-section-items">
                   {displayItems.map(item => (
@@ -1548,6 +1560,46 @@ export default function Inventory() {
         )
       })()}
       {showSpotlight && <SpotlightTour steps={INV_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
+
+      {/* Gallery lightbox */}
+      {galleryLightbox && (() => {
+        const { photos, index } = galleryLightbox
+        const total = photos.length
+        const current = photos[index]
+        const prev = () => setGalleryLightbox(lb => ({ ...lb, index: (lb.index - 1 + total) % total }))
+        const next = () => setGalleryLightbox(lb => ({ ...lb, index: (lb.index + 1) % total }))
+        return (
+          <div className="inv-lightbox-overlay" onClick={() => setGalleryLightbox(null)}>
+            <button className="inv-lightbox-close" onClick={() => setGalleryLightbox(null)}>
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+            {total > 1 && (
+              <button className="inv-lightbox-nav prev" onClick={e => { e.stopPropagation(); prev() }}>
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6"/>
+                </svg>
+              </button>
+            )}
+            <div className="inv-lightbox-content" onClick={e => e.stopPropagation()}>
+              <img src={current.url} alt={current.name} className="inv-lightbox-img" />
+              <div className="inv-gallery-lb-caption">
+                <span className="inv-gallery-lb-name">{current.itemName}</span>
+                {current.noteText && <span className="inv-gallery-lb-note">{current.noteText}</span>}
+                {total > 1 && <span className="inv-lightbox-counter">{index + 1} / {total}</span>}
+              </div>
+            </div>
+            {total > 1 && (
+              <button className="inv-lightbox-nav next" onClick={e => { e.stopPropagation(); next() }}>
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
+            )}
+          </div>
+        )
+      })()}
     </Layout>
   )
 }
