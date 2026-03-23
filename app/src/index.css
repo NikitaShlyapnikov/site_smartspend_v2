@@ -7182,7 +7182,8 @@ body.dark .feed-section-card.active.promo    { background: #A86828; border-color
   color: #fff; flex-shrink: 0; letter-spacing: -0.02em;
 }
 .promo-company-info { flex: 1; min-width: 0; }
-.promo-company-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.promo-company-name { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 0; flex-wrap: wrap; }
+.whisper-company-name { display: flex; align-items: center; flex-wrap: wrap; }
 .promo-expires { font-size: 12px; color: var(--text-3); margin-top: 1px; }
 .promo-type-badge {
   padding: 3px 9px; border-radius: 6px;

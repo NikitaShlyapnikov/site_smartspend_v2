@@ -169,15 +169,17 @@ function BroadcastCard({ item, onCategoryClick }) {
       <div className="pc-header">
         <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
         <div className="promo-company-info">
-          <div className="promo-company-name">{company?.name}</div>
+          <div className="promo-company-name">
+            {company?.name}
+            {catLabel && catLabel !== 'Все' && (
+              <><span className="fa-sep"> · </span><button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button></>
+            )}
+          </div>
           <div className="promo-expires">{item.channel} · {item.time}</div>
         </div>
       </div>
       <div className="broadcast-text">{item.text}</div>
       <div className="fa-bottom">
-        {catLabel && catLabel !== 'Все' && (
-          <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
-        )}
         <div className="f-spacer" />
         <a href={item.url} target="_blank" rel="noopener noreferrer" className="fa-action-btn" onClick={e => e.stopPropagation()}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -211,7 +213,12 @@ function PromoCard({ item, onCategoryClick }) {
         <div className="pc-header">
           <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
           <div className="promo-company-info">
-            <div className="promo-company-name">{company?.name}</div>
+            <div className="promo-company-name">
+              {company?.name}
+              {catLabel && catLabel !== 'Все' && (
+                <><span className="fa-sep"> · </span><button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button></>
+              )}
+            </div>
             <div className="promo-expires">до {item.expires}</div>
           </div>
           <div className={`promo-type-badge promo-type-badge--${item.type}`}>
@@ -220,9 +227,6 @@ function PromoCard({ item, onCategoryClick }) {
         </div>
         <div className="promo-title">{item.title}</div>
         {item.desc && <div className="promo-desc">{item.desc}</div>}
-        {catLabel && catLabel !== 'Все' && (
-          <button className="fa-category" style={{ marginTop: 6 }} onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
-        )}
       </div>
       {item.type === 'coupon' && item.code && (
         <div className="promo-code-row">
@@ -384,7 +388,12 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick }) {
       <div className="pc-header">
         <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
         <div className="whisper-company-info">
-          <div className="whisper-company-name">{company?.name}</div>
+          <div className="whisper-company-name">
+            {company?.name}
+            {catLabel && catLabel !== 'Все' && (
+              <><span className="fa-sep"> · </span><button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button></>
+            )}
+          </div>
           <div className="whisper-meta">
             {item.addedBy && (
               <button className="whisper-author" onClick={e => { e.stopPropagation(); navigate(`/author/${item.addedBy}`, { state: { name: item.addedBy, handle: `@${item.addedBy}` } }) }}>
@@ -398,9 +407,6 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick }) {
 
       <div className="whisper-title">{item.title}</div>
       {item.desc && <div className="whisper-desc">{item.desc.slice(0, 140)}</div>}
-      {catLabel && catLabel !== 'Все' && (
-        <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
-      )}
 
       {item.code && (
         <div className="whisper-code-row">
@@ -733,7 +739,7 @@ export default function Promo() {
 
   function resetFilters() {
     setPromoCat(new Set()); setPromoCompany(new Set())
-    setPromoType('broadcast'); setPromoScope('mine'); setActsFilter('all')
+    setPromoScope('mine'); setActsFilter('all')
   }
 
   return (
