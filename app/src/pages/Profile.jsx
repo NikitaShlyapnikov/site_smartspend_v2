@@ -835,7 +835,10 @@ export default function Profile() {
         {/* Финансовая картина */}
         <div id="sp-finance">
           <div className="section-heading">
-            <span className="section-title">Финансовая картина</span>
+            <div>
+              <span className="section-title">Бюджет месяца</span>
+              <div className="section-subtitle">Сколько приходит и куда уходит каждый месяц</div>
+            </div>
             <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:2}}>
               <button id="sp-btn-finance" className="section-link" onClick={() => setFinOpen(true)}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
@@ -856,9 +859,12 @@ export default function Profile() {
               <span className="bl-label">Итого расходов</span>
               <span className="bl-value">−{totalExpenses.toLocaleString('ru')} ₽ {income > 0 && <span className="bl-tag-neutral">{Math.round((totalExpenses / income) * 100)}% дохода</span>}</span>
             </div>
-            <div className="bl-row remainder">
+            <div className={`bl-row remainder${savings < 0 ? ' remainder--deficit' : savingsPct >= 20 ? ' remainder--good' : ''}`}>
               <span className="bl-label">Остаток — к инвестированию</span>
-              <span className="bl-value">{savings.toLocaleString('ru')} ₽ {income > 0 && <span className="bl-tag">{Math.round((savings / income) * 100)}%</span>}</span>
+              <span className="bl-value">
+                {savings < 0 ? '−' : ''}{Math.abs(savings).toLocaleString('ru')} ₽
+                {income > 0 && <span className="bl-tag">{Math.round((savings / income) * 100)}%</span>}
+              </span>
             </div>
           </div>
 
@@ -867,7 +873,10 @@ export default function Profile() {
         {/* Капитал и EmoSpend */}
         <div id="sp-emo">
           <div className="section-heading">
-            <span className="section-title">Капитал и свободные расходы</span>
+            <div>
+              <span className="section-title">Сколько можно тратить</span>
+              <div className="section-subtitle">Сумма, которую можно тратить не затрагивая накопления</div>
+            </div>
           </div>
           <div className="profile-card">
             <div className="combined-top">
@@ -941,7 +950,12 @@ export default function Profile() {
                 </div>
 
                 <div className="emo-rate-row">
-                  <span className="emo-rate-label">Уровень EmoSpend:</span>
+                  <div className="emo-rate-left">
+                    <span className="emo-rate-label">Уровень EmoSpend</span>
+                    <span className="emo-rate-preview">
+                      {Math.round(capital * emoRate / 12).toLocaleString('ru')} ₽/мес · {Math.round(emoRate * 100)}% от капитала
+                    </span>
+                  </div>
                   <div id="sp-btn-emo" className="rate-selector">
                     {EMO_RATES.map(r => (
                       <button
@@ -950,7 +964,6 @@ export default function Profile() {
                         onClick={() => setEmoRate(r.rate)}
                       >
                         <span className="rate-pct">{r.label}</span>
-                        <span className="rate-level">{r.level}</span>
                       </button>
                     ))}
                   </div>
@@ -990,7 +1003,10 @@ export default function Profile() {
         {/* Конверты и наборы */}
         <div id="sp-envelopes">
           <div className="section-heading">
-            <span className="section-title">Конверты и наборы</span>
+            <div style={{display:'flex',flexDirection:'column',gap:2}}>
+              <span className="section-title">Конверты и наборы</span>
+              <div className="section-subtitle">Распределяйте бюджет по конвертам раз в месяц</div>
+            </div>
             <button
               id="sp-btn-envelopes"
               className={`section-link${editMode ? ' editing' : ''}`}
