@@ -840,7 +840,9 @@ export default function Profile() {
               <span className="bl-label">Доход</span>
               <span className="bl-value">{income.toLocaleString('ru')} ₽</span>
             </div>
-            {budgetGroups.map(g => <BudgetGroup key={g.id} group={g} />)}
+            {budgetGroups
+              .filter(g => (g.total !== null && g.total !== 0) || g.rows.length > 0)
+              .map(g => <BudgetGroup key={g.id} group={g} />)}
             <div className="bl-row total-expenses">
               <span className="bl-label">Итого расходов</span>
               <span className="bl-value">−{totalExpenses.toLocaleString('ru')} ₽ {income > 0 && <span className="bl-tag-neutral">{Math.round((totalExpenses / income) * 100)}% дохода</span>}</span>

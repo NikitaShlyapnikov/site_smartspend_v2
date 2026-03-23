@@ -623,6 +623,10 @@ export default function SetDetail() {
             <>
               <span className="breadcrumb-item" onClick={() => navigate('/profile')}>Профиль</span>
               <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+              {catLabel && <>
+                <span className="breadcrumb-item">{catLabel}</span>
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+              </>}
             </>
           ) : (
             <>
@@ -742,10 +746,7 @@ export default function SetDetail() {
           <div className="sd-parent-card" onClick={() => navigate(`/set/${id}?public=1`)}>
             <div className="sd-parent-card-left">
               <div className="sd-parent-card-label">Связанный набор</div>
-              <div className="sd-parent-card-name">
-                <span className="sd-parent-card-source">{set.source === 'ss' ? 'SmartSpend' : 'Сообщество'}</span>
-                {set.title}
-              </div>
+              <div className="sd-parent-card-name">{set.title}</div>
             </div>
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 18 15 12 9 6"/>
@@ -774,8 +775,8 @@ export default function SetDetail() {
                 )}
                 <button className={`sd-btn-sm${editMode ? ' active' : ''}`}
                   onClick={() => {
-                    if (!editMode && isPersonal && scale !== 1.0) {
-                      // Bake current scale into item quantities before editing
+                    if (isPersonal && scale !== 1.0) {
+                      // Bake scale into item quantities for personal sets
                       setItems(prev => prev.map(i => ({ ...i, qty: Math.round(i.qty * scale * 1000) / 1000 })))
                       setScaleRaw(1.0)
                     }
@@ -790,8 +791,8 @@ export default function SetDetail() {
               </div>
             </div>
 
-            {/* Scale stepper — visible only in edit mode (not personal, where qty is edited directly) */}
-            {editMode && !isPersonal && (
+            {/* Scale stepper — visible only in edit mode */}
+            {editMode && (
               <div className="sd-scale-row">
                 <div>
                   <div className="sd-scale-title">Масштаб набора</div>
@@ -870,10 +871,12 @@ export default function SetDetail() {
                         <td>
                           <div className="sd-period-row">
                             <input className="sd-inline-input" type="number"
-                              defaultValue={item.period} min="0.25" step="0.5"
-                              onBlur={e => chPeriod(item.id, e.target.value)}
+                              defaultValue={isConsumable ? item.period * 12 : item.period}
+                              min={isConsumable ? 1 : 0.25}
+                              step={isConsumable ? 1 : 0.5}
+                              onBlur={e => chPeriod(item.id, isConsumable ? parseFloat(e.target.value) / 12 : e.target.value)}
                               style={{ width: 60 }} />
-                            <span className="sd-period-unit">лет</span>
+                            <span className="sd-period-unit">{isConsumable ? 'мес' : 'лет'}</span>
                           </div>
                         </td>
                         <td><span className="sd-mono-accent">{Math.round(monthly).toLocaleString('ru')}&thinsp;₽</span></td>

@@ -5518,21 +5518,26 @@ body.dark .sd-inline-input { background: var(--surface-3); color: var(--text); }
 /* Pause toast */
 .sd-pause-toast {
   position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(14px);
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 12px; padding: 14px 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.14);
+  background: #2C2B28; border: 1px solid #3A3935;
+  border-radius: 12px; padding: 14px 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.28);
   display: flex; align-items: flex-start; gap: 12px; max-width: 380px; width: calc(100% - 48px);
-  opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 900; color: var(--text-3);
+  opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 900;
 }
 .sd-pause-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
 .sd-pause-toast-body { flex: 1; min-width: 0; }
-.sd-pause-toast-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-.sd-pause-toast-desc { font-size: 12px; color: var(--text-3); line-height: 1.5; }
+.sd-pause-toast-title { font-size: 13px; font-weight: 600; color: #F0EEE9; margin-bottom: 4px; }
+.sd-pause-toast-desc { font-size: 12px; color: #A8A69E; line-height: 1.5; }
 .sd-pause-toast-close {
   background: none; border: none; padding: 0; cursor: pointer;
-  color: var(--text-3); font-size: 14px; line-height: 1; flex-shrink: 0;
+  color: #7A7870; font-size: 14px; line-height: 1; flex-shrink: 0;
   transition: color 0.15s;
 }
-.sd-pause-toast-close:hover { color: var(--text); }
+.sd-pause-toast-close:hover { color: #F0EEE9; }
+body.dark .sd-pause-toast { background: #F0EFEB; border-color: #D8D5CC; box-shadow: 0 4px 20px rgba(0,0,0,0.18); }
+body.dark .sd-pause-toast-title { color: #1A1A18; }
+body.dark .sd-pause-toast-desc { color: #6B6963; }
+body.dark .sd-pause-toast-close { color: #9A9890; }
+body.dark .sd-pause-toast-close:hover { color: #1A1A18; }
 
 /* Delete confirmation modal */
 .sd-delete-overlay {
