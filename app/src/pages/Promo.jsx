@@ -991,7 +991,8 @@ export default function Promo() {
     setPromoCompany(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
   }
 
-  function handleCompanyClick(companyId) {
+  function handleCompanyClick(companyId, category) {
+    if (category) setPromoCat(new Set([category]))
     setPromoCompany(new Set([companyId]))
   }
 
@@ -1033,7 +1034,7 @@ export default function Promo() {
 
   function resetFilters() {
     setPromoCat(new Set()); setPromoCompany(new Set())
-    setPromoScope('mine'); setActsFilter('all')
+    setPromoScope('mine'); setActsFilter('all'); setTypeFilter('all')
   }
 
   // Broadcasts are always "regular", hide sub-filter for broadcast-only view
@@ -1144,9 +1145,9 @@ export default function Promo() {
               </div>
             ) : filtered.map((item, index) => {
               let card
-              if (item.kind === 'broadcast') card = <BroadcastCard key={item.id} item={item} onCategoryClick={handlePromoCat} onCompanyClick={handleCompanyClick} />
-              else if (item.kind === 'whisper') card = <WhisperCard key={item.id} item={item} myVote={whisperVotes.get(item.id) || null} onVote={voteWhisper} navigate={navigate} onCategoryClick={handlePromoCat} onCompanyClick={handleCompanyClick} onSourceClick={setExtUrl} />
-              else card = <PromoCard key={item.id} item={item} onCategoryClick={handlePromoCat} onCompanyClick={handleCompanyClick} onSourceClick={setExtUrl} />
+              if (item.kind === 'broadcast') card = <BroadcastCard key={item.id} item={item} onCategoryClick={handlePromoCat} onCompanyClick={(id) => handleCompanyClick(id, item.category)} />
+              else if (item.kind === 'whisper') card = <WhisperCard key={item.id} item={item} myVote={whisperVotes.get(item.id) || null} onVote={voteWhisper} navigate={navigate} onCategoryClick={handlePromoCat} onCompanyClick={(id) => handleCompanyClick(id, item.category)} onSourceClick={setExtUrl} />
+              else card = <PromoCard key={item.id} item={item} onCategoryClick={handlePromoCat} onCompanyClick={(id) => handleCompanyClick(id, item.category)} onSourceClick={setExtUrl} />
               return index === 0 ? <div key={item.id} id="sp-promo-card">{card}</div> : card
             })}
           </div>

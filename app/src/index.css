@@ -389,10 +389,9 @@ body.dark .fsel-option.active { background: var(--accent-green); border-color: v
 .filters-mode-row {
   display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
 }
-.filters-mode-row > .tab-group {
-  flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none;
+.filters-mode-row > .feed-mode-pills {
+  flex: 1; min-width: 0;
 }
-.filters-mode-row > .tab-group::-webkit-scrollbar { display: none; }
 .filters-mode-row .sort-wrap { flex-shrink: 0; }
 .cats-scroll {
   display: flex; align-items: center; gap: 6px;

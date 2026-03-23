@@ -13,6 +13,7 @@ const FEED_SPOTLIGHT = [
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
 
 const MODES = [
+  { id: null,            label: 'Все' },
   { id: 'subscriptions', label: 'Подписки' },
   { id: 'my-sets',       label: 'Мои наборы' },
   { id: 'liked',         label: 'Закладки' },
@@ -870,10 +871,10 @@ export default function Feed() {
           <div className="filters-block">
             {/* Row 1: modes + sort */}
             <div className="filters-mode-row">
-              <div className="tab-group">
+              <div className="cats-scroll feed-mode-pills">
                 {MODES.map(m => (
-                  <button key={m.id} className={`tab-btn${mode === m.id ? ' active' : ''}`}
-                    onClick={() => toggleMode(m.id)}>{m.label}</button>
+                  <button key={String(m.id)} className={`cat-pill${mode === m.id ? ' active' : ''}`}
+                    onClick={() => setMode(m.id)}>{m.label}</button>
                 ))}
               </div>
               <SortDropdown sort={sort} onSort={setSort} />
