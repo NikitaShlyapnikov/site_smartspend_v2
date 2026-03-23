@@ -565,10 +565,7 @@ function SmartSpendPromoChip() {
 
   return (
     <span className="author-chip-wrap" onMouseEnter={onEnter} onMouseLeave={onLeave} onClick={e => e.stopPropagation()}>
-      <button className="author-chip author-chip--ss">
-        <div className="author-avatar-sm" style={{ background: SS_PROMO.color }}>SS</div>
-        <span className="author-name-inline">{SS_PROMO.name}</span>
-      </button>
+      <button className="whisper-author">@smartspend</button>
       {showCard && (
         <div
           className="author-popover"

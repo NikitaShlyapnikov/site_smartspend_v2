@@ -96,12 +96,12 @@ function authorFromUsername(username) {
   return { name, initials, color: AUTHOR_COLORS[colorIdx], followers: 80 + (username.length * 17), articles: username.length % 6, sets: 3 + username.length % 9 }
 }
 
-function AuthorPopoverCard({ author, onMouseEnter, onMouseLeave, navigate }) {
+function AuthorPopoverCard({ author, onMouseEnter, onMouseLeave, navigate, style }) {
   const [following, setFollowing] = useState(false)
   const [followAnim, setFollowAnim] = useState(false)
   function handleFollow() { setFollowAnim(true); setTimeout(() => setFollowAnim(false), 450); setFollowing(f => !f) }
   return (
-    <div className="author-popover" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onClick={e => e.stopPropagation()}>
+    <div className="author-popover" style={style} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onClick={e => e.stopPropagation()}>
       <div className="ap-top">
         <div className="ap-avatar" style={{ background: author.color }}>{author.initials}</div>
         <button className={`ap-follow-btn${following ? ' following' : ''}${followAnim ? ' follow-pop' : ''}`} onClick={handleFollow}>
@@ -150,8 +150,10 @@ function AuthorBottomSheet({ author, onClose, navigate }) {
 function AuthorChip({ username, navigate }) {
   const [showCard, setShowCard] = useState(false)
   const [showSheet, setShowSheet] = useState(false)
+  const [popPos, setPopPos] = useState(null)
   const showTimer = useRef(null)
   const hideTimer = useRef(null)
+  const chipRef = useRef(null)
   const author = authorFromUsername(username)
   const isTouch = () => window.matchMedia('(hover: none)').matches
 
@@ -162,7 +164,13 @@ function AuthorChip({ username, navigate }) {
   function onEnter() {
     if (isTouch()) return
     clearTimeout(hideTimer.current)
-    showTimer.current = setTimeout(() => setShowCard(true), 350)
+    showTimer.current = setTimeout(() => {
+      if (chipRef.current) {
+        const r = chipRef.current.getBoundingClientRect()
+        setPopPos({ top: r.bottom + 8, left: r.left })
+      }
+      setShowCard(true)
+    }, 350)
   }
   function onLeave() {
     if (isTouch()) return
@@ -172,13 +180,15 @@ function AuthorChip({ username, navigate }) {
 
   return (
     <span className="author-chip-wrap" onMouseEnter={onEnter} onMouseLeave={onLeave}>
-      <button className="author-chip" onClick={handleClick}>
+      <button className="author-chip" ref={chipRef} onClick={handleClick}>
         <div className="author-avatar-sm" style={{ background: author.color }}>{author.initials}</div>
         <span className="author-name-inline">{author.name}</span>
       </button>
-      {showCard && (
+      {showCard && popPos && createPortal(
         <AuthorPopoverCard author={author} navigate={navigate}
-          onMouseEnter={() => clearTimeout(hideTimer.current)} onMouseLeave={onLeave} />
+          style={{ position: 'fixed', top: popPos.top, left: popPos.left }}
+          onMouseEnter={() => clearTimeout(hideTimer.current)} onMouseLeave={onLeave} />,
+        document.body
       )}
       {showSheet && <AuthorBottomSheet author={author} navigate={navigate} onClose={() => setShowSheet(false)} />}
     </span>
@@ -296,17 +306,25 @@ const SS_AUTHOR = { name: 'SmartSpend', initials: 'SS', color: '#4E8268', follow
 
 function SmartSpendChip() {
   const [showCard, setShowCard] = useState(false)
+  const [popPos, setPopPos] = useState(null)
   const [following, setFollowing] = useState(false)
   const [followAnim, setFollowAnim] = useState(false)
   const showTimer = useRef(null)
   const hideTimer = useRef(null)
+  const chipRef = useRef(null)
 
   const isTouch = () => window.matchMedia('(hover: none)').matches
 
   function onEnter() {
     if (isTouch()) return
     clearTimeout(hideTimer.current)
-    showTimer.current = setTimeout(() => setShowCard(true), 350)
+    showTimer.current = setTimeout(() => {
+      if (chipRef.current) {
+        const r = chipRef.current.getBoundingClientRect()
+        setPopPos({ top: r.bottom + 8, left: r.left })
+      }
+      setShowCard(true)
+    }, 350)
   }
   function onLeave() {
     if (isTouch()) return
@@ -317,12 +335,18 @@ function SmartSpendChip() {
 
   return (
     <span className="author-chip-wrap" onMouseEnter={onEnter} onMouseLeave={onLeave}>
-      <button className="author-chip" onClick={e => e.stopPropagation()}>
+      <button className="author-chip" ref={chipRef} onClick={e => e.stopPropagation()}>
         <div className="author-avatar-sm" style={{ background: SS_AUTHOR.color, fontSize: 9, fontWeight: 700 }}>SS</div>
         <span className="author-name-inline">SmartSpend</span>
       </button>
-      {showCard && (
-        <div className="author-popover" onMouseEnter={() => clearTimeout(hideTimer.current)} onMouseLeave={onLeave} onClick={e => e.stopPropagation()}>
+      {showCard && popPos && createPortal(
+        <div
+          className="author-popover"
+          style={{ position: 'fixed', top: popPos.top, left: popPos.left }}
+          onMouseEnter={() => clearTimeout(hideTimer.current)}
+          onMouseLeave={onLeave}
+          onClick={e => e.stopPropagation()}
+        >
           <div className="ap-top">
             <div className="ap-avatar" style={{ background: SS_AUTHOR.color, fontSize: 13, fontWeight: 700 }}>SS</div>
             <button className={`ap-follow-btn${following ? ' following' : ''}${followAnim ? ' follow-pop' : ''}`} onClick={handleFollow}>
@@ -334,7 +358,8 @@ function SmartSpendChip() {
             {SS_AUTHOR.followers.toLocaleString('ru')} подписчиков · {SS_AUTHOR.sets} наборов · {SS_AUTHOR.articles} статей
           </div>
           {SS_AUTHOR.desc && <p className="ap-desc">{SS_AUTHOR.desc}</p>}
-        </div>
+        </div>,
+        document.body
       )}
     </span>
   )
