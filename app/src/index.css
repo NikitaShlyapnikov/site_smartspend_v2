@@ -4148,21 +4148,24 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
 
 /* Article meta row (feed-style) */
 .art-meta-row {
-  display: flex; align-items: center; gap: 4px;
+  display: flex; align-items: center; gap: 2px; flex-wrap: nowrap;
   margin-top: 20px; padding-top: 16px;
   border-top: 1px solid var(--border);
+  overflow: hidden;
+}
+.art-meta-sep {
+  width: 1px; height: 14px; background: var(--border);
+  flex-shrink: 0; margin: 0 4px;
 }
 /* More contrast than feed defaults */
 .art-meta-row .fa-action-btn { color: var(--text-2); }
 .art-meta-row .fa-action-btn svg { opacity: 0.65; }
 .art-meta-row .fa-action-stat { color: var(--text-2); }
 .art-meta-row .fa-action-stat svg { opacity: 0.55; }
-.art-meta-row .fa-time { font-size: 12px; color: var(--text-2); }
-
-.art-actions-row {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  margin-top: 14px;
-}
+.art-meta-row .fa-time { font-size: 12px; color: var(--text-2); white-space: nowrap; flex-shrink: 0; padding: 0 4px; }
+.art-meta-row .art-add-set-btn { white-space: nowrap; flex-shrink: 0; }
+.art-meta-row .art-delete-btn:hover { color: #B85555; }
+.art-meta-row .art-delete-btn:hover svg { opacity: 0.9; }
 
 /* Article emoji reactions row */
 .art-reactions-label {
@@ -7299,15 +7302,16 @@ body.dark .whisper-add-cta:hover { background: rgba(106,175,142,.08); }
   white-space: nowrap;
 }
 .wh-new      { background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border); }
-.wh-hot      { background: #FFF0E0; color: #C05010; border: 1px solid #FFDDB8; }
-.wh-works    { background: #E8F5EE; color: #3A7A56; border: 1px solid #B8DEC8; }
-.wh-question { background: #FFF8E0; color: #8A6A10; border: 1px solid #F0DCA0; }
+.wh-hot      { background: #FEF5EC; color: #A86030; border: 1px solid #EDD8C0; }
+.wh-works    { background: #EEF7F2; color: #4A7A60; border: 1px solid #C8E0D4; }
+.wh-question { background: #FEFBEE; color: #8A7030; border: 1px solid #EAE0B0; }
 .wh-stale    { background: var(--surface-2); color: var(--text-3); border: 1px solid var(--border); text-decoration: line-through; }
-body.dark .wh-hot      { background: #3A2010; color: #FFAA60; border-color: #5A3818; }
-body.dark .wh-works    { background: #0E2A1A; color: #6AAF8E; border-color: #1E4A30; }
-body.dark .wh-question { background: #2A2208; color: #C8A830; border-color: #4A3C10; }
+body.dark .wh-hot      { background: rgba(80,40,10,0.3); color: #D09060; border-color: rgba(140,80,20,0.3); }
+body.dark .wh-works    { background: rgba(20,50,30,0.3); color: #7AAF90; border-color: rgba(40,90,55,0.3); }
+body.dark .wh-question { background: rgba(50,40,8,0.3); color: #C8A850; border-color: rgba(100,80,15,0.3); }
 
 .whisper-title { font-size: 15px; font-weight: 600; line-height: 1.4; color: var(--text); letter-spacing: -0.01em; }
+.whisper-desc { font-size: 13px; color: var(--text-2); line-height: 1.55; margin-top: -2px; }
 
 .whisper-code-row { display: flex; align-items: center; gap: 8px; }
 .whisper-code {
@@ -7328,10 +7332,10 @@ body.dark .wh-question { background: #2A2208; color: #C8A830; border-color: #4A3
   border-radius: 10px; white-space: nowrap;
   animation: wvt-in 0.18s ease, wvt-out 0.3s ease 1.6s forwards;
 }
-.wvt-works { background: #E8F5EE; color: #3A7A56; }
-.wvt-not   { background: #FBE8E8; color: #A03030; }
-body.dark .wvt-works { background: #0E2A1A; color: #6AAF8E; }
-body.dark .wvt-not   { background: #2A0E0E; color: #C86060; }
+.wvt-works { background: #EEF6F2; color: #4A7A60; }
+.wvt-not   { background: #F8EDED; color: #906060; }
+body.dark .wvt-works { background: rgba(20,50,30,0.4); color: #7AAF90; }
+body.dark .wvt-not   { background: rgba(50,20,20,0.4); color: #C07070; }
 @keyframes wvt-in  { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
 @keyframes wvt-out { from { opacity: 1; } to { opacity: 0; } }
 /* Whisper vote buttons inherit fa-action-btn, add color states */
@@ -7345,6 +7349,52 @@ body.dark .wvb-not.fa-action-btn.active { color: #E07070; }
 body.dark .wvb-not.fa-action-btn.active svg { fill: #E07070; stroke: #E07070; }
 .wv-comments-open { color: var(--accent-green); }
 .wv-comments-open svg { opacity: 0.9; }
+
+/* Vote button animations */
+@keyframes wvWorksPop {
+  0%   { transform: scale(1) translateY(0); }
+  28%  { transform: scale(1.3) translateY(-5px); }
+  58%  { transform: scale(0.9) translateY(1px); }
+  82%  { transform: scale(1.08) translateY(-1px); }
+  100% { transform: scale(1) translateY(0); }
+}
+@keyframes wvNotShake {
+  0%,100% { transform: translateX(0) rotate(0deg); }
+  18%  { transform: translateX(-5px) rotate(-4deg); }
+  36%  { transform: translateX(5px) rotate(4deg); }
+  54%  { transform: translateX(-4px) rotate(-3deg); }
+  72%  { transform: translateX(4px) rotate(3deg); }
+  88%  { transform: translateX(-2px) rotate(-1deg); }
+}
+.wv-works-pop  { animation: wvWorksPop 0.48s cubic-bezier(0.36,0.07,0.19,0.97); }
+.wv-not-shake  { animation: wvNotShake 0.4s ease; }
+
+/* History stripe appear animation */
+@keyframes stripeIn {
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
+}
+.wvh-mine { animation: stripeIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both; transform-origin: left center; }
+
+/* Card mood tints */
+.whisper-card--works {
+  border-color: rgba(180,148,72,0.4);
+  background: rgba(255,250,235,0.6);
+  transition: border-color 0.4s, background 0.4s;
+}
+.whisper-card--not {
+  border-color: rgba(150,160,175,0.4);
+  background: rgba(240,242,246,0.6);
+  transition: border-color 0.4s, background 0.4s;
+}
+body.dark .whisper-card--works {
+  border-color: rgba(176,136,64,0.35);
+  background: rgba(40,32,8,0.5);
+}
+body.dark .whisper-card--not {
+  border-color: rgba(90,100,120,0.35);
+  background: rgba(18,22,32,0.5);
+}
 
 .whisper-history {
   display: flex; gap: 2px; height: 18px; align-items: stretch;

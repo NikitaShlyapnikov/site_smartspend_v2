@@ -1125,6 +1125,7 @@ export const whisperItems = [
   {
     id: 'wh-1', companyId: 'c-magnit', category: 'food',
     title: 'Скидка 15% при оплате через СБП в приложении Магнит',
+    desc: 'Работает только в приложении, не в браузере. Раздел «Акции» → «Оплата СБП». Кешбэк приходит в течение суток.',
     code: null, expires: '31 марта',
     addedBy: 'marina_kz', addedAt: Date.now() - 2 * 3600000,
     history: ['w','w','w','w','w','w','w','n','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','w','w','w','w','w','w','w','w','n','w','w'],
@@ -1132,9 +1133,9 @@ export const whisperItems = [
   {
     id: 'wh-2', companyId: 'c-wb', category: 'clothes',
     title: '500 ₽ скидка на первый заказ по промокоду',
+    desc: 'Только для новых аккаунтов. Вводить при оформлении, поле «Промокод». Не суммируется с другими акциями.',
     code: 'WB500NEW', expires: '30 апр',
     addedBy: 'shopper_pro', addedAt: Date.now() - 5 * 3600000,
-    // работало стабильно, потом пошли сбои
     history: ['w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','w','n','n','n','w','n','n','w','n','n'],
   },
   {
@@ -1142,15 +1143,14 @@ export const whisperItems = [
     title: 'Бесплатная доставка на любую сумму',
     code: 'DODOFREE', expires: '15 апр',
     addedBy: 'pizza_fan', addedAt: Date.now() - 24 * 3600000,
-    // сначала работало, потом сломалось
     history: ['w','w','w','w','w','w','w','w','w','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n'],
   },
   {
     id: 'wh-4', companyId: 'c-yandex-go', category: 'transport',
     title: '200 ₽ на первые три поездки в Яндекс Go',
+    desc: 'Применяется автоматически при первом запуске. Убедись что приложение обновлено — в старых версиях не работает.',
     code: 'GO200', expires: null,
     addedBy: 'taxi_saver', addedAt: Date.now() - 3 * 86400000,
-    // почти всегда работает
     history: ['w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','n'],
   },
   {
@@ -1170,14 +1170,15 @@ export const whisperItems = [
   {
     id: 'wh-7', companyId: 'c-netflix', category: 'leisure',
     title: 'Первые 30 дней бесплатно при оплате через T-Pay',
+    desc: 'По отзывам — с начала марта перестало работать. Несколько человек подтвердили отказ.',
     code: null, expires: '30 апр',
     addedBy: 'stream_fan', addedAt: Date.now() - 12 * 3600000,
-    // работало, потом не работает — явный паттерн слома
     history: ['w','w','w','w','w','w','w','w','w','w','w','n','n','w','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n'],
   },
   {
     id: 'wh-8', companyId: 'c-ozon', category: 'clothes',
     title: '10% кешбэк монетами в первые 3 дня после регистрации',
+    desc: 'Монеты начисляются в течение 3–5 дней после первого заказа. Можно тратить частями при оплате.',
     code: 'OZON10START', expires: null,
     addedBy: 'deal_hunter', addedAt: Date.now() - 4 * 3600000,
     history: ['w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','w'],
@@ -1185,8 +1186,8 @@ export const whisperItems = [
   {
     id: 'wh-9', companyId: 'c-kfc', category: 'cafe',
     title: 'Бесплатное ведро при заказе от 999 ₽ по пятницам',
+    desc: 'Акция была в феврале. Судя по отзывам, в марте уже не работает — проверьте перед походом.',
     code: null, expires: '28 марта',
-    // почти полностью не работает
     history: ['w','w','w','n','n','n','w','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n'],
   },
   {
@@ -1206,6 +1207,7 @@ export const whisperItems = [
   {
     id: 'wh-12', companyId: 'c-skillbox', category: 'education',
     title: 'Рассрочка 0% на все курсы до конца марта',
+    desc: 'Рассрочка через Т-Банк или СберПэй. Переплат нет, но нужна проверка кредитной истории при оформлении.',
     code: 'SKILL0', expires: '31 марта',
     addedBy: 'edu_hunter', addedAt: Date.now() - 2 * 86400000,
     history: ['w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','w'],

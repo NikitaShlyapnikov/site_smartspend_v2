@@ -270,16 +270,21 @@ function WhisperCard({ item, myVote, onVote, navigate }) {
   const [showComments, setShowComments] = useState(false)
   const [comments,     setComments]     = useState(item.comments || [])
   const [commentText,  setCommentText]  = useState('')
+  const [worksAnim,    setWorksAnim]    = useState(false)
+  const [notAnim,      setNotAnim]      = useState(false)
   const toastTimer = useRef(null)
 
   const displayHistory = myVote ? [...item.history, myVote === 'works' ? 'w' : 'n'] : item.history
   const works    = displayHistory.filter(v => v === 'w').length
   const notWorks = displayHistory.filter(v => v === 'n').length
+  const cardMood = myVote === 'works' ? 'works' : myVote === 'not' ? 'not' : null
 
   function handleVote(vote) {
     const isToggleOff = myVote === vote
     onVote(item.id, vote)
     if (!isToggleOff) {
+      if (vote === 'works') { setWorksAnim(true); setTimeout(() => setWorksAnim(false), 480) }
+      else                  { setNotAnim(true);   setTimeout(() => setNotAnim(false), 420) }
       setVoteToast(vote)
       clearTimeout(toastTimer.current)
       toastTimer.current = setTimeout(() => setVoteToast(null), 2000)
@@ -294,7 +299,7 @@ function WhisperCard({ item, myVote, onVote, navigate }) {
   }
 
   return (
-    <div className="whisper-card">
+    <div className={`whisper-card${cardMood ? ` whisper-card--${cardMood}` : ''}`}>
       <div className="pc-header">
         <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
         <div className="whisper-company-info">
@@ -311,6 +316,7 @@ function WhisperCard({ item, myVote, onVote, navigate }) {
       </div>
 
       <div className="whisper-title">{item.title}</div>
+      {item.desc && <div className="whisper-desc">{item.desc.slice(0, 140)}</div>}
 
       {item.code && (
         <div className="whisper-code-row">
@@ -327,10 +333,16 @@ function WhisperCard({ item, myVote, onVote, navigate }) {
 
       {displayHistory.length > 0 && (
         <div className="whisper-history">
-          {displayHistory.slice(-40).map((v, i) => (
-            <div key={i} className={`wvh-stripe${i === displayHistory.length - 1 && myVote ? ' wvh-mine' : ''}`}
-              style={{ background: v === 'w' ? '#5E9478' : '#B85555' }} />
-          ))}
+          {displayHistory.slice(-40).map((v, i) => {
+            const isMine = i === displayHistory.length - 1 && !!myVote
+            return (
+              <div
+                key={isMine ? `mine-${myVote}` : i}
+                className={`wvh-stripe${isMine ? ' wvh-mine' : ''}`}
+                style={{ background: v === 'w' ? '#8EBA9E' : '#C89090' }}
+              />
+            )
+          })}
         </div>
       )}
 
@@ -339,14 +351,14 @@ function WhisperCard({ item, myVote, onVote, navigate }) {
       )}
 
       <div className="fa-bottom whisper-actions">
-        <button className={`fa-action-btn wvb-works${myVote === 'works' ? ' active' : ''}`} onClick={() => handleVote('works')}>
+        <button className={`fa-action-btn wvb-works${myVote === 'works' ? ' active' : ''}${worksAnim ? ' wv-works-pop' : ''}`} onClick={() => handleVote('works')}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill={myVote === 'works' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
             <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
           </svg>
           Работает{works > 0 ? ` · ${works}` : ''}
         </button>
-        <button className={`fa-action-btn wvb-not${myVote === 'not' ? ' active' : ''}`} onClick={() => handleVote('not')}>
+        <button className={`fa-action-btn wvb-not${myVote === 'not' ? ' active' : ''}${notAnim ? ' wv-not-shake' : ''}`} onClick={() => handleVote('not')}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill={myVote === 'not' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
             <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>

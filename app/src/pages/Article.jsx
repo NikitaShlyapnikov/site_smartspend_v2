@@ -502,8 +502,10 @@ export default function Article() {
             <div className="hero-desc">{article.preview}</div>
 
             <div className="art-meta-row">
+              <span className="fa-time">{article.date}{article.readTime ? ` · ${article.readTime} мин` : ''}</span>
+              <div className="art-meta-sep" />
               <div className="fa-action-stat">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                 </svg>
                 {fmtNum(article.views)}
@@ -511,7 +513,7 @@ export default function Article() {
               <ArticleLikeBtn liked={liked} count={article.likes + (liked ? 1 : 0)} onToggle={toggleLike} />
               {article.comments?.length > 0 && (
                 <button className="fa-action-stat fa-action-stat--btn" onClick={() => commentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                   </svg>
                   {article.comments.length}
@@ -520,31 +522,25 @@ export default function Article() {
               <ArticleDislikeBtn disliked={disliked} onToggle={toggleDislike} />
               <ArticleBookmarkBtn bookmarked={bookmarked} onToggle={() => setBookmarked(b => !b)} />
               <div className="f-spacer" />
-              <span className="fa-time">{article.date}{article.readTime ? ` · ${article.readTime} мин` : ''}</span>
-            </div>
-
-            <div className="art-actions-row">
-              <button className="btn-secondary art-add-set-btn" onClick={() => setShowAddToSet(true)}>
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <button className="fa-action-btn art-add-set-btn" onClick={() => setShowAddToSet(true)} title="Добавить к набору">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                   <circle cx="19" cy="19" r="3.5" fill="var(--surface)" stroke="currentColor" strokeWidth="2"/>
                   <path d="M19 17.5v3M17.5 19h3"/>
                 </svg>
-                Добавить к набору
+                К набору
               </button>
               {isMine && (
                 <>
-                  <button className="btn-secondary" onClick={handleEditArticle}>
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <button className="fa-action-btn" onClick={handleEditArticle} title="Редактировать">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
                     </svg>
-                    Редактировать
                   </button>
-                  <button className="btn-secondary btn-author-delete" onClick={() => setConfirmDelete(true)}>
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <button className="fa-action-btn art-delete-btn" onClick={() => setConfirmDelete(true)} title="Удалить">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
                     </svg>
-                    Удалить
                   </button>
                 </>
               )}
