@@ -1129,6 +1129,11 @@ export const whisperItems = [
     code: null, expires: '31 марта',
     addedBy: 'marina_kz', addedAt: Date.now() - 2 * 3600000,
     history: ['w','w','w','w','w','w','w','n','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','w','w','w','w','w','w','w','w','n','w','w'],
+    comments: [
+      { author: 'marina_kz',   text: 'Проверила — всё работает, кешбэк пришёл через 4 часа', ts: Date.now() - 90 * 60000, likes: 12, dislikes: 0 },
+      { author: 'pokupatel99',  text: 'У меня не сработало — сказали акция только для новых пользователей приложения', ts: Date.now() - 60 * 60000, likes: 3, dislikes: 1 },
+      { author: 'ivan_sav',     text: 'Помогло обновить приложение до последней версии, после этого всё заработало', ts: Date.now() - 30 * 60000, likes: 7, dislikes: 0 },
+    ],
   },
   {
     id: 'wh-2', companyId: 'c-wb', category: 'clothes',
@@ -1137,6 +1142,11 @@ export const whisperItems = [
     code: 'WB500NEW', expires: '30 апр', promo_filter: 'new_clients',
     addedBy: 'shopper_pro', addedAt: Date.now() - 5 * 3600000,
     history: ['w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','w','n','n','n','w','n','n','w','n','n'],
+    comments: [
+      { author: 'shopper_pro', text: 'Добавил промокод и скидка применилась сразу, никаких проблем', ts: Date.now() - 4 * 3600000, likes: 15, dislikes: 0 },
+      { author: 'new_wb_user', text: 'Не работает если раньше делал заказы через приложение жены на этом телефоне', ts: Date.now() - 2 * 3600000, likes: 8, dislikes: 0 },
+      { author: 'olesya_m',   text: 'Скидка применяется только если сумма заказа от 1000 ₽', ts: Date.now() - 40 * 60000, likes: 5, dislikes: 0 },
+    ],
   },
   {
     id: 'wh-3', companyId: 'c-dodo', category: 'cafe',
@@ -1152,6 +1162,10 @@ export const whisperItems = [
     code: 'GO200', expires: null, promo_filter: 'new_clients',
     addedBy: 'taxi_saver', addedAt: Date.now() - 3 * 86400000,
     history: ['w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','n'],
+    comments: [
+      { author: 'taxi_saver',   text: 'Подтверждаю — первые три поездки со скидкой, всё честно', ts: Date.now() - 2 * 86400000, likes: 20, dislikes: 1 },
+      { author: 'driver_user',  text: 'Важно: скидка только на эконом-класс, на комфорт+ не распространяется', ts: Date.now() - 1 * 86400000, likes: 11, dislikes: 0 },
+    ],
   },
   {
     id: 'wh-5', companyId: 'c-skyeng', category: 'education',
@@ -1166,6 +1180,11 @@ export const whisperItems = [
     code: null, expires: null,
     addedBy: 'economy_life', addedAt: Date.now() - 6 * 3600000,
     history: ['w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w','w','w','w','w','w','w','w','n','w','w','w','w','w','w','w','w','w','w','w','w'],
+    comments: [
+      { author: 'economy_life', text: 'Специально хожу за продуктами по четвергам — реально выгодно', ts: Date.now() - 5 * 3600000, likes: 9, dislikes: 0 },
+      { author: 'lenta_fan',    text: 'Скидка не на все товары — алкоголь и табак не входят', ts: Date.now() - 3 * 3600000, likes: 14, dislikes: 0 },
+      { author: 'saver_pro',    text: 'Карту можно оформить прямо на кассе, занимает 2 минуты', ts: Date.now() - 1 * 3600000, likes: 5, dislikes: 0 },
+    ],
   },
   {
     id: 'wh-7', companyId: 'c-netflix', category: 'leisure',
@@ -1196,6 +1215,10 @@ export const whisperItems = [
     code: null, expires: '31 марта', promo_filter: 'referral',
     addedBy: 'sber_bonus', addedAt: Date.now() - 30 * 60000,
     history: ['w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','w','n','w','w'],
+    comments: [
+      { author: 'sber_bonus',    text: 'Другу уже начислили бонусы, всё честно и без задержек', ts: Date.now() - 20 * 60000, likes: 6, dislikes: 0 },
+      { author: 'cashback_fan',  text: 'Двойной кешбэк приходит в течение 3 дней после того как друг сделал первую покупку', ts: Date.now() - 10 * 60000, likes: 4, dislikes: 0 },
+    ],
   },
   {
     id: 'wh-11', companyId: 'c-letual', category: 'health',

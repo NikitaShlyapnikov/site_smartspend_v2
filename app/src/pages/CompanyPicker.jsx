@@ -301,7 +301,7 @@ function Summary({ selected, onFinish, onBack }) {
 
       <div className="cpicker-actions">
         <button className="cpicker-btn-back" onClick={onBack}>Назад</button>
-        <button className="cpicker-btn-next" onClick={onFinish}>В ленту</button>
+        <button className="cpicker-btn-next" onClick={onFinish}>В промо</button>
       </div>
     </div>
   )

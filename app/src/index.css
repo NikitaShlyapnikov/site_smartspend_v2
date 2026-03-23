@@ -281,6 +281,8 @@ body.dark .tab-btn.active { background: var(--surface-3); border-color: var(--bo
 .cat-pill:hover { background: var(--surface-2); color: var(--text); }
 .cat-pill.active { background: var(--text); color: var(--surface); border-color: var(--text); }
 .cat-pill.empty { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+.cat-pill--edit { display: inline-flex; align-items: center; gap: 5px; color: var(--accent-green); border-color: var(--accent-green); }
+.cat-pill--edit:hover { background: rgba(78,130,104,0.08); color: var(--accent-green); }
 body.dark .cat-pill.active { background: var(--accent-green); border-color: var(--accent-green); color: #fff; }
 
 /* ── FILTER SELECT ── */
@@ -7348,7 +7350,8 @@ body.dark .whisper-add-cta:hover { background: rgba(106,175,142,.08); }
 .whisper-co-block .promo-co-btn { flex: unset; align-self: flex-start; }
 .whisper-company-info { flex: 1; min-width: 0; }
 .whisper-company-name { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.whisper-meta { font-size: 12px; color: var(--text-3); margin-top: 2px; padding-left: 46px; }
+.whisper-meta { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.whisper-co-block .whisper-meta { padding-left: 46px; }
 
 .whisper-badge {
   flex-shrink: 0; font-size: 11px; font-weight: 600;
@@ -7481,7 +7484,6 @@ body.dark .whisper-card--not {
 
 .whisper-comments {
   margin-top: 8px; padding-top: 8px;
-  border-top: 1px solid var(--border);
   display: flex; flex-direction: column; gap: 6px;
 }
 .whisper-comment {
