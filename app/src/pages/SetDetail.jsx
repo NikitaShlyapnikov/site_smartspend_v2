@@ -69,6 +69,13 @@ const SD_SPOTLIGHT = [
   { targetId: 'sp-sd-calc',  btnId: null,           title: 'Как считается сумма?', desc: 'Вещи: цена × кол-во ÷ (срок_лет × 12) = ₽/мес — это ежемесячная амортизация. Расходники: стоимость партии ÷ месяцев между закупками = ₽/мес. «Общая стоимость» — итого за одну закупку.' },
 ]
 
+const SD_PERSONAL_SPOTLIGHT = [
+  { targetId: 'sp-sd-hero',         btnId: null, title: 'Личный набор',         desc: 'Это твой личный набор. Здесь нет публичных оценок и комментариев — только твои данные. Ставь на паузу или удаляй набор через кнопки слева.' },
+  { targetId: 'sp-sd-items',        btnId: null, title: 'Состав и редактирование', desc: 'Нажми «Редактировать», чтобы изменить количество позиций в граммах и мл, скорректировать цены или сроки службы.' },
+  { targetId: 'sp-sd-personal-arts', btnId: null, title: 'Статьи к набору',     desc: 'Прикрепляй статьи, которые вдохновили этот набор: свои или из ленты. Нажми «Написать», чтобы создать новую.' },
+  { targetId: 'sp-sd-personal-notes', btnId: null, title: 'Заметки',            desc: 'Записывай мысли, наблюдения или напоминания прямо в карточке набора — они сохраняются только у тебя.' },
+]
+
 // Category → envelope category (Profile)
 const CAT_TO_ENV = {
   clothes: 'clothes', food: 'food', home: 'home',
@@ -184,7 +191,7 @@ function AddInventoryBtn({ added, onAdd, onRemove }) {
             <svg className="sd-inv-icon" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            Используется
+            В профиле
           </>
         ) : (
           <>
@@ -289,6 +296,7 @@ export default function SetDetail() {
     if (!disliked) setLiked(false)
   }
   const [showSpotlight, setShowSpotlight] = useState(false)
+  const [showPersonalSpotlight, setShowPersonalSpotlight] = useState(false)
   const [editMode, setEditMode]   = useState(false)
   const [scale, setScaleRaw]      = useState(1.0)
   const [artSort, setArtSort]     = useState('author')
@@ -526,6 +534,17 @@ export default function SetDetail() {
   function chQty(itemId, delta) {
     setItems(prev => prev.map(i => i.id === itemId ? { ...i, qty: Math.max(0, i.qty + delta) } : i))
   }
+  // Personal edit: qty shown in g/ml, changes baked into item.qty
+  function chQtyPersonal(itemId, dir, unit) {
+    const step = (unit === 'кг' || unit === 'л') ? 10 : 1
+    setItems(prev => prev.map(i => {
+      if (i.id !== itemId) return i
+      const factor = (i.unit === 'кг' || i.unit === 'л') ? 1000 : 1
+      const currentDisplay = i.qty * factor
+      const newDisplay = Math.max(0, currentDisplay + dir * step)
+      return { ...i, qty: Math.round(newDisplay / factor * 1000) / 1000 }
+    }))
+  }
   function chPrice(itemId, v) {
     const n = parseFloat(v)
     if (!isNaN(n) && n >= 0) {
@@ -551,7 +570,7 @@ export default function SetDetail() {
     </PublicLayout>
   )
 
-  const isPersonal = added && new URLSearchParams(location.search).get('public') !== '1'
+  const isPersonal = location.state?.fromProfile === true
   const fromCatalog = isPersonal && (set?.source === 'ss' || set?.source === 'community')
 
   const tableItems   = items.length > 0 ? items : null
@@ -616,7 +635,10 @@ export default function SetDetail() {
             </>
           )}
           <span className="breadcrumb-current">{set.title}</span>
-          {!isPersonal && <HelpButton seenKey="ss_spl_setdetail" onOpen={() => setShowSpotlight(true)} />}
+          {isPersonal
+            ? <HelpButton seenKey="ss_spl_setdetail_personal" onOpen={() => setShowPersonalSpotlight(true)} />
+            : <HelpButton seenKey="ss_spl_setdetail" onOpen={() => setShowSpotlight(true)} />
+          }
         </div>
 
         {/* ── HERO CARD ── */}
@@ -627,6 +649,26 @@ export default function SetDetail() {
 
             {/* Meta + actions row */}
             <div className="art-meta-row">
+              {isPersonal && (
+                <div className="sd-personal-actions">
+                  <button
+                    className={`sd-personal-state${envPaused ? ' paused' : ''}`}
+                    onClick={toggleEnvPause}
+                    title={envPaused ? 'Запустить набор' : 'Поставить на паузу'}
+                  >
+                    {envPaused ? (
+                      <><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Запустить</>
+                    ) : (
+                      <><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> На паузу</>
+                    )}
+                  </button>
+                  <button className="sd-personal-delete" onClick={() => { setDeleteConfirmText(''); setShowDeleteModal(true) }} title="Удалить набор из профиля">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+                    </svg>
+                  </button>
+                </div>
+              )}
               {!isPersonal && set.added && <span className="fa-time">{fmtDate(set.added)}</span>}
               {!isPersonal && set.users != null && (
                 <><div className="art-meta-sep" />
@@ -661,37 +703,8 @@ export default function SetDetail() {
               )}
               {!isPersonal && <DislikeBtn disliked={disliked} onToggle={toggleDislike} />}
               {!isPersonal && <BookmarkBtn bookmarked={bookmarked} onToggle={() => setBookmarked(b => !b)} />}
-              {!isDefault && (
-                <span className="sd-modified-badge">
-                  <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                  </svg>
-                  Под меня
-                </span>
-              )}
               <div className="f-spacer" />
-              {isPersonal ? (
-                <div className="sd-personal-actions">
-                  <button
-                    className={`sd-personal-state${envPaused ? ' paused' : ''}`}
-                    onClick={toggleEnvPause}
-                    title={envPaused ? 'Запустить набор' : 'Поставить на паузу'}
-                  >
-                    {envPaused ? (
-                      <><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Запустить</>
-                    ) : (
-                      <><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> На паузу</>
-                    )}
-                  </button>
-                  <button className="sd-personal-delete" onClick={() => { setDeleteConfirmText(''); setShowDeleteModal(true) }} title="Удалить набор из профиля">
-                    <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
-                    </svg>
-                  </button>
-                </div>
-              ) : (
-                <AddInventoryBtn added={added} onAdd={handleAdd} onRemove={handleRemove} />
-              )}
+              {!isPersonal && <AddInventoryBtn added={added} onAdd={handleAdd} onRemove={handleRemove} />}
             </div>
           </div>
 
@@ -760,7 +773,14 @@ export default function SetDetail() {
                   </button>
                 )}
                 <button className={`sd-btn-sm${editMode ? ' active' : ''}`}
-                  onClick={() => setEditMode(m => !m)}>
+                  onClick={() => {
+                    if (!editMode && isPersonal && scale !== 1.0) {
+                      // Bake current scale into item quantities before editing
+                      setItems(prev => prev.map(i => ({ ...i, qty: Math.round(i.qty * scale * 1000) / 1000 })))
+                      setScaleRaw(1.0)
+                    }
+                    setEditMode(m => !m)
+                  }}>
                   {editMode ? (
                     <><svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Готово</>
                   ) : (
@@ -770,8 +790,8 @@ export default function SetDetail() {
               </div>
             </div>
 
-            {/* Scale stepper — visible only in edit mode */}
-            {editMode && (
+            {/* Scale stepper — visible only in edit mode (not personal, where qty is edited directly) */}
+            {editMode && !isPersonal && (
               <div className="sd-scale-row">
                 <div>
                   <div className="sd-scale-title">Масштаб набора</div>
@@ -815,14 +835,30 @@ export default function SetDetail() {
                   else { displayQty = parseFloat(rawScaled.toFixed(2)); displayUnit = item.unit }
 
                   if (editMode) {
+                    const editDisplayQty = isPersonal
+                      ? (item.unit === 'кг' || item.unit === 'л') ? Math.round(item.qty * 1000) : item.qty
+                      : item.qty
+                    const editDisplayUnit = isPersonal
+                      ? item.unit === 'кг' ? 'г' : item.unit === 'л' ? 'мл' : item.unit
+                      : item.unit
                     return (
                       <tr key={`${item.id}-e-${scale}`}>
                         <td><div className="sd-item-name">{item.name}</div></td>
                         <td>
                           <div className="sd-qty-ctrl">
-                            <button className="sd-qty-btn" onClick={() => chQty(item.id, -1)}>−</button>
-                            <span className="sd-qty-n">{item.qty}&thinsp;{item.unit}</span>
-                            <button className="sd-qty-btn" onClick={() => chQty(item.id, +1)}>+</button>
+                            {isPersonal ? (
+                              <>
+                                <button className="sd-qty-btn" onClick={() => chQtyPersonal(item.id, -1, item.unit)}>−</button>
+                                <span className="sd-qty-n">{editDisplayQty.toLocaleString('ru')}&thinsp;{editDisplayUnit}</span>
+                                <button className="sd-qty-btn" onClick={() => chQtyPersonal(item.id, +1, item.unit)}>+</button>
+                              </>
+                            ) : (
+                              <>
+                                <button className="sd-qty-btn" onClick={() => chQty(item.id, -1)}>−</button>
+                                <span className="sd-qty-n">{item.qty}&thinsp;{item.unit}</span>
+                                <button className="sd-qty-btn" onClick={() => chQty(item.id, +1)}>+</button>
+                              </>
+                            )}
                           </div>
                         </td>
                         <td>
@@ -918,7 +954,7 @@ export default function SetDetail() {
         {isPersonal ? (
           <>
           {/* Personal articles first */}
-          <div className="sd-section-card">
+          <div id="sp-sd-personal-arts" className="sd-section-card">
             <div className="sd-section-header">
               <div className="sd-section-title">
                 Статьи
@@ -953,7 +989,7 @@ export default function SetDetail() {
             )}
           </div>
           {/* Notes second */}
-          <div className="sd-section-card">
+          <div id="sp-sd-personal-notes" className="sd-section-card">
             <div className="sd-section-header">
               <div className="sd-section-title">
                 Заметки
@@ -1226,6 +1262,7 @@ export default function SetDetail() {
         )}
 
       {showSpotlight && <SpotlightTour steps={SD_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
+      {showPersonalSpotlight && <SpotlightTour steps={SD_PERSONAL_SPOTLIGHT} onClose={() => setShowPersonalSpotlight(false)} />}
       </main>
     </PublicLayout>
   )

@@ -1032,7 +1032,7 @@ export default function Profile() {
                           set={set}
                           editMode={editMode}
                           onDelete={() => deleteSet(cat.id, idx)}
-                          onOpen={() => navigate(`/set/${set.id}`)}
+                          onOpen={() => navigate(`/set/${set.id}`, { state: { fromProfile: true } })}
                           onPause={() => togglePauseSet(cat.id, idx)}
                         />
                       ))}
