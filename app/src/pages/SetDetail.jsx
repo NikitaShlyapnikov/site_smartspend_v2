@@ -32,7 +32,7 @@ function EmojiPicker({ onPick, onClose }) {
 }
 
 const SD_SPOTLIGHT = [
-  { targetId: 'sp-sd-hero',  btnId: 'sp-sd-add',   title: 'Карточка набора',      desc: 'Здесь — название, описание и ключевые показатели набора. Кнопка «В профиль» сохранит набор в твой инвентарь.' },
+  { targetId: 'sp-sd-hero',  btnId: 'sp-sd-add',   title: 'Карточка набора',      desc: 'Здесь — название, описание и ключевые показатели набора. Кнопка «В инвентарь» добавит позиции в твой инвентарь.' },
   { targetId: 'sp-sd-items', btnId: null,           title: 'Состав набора',        desc: 'Список позиций. Нажми «Редактировать» — появится масштаб, позволяющий адаптировать набор под свои нужды (например, ×2 для двух человек).' },
   { targetId: 'sp-sd-calc',  btnId: null,           title: 'Как считается сумма?', desc: 'Вещи: цена × кол-во ÷ (срок_лет × 12) = ₽/мес — это ежемесячная амортизация. Расходники: стоимость партии ÷ месяцев между закупками = ₽/мес. «Общая стоимость» — итого за одну закупку.' },
 ]
@@ -129,6 +129,46 @@ function BookmarkBtn({ bookmarked, onToggle }) {
         </svg>
       </button>
       {fly && <span className="bookmark-fly">✦</span>}
+    </div>
+  )
+}
+
+function AddInventoryBtn({ added, onAdd, onRemove }) {
+  const [pressing, setPressing] = useState(false)
+  function handleAdd() {
+    if (added || pressing) return
+    setPressing(true)
+    setTimeout(() => { setPressing(false); onAdd() }, 380)
+  }
+  return (
+    <div className="sd-inv-btn-wrap">
+      <button
+        id="sp-sd-add"
+        className={`sd-inv-btn${added ? ' added' : ''}${pressing ? ' pressing' : ''}`}
+        onClick={handleAdd}
+      >
+        {added ? (
+          <>
+            <svg className="sd-inv-icon" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            В инвентаре
+          </>
+        ) : (
+          <>
+            <svg className="sd-inv-icon" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2v13M7 10l5 5 5-5"/>
+              <path d="M3 17v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2"/>
+            </svg>
+            В инвентарь
+          </>
+        )}
+      </button>
+      {added && (
+        <button className="sd-btn-remove" onClick={onRemove} title="Удалить из инвентаря">
+          <TrashIcon />
+        </button>
+      )}
     </div>
   )
 }
@@ -482,15 +522,7 @@ export default function SetDetail() {
                 </span>
               )}
               <div className="f-spacer" />
-              <button id="sp-sd-add" className={`sd-btn-primary${added ? ' added' : ''}`}
-                onClick={!added ? handleAdd : undefined}>
-                {added ? <><CheckIcon /> В профиле</> : <><PlusIcon /> В профиль</>}
-              </button>
-              {added && (
-                <button className="sd-btn-remove" onClick={handleRemove} title="Удалить из профиля">
-                  <TrashIcon />
-                </button>
-              )}
+              <AddInventoryBtn added={added} onAdd={handleAdd} onRemove={handleRemove} />
             </div>
           </div>
 
@@ -727,10 +759,14 @@ export default function SetDetail() {
                     <div className="sd-art-body">
                       <div className="sd-art-meta-row">
                         <span className="sd-art-author">{authorName}</span>
-                        <span className="sd-art-views"><EyeIcon />{a.views}</span>
+                        <span className="sd-art-views">
+                          <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                          </svg>
+                          {a.views}
+                        </span>
                       </div>
                       <div className="sd-art-title">{a.title}</div>
-                      <span className="sd-art-tag-chip">{a.tag}</span>
                     </div>
                     <ArrIcon />
                   </div>
@@ -854,14 +890,7 @@ export default function SetDetail() {
   )
 }
 
-function PlusIcon() {
-  return <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"
-    strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-}
-function CheckIcon() {
-  return <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"
-    strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-}
+
 function DocIcon() {
   return <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"
     strokeLinecap="round" strokeLinejoin="round">
@@ -869,13 +898,6 @@ function DocIcon() {
     <polyline points="14 2 14 8 20 8"/>
     <line x1="16" y1="13" x2="8" y2="13"/>
     <line x1="16" y1="17" x2="8" y2="17"/>
-  </svg>
-}
-function EyeIcon() {
-  return <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"
-    strokeLinecap="round" strokeLinejoin="round">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-    <circle cx="12" cy="12" r="3"/>
   </svg>
 }
 function ArrIcon() {
