@@ -74,7 +74,7 @@ const PROMO_SPOTLIGHT = [
   {
     targetId: 'sp-promo-types',
     title: 'Типы предложений',
-    desc: 'Три типа: Рассылки — письма компаний с персональными акциями; Официальные — скидки и купоны напрямую от брендов; Сообщество — промокоды и лайфхаки от других пользователей.',
+    desc: 'Три типа: Рассылки — письма компаний с персональными акциями; SmartSpend — скидки и купоны подобранные командой SmartSpend; Сообщество — промокоды и лайфхаки от других пользователей.',
   },
   {
     targetId: 'sp-promo-acts',
@@ -106,7 +106,7 @@ const PROMO_SPOTLIGHT = [
 const TYPE_CHIPS = [
   { id: 'all',       label: 'Все' },
   { id: 'broadcast', label: 'Рассылка' },
-  { id: 'official',  label: 'Официальные' },
+  { id: 'official',  label: 'SmartSpend' },
   { id: 'whisper',   label: 'Сообщество' },
 ]
 
@@ -534,6 +534,64 @@ function BroadcastCard({ item, onCategoryClick, onCompanyClick }) {
   )
 }
 
+// ── SMARTSPEND CHIP (for official/smartspend cards) ────────────────────────────
+
+const SS_PROMO = { name: 'SmartSpend', initials: 'SS', color: '#4E8268', followers: 12400, articles: 47, sets: 14 }
+
+function SmartSpendPromoChip() {
+  const [showCard, setShowCard] = useState(false)
+  const [following, setFollowing] = useState(false)
+  const [followAnim, setFollowAnim] = useState(false)
+  const showTimer = useRef(null)
+  const hideTimer = useRef(null)
+
+  function isTouch() { return window.matchMedia('(hover: none)').matches }
+  function onEnter() {
+    if (isTouch()) return
+    clearTimeout(hideTimer.current)
+    showTimer.current = setTimeout(() => setShowCard(true), 350)
+  }
+  function onLeave() {
+    if (isTouch()) return
+    clearTimeout(showTimer.current)
+    hideTimer.current = setTimeout(() => setShowCard(false), 180)
+  }
+  function handleFollow(e) {
+    e.stopPropagation()
+    setFollowAnim(true)
+    setTimeout(() => setFollowAnim(false), 450)
+    setFollowing(f => !f)
+  }
+
+  return (
+    <span className="author-chip-wrap" onMouseEnter={onEnter} onMouseLeave={onLeave} onClick={e => e.stopPropagation()}>
+      <button className="author-chip author-chip--ss">
+        <div className="author-avatar-sm" style={{ background: SS_PROMO.color }}>SS</div>
+        <span className="author-name-inline">{SS_PROMO.name}</span>
+      </button>
+      {showCard && (
+        <div
+          className="author-popover"
+          onMouseEnter={() => clearTimeout(hideTimer.current)}
+          onMouseLeave={onLeave}
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="ap-top">
+            <div className="ap-avatar" style={{ background: SS_PROMO.color }}>{SS_PROMO.initials}</div>
+            <button className={`ap-follow-btn${following ? ' following' : ''}${followAnim ? ' follow-pop' : ''}`} onClick={handleFollow}>
+              {following ? 'Отменить подписку' : 'Подписаться'}
+            </button>
+          </div>
+          <div className="ap-name">{SS_PROMO.name}</div>
+          <div className="ap-meta">
+            {SS_PROMO.followers.toLocaleString('ru')} подписчиков · {SS_PROMO.articles} статей · {SS_PROMO.sets} наборов
+          </div>
+        </div>
+      )}
+    </span>
+  )
+}
+
 // ── PROMO CARD ─────────────────────────────────────────────────────────────────
 
 function PromoCard({ item, onCategoryClick, onCompanyClick, onSourceClick }) {
@@ -561,6 +619,7 @@ function PromoCard({ item, onCategoryClick, onCompanyClick, onSourceClick }) {
               )}
             </div>
             <div className="whisper-meta">
+              <SmartSpendPromoChip />
               <span>{item.expires ? `до ${item.expires}` : ''}</span>
             </div>
           </div>

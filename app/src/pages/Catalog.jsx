@@ -17,12 +17,7 @@ function loadLikes() {
 function saveLikes(set) {
   try { localStorage.setItem('ss_catalog_likes', JSON.stringify([...set])) } catch {}
 }
-function loadUsedSets() {
-  try { return new Set(JSON.parse(localStorage.getItem('ss_used_sets') || '["s1","s2","s3"]')) } catch { return new Set(['s1','s2','s3']) }
-}
-function saveUsedSets(s) {
-  try { localStorage.setItem('ss_used_sets', JSON.stringify([...s])) } catch {}
-}
+
 
 const CATEGORIES = [
   { id: 'all',        label: 'Все'                   },
@@ -345,7 +340,7 @@ function SmartSpendChip() {
   )
 }
 
-function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike, onBookmark, isUsed, onToggleUsed, onCategoryClick, navigate, username }) {
+function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike, onBookmark, onCategoryClick, navigate, username }) {
   const catLabel = CATEGORIES.find(c => c.id === set.category)?.label
   const totalItems = set.items.length + (set.more || 0)
   const [reactions, setReactions] = useState(() => (set.reactions || []).map(r => ({ ...r })))
@@ -372,17 +367,7 @@ function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike
         : null
 
   return (
-    <div className={`catalog-card${isUsed ? ' catalog-card--used' : ''}`} onClick={() => navigate(`/set/${set.id}`)}>
-      <button
-        className={`card-used-btn${isUsed ? ' active' : ''}`}
-        onClick={e => { e.stopPropagation(); onToggleUsed() }}
-        title={isUsed ? 'Убрать из используемых' : 'Отметить как используемый'}
-      >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="20 6 9 17 4 12"/>
-        </svg>
-        {isUsed ? 'Используется' : 'Использую'}
-      </button>
+    <div className="catalog-card" onClick={() => navigate(`/set/${set.id}`)}>
       {authorRow && (
         <div className="card-author-row" onClick={e => e.stopPropagation()}>
           {authorRow}
@@ -536,7 +521,6 @@ export default function Catalog() {
   const [itemSearch, setItemSearch] = useState('')
   const [catalogLikes, setCatalogLikes] = useState(new Set())
   const [catalogDislikes, setCatalogDislikes] = useState(new Set())
-  const [usedSets, setUsedSets] = useState(loadUsedSets)
   const { modal: authModal, requireAuth } = useAuthModal()
   const [showSpotlight, setShowSpotlight] = useState(false)
 
@@ -680,8 +664,6 @@ export default function Catalog() {
               onLike={() => { if (!requireAuth()) return; setCatalogLikes(prev => { const n = new Set(prev); n.has(set.id) ? n.delete(set.id) : n.add(set.id); if (n.has(set.id)) setCatalogDislikes(p => { const d = new Set(p); d.delete(set.id); return d }); return n }) }}
               onDislike={() => { if (!requireAuth()) return; setCatalogDislikes(prev => { const n = new Set(prev); n.has(set.id) ? n.delete(set.id) : n.add(set.id); if (n.has(set.id)) setCatalogLikes(p => { const l = new Set(p); l.delete(set.id); return l }); return n }) }}
               onBookmark={() => { if (!requireAuth()) return; setLikedSets(prev => { const next = new Set(prev); next.has(set.id) ? next.delete(set.id) : next.add(set.id); saveLikes(next); return next }) }}
-              isUsed={usedSets.has(set.id)}
-              onToggleUsed={() => { if (!requireAuth()) return; setUsedSets(prev => { const n = new Set(prev); n.has(set.id) ? n.delete(set.id) : n.add(set.id); saveUsedSets(n); return n }) }}
               onCategoryClick={handleCatChange}
               navigate={navigate}
               username={username}

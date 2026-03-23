@@ -16,7 +16,7 @@ const MODES = [
   { id: null,            label: 'Все' },
   { id: 'subscriptions', label: 'Подписки' },
   { id: 'my-sets',       label: 'Мои наборы' },
-  { id: 'liked',         label: 'Закладки' },
+  { id: 'liked',         label: 'Избранное' },
 ]
 
 const CATEGORIES = [
