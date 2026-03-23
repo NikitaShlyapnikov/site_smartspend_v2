@@ -109,20 +109,26 @@ function FilterSelect({ items, value, onChange, placeholder }) {
 function BroadcastCard({ item }) {
   const company = COMPANY_MAP[item.companyId]
   return (
-    <a href={item.url} target="_blank" rel="noopener noreferrer" className="broadcast-card" onClick={e => e.stopPropagation()}>
-      <div className="broadcast-company-row">
+    <div className="broadcast-card">
+      <div className="pc-header">
         <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
         <div className="promo-company-info">
           <div className="promo-company-name">{company?.name}</div>
           <div className="promo-expires">{item.channel} · {item.time}</div>
         </div>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)', flexShrink: 0 }}>
-          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-          <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-        </svg>
       </div>
       <div className="broadcast-text">{item.text}</div>
-    </a>
+      <div className="fa-bottom">
+        <div className="f-spacer" />
+        <a href={item.url} target="_blank" rel="noopener noreferrer" className="fa-action-btn" onClick={e => e.stopPropagation()}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+          Открыть
+        </a>
+      </div>
+    </div>
   )
 }
 
@@ -142,7 +148,7 @@ function PromoCard({ item }) {
   return (
     <div className="promo-card">
       <div className="promo-card-top">
-        <div className="promo-company-row">
+        <div className="pc-header">
           <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
           <div className="promo-company-info">
             <div className="promo-company-name">{company?.name}</div>
@@ -153,22 +159,22 @@ function PromoCard({ item }) {
           </div>
         </div>
         <div className="promo-title">{item.title}</div>
-        <div className="promo-desc">{item.desc}</div>
+        {item.desc && <div className="promo-desc">{item.desc}</div>}
       </div>
       {item.type === 'coupon' && item.code && (
         <div className="promo-code-row">
           <div className="promo-code">{item.code}</div>
-          <button className="promo-copy-btn" onClick={copyCode}>
+          <button className={`fa-action-btn pc-copy-btn${copied ? ' copied' : ''}`} onClick={copyCode}>
             {copied ? (
               <>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
                 Скопировано
               </>
             ) : (
               <>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
                 </svg>
@@ -289,7 +295,7 @@ function WhisperCard({ item, myVote, onVote, navigate }) {
 
   return (
     <div className="whisper-card">
-      <div className="whisper-header">
+      <div className="pc-header">
         <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
         <div className="whisper-company-info">
           <div className="whisper-company-name">{company?.name}</div>
@@ -309,11 +315,11 @@ function WhisperCard({ item, myVote, onVote, navigate }) {
       {item.code && (
         <div className="whisper-code-row">
           <div className="whisper-code">{item.code}</div>
-          <button className="promo-copy-btn" onClick={copyCode}>
+          <button className={`fa-action-btn pc-copy-btn${copied ? ' copied' : ''}`} onClick={copyCode}>
             {copied ? (
-              <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Скопировано</>
+              <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Скопировано</>
             ) : (
-              <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Скопировать</>
+              <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Скопировать</>
             )}
           </button>
         </div>
@@ -332,31 +338,32 @@ function WhisperCard({ item, myVote, onVote, navigate }) {
         <div className="whisper-first-check">Будь первым, кто проверит</div>
       )}
 
-      <div className="whisper-vote-row">
-        <button className={`whisper-vote-btn wvb-works${myVote === 'works' ? ' active' : ''}`} onClick={() => handleVote('works')}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill={myVote === 'works' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <div className="fa-bottom whisper-actions">
+        <button className={`fa-action-btn wvb-works${myVote === 'works' ? ' active' : ''}`} onClick={() => handleVote('works')}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill={myVote === 'works' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
             <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
           </svg>
-          Работает{works > 0 ? ` ${works}` : ''}
+          Работает{works > 0 ? ` · ${works}` : ''}
         </button>
-        <button className={`whisper-vote-btn wvb-not${myVote === 'not' ? ' active' : ''}`} onClick={() => handleVote('not')}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill={myVote === 'not' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <button className={`fa-action-btn wvb-not${myVote === 'not' ? ' active' : ''}`} onClick={() => handleVote('not')}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill={myVote === 'not' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
             <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
           </svg>
-          Не работает{notWorks > 0 ? ` ${notWorks}` : ''}
+          Не работает{notWorks > 0 ? ` · ${notWorks}` : ''}
         </button>
         {voteToast && (
           <span className={`whisper-vote-toast${voteToast === 'works' ? ' wvt-works' : ' wvt-not'}`}>
             {voteToast === 'works' ? 'Голос учтён' : 'Спасибо за проверку'}
           </span>
         )}
-        <button className="whisper-comments-toggle" onClick={() => setShowComments(v => !v)}>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div className="f-spacer" />
+        <button className={`fa-action-btn${showComments ? ' wv-comments-open' : ''}`} onClick={() => setShowComments(v => !v)}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
-          {comments.length > 0 ? comments.length : 'Комментировать'}
+          {comments.length > 0 ? comments.length : 'Комментарии'}
         </button>
       </div>
 

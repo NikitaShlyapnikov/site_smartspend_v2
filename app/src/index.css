@@ -7117,16 +7117,13 @@ body.dark .feed-section-card.active.promo    { background: #A86828; border-color
   border-radius: var(--r);
   text-decoration: none;
   transition: border-color 0.15s;
-  cursor: pointer;
 }
 .broadcast-card:hover { border-color: var(--accent-green-border); }
-.broadcast-company-row {
-  display: flex; align-items: center; gap: 10px;
-}
 .broadcast-text {
-  font-size: 13px; color: var(--text-2); line-height: 1.55;
+  font-size: 14px; color: var(--text); line-height: 1.55;
   white-space: pre-wrap;
 }
+.broadcast-card .fa-bottom { margin-top: 0; }
 
 /* Promo scope row (мои/все компании + gear button) */
 .promo-scope-row {
@@ -7175,10 +7172,6 @@ body.dark .feed-section-card.active.promo    { background: #A86828; border-color
 }
 .promo-card:hover { border-color: var(--accent-green-border); }
 .promo-card-top { padding: 14px 16px 12px; }
-.promo-company-row {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 10px;
-}
 .promo-logo {
   width: 36px; height: 36px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
@@ -7186,8 +7179,8 @@ body.dark .feed-section-card.active.promo    { background: #A86828; border-color
   color: #fff; flex-shrink: 0; letter-spacing: -0.02em;
 }
 .promo-company-info { flex: 1; min-width: 0; }
-.promo-company-name { font-size: 13px; font-weight: 600; color: var(--text); }
-.promo-expires { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+.promo-company-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.promo-expires { font-size: 12px; color: var(--text-3); margin-top: 1px; }
 .promo-type-badge {
   padding: 3px 9px; border-radius: 6px;
   font-size: 11px; font-weight: 600; flex-shrink: 0;
@@ -7204,32 +7197,28 @@ body.dark .feed-section-card.active.promo    { background: #A86828; border-color
 }
 .promo-title {
   font-size: 15px; font-weight: 600; color: var(--text);
-  letter-spacing: -0.01em; line-height: 1.35;
+  letter-spacing: -0.01em; line-height: 1.4;
   margin-bottom: 6px;
 }
 .promo-desc {
   font-size: 13px; color: var(--text-2); line-height: 1.55;
 }
+/* Code row — acts as fa-bottom */
 .promo-code-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 16px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px 12px;
   border-top: 1px solid var(--border);
-  background: var(--surface-2);
 }
 .promo-code {
   font-family: var(--mono); font-size: 15px; font-weight: 700;
-  color: var(--text); letter-spacing: 0.05em; flex: 1;
+  color: var(--text); letter-spacing: 0.06em; flex: 1;
+  background: var(--surface-2); border-radius: 8px;
+  padding: 6px 12px; border: 1.5px dashed var(--border);
 }
-.promo-copy-btn {
-  display: flex; align-items: center; gap: 5px;
-  padding: 6px 14px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text-2); font-family: var(--sans); font-size: 12px; font-weight: 500;
-  cursor: pointer; transition: all 0.15s;
-}
-.promo-copy-btn:hover { border-color: var(--accent-green-border); color: var(--accent-green); }
+/* fa-action-btn modifier for copy */
+.pc-copy-btn { font-size: 12px; white-space: nowrap; }
+.pc-copy-btn.copied { color: var(--accent-green); }
+.pc-copy-btn.copied svg { opacity: 1; }
 
 /* Promo empty state */
 .promo-empty-state {
@@ -7294,15 +7283,15 @@ body.dark .whisper-add-cta:hover { background: rgba(106,175,142,.08); }
 .whisper-card {
   background: var(--surface); border-radius: var(--r);
   border: 1px solid var(--border);
-  padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;
+  padding: 14px 16px 12px; display: flex; flex-direction: column; gap: 8px;
   transition: border-color 0.15s;
 }
 .whisper-card:hover { border-color: var(--accent-green-border); }
 
-.whisper-header { display: flex; align-items: center; gap: 10px; }
+.pc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .whisper-company-info { flex: 1; min-width: 0; }
-.whisper-company-name { font-size: 13px; font-weight: 600; color: var(--text); }
-.whisper-meta { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+.whisper-company-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.whisper-meta { font-size: 12px; color: var(--text-3); margin-top: 1px; }
 
 .whisper-badge {
   flex-shrink: 0; font-size: 11px; font-weight: 600;
@@ -7318,22 +7307,22 @@ body.dark .wh-hot      { background: #3A2010; color: #FFAA60; border-color: #5A3
 body.dark .wh-works    { background: #0E2A1A; color: #6AAF8E; border-color: #1E4A30; }
 body.dark .wh-question { background: #2A2208; color: #C8A830; border-color: #4A3C10; }
 
-.whisper-title { font-size: 14px; font-weight: 500; line-height: 1.45; color: var(--text); }
+.whisper-title { font-size: 15px; font-weight: 600; line-height: 1.4; color: var(--text); letter-spacing: -0.01em; }
 
-.whisper-code-row { display: flex; align-items: center; gap: 10px; }
+.whisper-code-row { display: flex; align-items: center; gap: 8px; }
 .whisper-code {
   font-family: var(--mono); background: var(--surface-2);
   border: 1.5px dashed var(--border);
-  border-radius: 8px; padding: 6px 14px;
-  font-size: 13px; font-weight: 600; letter-spacing: 0.08em;
-  color: var(--text);
+  border-radius: 8px; padding: 6px 12px;
+  font-size: 14px; font-weight: 700; letter-spacing: 0.07em;
+  color: var(--text); flex: 1;
 }
 
 .whisper-first-check {
   font-size: 11px; color: var(--text-3); font-style: italic;
   padding: 2px 0;
 }
-.whisper-vote-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.whisper-actions { margin-top: 2px; }
 .whisper-vote-toast {
   font-size: 11px; font-weight: 500; padding: 3px 8px;
   border-radius: 10px; white-space: nowrap;
@@ -7345,19 +7334,17 @@ body.dark .wvt-works { background: #0E2A1A; color: #6AAF8E; }
 body.dark .wvt-not   { background: #2A0E0E; color: #C86060; }
 @keyframes wvt-in  { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
 @keyframes wvt-out { from { opacity: 1; } to { opacity: 0; } }
-.whisper-vote-btn {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 5px 10px; border-radius: 20px;
-  background: var(--surface-2); border: 1px solid var(--border);
-  font-size: 12px; font-weight: 500; color: var(--text-2);
-  cursor: pointer; font-family: var(--sans);
-  transition: all 0.12s; white-space: nowrap;
-}
-.whisper-vote-btn:hover { border-color: var(--accent-green-border); color: var(--text); }
-.wvb-works.active { background: #E8F5EE; color: #3A7A56; border-color: #B8DEC8; }
-.wvb-not.active   { background: #FBE8E8; color: #A03030; border-color: #EBBABA; }
-body.dark .wvb-works.active { background: #0E2A1A; color: #6AAF8E; border-color: #1E4A30; }
-body.dark .wvb-not.active   { background: #2A0E0E; color: #C86060; border-color: #4A1E1E; }
+/* Whisper vote buttons inherit fa-action-btn, add color states */
+.wvb-works.fa-action-btn.active { color: var(--accent-green); }
+.wvb-works.fa-action-btn.active svg { opacity: 1; fill: var(--accent-green); stroke: var(--accent-green); }
+.wvb-not.fa-action-btn.active { color: #B85555; }
+.wvb-not.fa-action-btn.active svg { opacity: 1; fill: #B85555; stroke: #B85555; }
+body.dark .wvb-works.fa-action-btn.active { color: #6AAF8E; }
+body.dark .wvb-works.fa-action-btn.active svg { fill: #6AAF8E; stroke: #6AAF8E; }
+body.dark .wvb-not.fa-action-btn.active { color: #E07070; }
+body.dark .wvb-not.fa-action-btn.active svg { fill: #E07070; stroke: #E07070; }
+.wv-comments-open { color: var(--accent-green); }
+.wv-comments-open svg { opacity: 0.9; }
 
 .whisper-history {
   display: flex; gap: 2px; height: 18px; align-items: stretch;
@@ -7378,14 +7365,7 @@ body.dark .wvb-not.active   { background: #2A0E0E; color: #C86060; border-color:
 .whisper-author:hover { text-decoration: underline; }
 .whisper-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 
-.whisper-comments-toggle {
-  display: inline-flex; align-items: center; gap: 4px;
-  margin-left: auto; padding: 3px 8px; border-radius: 10px;
-  background: none; border: 1px solid var(--border);
-  font-size: 11px; color: var(--text-3); cursor: pointer;
-  font-family: var(--sans); transition: all 0.12s;
-}
-.whisper-comments-toggle:hover { border-color: var(--accent-green); color: var(--text); }
+/* whisper-comments-toggle removed — replaced by fa-action-btn in JSX */
 
 .whisper-comments {
   margin-top: 8px; padding-top: 8px;
