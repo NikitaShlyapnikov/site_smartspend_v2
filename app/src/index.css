@@ -7482,6 +7482,54 @@ body.dark .whisper-card--not {
 
 /* whisper-comments-toggle removed — replaced by fa-action-btn in JSX */
 
+/* ── External Link Modal ── */
+.ext-modal-backdrop {
+  position: fixed; inset: 0; z-index: 1200;
+  background: rgba(0,0,0,0.55); backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.ext-modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 28px 24px 20px;
+  width: 100%; max-width: 360px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.18);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.ext-modal-icon {
+  color: #B08840; margin-bottom: 4px;
+}
+.ext-modal-title {
+  font-size: 16px; font-weight: 700; color: var(--text);
+}
+.ext-modal-domain {
+  font-size: 12px; font-family: var(--mono); color: var(--text-3);
+  background: var(--surface-2); border: 1px solid var(--border);
+  padding: 4px 10px; border-radius: 6px; align-self: flex-start;
+}
+.ext-modal-desc {
+  font-size: 13px; color: var(--text-2); line-height: 1.55; margin-top: 4px;
+}
+.ext-modal-actions {
+  display: flex; gap: 8px; margin-top: 12px;
+}
+.ext-modal-cancel {
+  flex: 1; padding: 9px 16px; border-radius: var(--r-sm);
+  background: var(--surface-2); border: 1px solid var(--border);
+  font-size: 14px; font-weight: 500; color: var(--text-2);
+  cursor: pointer; font-family: var(--sans); transition: background 0.12s;
+}
+.ext-modal-cancel:hover { background: var(--surface-3, var(--surface-2)); }
+.ext-modal-go {
+  flex: 1; padding: 9px 16px; border-radius: var(--r-sm);
+  background: var(--accent-green); border: none;
+  font-size: 14px; font-weight: 600; color: #fff;
+  cursor: pointer; text-decoration: none; font-family: var(--sans);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: opacity 0.12s;
+}
+.ext-modal-go:hover { opacity: 0.88; }
+
 .whisper-comments {
   margin-top: 8px; padding-top: 8px;
   display: flex; flex-direction: column; gap: 6px;

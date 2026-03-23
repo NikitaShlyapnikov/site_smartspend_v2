@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
@@ -70,8 +71,36 @@ function WhisperReactionPill({ emoji, count, active, onToggle, autoAnimate }) {
 }
 
 const PROMO_SPOTLIGHT = [
-  { targetId: 'sp-promo-types', title: 'Фильтр по типу',  desc: 'Рассылка — официальные письма компаний. Акции и Купоны — скидки с промокодами. Сообщество — промокоды от пользователей.' },
-  { targetId: 'sp-promo-scope', title: 'Мои компании',    desc: 'Фильтруй по компаниям из вашего списка или смотри все доступные предложения.' },
+  {
+    targetId: 'sp-promo-types',
+    title: 'Типы предложений',
+    desc: 'Три типа: Рассылки — письма компаний с персональными акциями; Официальные — скидки и купоны напрямую от брендов; Сообщество — промокоды и лайфхаки от других пользователей.',
+  },
+  {
+    targetId: 'sp-promo-acts',
+    title: 'Условия получения',
+    desc: 'У каждого предложения может быть условие. Фильтруйте: «Новым клиентам» — только при первой покупке, «Приведи друга» — реферальные бонусы, «День рождения» — именинные скидки.',
+  },
+  {
+    targetId: 'sp-promo-scope',
+    title: 'Ваши компании',
+    desc: 'Показывать только предложения от компаний из вашего списка или сразу от всех. Нажмите «Изменить компании» чтобы добавить или убрать бренды — это влияет на раздел Рассылки и Официальные.',
+  },
+  {
+    targetId: 'sp-promo-cats',
+    title: 'Категории расходов',
+    desc: 'Отфильтруйте предложения по категории: еда, транспорт, одежда, развлечения и т.д. Выбранный фильтр категории можно снять нажав на него повторно.',
+  },
+  {
+    targetId: 'sp-promo-card',
+    title: 'Карточка предложения',
+    desc: 'Нажмите на логотип или название компании — применится фильтр по ней. Нажмите на категорию рядом с названием — останутся только предложения этой категории. Цветная полоса показывает голоса «Работает / Не работает» от других пользователей.',
+  },
+  {
+    targetId: 'sp-promo-add',
+    title: 'Поделитесь скидкой',
+    desc: 'Нашли выгодный промокод или лайфхак? Поделитесь с сообществом — другие пользователи проголосуют и подтвердят, работает ли предложение.',
+  },
 ]
 
 const TYPE_CHIPS = [
@@ -128,6 +157,48 @@ const PROMO_CATS_WITH_ITEMS = new Set([...promoItems.map(p => p.category), ...wh
 function loadFollowed() {
   try { return new Set(JSON.parse(localStorage.getItem('ss_companies') || '[]')) }
   catch { return new Set() }
+}
+
+// ── EXTERNAL LINK MODAL ────────────────────────────────────────────────────────
+
+function ExternalLinkModal({ url, onClose }) {
+  let domain = url
+  try { domain = new URL(url).hostname.replace(/^www\./, '') } catch {}
+
+  useEffect(() => {
+    function onKey(e) { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  return createPortal(
+    <div className="ext-modal-backdrop" onClick={onClose}>
+      <div className="ext-modal" onClick={e => e.stopPropagation()}>
+        <div className="ext-modal-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div className="ext-modal-title">Переход на внешний сайт</div>
+        <div className="ext-modal-domain">{domain}</div>
+        <div className="ext-modal-desc">
+          Вы покидаете SmartSpend и переходите на сторонний ресурс. Будьте осторожны при вводе личных данных и паролей — мы не несём ответственности за содержимое внешних сайтов.
+        </div>
+        <div className="ext-modal-actions">
+          <button className="ext-modal-cancel" onClick={onClose}>Отмена</button>
+          <a className="ext-modal-go" href={url} target="_blank" rel="noopener noreferrer" onClick={onClose}>
+            Перейти
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>,
+    document.body
+  )
 }
 
 // ── FILTER SELECT ──────────────────────────────────────────────────────────────
@@ -415,7 +486,7 @@ function BroadcastCard({ item, onCategoryClick, onCompanyClick }) {
 
 // ── PROMO CARD ─────────────────────────────────────────────────────────────────
 
-function PromoCard({ item, onCategoryClick, onCompanyClick }) {
+function PromoCard({ item, onCategoryClick, onCompanyClick, onSourceClick }) {
   const company  = COMPANY_MAP[item.companyId]
   const catLabel = CATEGORIES.find(c => c.id === item.category)?.label
   const [copied, setCopied] = useState(false)
@@ -463,7 +534,15 @@ function PromoCard({ item, onCategoryClick, onCompanyClick }) {
         </div>
       )}
 
-      <PromoInteractions />
+      <PromoInteractions extraAction={item.sourceUrl ? (
+        <button className="fa-action-btn" onClick={() => onSourceClick(item.sourceUrl)}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+          Источник
+        </button>
+      ) : null} />
     </div>
   )
 }
@@ -575,7 +654,7 @@ function WhisperAuthorChip({ username, navigate }) {
 
 // ── WHISPER CARD ───────────────────────────────────────────────────────────────
 
-function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompanyClick }) {
+function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompanyClick, onSourceClick }) {
   const company  = COMPANY_MAP[item.companyId]
   const catLabel = CATEGORIES.find(c => c.id === item.category)?.label
   const [copied,       setCopied]       = useState(false)
@@ -719,6 +798,15 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
           </span>
         )}
         <div className="f-spacer" />
+        {item.sourceUrl && (
+          <button className="fa-action-btn" onClick={() => onSourceClick(item.sourceUrl)}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            Источник
+          </button>
+        )}
         <button className={`fa-action-btn${showComments ? ' wv-comments-open' : ''}`} onClick={() => setShowComments(v => !v)}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -829,6 +917,7 @@ export default function Promo() {
   const [actsFilter,   setActsFilter]   = useState('all')
   const [localWhispers, setLocalWhispers] = useState(whisperItemsMock)
   const [whisperVotes,  setWhisperVotes]  = useState(new Map())
+  const [extUrl,        setExtUrl]        = useState(null)
 
   const [filtersScrolled, setFiltersScrolled] = useState(false)
   const scrollRef = useCallback(el => {
@@ -925,21 +1014,13 @@ export default function Promo() {
 
             {/* Row 2: Acts sub-filter */}
             {showActsFilter && (
-              <div className="cats-scroll filters-acts-row">
+              <div id="sp-promo-acts" className="cats-scroll filters-acts-row">
                 {ACTS_FILTERS.map(f => (
                   <button key={f.id} className={`cat-pill${actsFilter === f.id ? ' active' : ''}`}
                     onClick={() => setActsFilter(f.id)}>{f.label}</button>
                 ))}
               </div>
             )}
-
-            {/* Row 3: Categories */}
-            <FilterSelect
-              items={CATEGORIES.filter(c => c.id === 'all' || PROMO_CATS_WITH_ITEMS.has(c.id))}
-              value={promoCat}
-              onChange={handlePromoCat}
-              placeholder="Категории"
-            />
 
             {/* Scope */}
             <div id="sp-promo-scope" className="cats-scroll promo-type-chips">
@@ -954,6 +1035,16 @@ export default function Promo() {
               </button>
             </div>
 
+            {/* Categories */}
+            <div id="sp-promo-cats">
+              <FilterSelect
+                items={CATEGORIES.filter(c => c.id === 'all' || PROMO_CATS_WITH_ITEMS.has(c.id))}
+                value={promoCat}
+                onChange={handlePromoCat}
+                placeholder="Категории"
+              />
+            </div>
+
             {hasFilters && (
               <div className="filter-summary">
                 <span>{filtered.length} {noun(filtered.length)}</span>
@@ -964,7 +1055,7 @@ export default function Promo() {
         </div>
 
         <div className="feed-scroll" ref={scrollRef}>
-          <button className="whisper-add-cta" onClick={() => navigate('/create-whisper')}>
+          <button id="sp-promo-add" className="whisper-add-cta" onClick={() => navigate('/create-whisper')}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 5v14M5 12h14"/>
             </svg>
@@ -986,15 +1077,18 @@ export default function Promo() {
                 <div className="empty-title">Ничего не найдено</div>
                 <div className="empty-desc">Попробуйте изменить фильтры или переключиться на «Все компании»</div>
               </div>
-            ) : filtered.map(item => {
-              if (item.kind === 'broadcast') return <BroadcastCard key={item.id} item={item} onCategoryClick={handlePromoCat} onCompanyClick={handleCompanyClick} />
-              if (item.kind === 'whisper')   return <WhisperCard key={item.id} item={item} myVote={whisperVotes.get(item.id) || null} onVote={voteWhisper} navigate={navigate} onCategoryClick={handlePromoCat} onCompanyClick={handleCompanyClick} />
-              return <PromoCard key={item.id} item={item} onCategoryClick={handlePromoCat} onCompanyClick={handleCompanyClick} />
+            ) : filtered.map((item, index) => {
+              let card
+              if (item.kind === 'broadcast') card = <BroadcastCard key={item.id} item={item} onCategoryClick={handlePromoCat} onCompanyClick={handleCompanyClick} />
+              else if (item.kind === 'whisper') card = <WhisperCard key={item.id} item={item} myVote={whisperVotes.get(item.id) || null} onVote={voteWhisper} navigate={navigate} onCategoryClick={handlePromoCat} onCompanyClick={handleCompanyClick} onSourceClick={setExtUrl} />
+              else card = <PromoCard key={item.id} item={item} onCategoryClick={handlePromoCat} onCompanyClick={handleCompanyClick} onSourceClick={setExtUrl} />
+              return index === 0 ? <div key={item.id} id="sp-promo-card">{card}</div> : card
             })}
           </div>
         </div>
       </main>
       {showSpotlight && <SpotlightTour steps={PROMO_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
+      {extUrl && <ExternalLinkModal url={extUrl} onClose={() => setExtUrl(null)} />}
     </Layout>
   )
 }
