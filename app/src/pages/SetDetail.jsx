@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import PublicLayout from '../components/PublicLayout'
 import { useApp } from '../context/AppContext'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
@@ -212,6 +212,7 @@ function itemMonthly(item, scale) {
 export default function SetDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const { collapsed } = useApp()
   const sidebarOffset = collapsed ? 28 : 120  // half of 56px or 240px
 
@@ -238,6 +239,19 @@ export default function SetDetail() {
     try { return JSON.parse(localStorage.getItem(`ss_set_notes_${id}`) || '[]') } catch { return [] }
   })
   const [noteText, setNoteText] = useState('')
+  const [myArticles, setMyArticles] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(`ss_set_articles_${id}`) || '[]') } catch { return [] }
+  })
+  const [envPaused, setEnvPaused] = useState(() => {
+    try {
+      const data = JSON.parse(localStorage.getItem('ss_envelopes') || '{}')
+      for (const list of Object.values(data)) {
+        const entry = list.find(e => e.id === id)
+        if (entry) return !!entry.paused
+      }
+    } catch {}
+    return false
+  })
   const [liked, setLiked]         = useState(() => {
     try { return new Set(JSON.parse(localStorage.getItem('ss_catalog_likes') || '[]')).has(id) } catch { return false }
   })
@@ -306,6 +320,29 @@ export default function SetDetail() {
     const next = notes.filter(n => n.id !== noteId)
     setNotes(next)
     try { localStorage.setItem(`ss_set_notes_${id}`, JSON.stringify(next)) } catch {}
+  }
+  function toggleEnvPause() {
+    const next = !envPaused
+    try {
+      const data = JSON.parse(localStorage.getItem('ss_envelopes') || '{}')
+      for (const cat of Object.keys(data)) {
+        data[cat] = data[cat].map(e => e.id === id ? { ...e, paused: next } : e)
+      }
+      localStorage.setItem('ss_envelopes', JSON.stringify(data))
+      const invData = JSON.parse(localStorage.getItem('ss_inventory_extra') || '[]')
+      localStorage.setItem('ss_inventory_extra', JSON.stringify(invData.map(i => i.setId === id ? { ...i, paused: next } : i)))
+    } catch {}
+    setEnvPaused(next)
+  }
+  function removeFromProfile() {
+    try {
+      const data = JSON.parse(localStorage.getItem('ss_envelopes') || '{}')
+      for (const cat of Object.keys(data)) { data[cat] = data[cat].filter(e => e.id !== id) }
+      localStorage.setItem('ss_envelopes', JSON.stringify(data))
+      const invData = JSON.parse(localStorage.getItem('ss_inventory_extra') || '[]')
+      localStorage.setItem('ss_inventory_extra', JSON.stringify(invData.filter(i => !(i.setId === id && i.paused))))
+    } catch {}
+    navigate('/profile')
   }
   const [reactions, setReactions] = useState([{ emoji: '🔥', count: 8 }, { emoji: '💡', count: 5 }, { emoji: '👏', count: 3 }])
   const [myReactions, setMyReactions] = useState(new Set())
@@ -505,7 +542,7 @@ export default function SetDetail() {
     </PublicLayout>
   )
 
-  const isPersonal = added
+  const isPersonal = added && new URLSearchParams(location.search).get('public') !== '1'
   const fromCatalog = isPersonal && (set?.source === 'ss' || set?.source === 'community')
 
   const tableItems   = items.length > 0 ? items : null
@@ -581,7 +618,7 @@ export default function SetDetail() {
 
             {/* Meta + actions row */}
             <div className="art-meta-row">
-              {set.added && <span className="fa-time">{fmtDate(set.added)}</span>}
+              {!isPersonal && set.added && <span className="fa-time">{fmtDate(set.added)}</span>}
               {!isPersonal && set.users != null && (
                 <><div className="art-meta-sep" />
                 <div className="fa-action-stat">
@@ -624,7 +661,28 @@ export default function SetDetail() {
                 </span>
               )}
               <div className="f-spacer" />
-              <AddInventoryBtn added={added} onAdd={handleAdd} onRemove={handleRemove} />
+              {isPersonal ? (
+                <div className="sd-personal-actions">
+                  <button
+                    className={`sd-personal-state${envPaused ? ' paused' : ''}`}
+                    onClick={toggleEnvPause}
+                    title={envPaused ? 'Запустить набор' : 'Поставить на паузу'}
+                  >
+                    {envPaused ? (
+                      <><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Запустить</>
+                    ) : (
+                      <><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> На паузу</>
+                    )}
+                  </button>
+                  <button className="sd-personal-delete" onClick={removeFromProfile} title="Удалить набор из профиля">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+                    </svg>
+                  </button>
+                </div>
+              ) : (
+                <AddInventoryBtn added={added} onAdd={handleAdd} onRemove={handleRemove} />
+              )}
             </div>
           </div>
 
@@ -655,20 +713,23 @@ export default function SetDetail() {
               <FollowBtn following={following} onToggle={() => setFollowing(f => !f)} />
             </div>
           )}
-          {/* Parent set reference */}
-          {fromCatalog && (
-            <div className="sd-parent-ref">
-              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
-                <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
-              </svg>
-              <span>Из каталога:</span>
-              <button className="sd-parent-link" onClick={() => navigate('/catalog')}>
-                {set.source === 'ss' ? 'SmartSpend' : 'Сообщество'} — {set.title}
-              </button>
-            </div>
-          )}
         </div>
+
+        {/* ── PARENT SET CARD (personal only) ── */}
+        {fromCatalog && (
+          <div className="sd-parent-card" onClick={() => navigate(`/set/${id}?public=1`)}>
+            <div className="sd-parent-card-left">
+              <div className="sd-parent-card-label">Связанный набор</div>
+              <div className="sd-parent-card-name">
+                <span className="sd-parent-card-source">{set.source === 'ss' ? 'SmartSpend' : 'Сообщество'}</span>
+                {set.title}
+              </div>
+            </div>
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </div>
+        )}
 
         {/* ── ITEMS SECTION CARD ── */}
         {tableItems ? (
@@ -846,18 +907,13 @@ export default function SetDetail() {
 
         {/* ── ARTICLES (public) / NOTES (personal) ── */}
         {isPersonal ? (
+          <>
           <div className="sd-section-card">
             <div className="sd-section-header">
               <div className="sd-section-title">
                 Заметки
                 {notes.length > 0 && <span className="sd-section-count">{notes.length}</span>}
               </div>
-              <button className="sd-btn-sm" onClick={() => navigate('/feed')}>
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 6h16M4 12h16M4 18h7"/>
-                </svg>
-                Из ленты
-              </button>
             </div>
             {notes.length === 0 && (
               <div className="sd-notes-empty">
@@ -895,6 +951,43 @@ export default function SetDetail() {
               </button>
             </form>
           </div>
+
+          {/* Personal articles section */}
+          <div className="sd-section-card">
+            <div className="sd-section-header">
+              <div className="sd-section-title">
+                Статьи
+                {myArticles.length > 0 && <span className="sd-section-count">{myArticles.length}</span>}
+              </div>
+              <button className="sd-btn-sm" onClick={() => navigate('/create-article')}>
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+                Написать
+              </button>
+            </div>
+            {myArticles.length === 0 ? (
+              <div className="sd-notes-empty">
+                <div className="sd-notes-empty-text">Нет прикреплённых статей. Напишите статью или прикрепите из ленты.</div>
+              </div>
+            ) : (
+              <div className="sd-articles-list">
+                {myArticles.map((a, i) => (
+                  <div key={i} className="sd-article-card" onClick={() => navigate('/article/' + (a.id || 'a1'))}>
+                    <div className="sd-art-avatar" style={{ background: '#8B7B6B' }}>{a.ini || '?'}</div>
+                    <div className="sd-art-body">
+                      <div className="sd-art-meta-row">
+                        <span className="sd-art-author">{a.author}</span>
+                      </div>
+                      <div className="sd-art-title">{a.title}</div>
+                    </div>
+                    <ArrIcon />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          </>
         ) : allArticles.length > 0 && (
           <div id="sd-articles-section" className="sd-section-card">
             <div className="sd-section-header">

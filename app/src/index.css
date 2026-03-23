@@ -5441,18 +5441,41 @@ body.dark .sd-inline-input { background: var(--surface-3); color: var(--text); }
 }
 .c-emoji-btn:hover { background: var(--accent-green-light); color: var(--accent-green); border-color: var(--accent-green-border); }
 
-/* Personal set: parent reference */
-.sd-parent-ref {
+/* Personal actions in hero */
+.sd-personal-actions { display: flex; align-items: center; gap: 8px; }
+.sd-personal-state {
   display: flex; align-items: center; gap: 6px;
-  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
-  font-size: 12px; color: var(--text-3);
+  padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+  background: var(--surface-2); border: 1.5px solid var(--border);
+  color: var(--text-2); cursor: pointer; transition: all 0.15s;
 }
-.sd-parent-link {
-  background: none; border: none; padding: 0; cursor: pointer;
-  font-size: 12px; color: var(--accent-green); text-decoration: underline;
-  text-decoration-color: transparent; transition: text-decoration-color 0.15s;
+.sd-personal-state:hover { border-color: var(--text-3); color: var(--text); }
+.sd-personal-state.paused {
+  background: rgba(91,143,212,0.1); border-color: #5B8FD4; color: #5B8FD4;
 }
-.sd-parent-link:hover { text-decoration-color: var(--accent-green); }
+.sd-personal-state.paused:hover { background: rgba(91,143,212,0.18); }
+.sd-personal-delete {
+  width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0;
+  background: none; border: 1.5px solid var(--border); color: var(--text-3);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.sd-personal-delete:hover { color: #B85555; border-color: #B85555; background: rgba(184,85,85,0.08); }
+
+/* Parent set card */
+.sd-parent-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; color: var(--text-3);
+}
+.sd-parent-card:hover { border-color: var(--accent-green-border); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.sd-parent-card-left { display: flex; flex-direction: column; gap: 3px; }
+.sd-parent-card-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); }
+.sd-parent-card-name { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px; }
+.sd-parent-card-source {
+  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--accent-green); background: var(--accent-green-light); border-radius: 4px; padding: 1px 5px;
+}
 
 /* Notes section */
 .sd-notes-empty { padding: 16px 20px; }
