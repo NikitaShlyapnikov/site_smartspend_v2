@@ -77,8 +77,7 @@ const PROMO_SPOTLIGHT = [
 const TYPE_CHIPS = [
   { id: 'all',       label: 'Все' },
   { id: 'broadcast', label: 'Рассылка' },
-  { id: 'event',     label: 'Акции' },
-  { id: 'coupon',    label: 'Купоны' },
+  { id: 'official',  label: 'Официальные' },
   { id: 'whisper',   label: 'Сообщество' },
 ]
 
@@ -186,6 +185,173 @@ function FilterSelect({ items, value, onChange, placeholder }) {
   )
 }
 
+// ── PROMO INTERACTIONS (shared: vote bar + comments) ───────────────────────────
+
+function PromoInteractions({ initHistory = [], initComments = [], extraAction }) {
+  const [myVote,       setMyVote]       = useState(null)
+  const [worksAnim,    setWorksAnim]    = useState(false)
+  const [notAnim,      setNotAnim]      = useState(false)
+  const [showComments, setShowComments] = useState(false)
+  const [comments,     setComments]     = useState(initComments)
+  const [commentText,  setCommentText]  = useState('')
+  const [reactions,    setReactions]    = useState([])
+  const [myReactions,  setMyReactions]  = useState(new Set())
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [justAdded,    setJustAdded]    = useState(null)
+  const [commentSort,  setCommentSort]  = useState('new')
+  const [visibleCount, setVisibleCount] = useState(10)
+
+  const displayHistory = myVote ? [...initHistory, myVote === 'works' ? 'w' : 'n'] : initHistory
+  const works    = displayHistory.filter(v => v === 'w').length
+  const notWorks = displayHistory.filter(v => v === 'n').length
+
+  function handleVote(vote) {
+    if (myVote === vote) { setMyVote(null); return }
+    if (vote === 'works') { setWorksAnim(true); setTimeout(() => setWorksAnim(false), 480) }
+    else                  { setNotAnim(true);   setTimeout(() => setNotAnim(false), 420) }
+    setMyVote(vote)
+  }
+
+  function toggleReaction(emoji) {
+    setMyReactions(prev => {
+      const next = new Set(prev)
+      const hadIt = next.has(emoji)
+      hadIt ? next.delete(emoji) : next.add(emoji)
+      setReactions(rs => {
+        const existing = rs.find(r => r.emoji === emoji)
+        if (existing) return rs.map(r => r.emoji === emoji ? { ...r, count: r.count + (hadIt ? -1 : 1) } : r).filter(r => r.count > 0)
+        return [...rs, { emoji, count: 1 }]
+      })
+      return next
+    })
+  }
+
+  return (
+    <>
+      {displayHistory.length > 0 && (
+        <div className="whisper-history">
+          {displayHistory.slice(-40).map((v, i, arr) => {
+            const isMine = i === arr.length - 1 && !!myVote
+            return (
+              <div
+                key={isMine ? `mine-${myVote}` : i}
+                className={`wvh-stripe${isMine ? ' wvh-mine' : ''}`}
+                style={{ background: v === 'w' ? '#5E9478' : '#B85555' }}
+              />
+            )
+          })}
+        </div>
+      )}
+
+      <div className="fa-bottom whisper-actions">
+        <button className={`fa-action-btn wvb-works${myVote === 'works' ? ' active' : ''}${worksAnim ? ' wv-works-pop' : ''}`} onClick={() => handleVote('works')}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill={myVote === 'works' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+            <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+          </svg>
+          Работает{works > 0 ? ` · ${works}` : ''}
+        </button>
+        <button className={`fa-action-btn wvb-not${myVote === 'not' ? ' active' : ''}${notAnim ? ' wv-not-shake' : ''}`} onClick={() => handleVote('not')}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill={myVote === 'not' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+            <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+          </svg>
+          Не работает{notWorks > 0 ? ` · ${notWorks}` : ''}
+        </button>
+        <div className="f-spacer" />
+        {extraAction}
+        <button className={`fa-action-btn${showComments ? ' wv-comments-open' : ''}`} onClick={() => setShowComments(v => !v)}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          {comments.length > 0 ? comments.length : 'Комментарии'}
+        </button>
+      </div>
+
+      {showComments && (
+        <div className="whisper-comments">
+          <div className="whisper-reactions-row">
+            <span className="art-reactions-label">Что думаете?</span>
+            {reactions.map(r => (
+              <WhisperReactionPill key={r.emoji} emoji={r.emoji} count={r.count} active={myReactions.has(r.emoji)} onToggle={toggleReaction} autoAnimate={justAdded === r.emoji} />
+            ))}
+            <div style={{ position: 'relative' }}>
+              <button className="ar-add-btn" onClick={() => setShowEmojiPicker(v => !v)}>+</button>
+              {showEmojiPicker && (
+                <WhisperEmojiPicker
+                  onPick={emoji => { toggleReaction(emoji); setJustAdded(emoji); setTimeout(() => setJustAdded(null), 700); setShowEmojiPicker(false) }}
+                  onClose={() => setShowEmojiPicker(false)}
+                />
+              )}
+            </div>
+          </div>
+
+          {comments.length > 0 && (
+            <div className="comments-subheader" style={{ marginBottom: 6 }}>
+              <div className="csort">
+                <button className={`c-sort-btn${commentSort === 'new' ? ' active' : ''}`} onClick={() => { setCommentSort('new'); setVisibleCount(10) }}>Новые</button>
+                <button className={`c-sort-btn${commentSort === 'top' ? ' active' : ''}`} onClick={() => { setCommentSort('top'); setVisibleCount(10) }}>Популярные</button>
+              </div>
+            </div>
+          )}
+
+          {(() => {
+            const sorted = commentSort === 'top'
+              ? [...comments].sort((a, b) => (b.likes || 0) - (a.likes || 0))
+              : [...comments].reverse()
+            const visible = sorted.slice(0, visibleCount)
+            const remaining = sorted.length - visibleCount
+            return (
+              <>
+                {visible.map((c, i) => (
+                  <div key={i} className="whisper-comment">
+                    <div className="whisper-comment-top">
+                      <span className="whisper-comment-author">@{c.author || c.ini}</span>
+                      <span className="whisper-comment-time">{c.ts ? fmtCommentTime(c.ts) : c.date}</span>
+                    </div>
+                    <span className="whisper-comment-text">{c.text}</span>
+                  </div>
+                ))}
+                {remaining > 0 && (
+                  <div className="show-more-row">
+                    <button className="btn-show" onClick={() => setVisibleCount(v => v + 20)}>
+                      Показать ещё {Math.min(remaining, 20)}
+                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
+                    </button>
+                  </div>
+                )}
+              </>
+            )
+          })()}
+
+          <div className="whisper-comment-form">
+            <input className="whisper-comment-input" placeholder="Добавить комментарий..." value={commentText}
+              onChange={e => setCommentText(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && commentText.trim()) {
+                  setComments(prev => [...prev, { author: 'вы', text: commentText.trim(), ts: Date.now(), likes: 0 }])
+                  setCommentText('')
+                }
+              }}
+            />
+            <button className="whisper-comment-submit" disabled={!commentText.trim()} onClick={() => {
+              if (!commentText.trim()) return
+              setComments(prev => [...prev, { author: 'вы', text: commentText.trim(), ts: Date.now(), likes: 0 }])
+              setCommentText('')
+            }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 // ── BROADCAST CARD ─────────────────────────────────────────────────────────────
 
 function BroadcastCard({ item, onCategoryClick, onCompanyClick }) {
@@ -207,8 +373,7 @@ function BroadcastCard({ item, onCategoryClick, onCompanyClick }) {
         <div className="promo-type-badge promo-type-badge--broadcast">Рассылка</div>
       </div>
       <div className="broadcast-text">{item.text}</div>
-      <div className="fa-bottom">
-        <div className="f-spacer" />
+      <PromoInteractions extraAction={
         <a href={item.url} target="_blank" rel="noopener noreferrer" className="fa-action-btn" onClick={e => e.stopPropagation()}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
@@ -216,7 +381,7 @@ function BroadcastCard({ item, onCategoryClick, onCompanyClick }) {
           </svg>
           Открыть
         </a>
-      </div>
+      } />
     </div>
   )
 }
@@ -279,6 +444,7 @@ function PromoCard({ item, onCategoryClick, onCompanyClick }) {
           </button>
         </div>
       )}
+      <PromoInteractions />
     </div>
   )
 }
@@ -600,8 +766,15 @@ export default function Promo() {
     }
     if (promoCat.size > 0 && !promoCat.has(item.category)) return false
     if (promoCompany.size > 0 && !promoCompany.has(item.companyId)) return false
-    if (typeFilter !== 'all' && item.kind !== typeFilter) return false
-    if (item.kind === 'event' && actsFilter !== 'all' && item.promo_filter !== actsFilter) return false
+    if (typeFilter === 'official') {
+      if (item.kind !== 'event' && item.kind !== 'coupon') return false
+    } else if (typeFilter !== 'all') {
+      if (item.kind !== typeFilter) return false
+    }
+    // actsFilter applies to all non-broadcast items
+    if (item.kind !== 'broadcast' && actsFilter !== 'all') {
+      if ((item.promo_filter || 'regular') !== actsFilter) return false
+    }
     return true
   })
 
@@ -613,7 +786,8 @@ export default function Promo() {
     setPromoScope('mine'); setActsFilter('all')
   }
 
-  const showActsFilter = typeFilter === 'event' || typeFilter === 'coupon' || typeFilter === 'all'
+  // Broadcasts are always "regular", hide sub-filter for broadcast-only view
+  const showActsFilter = typeFilter !== 'broadcast'
 
   return (
     <Layout>

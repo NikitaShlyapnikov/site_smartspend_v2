@@ -7438,15 +7438,15 @@ body.dark .whisper-card--not {
 }
 
 .whisper-history {
-  display: flex; gap: 2px; height: 18px; align-items: stretch;
-  border-radius: 6px; overflow: hidden;
+  display: flex; gap: 1px; height: 4px; align-items: stretch;
+  border-radius: 4px; overflow: hidden; margin: 4px 16px 2px;
 }
 .wvh-stripe {
-  flex: 1; min-width: 3px; border-radius: 2px;
-  opacity: 0.85; transition: opacity 0.15s;
+  flex: 1; min-width: 2px; border-radius: 1px;
+  opacity: 0.8; transition: opacity 0.15s;
 }
 .wvh-stripe:last-child { opacity: 1; }
-.wvh-mine { outline: 2px solid var(--surface); outline-offset: -1px; }
+.wvh-mine { outline: 1px solid var(--surface); outline-offset: -1px; }
 
 .whisper-author {
   color: var(--accent-green); font-weight: 500;
