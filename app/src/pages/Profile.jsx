@@ -348,15 +348,30 @@ function TypeTag({ type, period }) {
   )
 }
 
-function SetCard({ set, onDelete, onOpen, editMode }) {
+function SetCard({ set, onDelete, onOpen, onPause, editMode }) {
   const isClickable = !editMode && (set.id || set.source === 'personal')
+  const isPaused = !!set.paused
   return (
-    <div className="set-card" onClick={isClickable ? onOpen : undefined} style={isClickable ? { cursor: 'pointer' } : {}}>
+    <div className={`set-card${isPaused ? ' paused' : ''}`} onClick={isClickable ? onOpen : undefined} style={isClickable ? { cursor: 'pointer' } : {}}>
       <div className="set-card-name">{set.name}</div>
+      {isPaused && <div className="set-card-paused-label">На паузе</div>}
       <div className="set-card-bottom">
-        <span className="set-card-amount">{set.amount ? set.amount.toLocaleString('ru') + ' ₽' : '—'}</span>
-        <span className="set-card-period">/ мес</span>
+        <span className="set-card-amount">{!isPaused && set.amount ? set.amount.toLocaleString('ru') + ' ₽' : '—'}</span>
+        <span className="set-card-period">{!isPaused ? '/ мес' : ''}</span>
       </div>
+      {!editMode && set.source !== 'personal' && (
+        <button
+          className={`set-pause-btn${isPaused ? ' playing' : ''}`}
+          onClick={e => { e.stopPropagation(); onPause() }}
+          title={isPaused ? 'Запустить' : 'Поставить на паузу'}
+        >
+          {isPaused ? (
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          ) : (
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          )}
+        </button>
+      )}
       {editMode && set.source !== 'personal' && (
         <button className="set-delete" onClick={onDelete} title="Удалить набор">✕</button>
       )}
@@ -649,9 +664,9 @@ export default function Profile() {
     return map
   })()
 
-  // Суммируем конверты + личные позиции инвентаря по категориям
+  // Суммируем конверты + личные позиции инвентаря по категориям (паузированные наборы исключаются)
   const grandTotal = CATEGORIES.reduce((sum, cat) => {
-    const envAmt = (envelopes[cat.id] || []).reduce((s, x) => s + x.amount, 0)
+    const envAmt = (envelopes[cat.id] || []).filter(x => !x.paused).reduce((s, x) => s + x.amount, 0)
     const personalAmt = (personalByCat[cat.id] || []).reduce((s, i) => s + calcItemMonthly(i), 0)
     return sum + envAmt + personalAmt
   }, 0)
@@ -691,10 +706,10 @@ export default function Profile() {
     total: -grandTotal,
     pct: income > 0 ? Math.round(grandTotal / income * 100) : null,
     rows: CATEGORIES
-      .filter(cat => (envelopes[cat.id] || []).length > 0)
+      .filter(cat => (envelopes[cat.id] || []).some(x => !x.paused))
       .map(cat => ({
         label: cat.name,
-        value: -(envelopes[cat.id] || []).reduce((s, x) => s + x.amount, 0),
+        value: -(envelopes[cat.id] || []).filter(x => !x.paused).reduce((s, x) => s + x.amount, 0),
       })),
   }
 
@@ -743,6 +758,26 @@ export default function Profile() {
           const invData = JSON.parse(localStorage.getItem('ss_inventory_extra') || '[]')
           const filtered = invData.filter(e => !(e.setId === setEntry.id && e.paused))
           localStorage.setItem('ss_inventory_extra', JSON.stringify(filtered))
+        } catch {}
+      }
+      return next
+    })
+  }
+
+  function togglePauseSet(catId, idx) {
+    setEnvelopes(prev => {
+      const list = [...(prev[catId] || [])]
+      const entry = { ...list[idx] }
+      const nowPaused = !entry.paused
+      entry.paused = nowPaused
+      list[idx] = entry
+      const next = { ...prev, [catId]: list }
+      saveEnvelopes(next)
+      if (entry.id) {
+        try {
+          const invData = JSON.parse(localStorage.getItem('ss_inventory_extra') || '[]')
+          const updated = invData.map(i => i.setId === entry.id ? { ...i, paused: nowPaused } : i)
+          localStorage.setItem('ss_inventory_extra', JSON.stringify(updated))
         } catch {}
       }
       return next
@@ -965,11 +1000,7 @@ export default function Profile() {
               const personalItems = personalByCat[cat.id] || []
               const hasPersonal = personalItems.length > 0
               const personalMonthly = personalItems.reduce((s, i) => s + calcItemMonthly(i), 0)
-              const total = sets.reduce((s, x) => s + x.amount, 0) + (hasPersonal ? personalMonthly : 0)
-              const totalSets = sets.length + (hasPersonal ? 1 : 0)
-              const desc = (hasSets || hasPersonal)
-                ? `${totalSets} набор${totalSets === 1 ? '' : totalSets < 5 ? 'а' : 'ов'} · пополняется 1-го числа`
-                : 'Нет наборов'
+              const total = sets.filter(x => !x.paused).reduce((s, x) => s + x.amount, 0) + (hasPersonal ? personalMonthly : 0)
               const personalSet = {
                 id: null,
                 source: 'personal',
@@ -988,8 +1019,8 @@ export default function Profile() {
                       <div className="env-name">{cat.name}</div>
                     </div>
                     <div className="env-right">
-                      <div className="env-total">{(hasSets || hasPersonal) ? total.toLocaleString('ru') + ' ₽' : '—'}</div>
-                      {(hasSets || hasPersonal) && <div className="env-total-sub">/ месяц</div>}
+                      <div className="env-total">{total > 0 ? total.toLocaleString('ru') + ' ₽' : '—'}</div>
+                      {total > 0 && <div className="env-total-sub">/ месяц</div>}
                     </div>
                   </div>
 
@@ -1002,6 +1033,7 @@ export default function Profile() {
                           editMode={editMode}
                           onDelete={() => deleteSet(cat.id, idx)}
                           onOpen={() => navigate(`/set/${set.id}`)}
+                          onPause={() => togglePauseSet(cat.id, idx)}
                         />
                       ))}
                       {hasPersonal && (
