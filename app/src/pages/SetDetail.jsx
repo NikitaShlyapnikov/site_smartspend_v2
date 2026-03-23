@@ -242,6 +242,10 @@ export default function SetDetail() {
   const [myArticles, setMyArticles] = useState(() => {
     try { return JSON.parse(localStorage.getItem(`ss_set_articles_${id}`) || '[]') } catch { return [] }
   })
+  const [pauseToast, setPauseToast] = useState(false)
+  const pauseToastTimerRef = useRef(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [envPaused, setEnvPaused] = useState(() => {
     try {
       const data = JSON.parse(localStorage.getItem('ss_envelopes') || '{}')
@@ -333,6 +337,11 @@ export default function SetDetail() {
       localStorage.setItem('ss_inventory_extra', JSON.stringify(invData.map(i => i.setId === id ? { ...i, paused: next } : i)))
     } catch {}
     setEnvPaused(next)
+    if (next) {
+      if (pauseToastTimerRef.current) clearTimeout(pauseToastTimerRef.current)
+      setPauseToast(true)
+      pauseToastTimerRef.current = setTimeout(() => setPauseToast(false), 5000)
+    }
   }
   function removeFromProfile() {
     try {
@@ -674,7 +683,7 @@ export default function SetDetail() {
                       <><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> На паузу</>
                     )}
                   </button>
-                  <button className="sd-personal-delete" onClick={removeFromProfile} title="Удалить набор из профиля">
+                  <button className="sd-personal-delete" onClick={() => { setDeleteConfirmText(''); setShowDeleteModal(true) }} title="Удалить набор из профиля">
                     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
                     </svg>
@@ -905,9 +914,45 @@ export default function SetDetail() {
           </div>
         )}
 
-        {/* ── ARTICLES (public) / NOTES (personal) ── */}
+        {/* ── ARTICLES (public) / ARTICLES+NOTES (personal) ── */}
         {isPersonal ? (
           <>
+          {/* Personal articles first */}
+          <div className="sd-section-card">
+            <div className="sd-section-header">
+              <div className="sd-section-title">
+                Статьи
+                {myArticles.length > 0 && <span className="sd-section-count">{myArticles.length}</span>}
+              </div>
+              <button className="sd-btn-sm" onClick={() => navigate('/create-article')}>
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+                Написать
+              </button>
+            </div>
+            {myArticles.length === 0 ? (
+              <div className="sd-notes-empty">
+                <div className="sd-notes-empty-text">Нет прикреплённых статей. Напишите статью или прикрепите из ленты.</div>
+              </div>
+            ) : (
+              <div className="sd-articles-list">
+                {myArticles.map((a, i) => (
+                  <div key={i} className="sd-article-card" onClick={() => navigate('/article/' + (a.id || 'a1'))}>
+                    <div className="sd-art-avatar" style={{ background: '#8B7B6B' }}>{a.ini || '?'}</div>
+                    <div className="sd-art-body">
+                      <div className="sd-art-meta-row">
+                        <span className="sd-art-author">{a.author}</span>
+                      </div>
+                      <div className="sd-art-title">{a.title}</div>
+                    </div>
+                    <ArrIcon />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          {/* Notes second */}
           <div className="sd-section-card">
             <div className="sd-section-header">
               <div className="sd-section-title">
@@ -952,41 +997,6 @@ export default function SetDetail() {
             </form>
           </div>
 
-          {/* Personal articles section */}
-          <div className="sd-section-card">
-            <div className="sd-section-header">
-              <div className="sd-section-title">
-                Статьи
-                {myArticles.length > 0 && <span className="sd-section-count">{myArticles.length}</span>}
-              </div>
-              <button className="sd-btn-sm" onClick={() => navigate('/create-article')}>
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 5v14M5 12h14"/>
-                </svg>
-                Написать
-              </button>
-            </div>
-            {myArticles.length === 0 ? (
-              <div className="sd-notes-empty">
-                <div className="sd-notes-empty-text">Нет прикреплённых статей. Напишите статью или прикрепите из ленты.</div>
-              </div>
-            ) : (
-              <div className="sd-articles-list">
-                {myArticles.map((a, i) => (
-                  <div key={i} className="sd-article-card" onClick={() => navigate('/article/' + (a.id || 'a1'))}>
-                    <div className="sd-art-avatar" style={{ background: '#8B7B6B' }}>{a.ini || '?'}</div>
-                    <div className="sd-art-body">
-                      <div className="sd-art-meta-row">
-                        <span className="sd-art-author">{a.author}</span>
-                      </div>
-                      <div className="sd-art-title">{a.title}</div>
-                    </div>
-                    <ArrIcon />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
           </>
         ) : allArticles.length > 0 && (
           <div id="sd-articles-section" className="sd-section-card">
@@ -1164,6 +1174,56 @@ export default function SetDetail() {
           </svg>
           Комментарий отправлен
         </div>
+
+        {/* Pause toast */}
+        <div className={`sd-pause-toast${pauseToast ? ' show' : ''}`} style={{ left: `calc(50% + ${sidebarOffset}px)` }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0, opacity: 0.8 }}>
+            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+          </svg>
+          <div className="sd-pause-toast-body">
+            <div className="sd-pause-toast-title">Набор поставлен на паузу</div>
+            <div className="sd-pause-toast-desc">Все позиции этого набора в инвентаре переведены в режим паузы и не учитываются в расходах до момента запуска.</div>
+          </div>
+          <button className="sd-pause-toast-close" onClick={() => setPauseToast(false)}>✕</button>
+        </div>
+
+        {/* Delete confirmation modal */}
+        {showDeleteModal && (
+          <div className="sd-delete-overlay" onClick={e => e.target === e.currentTarget && setShowDeleteModal(false)}>
+            <div className="sd-delete-modal">
+              <div className="sd-delete-modal-icon">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+                </svg>
+              </div>
+              <div className="sd-delete-modal-title">Удалить набор из профиля?</div>
+              <div className="sd-delete-modal-desc">
+                Набор и все связанные позиции инвентаря будут удалены из профиля. Это действие нельзя отменить.
+              </div>
+              <div className="sd-delete-modal-confirm-label">
+                Введите название набора для подтверждения:
+                <span className="sd-delete-modal-name">«{set.title}»</span>
+              </div>
+              <input
+                className="sd-delete-modal-input"
+                placeholder={set.title}
+                value={deleteConfirmText}
+                onChange={e => setDeleteConfirmText(e.target.value)}
+                autoFocus
+              />
+              <div className="sd-delete-modal-actions">
+                <button className="sd-delete-modal-cancel" onClick={() => setShowDeleteModal(false)}>Отмена</button>
+                <button
+                  className="sd-delete-modal-confirm"
+                  disabled={deleteConfirmText !== set.title}
+                  onClick={() => { setShowDeleteModal(false); removeFromProfile() }}
+                >
+                  Удалить
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       {showSpotlight && <SpotlightTour steps={SD_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
       </main>

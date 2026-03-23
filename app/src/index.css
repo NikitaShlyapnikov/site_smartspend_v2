@@ -5515,6 +5515,67 @@ body.dark .sd-inline-input { background: var(--surface-3); color: var(--text); }
 .sd-note-submit:disabled { opacity: 0.35; cursor: default; }
 .sd-note-submit:not(:disabled):hover { opacity: 0.85; }
 
+/* Pause toast */
+.sd-pause-toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(14px);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.14);
+  display: flex; align-items: flex-start; gap: 12px; max-width: 380px; width: calc(100% - 48px);
+  opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 900; color: var(--text-3);
+}
+.sd-pause-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+.sd-pause-toast-body { flex: 1; min-width: 0; }
+.sd-pause-toast-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.sd-pause-toast-desc { font-size: 12px; color: var(--text-3); line-height: 1.5; }
+.sd-pause-toast-close {
+  background: none; border: none; padding: 0; cursor: pointer;
+  color: var(--text-3); font-size: 14px; line-height: 1; flex-shrink: 0;
+  transition: color 0.15s;
+}
+.sd-pause-toast-close:hover { color: var(--text); }
+
+/* Delete confirmation modal */
+.sd-delete-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 24px;
+}
+.sd-delete-modal {
+  background: var(--surface); border-radius: 16px; padding: 28px 24px;
+  max-width: 400px; width: 100%; box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+  display: flex; flex-direction: column; gap: 14px;
+}
+.sd-delete-modal-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  background: rgba(184,85,85,0.1); color: #B85555;
+  display: flex; align-items: center; justify-content: center;
+}
+.sd-delete-modal-title { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+.sd-delete-modal-desc { font-size: 13px; color: var(--text-3); line-height: 1.55; }
+.sd-delete-modal-confirm-label { font-size: 13px; color: var(--text-2); display: flex; flex-direction: column; gap: 4px; }
+.sd-delete-modal-name { font-weight: 600; color: var(--text); font-size: 13px; }
+.sd-delete-modal-input {
+  background: var(--surface-2); border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 9px 12px; font-size: 14px; color: var(--text);
+  font-family: var(--sans); outline: none; transition: border-color 0.15s; width: 100%;
+}
+.sd-delete-modal-input:focus { border-color: #B85555; }
+.sd-delete-modal-input::placeholder { color: var(--text-3); }
+.sd-delete-modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+.sd-delete-modal-cancel {
+  padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 500;
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--text-2);
+  cursor: pointer; transition: background 0.15s;
+}
+.sd-delete-modal-cancel:hover { background: var(--border); }
+.sd-delete-modal-confirm {
+  padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600;
+  background: #B85555; border: none; color: #fff; cursor: pointer;
+  transition: opacity 0.15s;
+}
+.sd-delete-modal-confirm:disabled { opacity: 0.35; cursor: default; }
+.sd-delete-modal-confirm:not(:disabled):hover { opacity: 0.85; }
+
 /* add-to-profile toast */
 .sd-add-toast {
   position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(14px);
