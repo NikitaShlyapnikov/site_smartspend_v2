@@ -870,17 +870,15 @@ export default function Feed() {
         <div id="sp-feed-filters" className={`filters-sticky${filtersScrolled ? ' scrolled' : ''}`}>
           <div className="filters-block">
             {/* Row 1: modes + sort */}
-            <div className="filters-mode-row">
-              <div className="cats-scroll feed-mode-pills">
-                {MODES.map(m => (
-                  <button key={String(m.id)} className={`cat-pill${mode === m.id ? ' active' : ''}`}
-                    onClick={() => setMode(m.id)}>{m.label}</button>
-                ))}
-              </div>
-              <SortDropdown sort={sort} onSort={setSort} />
+            <div className="cats-scroll feed-mode-pills">
+              {MODES.map(m => (
+                <button key={String(m.id)} className={`cat-pill${mode === m.id ? ' active' : ''}`}
+                  onClick={() => setMode(m.id)}>{m.label}</button>
+              ))}
             </div>
 
-            {/* Row 2: categories */}
+            <SortDropdown sort={sort} onSort={setSort} />
+
             <FilterSelect
               items={CATEGORIES}
               value={cat}

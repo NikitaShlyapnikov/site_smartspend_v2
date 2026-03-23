@@ -386,13 +386,6 @@ body.dark .fsel-option.active { background: var(--accent-green); border-color: v
 .filters-row1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .filters-row2 { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .filters-spacer { flex: 1; min-width: 8px; }
-.filters-mode-row {
-  display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
-}
-.filters-mode-row > .feed-mode-pills {
-  flex: 1; min-width: 0;
-}
-.filters-mode-row .sort-wrap { flex-shrink: 0; }
 .cats-scroll {
   display: flex; align-items: center; gap: 6px;
   overflow-x: auto; flex-wrap: nowrap;
