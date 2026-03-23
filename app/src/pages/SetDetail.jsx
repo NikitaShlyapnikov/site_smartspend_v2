@@ -1,35 +1,9 @@
-import { useState, useRef, useMemo, useEffect } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import PublicLayout from '../components/PublicLayout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import { setDetails, catalogSets } from '../data/mock'
 
-const COMMENT_EMOJIS = [
-  '😊','👍','🔥','💡','❤️','😍','🤔','👏',
-  '😂','🙏','✨','🎉','💪','💸','😮','🥲',
-]
-
-function EmojiPicker({ onPick, onClose }) {
-  const [popping, setPopping] = useState(null)
-  const ref = useRef(null)
-  useEffect(() => {
-    function handler(e) { if (ref.current && !ref.current.contains(e.target)) onClose() }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [onClose])
-  function handlePick(emoji) {
-    setPopping(emoji)
-    setTimeout(() => { onPick(emoji); onClose() }, 220)
-  }
-  return (
-    <div className="emoji-picker" ref={ref}>
-      {COMMENT_EMOJIS.map(emoji => (
-        <button key={emoji} className={`ep-btn${popping === emoji ? ' ep-pop' : ''}`}
-          onClick={() => handlePick(emoji)}>{emoji}</button>
-      ))}
-    </div>
-  )
-}
 
 const SD_SPOTLIGHT = [
   { targetId: 'sp-sd-hero',  btnId: 'sp-sd-add',   title: 'Карточка набора',      desc: 'Здесь — название, описание и ключевые показатели набора. Кнопка «В инвентарь» добавит позиции в твой инвентарь.' },
@@ -152,7 +126,7 @@ function AddInventoryBtn({ added, onAdd, onRemove }) {
             <svg className="sd-inv-icon" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            В инвентаре
+            Используется
           </>
         ) : (
           <>
@@ -245,7 +219,6 @@ export default function SetDetail() {
   const [following, setFollowing] = useState(false)
   const [bookmarked, setBookmarked] = useState(false)
   const [addToast, setAddToast] = useState(false)
-  const [showCmtEmoji, setShowCmtEmoji] = useState(false)
   const addToastTimerRef = useRef(null)
 
   // Modified = scale changed OR any item differs from defaults
@@ -504,11 +477,23 @@ export default function SetDetail() {
               )}
               <LikeBtn liked={liked} count={(catalog?.likes || 0) + (liked ? 1 : 0)} onToggle={toggleLike} />
               {comments.length > 0 && (
-                <div className="fa-action-stat">
+                <div className="fa-action-stat fa-action-stat--link"
+                  onClick={() => document.getElementById('sd-comments-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
                   <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                   </svg>
                   {comments.length}
+                </div>
+              )}
+              {allArticles.length > 0 && (
+                <div className="fa-action-stat fa-action-stat--link"
+                  onClick={() => document.getElementById('sd-articles-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                  </svg>
+                  {allArticles.length}
                 </div>
               )}
               <DislikeBtn disliked={disliked} onToggle={toggleDislike} />
@@ -590,7 +575,6 @@ export default function SetDetail() {
               <div className="sd-scale-row">
                 <div>
                   <div className="sd-scale-title">Масштаб набора</div>
-                  <div className="sd-scale-desc">{isConsumable ? 'База: 1 человек / месяц' : 'База: мужчина, размер M–L'}</div>
                 </div>
                 <div className="sd-scale-right">
                   <span className="sd-scale-val">×{scale.toFixed(2)}</span>
@@ -629,8 +613,7 @@ export default function SetDetail() {
                       <tr key={`${item.id}-e-${scale}`}>
                         <td>
                           <div className="sd-item-name">{item.name}</div>
-                          {item.note && <div className="sd-item-note">{item.note}</div>}
-                        </td>
+                                                  </td>
                         <td>
                           <div className="sd-qty-ctrl">
                             <button className="sd-qty-btn" onClick={() => chQty(item.id, -1)}>−</button>
@@ -662,8 +645,7 @@ export default function SetDetail() {
                     <tr key={item.id}>
                       <td>
                         <div className="sd-item-name">{item.name}</div>
-                        {item.note && <div className="sd-item-note">{item.note}</div>}
-                      </td>
+                                              </td>
                       <td><span className="sd-mono-val">{scaledQty}&thinsp;{item.unit}</span></td>
                       <td><span className="sd-mono-val">{Math.round(effectivePrice).toLocaleString('ru')}&thinsp;₽</span></td>
                       <td>
@@ -733,7 +715,7 @@ export default function SetDetail() {
 
         {/* ── ARTICLES ── */}
         {allArticles.length > 0 && (
-          <div className="sd-section-card">
+          <div id="sd-articles-section" className="sd-section-card">
             <div className="sd-section-header">
               <div className="sd-section-title">
                 Статьи по теме
@@ -748,11 +730,11 @@ export default function SetDetail() {
             </div>
             <div className="sd-articles-list">
               {(artExpanded ? sortedArticles : sortedArticles.slice(0, SHOW_ART)).map((a, i) => {
-                const authorName = a.isAuthor ? (detail?.author?.name || 'SmartSpend') : (a.source || 'Сообщество')
+                const authorName = a.isAuthor ? (detail?.author?.name || 'SmartSpend') : (a.author || 'Сообщество')
                 const avatarBg   = a.isAuthor ? color : '#8B7B6B'
                 const avatarText = a.isAuthor
                   ? (detail?.author?.initials || 'SS')
-                  : (a.source?.[0]?.toUpperCase() || 'С')
+                  : (a.ini || a.author?.[0]?.toUpperCase() || 'С')
                 return (
                   <div key={i} className="sd-article-card" onClick={() => navigate('/article/a1')}>
                     <div className="sd-art-avatar" style={{ background: avatarBg }}>{avatarText}</div>
@@ -761,7 +743,8 @@ export default function SetDetail() {
                         <span className="sd-art-author">{authorName}</span>
                         <span className="sd-art-views">
                           <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                            <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
                           </svg>
                           {a.views}
                         </span>
@@ -788,7 +771,7 @@ export default function SetDetail() {
 
         {/* ── COMMENTS ── */}
         {comments.length > 0 && (
-          <div className="sd-section-card">
+          <div id="sd-comments-section" className="sd-section-card">
             <div className="sd-section-header">
               <div className="sd-section-title">
                 Комментарии
@@ -804,12 +787,19 @@ export default function SetDetail() {
               </div>
             </div>
             <div className="sd-comments-list">
-              {(cmtExpanded ? sortedComments : sortedComments.slice(0, SHOW_CMT)).map((c, i) => (
+              {(cmtExpanded ? sortedComments : sortedComments.slice(0, SHOW_CMT)).map((c, i) => {
+                const goToUser = () => navigate('/author/' + c.ini.toLowerCase(), { state: {
+                  name: c.name, ini: c.ini,
+                  handle: '@' + c.name.toLowerCase().replace(/[\s.]+/g, '_'),
+                  bio: '', color: '#8B7B6B',
+                  followers: '—', articles: 0, sets: 0, following: false,
+                }})
+                return (
                 <div key={i} className="sd-comment-item">
-                  <div className="sd-c-avatar">{c.ini}</div>
+                  <div className="sd-c-avatar" style={{ cursor: 'pointer' }} onClick={goToUser}>{c.ini}</div>
                   <div className="sd-c-body">
                     <div className="sd-c-header">
-                      <span className="sd-c-name">{c.name}</span>
+                      <span className="sd-c-name sd-c-name--link" onClick={goToUser}>{c.name}</span>
                       <span className="sd-c-date">{c.date}</span>
                     </div>
                     <div className="sd-c-text">{c.text}</div>
@@ -839,7 +829,8 @@ export default function SetDetail() {
                     </div>
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
             {comments.length > SHOW_CMT && (
               <div className="sd-show-more-row">
@@ -852,20 +843,6 @@ export default function SetDetail() {
               </div>
             )}
             <div className="comments-input">
-              <div style={{ position: 'relative' }}>
-                <button className="c-emoji-btn" onClick={() => setShowCmtEmoji(p => !p)} title="Эмодзи">
-                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/>
-                    <line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
-                  </svg>
-                </button>
-                {showCmtEmoji && (
-                  <EmojiPicker
-                    onPick={emoji => setCmtText(t => t + emoji)}
-                    onClose={() => setShowCmtEmoji(false)}
-                  />
-                )}
-              </div>
               <input className="c-input" placeholder="Написать комментарий…"
                 value={cmtText} onChange={e => setCmtText(e.target.value)} />
               <button className="c-submit">Отправить</button>

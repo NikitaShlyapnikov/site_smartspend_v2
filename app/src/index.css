@@ -625,6 +625,9 @@ body.dark .fa-action-bookmark.active svg { fill: #6AAF8E; stroke: #6AAF8E; }
 button.fa-action-stat--btn { background: none; border: none; cursor: pointer; transition: color 0.15s; }
 button.fa-action-stat--btn:hover { color: var(--text); }
 button.fa-action-stat--btn:hover svg { opacity: 0.55; }
+.fa-action-stat--link { cursor: pointer; border-radius: 6px; transition: color 0.15s, background 0.15s; }
+.fa-action-stat--link:hover { color: var(--text); background: var(--surface-2); }
+.fa-action-stat--link:hover svg { opacity: 0.55; }
 
 /* Action button wrappers (for particle positioning) */
 .action-wrap { position: relative; display: inline-flex; }
@@ -5407,6 +5410,8 @@ body.dark .sd-inline-input { background: var(--surface-3); color: var(--text); }
 .sd-c-body { flex: 1; }
 .sd-c-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
 .sd-c-name { font-size: 13px; font-weight: 600; letter-spacing: -0.01em; }
+.sd-c-name--link { cursor: pointer; }
+.sd-c-name--link:hover { color: var(--accent-green); }
 .sd-c-date { font-size: 11px; color: var(--text-3); font-family: var(--mono); }
 .sd-c-text { font-size: 13px; color: var(--text-2); line-height: 1.55; letter-spacing: -0.01em; }
 .sd-c-actions { display: flex; align-items: center; gap: 12px; margin-top: 6px; }

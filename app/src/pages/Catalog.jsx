@@ -418,7 +418,7 @@ function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike
         <div className="card-cost-sep" />
         <div className="card-cost-item">
           <div className="card-cost-val">{effectiveFullCost.toLocaleString('ru')} ₽</div>
-          <div className="card-cost-lbl">полная стоимость</div>
+          <div className="card-cost-lbl">общая стоимость</div>
         </div>
         <div className="card-cost-sep" />
         <div className="card-cost-item">

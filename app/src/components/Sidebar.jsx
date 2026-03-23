@@ -54,6 +54,7 @@ const navItems = [
   {
     to: '/catalog',
     id: 'catalog',
+    matchPaths: ['/catalog', '/set/'],
     label: 'Наборы',
     icon: (
       <svg className="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,16 +123,21 @@ export default function Sidebar() {
       </div>
 
       <nav>
-        {navItems.map(item => (
+        {navItems.map(item => {
+          const isActive = item.matchPaths
+            ? item.matchPaths.some(p => location.pathname === p || location.pathname.startsWith(p))
+            : location.pathname === item.to
+          return (
           <Link
             key={item.id}
             to={item.to}
-            className={`nav-item${location.pathname === item.to ? ' active' : ''}`}
+            className={`nav-item${isActive ? ' active' : ''}`}
           >
             {item.icon}
             <span className="nav-label">{item.label}</span>
           </Link>
-        ))}
+          )
+        })}
 
         <div className="nav-divider" />
 
