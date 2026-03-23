@@ -1,6 +1,7 @@
 import { useState, useRef, useMemo, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import PublicLayout from '../components/PublicLayout'
+import { useApp } from '../context/AppContext'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import { setDetails, catalogSets } from '../data/mock'
 
@@ -211,6 +212,8 @@ function itemMonthly(item, scale) {
 export default function SetDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { collapsed } = useApp()
+  const sidebarOffset = collapsed ? 28 : 120  // half of 56px or 240px
 
   const detail  = setDetails[id]
   const catalog = catalogSets.find(s => s.id === id)
@@ -277,6 +280,15 @@ export default function SetDetail() {
   const [bookmarked, setBookmarked] = useState(false)
   const [addToast, setAddToast] = useState(false)
   const addToastTimerRef = useRef(null)
+  const [cmtToast, setCmtToast] = useState(false)
+
+  function handleSubmitCmt(e) {
+    e.preventDefault()
+    if (!cmtText.trim()) return
+    setCmtText('')
+    setCmtToast(true)
+    setTimeout(() => setCmtToast(false), 2200)
+  }
   const [reactions, setReactions] = useState([{ emoji: '🔥', count: 8 }, { emoji: '💡', count: 5 }, { emoji: '👏', count: 3 }])
   const [myReactions, setMyReactions] = useState(new Set())
   const [showReactPicker, setShowReactPicker] = useState(false)
@@ -453,7 +465,7 @@ export default function SetDetail() {
   function chPrice(itemId, v) {
     const n = parseFloat(v)
     if (!isNaN(n) && n >= 0) {
-      setItems(prev => prev.map(i => i.id === itemId ? { ...i, basePrice: n / scale } : i))
+      setItems(prev => prev.map(i => i.id === itemId ? { ...i, basePrice: n } : i))
     }
   }
   function chPeriod(itemId, v) {
@@ -678,27 +690,31 @@ export default function SetDetail() {
               </thead>
               <tbody>
                 {tableItems.map(item => {
-                  const effectivePrice = item.basePrice * scale
                   const monthly = itemMonthly(item, scale)
                   const periodYears = item.period
                   const periodStr = (periodYears % 1 === 0) ? periodYears + '\u00a0лет' : (periodYears * 12) + '\u00a0мес'
 
+                  // qty * scale with unit conversion kg→g, l→ml
+                  const rawScaled = item.qty * scale
+                  let displayQty, displayUnit
+                  if (item.unit === 'кг') { displayQty = Math.round(rawScaled * 1000); displayUnit = 'г' }
+                  else if (item.unit === 'л') { displayQty = Math.round(rawScaled * 1000); displayUnit = 'мл' }
+                  else { displayQty = parseFloat(rawScaled.toFixed(2)); displayUnit = item.unit }
+
                   if (editMode) {
                     return (
                       <tr key={`${item.id}-e-${scale}`}>
-                        <td>
-                          <div className="sd-item-name">{item.name}</div>
-                                                  </td>
+                        <td><div className="sd-item-name">{item.name}</div></td>
                         <td>
                           <div className="sd-qty-ctrl">
                             <button className="sd-qty-btn" onClick={() => chQty(item.id, -1)}>−</button>
-                            <span className="sd-qty-n">{item.qty}</span>
+                            <span className="sd-qty-n">{item.qty}&thinsp;{item.unit}</span>
                             <button className="sd-qty-btn" onClick={() => chQty(item.id, +1)}>+</button>
                           </div>
                         </td>
                         <td>
                           <input className="sd-inline-input" type="number"
-                            defaultValue={Math.round(effectivePrice)} min="0" step="100"
+                            defaultValue={Math.round(item.basePrice)} min="0" step="100"
                             onBlur={e => chPrice(item.id, e.target.value)}
                             style={{ width: 80 }} />
                         </td>
@@ -715,17 +731,14 @@ export default function SetDetail() {
                       </tr>
                     )
                   }
-                  const scaledQty = parseFloat((item.qty * scale).toFixed(2))
                   return (
                     <tr key={item.id}>
-                      <td>
-                        <div className="sd-item-name">{item.name}</div>
-                                              </td>
-                      <td><span className="sd-mono-val">{scaledQty}&thinsp;{item.unit}</span></td>
-                      <td><span className="sd-mono-val">{Math.round(effectivePrice).toLocaleString('ru')}&thinsp;₽</span></td>
+                      <td><div className="sd-item-name">{item.name}</div></td>
+                      <td><span className="sd-mono-val">{displayQty.toLocaleString('ru')}&thinsp;{displayUnit}</span></td>
+                      <td><span className="sd-mono-val">{Math.round(item.basePrice).toLocaleString('ru')}&thinsp;₽</span></td>
                       <td>
                         {isConsumable
-                          ? <span className="sd-mono-val" style={{ color: 'var(--text-2)' }}>{scaledQty}&thinsp;{item.unit}/мес</span>
+                          ? <span className="sd-mono-val" style={{ color: 'var(--text-2)' }}>{displayQty.toLocaleString('ru')}&thinsp;{displayUnit}/мес</span>
                           : <span className="amort-chip">{periodStr}</span>
                         }
                       </td>
@@ -940,16 +953,16 @@ export default function SetDetail() {
                 </button>
               </div>
             )}
-            <div className="comments-input">
+            <form className="comments-input" onSubmit={handleSubmitCmt}>
               <input className="c-input" placeholder="Написать комментарий…"
                 value={cmtText} onChange={e => setCmtText(e.target.value)} />
-              <button className="c-submit">Отправить</button>
-            </div>
+              <button type="submit" className="c-submit">Отправить</button>
+            </form>
           </div>
         )}
 
         {/* Add-to-profile toast */}
-        <div className={`sd-add-toast${addToast ? ' show' : ''}`}>
+        <div className={`sd-add-toast${addToast ? ' show' : ''}`} style={{ left: `calc(50% + ${sidebarOffset}px)` }}>
           <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12"/>
           </svg>
@@ -957,6 +970,13 @@ export default function SetDetail() {
           <button className="sd-toast-link" onClick={() => { setAddToast(false); navigate('/inventory') }}>
             Перейти в инвентарь →
           </button>
+        </div>
+
+        <div className={`toast${cmtToast ? ' show' : ''}`} style={{ left: `calc(50% + ${sidebarOffset}px)` }}>
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Комментарий отправлен
         </div>
 
       {showSpotlight && <SpotlightTour steps={SD_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}

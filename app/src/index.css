@@ -7439,6 +7439,7 @@ body.dark .whisper-add-cta:hover { background: rgba(106,175,142,.08); }
 .whisper-card:hover { border-color: var(--accent-green-border); }
 
 .pc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.whisper-card .pc-header { align-items: flex-start; }
 .whisper-co-block { display: flex; flex-direction: column; flex: 1; min-width: 0; }
 .whisper-co-block .promo-co-btn { flex: unset; align-self: flex-start; }
 .whisper-company-info { flex: 1; min-width: 0; }

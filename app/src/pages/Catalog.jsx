@@ -611,7 +611,6 @@ export default function Catalog() {
                 Наборы
                 <HelpButton seenKey="ss_spl_catalog" onOpen={() => setShowSpotlight(true)} />
               </div>
-              <div className="page-subtitle">Готовые наборы товаров от SmartSpend и сообщества</div>
             </div>
           </div>
         </div>

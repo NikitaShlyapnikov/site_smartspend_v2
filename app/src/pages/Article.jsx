@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import PublicLayout from '../components/PublicLayout'
+import { useApp } from '../context/AppContext'
 import { articles } from '../data/mock'
 
 const CATEGORIES = [
@@ -353,6 +354,8 @@ function ConfirmDeleteModal({ open, onConfirm, onCancel }) {
 export default function Article() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { collapsed } = useApp()
+  const sidebarOffset = collapsed ? 28 : 120
   const commentsRef = useRef(null)
   const [liked, setLiked] = useState(false)
   const [disliked, setDisliked] = useState(false)
@@ -729,7 +732,7 @@ export default function Article() {
         )}
 
         {/* Toast */}
-        <div className={`toast${toast ? ' show' : ''}`}>
+        <div className={`toast${toast ? ' show' : ''}`} style={{ left: `calc(50% + ${sidebarOffset}px)` }}>
           <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
             <polyline points="20 6 9 17 4 12"/>
           </svg>
