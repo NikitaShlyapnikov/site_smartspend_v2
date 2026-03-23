@@ -5,8 +5,9 @@ import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import { setDetails, catalogSets } from '../data/mock'
 
 const SD_SPOTLIGHT = [
-  { targetId: 'sp-sd-hero',  btnId: 'sp-sd-add',   title: 'Карточка набора',      desc: 'Здесь — название, описание и ключевые показатели набора. Кнопка «Добавить в конверт» сохранит набор в твой инвентарь.' },
-  { targetId: 'sp-sd-items', btnId: null,           title: 'Состав набора',        desc: 'Список позиций с ценами и сроками службы. Масштаб позволяет адаптировать набор под свои нужды — например, под двух человек.' },
+  { targetId: 'sp-sd-hero',  btnId: 'sp-sd-add',   title: 'Карточка набора',      desc: 'Здесь — название, описание и ключевые показатели набора. Кнопка «В профиль» сохранит набор в твой инвентарь.' },
+  { targetId: 'sp-sd-items', btnId: null,           title: 'Состав набора',        desc: 'Список позиций. Нажми «Редактировать» — появится масштаб, позволяющий адаптировать набор под свои нужды (например, ×2 для двух человек).' },
+  { targetId: 'sp-sd-calc',  btnId: null,           title: 'Как считается сумма?', desc: 'Вещи: цена × кол-во ÷ (срок_лет × 12) = ₽/мес — это ежемесячная амортизация. Расходники: стоимость партии ÷ месяцев между закупками = ₽/мес. «Общая стоимость» — итого за одну закупку.' },
 ]
 
 // Category → envelope category (Profile)
@@ -85,6 +86,26 @@ function FollowBtn({ following, onToggle }) {
   )
 }
 
+function BookmarkBtn({ bookmarked, onToggle }) {
+  const [anim, setAnim] = useState(false)
+  const [fly, setFly] = useState(false)
+  function handleClick() {
+    setAnim(true); setTimeout(() => setAnim(false), 420)
+    if (!bookmarked) { setFly(true); setTimeout(() => setFly(false), 520) }
+    onToggle()
+  }
+  return (
+    <div className="action-wrap">
+      <button className={`fa-action-btn fa-action-bookmark${bookmarked ? ' active' : ''}${anim ? ' bookmark-snap' : ''}`} onClick={handleClick} title="В избранное">
+        <svg width="15" height="15" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+        </svg>
+      </button>
+      {fly && <span className="bookmark-fly">✦</span>}
+    </div>
+  )
+}
+
 function itemMonthly(item, scale) {
   return (item.basePrice * scale * item.qty) / (item.period * 12)
 }
@@ -147,7 +168,6 @@ export default function SetDetail() {
   const [showSpotlight, setShowSpotlight] = useState(false)
   const [editMode, setEditMode]   = useState(false)
   const [scale, setScaleRaw]      = useState(1.0)
-  const [expOpen, setExpOpen]     = useState(false)
   const [showAllArticles, setShowAllArticles] = useState(false)
   const [cmtExpanded, setCmtExpanded] = useState(false)
   const [cmtSort, setCmtSort]     = useState('popular')
@@ -155,6 +175,7 @@ export default function SetDetail() {
   const [likes, setLikes]         = useState({})
   const [dislikes, setDislikes]   = useState({})
   const [following, setFollowing] = useState(false)
+  const [bookmarked, setBookmarked] = useState(false)
 
   // Modified = scale changed OR any item differs from defaults
   const isDefault = useMemo(() => {
@@ -337,7 +358,7 @@ export default function SetDetail() {
   const totalMonthly = tableItems
     ? tableItems.reduce((s, i) => s + itemMonthly(i, scale), 0)
     : null
-  const totalPrice = !isConsumable && tableItems
+  const totalPrice = tableItems
     ? tableItems.reduce((s, i) => s + Math.round(i.basePrice * scale * i.qty), 0)
     : null
 
@@ -362,13 +383,18 @@ export default function SetDetail() {
         <div className="breadcrumb">
           <span className="breadcrumb-item" onClick={() => navigate('/catalog')}>Наборы</span>
           <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+          {catLabel && <>
+            <span className="breadcrumb-item" onClick={() => navigate(`/catalog?cat=${set.category}`)}>{catLabel}</span>
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+          </>}
           <span className="breadcrumb-current">{set.title}</span>
+          <HelpButton seenKey="ss_spl_setdetail" onOpen={() => setShowSpotlight(true)} />
         </div>
 
         {/* ── HERO CARD ── */}
         <div id="sp-sd-hero" className="hero-card">
           <div className="hero-body">
-            {/* Author + category row */}
+            {/* Author row */}
             <div className="fa-author-row" style={{ marginBottom: 14 }}>
               {set.source === 'ss' ? (
                 <>
@@ -381,30 +407,14 @@ export default function SetDetail() {
                   <span className="author-name-inline">{detail.author.name}</span>
                 </>
               ) : null}
-              {catLabel && <><span className="fa-sep">·</span><span className="fa-category">{catLabel}</span></>}
-              {set.type && <><span className="fa-sep">·</span><span className="fa-category">{set.type === 'base' ? 'Основа' : 'Дополнение'}</span></>}
             </div>
 
-            <div className="hero-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {set.title}
-              <HelpButton seenKey="ss_spl_setdetail" onOpen={() => setShowSpotlight(true)} />
-            </div>
+            <div className="hero-title">{set.title}</div>
             <div className="hero-desc">{set.desc}</div>
 
             {/* Meta + actions row */}
             <div className="art-meta-row">
-              {totalMonthly != null ? (
-                <span style={{ fontFamily: 'var(--mono)', color: 'var(--accent-green)', fontWeight: 600, fontSize: 14 }}>
-                  {fmtRub(totalMonthly)}/мес
-                </span>
-              ) : set.amount ? (
-                <span style={{ fontFamily: 'var(--mono)', color: 'var(--accent-green)', fontWeight: 600, fontSize: 14 }}>
-                  {fmtRub(set.amount)}/мес
-                </span>
-              ) : null}
-              {set.period && set.period !== '1 мес' && (
-                <><div className="art-meta-sep" /><span className="fa-time">{set.period}</span></>
-              )}
+              {set.added && <span className="fa-time">{fmtDate(set.added)}</span>}
               {set.users != null && (
                 <><div className="art-meta-sep" />
                 <div className="fa-action-stat">
@@ -415,12 +425,17 @@ export default function SetDetail() {
                   {fmtNum(set.users)}
                 </div></>
               )}
-              {tableItems && (
-                <><div className="art-meta-sep" />
-                <span className="fa-time">{tableItems.length} позиций</span></>
-              )}
               <LikeBtn liked={liked} count={(catalog?.likes || 0) + (liked ? 1 : 0)} onToggle={toggleLike} />
+              {comments.length > 0 && (
+                <div className="fa-action-stat">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  {comments.length}
+                </div>
+              )}
               <DislikeBtn disliked={disliked} onToggle={toggleDislike} />
+              <BookmarkBtn bookmarked={bookmarked} onToggle={() => setBookmarked(b => !b)} />
               {!isDefault && (
                 <span className="sd-modified-badge">
                   <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -432,10 +447,10 @@ export default function SetDetail() {
               <div className="f-spacer" />
               <button id="sp-sd-add" className={`sd-btn-primary${added ? ' added' : ''}`}
                 onClick={!added ? handleAdd : undefined}>
-                {added ? <><CheckIcon /> В конверте</> : <><PlusIcon /> В конверт</>}
+                {added ? <><CheckIcon /> В профиле</> : <><PlusIcon /> В профиль</>}
               </button>
               {added && (
-                <button className="sd-btn-remove" onClick={handleRemove} title="Удалить из инвентаря">
+                <button className="sd-btn-remove" onClick={handleRemove} title="Удалить из профиля">
                   <TrashIcon />
                 </button>
               )}
@@ -474,25 +489,6 @@ export default function SetDetail() {
         {/* ── ITEMS SECTION CARD ── */}
         {tableItems ? (
           <div id="sp-sd-items" className="sd-section-card">
-            {/* Scale stepper */}
-            <div className="sd-scale-row">
-              <div>
-                <div className="sd-scale-title">Масштаб набора</div>
-                <div className="sd-scale-desc">{isConsumable ? 'База: 1 человек / месяц' : 'База: мужчина, размер M–L'}</div>
-              </div>
-              <div className="sd-scale-right">
-                <span className="sd-scale-val">×{scale.toFixed(2)}</span>
-                <div className="sd-scale-stepper">
-                  <button className="sd-scale-btn"
-                    onMouseDown={() => startScale(-1)} onMouseUp={stopScale}
-                    onMouseLeave={stopScale} onTouchStart={() => startScale(-1)} onTouchEnd={stopScale}>−</button>
-                  <button className="sd-scale-btn"
-                    onMouseDown={() => startScale(1)} onMouseUp={stopScale}
-                    onMouseLeave={stopScale} onTouchStart={() => startScale(1)} onTouchEnd={stopScale}>+</button>
-                </div>
-              </div>
-            </div>
-
             {/* Section header */}
             <div className="sd-section-header">
               <div className="sd-section-title">
@@ -520,6 +516,27 @@ export default function SetDetail() {
               </div>
             </div>
 
+            {/* Scale stepper — visible only in edit mode */}
+            {editMode && (
+              <div className="sd-scale-row">
+                <div>
+                  <div className="sd-scale-title">Масштаб набора</div>
+                  <div className="sd-scale-desc">{isConsumable ? 'База: 1 человек / месяц' : 'База: мужчина, размер M–L'}</div>
+                </div>
+                <div className="sd-scale-right">
+                  <span className="sd-scale-val">×{scale.toFixed(2)}</span>
+                  <div className="sd-scale-stepper">
+                    <button className="sd-scale-btn"
+                      onMouseDown={() => startScale(-1)} onMouseUp={stopScale}
+                      onMouseLeave={stopScale} onTouchStart={() => startScale(-1)} onTouchEnd={stopScale}>−</button>
+                    <button className="sd-scale-btn"
+                      onMouseDown={() => startScale(1)} onMouseUp={stopScale}
+                      onMouseLeave={stopScale} onTouchStart={() => startScale(1)} onTouchEnd={stopScale}>+</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Table */}
             <table className="sd-items-table">
               <thead>
@@ -527,14 +544,11 @@ export default function SetDetail() {
                   <th>Позиция</th>
                   <th>Кол-во</th>
                   <th>Цена</th>
-                  <th>{isConsumable ? 'Объём / мес' : 'Срок службы'}</th>
+                  <th>{isConsumable ? 'Расход / мес' : 'Срок службы'}</th>
                   <th>₽/мес</th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="sd-divider-row">
-                  <td colSpan={5}>{isConsumable ? 'Расходники — ежемесячная закупка' : 'Долгосрочные вещи — амортизация'}</td>
-                </tr>
                 {tableItems.map(item => {
                   const effectivePrice = item.basePrice * scale
                   const monthly = itemMonthly(item, scale)
@@ -593,7 +607,7 @@ export default function SetDetail() {
                     </tr>
                   )
                 })}
-                <tr className="sd-total-row">
+                <tr id="sp-sd-calc" className="sd-total-row">
                   <td colSpan={4}>
                     Итого в месяц
                     {scale !== 1.0 && (
@@ -613,29 +627,6 @@ export default function SetDetail() {
               </tbody>
             </table>
 
-            {/* How it's calculated accordion */}
-            <div className="sd-explainer">
-              <button className={`sd-explainer-btn${expOpen ? ' open' : ''}`} onClick={() => setExpOpen(o => !o)}>
-                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"
-                  strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                Как считается сумма?
-                <svg className="sd-exp-chevron" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 9l-7 7-7-7"/></svg>
-              </button>
-              {expOpen && (
-                <div className="sd-explainer-body">
-                  <div className="sd-exp-text">
-                    Набор показывает не «сколько потратить», а <strong>сколько откладывать ежемесячно</strong> — чтобы деньги
-                    были в нужный момент. Стоимость каждой вещи делится на срок службы в месяцах.
-                  </div>
-                  <div className="sd-exp-formula">
-                    <span className="sd-fa">Амортизация:</span> цена × кол-во / (срок_лет × 12)<br />
-                    <span className="sd-fa">Цена с масштабом:</span> базовая_цена × коэффициент<br />
-                    <span className="sd-fa">Итог:</span> сумма амортизаций всех позиций
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         ) : (
           /* Simple items list for sets without rich data */
