@@ -540,16 +540,24 @@ const SS_PROMO = { name: 'SmartSpend', initials: 'SS', color: '#4E8268', followe
 
 function SmartSpendPromoChip() {
   const [showCard, setShowCard] = useState(false)
+  const [popPos, setPopPos] = useState(null)
   const [following, setFollowing] = useState(false)
   const [followAnim, setFollowAnim] = useState(false)
   const showTimer = useRef(null)
   const hideTimer = useRef(null)
+  const chipRef = useRef(null)
 
   function isTouch() { return window.matchMedia('(hover: none)').matches }
   function onEnter() {
     if (isTouch()) return
     clearTimeout(hideTimer.current)
-    showTimer.current = setTimeout(() => setShowCard(true), 350)
+    showTimer.current = setTimeout(() => {
+      if (chipRef.current) {
+        const r = chipRef.current.getBoundingClientRect()
+        setPopPos({ top: r.bottom + 8, left: r.left })
+      }
+      setShowCard(true)
+    }, 350)
   }
   function onLeave() {
     if (isTouch()) return
@@ -565,10 +573,11 @@ function SmartSpendPromoChip() {
 
   return (
     <span className="author-chip-wrap" onMouseEnter={onEnter} onMouseLeave={onLeave} onClick={e => e.stopPropagation()}>
-      <button className="whisper-author">@smartspend</button>
-      {showCard && (
+      <button className="whisper-author" ref={chipRef}>@smartspend</button>
+      {showCard && popPos && createPortal(
         <div
           className="author-popover"
+          style={{ position: 'fixed', top: popPos.top, left: popPos.left }}
           onMouseEnter={() => clearTimeout(hideTimer.current)}
           onMouseLeave={onLeave}
           onClick={e => e.stopPropagation()}
@@ -583,7 +592,8 @@ function SmartSpendPromoChip() {
           <div className="ap-meta">
             {SS_PROMO.followers.toLocaleString('ru')} подписчиков · {SS_PROMO.articles} статей · {SS_PROMO.sets} наборов
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </span>
   )

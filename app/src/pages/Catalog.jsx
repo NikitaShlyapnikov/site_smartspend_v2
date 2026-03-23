@@ -630,22 +630,7 @@ export default function Catalog() {
             {/* Row 2: sort */}
             <SortDropdown sort={sortFilter} onSort={setSort} />
 
-            {/* Row 3: categories */}
-            <FilterSelect
-              items={CATEGORIES}
-              value={cat}
-              onChange={handleCatChange}
-              placeholder="Категории"
-            />
-
-            {hasFilters && (
-              <div className="filter-summary">
-                <span>{filtered.length} {noun(filtered.length)}</span>
-                <button className="reset-btn" onClick={resetFilters}>Сбросить</button>
-              </div>
-            )}
-
-            {/* Row 4: item search */}
+            {/* Row 3: item search */}
             <div className="catalog-search-row">
               <div className="catalog-search-wrap">
                 <svg className="catalog-search-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -667,6 +652,21 @@ export default function Catalog() {
                 )}
               </div>
             </div>
+
+            {/* Row 4: categories */}
+            <FilterSelect
+              items={CATEGORIES}
+              value={cat}
+              onChange={handleCatChange}
+              placeholder="Категории"
+            />
+
+            {hasFilters && (
+              <div className="filter-summary">
+                <span>{filtered.length} {noun(filtered.length)}</span>
+                <button className="reset-btn" onClick={resetFilters}>Сбросить</button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -674,11 +674,19 @@ export default function Catalog() {
         <div className="catalog-scroll">
         <div id="sp-cat-grid" className="catalog-grid">
           {filtered.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-state-icon">📦</div>
-              <div className="empty-state-title">Наборов не найдено</div>
-              <div className="empty-state-desc">Попробуйте изменить фильтры</div>
-            </div>
+            sourceFilter === 'liked' && likedSets.size === 0 ? (
+              <div className="empty-state">
+                <div className="empty-state-icon">🔖</div>
+                <div className="empty-state-title">Избранное пусто</div>
+                <div className="empty-state-desc">Нажмите на закладку в карточке набора, чтобы сохранить его сюда</div>
+              </div>
+            ) : (
+              <div className="empty-state">
+                <div className="empty-state-icon">📦</div>
+                <div className="empty-state-title">Наборов не найдено</div>
+                <div className="empty-state-desc">Попробуйте изменить фильтры</div>
+              </div>
+            )
           ) : filtered.map(set => (
             <CatalogCard
               key={set.id}
