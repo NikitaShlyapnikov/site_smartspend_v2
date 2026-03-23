@@ -727,9 +727,9 @@ export default function Profile() {
 
   // Чистый доход = доход − жильё − кредиты (до конвертов)
   const netIncome = income > 0 ? Math.max(0, income - housing - credit) : 0
-  // Если чистый доход + EmoSpend < ПМ — используем ПМ как гарантированный пол
-  const useBasePM = netIncome + emoMonthly <= SMART_SPEND_BASE
-  const budgetBase = useBasePM ? SMART_SPEND_BASE : netIncome
+  // Если чистый доход >= ПМ — используем ПМ как потолок; иначе берём чистый доход
+  const useBasePM = income > 0 && netIncome >= SMART_SPEND_BASE
+  const budgetBase = income > 0 ? Math.min(netIncome, SMART_SPEND_BASE) : SMART_SPEND_BASE
   const sustainableBudget = budgetBase + emoMonthly
   const envelopeDiff = grandTotal - sustainableBudget
   const neededCapital = envelopeDiff > 0
