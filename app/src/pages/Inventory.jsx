@@ -73,8 +73,8 @@ function getItemInfo(item, override = null) {
       monthlyBlock = { type: 'surplus', surplusDays, surplusRub }
     }
 
-    if (pct >= 90) status = 'urgent'
-    else if (pct >= 75) status = 'soon'
+    if (pct >= 85) status = 'urgent'
+    else if (pct >= 60) status = 'soon'
     else status = 'ok'
 
   } else {
@@ -107,8 +107,8 @@ function getItemInfo(item, override = null) {
           if (weeksLeft === 0) { ringNum = '0'; ringUnit = 'нед' }
           else if (weeksLeft < 52) { ringNum = String(weeksLeft); ringUnit = 'нед' }
           else { ringNum = String(Math.floor(weeksLeft / 52)); ringUnit = 'лет' }
-          if (pct >= 90) status = 'urgent'
-          else if (pct >= 75) status = 'soon'
+          if (pct >= 85) status = 'urgent'
+          else if (pct >= 60) status = 'soon'
           else status = 'ok'
         }
       }
@@ -401,7 +401,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
           <div className="inv-name">{item.name}</div>
           {paused ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span className="inv-remainder" style={{ color: '#5B8FD4' }}>{item.set ? 'не активирован' : 'пауза'}</span>
+              <span className="inv-remainder" style={{ color: '#5B8FD4' }}>на паузе</span>
               <button className="inv-launch-btn" onClick={e => { e.stopPropagation(); onLaunch() }}>
                 <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M8 5v14l11-7z"/>
@@ -952,6 +952,8 @@ export default function Inventory() {
 
   const urgentItems = items.filter(i => !i.paused && infoMap[i.id].filterStatus === 'urgent')
   const soonItems   = items.filter(i => !i.paused && infoMap[i.id].filterStatus === 'soon')
+  const okItems     = items.filter(i => !i.paused && infoMap[i.id].filterStatus === 'ok')
+  const pausedItems = items.filter(i => i.paused)
   const urgentCost  = urgentItems.reduce((s, i) => {
     if (i.type === 'consumable') {
       const mb = infoMap[i.id].monthlyBlock
@@ -987,8 +989,35 @@ export default function Inventory() {
     ? ALL_GROUPS
     : ALL_GROUPS.filter(g => {
         const gi = items.filter(i => i.groupId === g.id)
-        return statusFilter ? gi.some(i => filterInfoMap[i.id]?.filterStatus === statusFilter) : gi.length > 0
+        if (!statusFilter) return gi.length > 0
+        if (statusFilter === 'paused') return gi.some(i => i.paused)
+        return gi.some(i => !i.paused && filterInfoMap[i.id]?.filterStatus === statusFilter)
       })
+
+  // Collapsed groups — по умолчанию свёрнуты группы без urgent/soon
+  const [collapsedGroups, setCollapsedGroups] = useState(() => {
+    const set = new Set()
+    ALL_GROUPS.forEach(g => {
+      const gi = items.filter(i => i.groupId === g.id)
+      const hasAttention = gi.some(i => {
+        const info = getItemInfo(i, i.type === 'consumable'
+          ? Math.max(0, Math.round(i.qty - daysSince(i.lastBought) * i.dailyUse))
+          : i.purchaseDate)
+        return info.status !== 'ok'
+      })
+      if (!hasAttention) set.add(g.id)
+    })
+    return set
+  })
+
+  function toggleGroupCollapse(groupId) {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev)
+      if (next.has(groupId)) next.delete(groupId)
+      else next.add(groupId)
+      return next
+    })
+  }
 
   // Handlers
   function doDelete(id) {
@@ -1145,68 +1174,54 @@ export default function Inventory() {
           </div>
         </div>
 
-        {/* Summary row */}
-        <div id="sp-inv-summary" className="inv-summary-row">
-          <div className={`inv-urgent-card${urgentItems.length === 0 ? ' empty' : ''}${statusFilter === 'urgent' ? ' active-filter' : ''}`}
-            onClick={() => setStatusFilter(f => f === 'urgent' ? null : 'urgent')}>
-            <div className="inv-urgent-top">
-              <div className="inv-urgent-num">{urgentItems.length}</div>
-              <div className="inv-urgent-icon">
-                <svg width="18" height="18" fill="none" stroke="white" viewBox="0 0 24 24" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                </svg>
-              </div>
-            </div>
-            <div>
-              <div className="inv-urgent-lbl">нужно купить сейчас</div>
-              {urgentCost > 0 && <div className="inv-urgent-cost">{urgentCost.toLocaleString('ru')}&thinsp;руб.</div>}
-              <div className="inv-urgent-hint">{statusFilter === 'urgent' ? 'нажмите чтобы сбросить' : 'нажмите для фильтра'}</div>
-            </div>
-          </div>
-
-          <div className={`inv-soon-card${statusFilter === 'soon' ? ' active-filter' : ''}`}
-            onClick={() => setStatusFilter(f => f === 'soon' ? null : 'soon')}>
-            <div className="inv-soon-val">{soonItems.length}</div>
-            <div className="inv-soon-lbl">заканчиваются скоро</div>
-            <div className="inv-soon-hint">{statusFilter === 'soon' ? 'нажмите чтобы сбросить' : 'нажмите для фильтра'}</div>
-          </div>
-
-        </div>
-
-        {statusFilter && (
-          <div className="inv-filter-active">
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-            </svg>
-            <span>Фильтр: {statusFilter === 'urgent' ? 'Срочно' : 'Скоро'}</span>
-            <button className="inv-filter-clear" onClick={() => setStatusFilter(null)}>
-              <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-              Сбросить
+        {/* Summary chips */}
+        <div id="sp-inv-summary" className="inv-chips-row">
+          {[
+            { key: 'urgent', label: 'срочно',   count: urgentItems.length, sub: urgentCost > 0 ? `~${urgentCost.toLocaleString('ru')} ₽` : null },
+            { key: 'soon',   label: 'скоро',    count: soonItems.length,   sub: null },
+            { key: 'ok',     label: 'в норме',  count: okItems.length,     sub: null },
+            { key: 'paused', label: 'на паузе', count: pausedItems.length, sub: null },
+          ].map(({ key, label, count, sub }) => (
+            <button
+              key={key}
+              className={`inv-chip inv-chip--${key}${statusFilter === key ? ' active' : ''}${count === 0 ? ' empty' : ''}`}
+              onClick={() => setStatusFilter(f => f === key ? null : key)}
+            >
+              <span className="inv-chip-count">{count}</span>
+              <span className="inv-chip-label">{label}</span>
+              {sub && <span className="inv-chip-sub">{sub}</span>}
             </button>
-          </div>
-        )}
+          ))}
+        </div>
 
         {/* Groups */}
         <div id="sp-inv-groups" className="inv-groups">
           {visibleGroups.map(group => {
             const groupItems = items.filter(i => i.groupId === group.id)
             const displayItems = statusFilter
-              ? groupItems.filter(i => filterInfoMap[i.id]?.filterStatus === statusFilter)
+              ? statusFilter === 'paused'
+                ? groupItems.filter(i => i.paused)
+                : groupItems.filter(i => !i.paused && filterInfoMap[i.id]?.filterStatus === statusFilter)
               : groupItems
-            const hasUrgent = displayItems.some(i => filterInfoMap[i.id]?.filterStatus === 'urgent')
+            const urgentCount = displayItems.filter(i => filterInfoMap[i.id]?.filterStatus === 'urgent').length
+            const soonCount = displayItems.filter(i => filterInfoMap[i.id]?.filterStatus === 'soon').length
+            const isCollapsed = !editMode && collapsedGroups.has(group.id) && !statusFilter
 
             return (
               <div key={group.id} className="inv-section-card">
-                <div className="inv-cat-header">
-                  <div className="inv-cat-bar" style={{ background: group.color }} />
+                <div className="inv-cat-header" style={{ cursor: 'pointer' }} onClick={() => toggleGroupCollapse(group.id)}>
                   <div className="inv-cat-name">{group.name}</div>
-                  {hasUrgent && <span className="inv-cat-urgent">Срочно</span>}
+                  {urgentCount > 0 && <span className="inv-cat-urgent">{urgentCount} срочно</span>}
+                  {urgentCount === 0 && soonCount > 0 && <span className="inv-cat-soon">{soonCount} скоро</span>}
                   <span className="inv-cat-count">{groupItems.length} поз.</span>
+                  <svg className="inv-cat-chevron" width="13" height="13" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                    style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }}>
+                    <path d="M19 9l-7 7-7-7" />
+                  </svg>
                 </div>
 
-                <div className="inv-section-items">
+                {!isCollapsed && <div className="inv-section-items">
                   {displayItems.map(item => (
                     <InventoryItem
                       key={item.id}
@@ -1244,9 +1259,9 @@ export default function Inventory() {
                       {editMode ? 'Нет позиций — добавьте первую' : 'Нет позиций с таким статусом'}
                     </div>
                   )}
-                </div>
+                </div>}
 
-                {editMode && (
+                {!isCollapsed && editMode && (
                   addFormGroup === group.id
                     ? <AddItemForm groupId={group.id} groupSetCategories={group.setCategories} groupPersonalSets={personalSets} onAdd={doAddItem} onCancel={() => setAddFormGroup(null)} />
                     : (

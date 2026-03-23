@@ -2569,46 +2569,43 @@ body.dark {
 }
 .btn-primary-action:hover { opacity: 0.82; }
 
-/* Summary row: urgent + soon top row, value card full-width below */
-.inv-summary-row {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  grid-template-rows: auto auto;
-  gap: 12px;
+/* Summary chips row */
+.inv-chips-row {
+  display: flex; gap: 8px; flex-wrap: wrap;
 }
-.inv-urgent-card {
-  background: var(--status-urgent-bg);
-  border: 1.5px solid var(--status-urgent-border);
-  border-radius: 14px; box-shadow: var(--shadow);
-  padding: 20px 22px; cursor: pointer;
-  transition: box-shadow 0.15s, border-color 0.15s;
-  display: flex; flex-direction: column; justify-content: space-between;
+.inv-chip {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--surface); cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  flex: 1; min-width: 0;
 }
-.inv-urgent-card:hover { box-shadow: var(--shadow), 0 0 0 2px var(--status-urgent-border); }
-.inv-urgent-card.active-filter { border-color: var(--status-urgent); box-shadow: var(--shadow), 0 0 0 2px var(--status-urgent); }
-.inv-urgent-card.empty { background: var(--surface-2); border-color: var(--border); }
-.inv-urgent-card.empty:hover { box-shadow: var(--shadow), 0 0 0 2px var(--border); }
-.inv-urgent-top { display: flex; align-items: flex-start; justify-content: space-between; }
-.inv-urgent-num { font-family: var(--mono); font-size: 40px; font-weight: 600; letter-spacing: -0.04em; line-height: 1; color: var(--status-urgent); }
-.inv-urgent-card.empty .inv-urgent-num { color: var(--text-3); }
-.inv-urgent-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--status-urgent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.inv-urgent-card.empty .inv-urgent-icon { background: var(--border); }
-.inv-urgent-lbl { font-size: 13px; font-weight: 600; color: var(--status-urgent); margin-top: 10px; letter-spacing: -0.01em; }
-.inv-urgent-hint { font-size: 11px; color: var(--status-urgent); opacity: 0.6; margin-top: 2px; }
-.inv-urgent-cost { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--status-urgent); margin-top: 4px; }
+.inv-chip:hover { background: var(--surface-2); }
+.inv-chip-count { font-family: var(--mono); font-size: 18px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+.inv-chip-label { font-size: 12px; color: var(--text-2); font-weight: 500; white-space: nowrap; }
+.inv-chip-sub { font-size: 11px; font-family: var(--mono); margin-left: auto; color: var(--text-3); }
 
-.inv-soon-card {
-  background: var(--surface); border-radius: 14px;
-  border: 1.5px solid transparent;
-  box-shadow: var(--shadow); padding: 20px 22px;
-  cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s;
-  display: flex; flex-direction: column; justify-content: space-between;
-}
-.inv-soon-card:hover { box-shadow: var(--shadow), 0 0 0 1px var(--status-soon-border); }
-.inv-soon-card.active-filter { border-color: var(--status-soon); }
-.inv-soon-lbl { font-size: 12px; color: var(--text-3); }
-.inv-soon-val { font-family: var(--mono); font-size: 40px; font-weight: 600; letter-spacing: -0.03em; color: var(--status-soon); line-height: 1.1; }
-.inv-soon-hint { font-size: 11px; color: var(--text-3); }
+.inv-chip--urgent .inv-chip-count { color: var(--status-urgent); }
+.inv-chip--urgent:hover, .inv-chip--urgent.active { border-color: var(--status-urgent-border); background: var(--status-urgent-bg); }
+.inv-chip--urgent.active { border-color: var(--status-urgent); }
+
+.inv-chip--soon .inv-chip-count { color: var(--status-soon); }
+.inv-chip--soon:hover, .inv-chip--soon.active { border-color: var(--status-soon-border); background: var(--status-soon-bg); }
+.inv-chip--soon.active { border-color: var(--status-soon); }
+
+.inv-chip--ok .inv-chip-count { color: var(--status-ok); }
+.inv-chip--ok:hover, .inv-chip--ok.active { border-color: var(--status-ok-border, #4E8268); background: var(--status-ok-bg, #f0f7f3); }
+.inv-chip--ok.active { border-color: var(--status-ok, #4E8268); }
+
+.inv-chip--paused .inv-chip-count { color: #5B8FD4; }
+.inv-chip--paused:hover, .inv-chip--paused.active { border-color: #A0C0E8; background: #EFF4FB; }
+.inv-chip--paused.active { border-color: #5B8FD4; }
+
+.inv-chip.empty .inv-chip-count { color: var(--text-3); }
+.inv-chip.empty { opacity: 0.6; pointer-events: none; }
+body.dark .inv-chip--ok:hover, body.dark .inv-chip--ok.active { background: #1A2E22; border-color: #2A4E35; }
+body.dark .inv-chip--paused:hover, body.dark .inv-chip--paused.active { background: #1A2535; border-color: #2A4060; }
 
 /* Value card — full width, horizontal */
 .inv-value-card {
@@ -2660,7 +2657,13 @@ body.dark {
   background: var(--status-urgent-bg); border: 1px solid var(--status-urgent-border);
   padding: 2px 7px; border-radius: 5px;
 }
+.inv-cat-soon {
+  font-size: 10px; font-weight: 600; color: var(--status-soon);
+  background: var(--status-soon-bg); border: 1px solid var(--status-soon-border);
+  padding: 2px 7px; border-radius: 5px;
+}
 .inv-cat-count { font-size: 11px; color: var(--text-3); font-family: var(--mono); }
+.inv-cat-chevron { color: var(--text-3); }
 
 .inv-section-items { display: flex; flex-direction: column; }
 .inv-item + .inv-item { border-top: 1px solid var(--border); }
@@ -5048,9 +5051,9 @@ body.dark .note-display:hover { background: #252210; }
   /* Profile budget line items */
   .bl-row { gap: 8px; }
 
-  /* Inventory summary row: stack on mobile */
-  .inv-summary-row { grid-template-columns: 1fr; grid-template-rows: auto; }
-  .inv-value-card { grid-column: 1; }
+  /* Inventory chips: wrap on mobile */
+  .inv-chips-row { gap: 6px; }
+  .inv-chip { flex: 1 1 calc(50% - 6px); }
   .inv-body { flex-direction: column; }
   .inv-detail-row { border-right: none; border-bottom: 1px solid var(--border); }
   .inv-stepper-wrap { width: 100%; }
@@ -9117,8 +9120,8 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   /* ── Cards section grid ── */
   .acc-sets-grid { grid-template-columns: 1fr; }
 
-  /* ── Inventory summary grid ── */
-  .inv-summary-row { grid-template-columns: 1fr !important; }
+  /* ── Inventory chips grid ── */
+  .inv-chip { flex: 1 1 calc(50% - 6px); }
 
   /* ── bl-row: don't let value overflow ── */
   .bl-row { flex-wrap: nowrap; gap: 8px; min-width: 0; }
