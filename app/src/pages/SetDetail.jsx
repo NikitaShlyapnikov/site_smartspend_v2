@@ -1,8 +1,35 @@
-import { useState, useRef, useMemo } from 'react'
+import { useState, useRef, useMemo, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import PublicLayout from '../components/PublicLayout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import { setDetails, catalogSets } from '../data/mock'
+
+const COMMENT_EMOJIS = [
+  '😊','👍','🔥','💡','❤️','😍','🤔','👏',
+  '😂','🙏','✨','🎉','💪','💸','😮','🥲',
+]
+
+function EmojiPicker({ onPick, onClose }) {
+  const [popping, setPopping] = useState(null)
+  const ref = useRef(null)
+  useEffect(() => {
+    function handler(e) { if (ref.current && !ref.current.contains(e.target)) onClose() }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [onClose])
+  function handlePick(emoji) {
+    setPopping(emoji)
+    setTimeout(() => { onPick(emoji); onClose() }, 220)
+  }
+  return (
+    <div className="emoji-picker" ref={ref}>
+      {COMMENT_EMOJIS.map(emoji => (
+        <button key={emoji} className={`ep-btn${popping === emoji ? ' ep-pop' : ''}`}
+          onClick={() => handlePick(emoji)}>{emoji}</button>
+      ))}
+    </div>
+  )
+}
 
 const SD_SPOTLIGHT = [
   { targetId: 'sp-sd-hero',  btnId: 'sp-sd-add',   title: 'Карточка набора',      desc: 'Здесь — название, описание и ключевые показатели набора. Кнопка «В профиль» сохранит набор в твой инвентарь.' },
@@ -168,7 +195,8 @@ export default function SetDetail() {
   const [showSpotlight, setShowSpotlight] = useState(false)
   const [editMode, setEditMode]   = useState(false)
   const [scale, setScaleRaw]      = useState(1.0)
-  const [showAllArticles, setShowAllArticles] = useState(false)
+  const [artSort, setArtSort]     = useState('author')
+  const [artExpanded, setArtExpanded] = useState(false)
   const [cmtExpanded, setCmtExpanded] = useState(false)
   const [cmtSort, setCmtSort]     = useState('popular')
   const [cmtText, setCmtText]     = useState('')
@@ -176,6 +204,9 @@ export default function SetDetail() {
   const [dislikes, setDislikes]   = useState({})
   const [following, setFollowing] = useState(false)
   const [bookmarked, setBookmarked] = useState(false)
+  const [addToast, setAddToast] = useState(false)
+  const [showCmtEmoji, setShowCmtEmoji] = useState(false)
+  const addToastTimerRef = useRef(null)
 
   // Modified = scale changed OR any item differs from defaults
   const isDefault = useMemo(() => {
@@ -298,7 +329,9 @@ export default function SetDetail() {
     } catch {}
 
     setAdded(true)
-    setTimeout(() => navigate('/inventory'), 800)
+    if (addToastTimerRef.current) clearTimeout(addToastTimerRef.current)
+    setAddToast(true)
+    addToastTimerRef.current = setTimeout(() => setAddToast(false), 5000)
   }
 
   function handleRemove() {
@@ -366,10 +399,29 @@ export default function SetDetail() {
   const srcLabel = { ss: 'SmartSpend', community: 'Сообщество', own: 'Мой набор' }[set.source] || 'SmartSpend'
   const catLabel = CATEGORY_LABELS[set.category] || null
 
+  const parseViews = v => {
+    if (!v) return 0
+    const s = String(v).trim()
+    if (s.endsWith('k')) return parseFloat(s) * 1000
+    return parseInt(s) || 0
+  }
+
   const authorArticles = detail?.authorArticles || []
   const recArticles    = detail?.recArticles    || []
   const comments       = detail?.comments       || []
-  const SHOW_ART = 3
+
+  const allArticles = useMemo(() => [
+    ...authorArticles.map(a => ({ ...a, isAuthor: true })),
+    ...recArticles.map(a => ({ ...a, isAuthor: false })),
+  ], [authorArticles, recArticles])
+
+  const sortedArticles = useMemo(() => {
+    if (artSort === 'popular')
+      return [...allArticles].sort((a, b) => parseViews(b.views) - parseViews(a.views))
+    return allArticles
+  }, [allArticles, artSort])
+
+  const SHOW_ART = 4
   const SHOW_CMT = 2
 
   const sortedComments = [...comments].sort(
@@ -394,21 +446,6 @@ export default function SetDetail() {
         {/* ── HERO CARD ── */}
         <div id="sp-sd-hero" className="hero-card">
           <div className="hero-body">
-            {/* Author row */}
-            <div className="fa-author-row" style={{ marginBottom: 14 }}>
-              {set.source === 'ss' ? (
-                <>
-                  <div className="author-avatar-sm" style={{ background: '#4E8268', fontSize: 9, fontWeight: 700 }}>SS</div>
-                  <span className="author-name-inline">SmartSpend</span>
-                </>
-              ) : detail?.author ? (
-                <>
-                  <div className="author-avatar-sm" style={{ background: color }}>{detail.author.initials}</div>
-                  <span className="author-name-inline">{detail.author.name}</span>
-                </>
-              ) : null}
-            </div>
-
             <div className="hero-title">{set.title}</div>
             <div className="hero-desc">{set.desc}</div>
 
@@ -662,67 +699,54 @@ export default function SetDetail() {
           </div>
         )}
 
-        {/* ── AUTHOR ARTICLES ── */}
-        {authorArticles.length > 0 && (
+        {/* ── ARTICLES ── */}
+        {allArticles.length > 0 && (
           <div className="sd-section-card">
             <div className="sd-section-header">
               <div className="sd-section-title">
-                Гайды от автора
-                <span className="sd-section-count">{authorArticles.length} статей</span>
+                Статьи по теме
+                <span className="sd-section-count">{allArticles.length}</span>
+              </div>
+              <div className="sd-csort">
+                {[['author', 'От автора'], ['popular', 'Популярные']].map(([k, l]) => (
+                  <button key={k} className={`sd-sort-btn${artSort === k ? ' active' : ''}`}
+                    onClick={() => setArtSort(k)}>{l}</button>
+                ))}
               </div>
             </div>
             <div className="sd-articles-list">
-              {(showAllArticles ? authorArticles : authorArticles.slice(0, SHOW_ART)).map((a, i) => (
-                <div key={i} className="sd-article-row" onClick={() => navigate('/article/a1')}>
-                  <div className="sd-article-ico"><DocIcon /></div>
-                  <div className="sd-article-body">
-                    <div className="sd-article-tag">{a.tag}</div>
-                    <div className="sd-article-title">{a.title}</div>
-                    <div className="sd-article-meta"><EyeIcon /> {a.views} · {detail?.author?.name || ''}</div>
+              {(artExpanded ? sortedArticles : sortedArticles.slice(0, SHOW_ART)).map((a, i) => {
+                const authorName = a.isAuthor ? (detail?.author?.name || 'SmartSpend') : (a.source || 'Сообщество')
+                const avatarBg   = a.isAuthor ? color : '#8B7B6B'
+                const avatarText = a.isAuthor
+                  ? (detail?.author?.initials || 'SS')
+                  : (a.source?.[0]?.toUpperCase() || 'С')
+                return (
+                  <div key={i} className="sd-article-card" onClick={() => navigate('/article/a1')}>
+                    <div className="sd-art-avatar" style={{ background: avatarBg }}>{avatarText}</div>
+                    <div className="sd-art-body">
+                      <div className="sd-art-meta-row">
+                        <span className="sd-art-author">{authorName}</span>
+                        <span className="sd-art-views"><EyeIcon />{a.views}</span>
+                      </div>
+                      <div className="sd-art-title">{a.title}</div>
+                      <span className="sd-art-tag-chip">{a.tag}</span>
+                    </div>
+                    <ArrIcon />
                   </div>
-                  <ArrIcon />
-                </div>
-              ))}
+                )
+              })}
             </div>
-            {authorArticles.length > SHOW_ART && (
+            {allArticles.length > SHOW_ART && (
               <div className="sd-show-more-row">
-                <button className={`sd-btn-show${showAllArticles ? ' open' : ''}`}
-                  onClick={() => setShowAllArticles(o => !o)}>
-                  {showAllArticles ? 'Скрыть' : `Показать все (${authorArticles.length})`}
+                <button className={`sd-btn-show${artExpanded ? ' open' : ''}`}
+                  onClick={() => setArtExpanded(o => !o)}>
+                  {artExpanded ? 'Скрыть' : `Показать все (${allArticles.length})`}
                   <svg className="sd-chev" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 9l-7 7-7-7"/></svg>
                 </button>
               </div>
             )}
-          </div>
-        )}
-
-        {/* ── COMMUNITY ARTICLES ── */}
-        {recArticles.length > 0 && (
-          <div className="sd-section-card">
-            <div className="sd-section-header">
-              <div className="sd-section-title">
-                Гайды от сообщества
-                <span className="sd-section-count">{recArticles.length} статей</span>
-              </div>
-              <span className="sd-section-subtitle">от авторов сообщества</span>
-            </div>
-            <div className="sd-articles-list">
-              {recArticles.map((a, i) => (
-                <div key={i} className="sd-article-row" onClick={() => navigate('/article/a1')}>
-                  <div className="sd-article-ico"><DocIcon /></div>
-                  <div className="sd-article-body">
-                    <div className="sd-article-tag">{a.tag}</div>
-                    <div className="sd-article-title">{a.title}</div>
-                    <div className="sd-article-meta">
-                      <EyeIcon /> {a.views}
-                      {a.source && <span className="article-source-tag">из «{a.source}»</span>}
-                    </div>
-                  </div>
-                  <ArrIcon />
-                </div>
-              ))}
-            </div>
           </div>
         )}
 
@@ -791,13 +815,39 @@ export default function SetDetail() {
                 </button>
               </div>
             )}
-            <div className="sd-comments-input">
-              <input className="sd-c-input" placeholder="Написать комментарий…"
+            <div className="comments-input">
+              <div style={{ position: 'relative' }}>
+                <button className="c-emoji-btn" onClick={() => setShowCmtEmoji(p => !p)} title="Эмодзи">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/>
+                    <line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+                  </svg>
+                </button>
+                {showCmtEmoji && (
+                  <EmojiPicker
+                    onPick={emoji => setCmtText(t => t + emoji)}
+                    onClose={() => setShowCmtEmoji(false)}
+                  />
+                )}
+              </div>
+              <input className="c-input" placeholder="Написать комментарий…"
                 value={cmtText} onChange={e => setCmtText(e.target.value)} />
-              <button className="sd-c-submit">Отправить</button>
+              <button className="c-submit">Отправить</button>
             </div>
           </div>
         )}
+
+        {/* Add-to-profile toast */}
+        <div className={`sd-add-toast${addToast ? ' show' : ''}`}>
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span>Добавлено в профиль — позиции в инвентаре</span>
+          <button className="sd-toast-link" onClick={() => { setAddToast(false); navigate('/inventory') }}>
+            Перейти в инвентарь →
+          </button>
+        </div>
+
       {showSpotlight && <SpotlightTour steps={SD_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
       </main>
     </PublicLayout>
