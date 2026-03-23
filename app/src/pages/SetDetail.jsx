@@ -1,13 +1,70 @@
-import { useState, useRef, useMemo } from 'react'
+import { useState, useRef, useMemo, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import PublicLayout from '../components/PublicLayout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import { setDetails, catalogSets } from '../data/mock'
 
 
+const REACTION_EMOJIS = [
+  '🔥','💡','😍','🤯','💸','🤮','🤔','👏',
+  '😮','💪','🎯','🙏','❤️','😂','🥰','😅',
+  '💯','✨','🎉','👀','🥲','😤','🫡','🤝',
+]
+const EMOJI_ANIM = { '🔥':'fire','😂':'laugh','💡':'bulb','🤯':'mindblown','💸':'money','👏':'clap','❤️':'heart','✨':'sparkle','🎉':'party','💪':'flex' }
+const EMOJI_DUR  = { fire:900, laugh:650, bulb:1400, mindblown:1100, money:1000, clap:500, heart:1000, sparkle:1200, party:750, flex:1100 }
+
+function EmojiPicker({ onPick, onClose }) {
+  const [popping, setPopping] = useState(null)
+  const ref = useRef(null)
+  useEffect(() => {
+    function handler(e) { if (ref.current && !ref.current.contains(e.target)) onClose() }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [onClose])
+  function handlePick(emoji) {
+    setPopping(emoji)
+    setTimeout(() => { onPick(emoji); onClose() }, 260)
+  }
+  return (
+    <div className="emoji-picker" ref={ref}>
+      {REACTION_EMOJIS.map(emoji => (
+        <button key={emoji} className={`ep-btn${popping === emoji ? ' ep-pop' : ''}`} onClick={() => handlePick(emoji)}>{emoji}</button>
+      ))}
+    </div>
+  )
+}
+
+function ReactionPill({ emoji, count, active, onToggle, autoAnimate }) {
+  const [popping, setPopping] = useState(false)
+  const [emojiAnim, setEmojiAnim] = useState(false)
+  const [particles, setParticles] = useState([])
+  function triggerAnim(isNew) {
+    setPopping(true); setTimeout(() => setPopping(false), 400)
+    const key = EMOJI_ANIM[emoji]
+    if (key) { setEmojiAnim(true); setTimeout(() => setEmojiAnim(false), EMOJI_DUR[key] + 50) }
+    if (isNew) {
+      const newP = Array.from({ length: 5 }, (_, i) => ({ id: Date.now() + i, angle: i * 72 + Math.random() * 20 - 10, dist: 20 + Math.random() * 10 }))
+      setParticles(newP); setTimeout(() => setParticles([]), 600)
+    }
+  }
+  useEffect(() => { if (autoAnimate) triggerAnim(true) }, [autoAnimate])
+  function handleClick() { triggerAnim(!active); onToggle(emoji) }
+  return (
+    <div className="r-pill-wrap">
+      <button className={`fa-reaction${active ? ' active' : ''}${popping ? ' popping' : ''}`} onClick={handleClick}>
+        <span className={`r-emoji${emojiAnim && EMOJI_ANIM[emoji] ? ` r-emoji--${EMOJI_ANIM[emoji]}` : ''}`}>{emoji}</span>
+        <span className="r-count">{count}</span>
+      </button>
+      {particles.map(p => (
+        <span key={p.id} className="r-particle" style={{ '--angle': `${p.angle}deg`, '--dist': `${p.dist}px` }}>{emoji}</span>
+      ))}
+    </div>
+  )
+}
+
 const SD_SPOTLIGHT = [
   { targetId: 'sp-sd-hero',  btnId: 'sp-sd-add',   title: 'Карточка набора',      desc: 'Здесь — название, описание и ключевые показатели набора. Кнопка «В инвентарь» добавит позиции в твой инвентарь.' },
-  { targetId: 'sp-sd-items', btnId: null,           title: 'Состав набора',        desc: 'Список позиций. Нажми «Редактировать» — появится масштаб, позволяющий адаптировать набор под свои нужды (например, ×2 для двух человек).' },
+  { targetId: 'sp-sd-items', btnId: null,           title: 'Состав набора',        desc: 'Список позиций. Нажми «Настрой под себя» — появится масштаб, позволяющий адаптировать набор под свои нужды (например, ×2 для двух человек).' },
   { targetId: 'sp-sd-calc',  btnId: null,           title: 'Как считается сумма?', desc: 'Вещи: цена × кол-во ÷ (срок_лет × 12) = ₽/мес — это ежемесячная амортизация. Расходники: стоимость партии ÷ месяцев между закупками = ₽/мес. «Общая стоимость» — итого за одну закупку.' },
 ]
 
@@ -220,6 +277,10 @@ export default function SetDetail() {
   const [bookmarked, setBookmarked] = useState(false)
   const [addToast, setAddToast] = useState(false)
   const addToastTimerRef = useRef(null)
+  const [reactions, setReactions] = useState([{ emoji: '🔥', count: 8 }, { emoji: '💡', count: 5 }, { emoji: '👏', count: 3 }])
+  const [myReactions, setMyReactions] = useState(new Set())
+  const [showReactPicker, setShowReactPicker] = useState(false)
+  const [justAdded, setJustAdded] = useState(null)
 
   // Modified = scale changed OR any item differs from defaults
   const isDefault = useMemo(() => {
@@ -363,6 +424,20 @@ export default function SetDetail() {
       localStorage.setItem('ss_envelopes', JSON.stringify(envData))
     } catch {}
     setAdded(false)
+  }
+
+  function toggleReaction(emoji) {
+    setMyReactions(prev => {
+      const next = new Set(prev)
+      const hadIt = next.has(emoji)
+      hadIt ? next.delete(emoji) : next.add(emoji)
+      setReactions(rs => {
+        const existing = rs.find(r => r.emoji === emoji)
+        if (existing) return rs.map(r => r.emoji === emoji ? { ...r, count: r.count + (hadIt ? -1 : 1) } : r).filter(r => r.count > 0)
+        return [...rs, { emoji, count: 1 }]
+      })
+      return next
+    })
   }
 
   function handleReset() {
@@ -564,7 +639,7 @@ export default function SetDetail() {
                   {editMode ? (
                     <><svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Готово</>
                   ) : (
-                    <><svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> Редактировать</>
+                    <><svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> Настрой под себя</>
                   )}
                 </button>
               </div>
@@ -718,7 +793,7 @@ export default function SetDetail() {
           <div id="sd-articles-section" className="sd-section-card">
             <div className="sd-section-header">
               <div className="sd-section-title">
-                Статьи по теме
+                Статьи по набору
                 <span className="sd-section-count">{allArticles.length}</span>
               </div>
               <div className="sd-csort">
@@ -778,6 +853,29 @@ export default function SetDetail() {
                 <span className="sd-section-count">{comments.length}</span>
               </div>
             </div>
+            {/* Reactions */}
+            <div className="art-reactions-row">
+              <span className="art-reactions-label">Что вы думаете?</span>
+              {reactions.map(r => (
+                <ReactionPill key={r.emoji} emoji={r.emoji} count={r.count}
+                  active={myReactions.has(r.emoji)} onToggle={toggleReaction}
+                  autoAnimate={justAdded === r.emoji} />
+              ))}
+              <div style={{ position: 'relative' }}>
+                <button className="ar-add-btn" onClick={() => setShowReactPicker(p => !p)} title="Добавить реакцию">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+                  </svg>
+                </button>
+                {showReactPicker && (
+                  <EmojiPicker
+                    onPick={emoji => { toggleReaction(emoji); setJustAdded(emoji); setTimeout(() => setJustAdded(null), 700); setShowReactPicker(false) }}
+                    onClose={() => setShowReactPicker(false)}
+                  />
+                )}
+              </div>
+            </div>
+
             <div className="sd-comments-subheader">
               <div className="sd-csort">
                 {[['popular', 'Популярные'], ['new', 'Новые']].map(([k, l]) => (
