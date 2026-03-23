@@ -239,10 +239,10 @@ const FEDERAL_PM_2026 = 20644  // Прожиточный минимум РФ 202
 const SMART_SPEND_BASE = Math.round(FEDERAL_PM_2026 * 0.75) // 75% — конверты (без жилья ~25%)
 
 const EMO_RATES = [
-  { rate: 0.04, label: '4%', level: 'low' },
-  { rate: 0.05, label: '5%', level: 'medium' },
-  { rate: 0.07, label: '7%', level: 'high' },
-  { rate: 0.10, label: '10%', level: 'extra' },
+  { rate: 0.04, label: 'Осторожно', pct: '4%', level: 'low' },
+  { rate: 0.05, label: 'Умеренно', pct: '5%', level: 'medium' },
+  { rate: 0.07, label: 'Активно', pct: '7%', level: 'high' },
+  { rate: 0.10, label: 'Агрессивно', pct: '10%', level: 'extra' },
 ]
 
 // ── Категории конвертов ──
@@ -859,7 +859,7 @@ export default function Profile() {
               <span className="bl-value">−{totalExpenses.toLocaleString('ru')} ₽ {income > 0 && <span className="bl-tag-neutral">{Math.round((totalExpenses / income) * 100)}% дохода</span>}</span>
             </div>
             <div className={`bl-row remainder${savings < 0 ? ' remainder--deficit' : savingsPct >= 20 ? ' remainder--good' : ''}`}>
-              <span className="bl-label">Остаток — к инвестированию</span>
+              <span className="bl-label">Свободный остаток</span>
               <span className="bl-value">
                 {savings < 0 ? '−' : ''}{Math.abs(savings).toLocaleString('ru')} ₽{income > 0 && <> <span className="bl-tag">{Math.round((savings / income) * 100)}%</span></>}
               </span>
@@ -892,7 +892,7 @@ export default function Profile() {
                   {useBasePM ? (
                     <div className="budget-row">
                       <span className="budget-row-label">Базовый минимум</span>
-                      <span className="budget-row-hint">прожиточный минимум · гарантированный пол</span>
+                      <span className="budget-row-hint">ПМ РФ 2026</span>
                       <span className="budget-row-value">{SMART_SPEND_BASE.toLocaleString('ru')} ₽</span>
                     </div>
                   ) : (
@@ -904,7 +904,7 @@ export default function Profile() {
                   )}
                   <div className="budget-row">
                     <span className="budget-row-label">EmoSpend от капитала</span>
-                    <span className="budget-row-hint">{Math.round(emoRate * 100)}% годовых ÷ 12</span>
+                    <span className="budget-row-hint">{capital > 0 ? `${capital.toLocaleString('ru')} ₽ × ` : ''}{Math.round(emoRate * 100)}% годовых ÷ 12 месяцев</span>
                     <span className="budget-row-value">+ {emoMonthly.toLocaleString('ru')} ₽</span>
                   </div>
                   <div className="budget-row budget-row--total">
@@ -961,7 +961,8 @@ export default function Profile() {
                         className={`rate-btn rate-${r.level}${emoRate === r.rate ? ' active' : ''}`}
                         onClick={() => setEmoRate(r.rate)}
                       >
-                        <span className="rate-pct">{r.label}</span>
+                        <span className="rate-name">{r.label}</span>
+                        <span className="rate-pct">{r.pct}</span>
                       </button>
                     ))}
                   </div>
