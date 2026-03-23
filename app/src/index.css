@@ -1183,9 +1183,25 @@ body.dark .catalog-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
 }
 .cat-badge:hover { background: var(--accent-green-light); color: var(--accent-green); border-color: transparent; }
 
+/* "Используется" button on catalog card */
+.card-used-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  margin: 10px 18px 0;
+  padding: 3px 10px 3px 7px;
+  border-radius: 20px;
+  font-size: 11px; font-weight: 500;
+  border: 1.5px solid var(--border);
+  background: none; color: var(--text-3);
+  cursor: pointer; transition: all .15s;
+}
+.card-used-btn:hover { border-color: var(--accent-green); color: var(--accent-green); }
+.card-used-btn.active { background: var(--accent-green); border-color: var(--accent-green); color: #fff; }
+.card-used-btn svg { flex-shrink: 0; }
+.catalog-card--used { outline: 2px solid var(--accent-green); outline-offset: -2px; }
+
 /* Author row on catalog card */
 .card-author-row {
-  padding: 12px 18px 0;
+  padding: 8px 18px 0;
   display: flex; align-items: center;
 }
 

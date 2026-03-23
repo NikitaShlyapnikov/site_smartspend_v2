@@ -17,6 +17,12 @@ function loadLikes() {
 function saveLikes(set) {
   try { localStorage.setItem('ss_catalog_likes', JSON.stringify([...set])) } catch {}
 }
+function loadUsedSets() {
+  try { return new Set(JSON.parse(localStorage.getItem('ss_used_sets') || '["s1","s2","s3"]')) } catch { return new Set(['s1','s2','s3']) }
+}
+function saveUsedSets(s) {
+  try { localStorage.setItem('ss_used_sets', JSON.stringify([...s])) } catch {}
+}
 
 const CATEGORIES = [
   { id: 'all',        label: 'Все'                   },
@@ -43,10 +49,8 @@ const SOURCE_MODES = [
 ]
 
 const SORT_OPTIONS = [
-  { group: 'Новизна',         id: 'newest',      label: 'Сначала новые' },
-  { group: 'По популярности', id: 'popular_7d',  label: 'За 7 дней' },
-  { group: 'По популярности', id: 'popular_30d', label: 'За месяц' },
-  { group: 'По популярности', id: 'popular_all', label: 'За всё время' },
+  { id: 'popular', label: 'По популярности' },
+  { id: 'newest',  label: 'Сначала новые' },
 ]
 
 function SortDropdown({ sort, onSort }) {
@@ -62,30 +66,23 @@ function SortDropdown({ sort, onSort }) {
   }, [])
 
   const current = SORT_OPTIONS.find(o => o.id === sort)
-  const groups = [...new Set(SORT_OPTIONS.map(o => o.group))]
 
   return (
     <div className="sort-wrap" ref={ref}>
       <span className="sort-label-txt">Сортировка:</span>
-      <button className={`sort-btn${open ? ' open' : ''}${sort !== 'popular_7d' ? ' active' : ''}`} onClick={() => setOpen(o => !o)}>
-        <span>{current?.label || 'За 7 дней'}</span>
+      <button className={`sort-btn${open ? ' open' : ''}${sort !== 'popular' ? ' active' : ''}`} onClick={() => setOpen(o => !o)}>
+        <span>{current?.label || 'По популярности'}</span>
         <svg className="sort-btn-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="6 9 12 15 18 9"/>
         </svg>
       </button>
       <div className={`sort-dropdown sort-dropdown--left${open ? ' open' : ''}`}>
-        {groups.map((grp, gi) => (
-          <div key={grp}>
-            {gi > 0 && <div className="sort-divider" />}
-            <div className="sort-group-label">{grp}</div>
-            {SORT_OPTIONS.filter(o => o.group === grp).map(opt => (
-              <div key={opt.id} className={`sort-option${sort === opt.id ? ' active' : ''}`} onClick={() => { onSort(opt.id); setOpen(false) }}>
-                {opt.label}
-                <svg className="sort-option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-              </div>
-            ))}
+        {SORT_OPTIONS.map(opt => (
+          <div key={opt.id} className={`sort-option${sort === opt.id ? ' active' : ''}`} onClick={() => { onSort(opt.id); setOpen(false) }}>
+            {opt.label}
+            <svg className="sort-option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
           </div>
         ))}
       </div>
@@ -300,18 +297,55 @@ function BookmarkBtn({ bookmarked, onToggle }) {
   )
 }
 
-const SS_AUTHOR = { name: 'SmartSpend', initials: 'SS', color: '#4E8268', followers: null, articles: 0, sets: 0, isSmartSpend: true }
+const SS_AUTHOR = { name: 'SmartSpend', initials: 'SS', color: '#4E8268', followers: 12400, articles: 47, sets: 14, desc: 'Официальные наборы и статьи от команды SmartSpend' }
 
 function SmartSpendChip() {
+  const [showCard, setShowCard] = useState(false)
+  const [following, setFollowing] = useState(false)
+  const [followAnim, setFollowAnim] = useState(false)
+  const showTimer = useRef(null)
+  const hideTimer = useRef(null)
+
+  const isTouch = () => window.matchMedia('(hover: none)').matches
+
+  function onEnter() {
+    if (isTouch()) return
+    clearTimeout(hideTimer.current)
+    showTimer.current = setTimeout(() => setShowCard(true), 350)
+  }
+  function onLeave() {
+    if (isTouch()) return
+    clearTimeout(showTimer.current)
+    hideTimer.current = setTimeout(() => setShowCard(false), 180)
+  }
+  function handleFollow() { setFollowAnim(true); setTimeout(() => setFollowAnim(false), 450); setFollowing(f => !f) }
+
   return (
-    <span className="author-chip author-chip--ss">
-      <div className="author-avatar-sm" style={{ background: SS_AUTHOR.color, fontSize: 9, fontWeight: 700 }}>SS</div>
-      <span className="author-name-inline">SmartSpend</span>
+    <span className="author-chip-wrap" onMouseEnter={onEnter} onMouseLeave={onLeave}>
+      <button className="author-chip" onClick={e => e.stopPropagation()}>
+        <div className="author-avatar-sm" style={{ background: SS_AUTHOR.color, fontSize: 9, fontWeight: 700 }}>SS</div>
+        <span className="author-name-inline">SmartSpend</span>
+      </button>
+      {showCard && (
+        <div className="author-popover" onMouseEnter={() => clearTimeout(hideTimer.current)} onMouseLeave={onLeave} onClick={e => e.stopPropagation()}>
+          <div className="ap-top">
+            <div className="ap-avatar" style={{ background: SS_AUTHOR.color, fontSize: 13, fontWeight: 700 }}>SS</div>
+            <button className={`ap-follow-btn${following ? ' following' : ''}${followAnim ? ' follow-pop' : ''}`} onClick={handleFollow}>
+              {following ? 'Отменить подписку' : 'Подписаться'}
+            </button>
+          </div>
+          <div className="ap-name">{SS_AUTHOR.name}</div>
+          <div className="ap-meta">
+            {SS_AUTHOR.followers.toLocaleString('ru')} подписчиков · {SS_AUTHOR.sets} наборов · {SS_AUTHOR.articles} статей
+          </div>
+          {SS_AUTHOR.desc && <p className="ap-desc">{SS_AUTHOR.desc}</p>}
+        </div>
+      )}
     </span>
   )
 }
 
-function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike, onBookmark, onCategoryClick, navigate, username }) {
+function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike, onBookmark, isUsed, onToggleUsed, onCategoryClick, navigate, username }) {
   const catLabel = CATEGORIES.find(c => c.id === set.category)?.label
   const totalItems = set.items.length + (set.more || 0)
   const [reactions, setReactions] = useState(() => (set.reactions || []).map(r => ({ ...r })))
@@ -338,22 +372,26 @@ function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike
         : null
 
   return (
-    <div className="catalog-card" onClick={() => navigate(`/set/${set.id}`)}>
+    <div className={`catalog-card${isUsed ? ' catalog-card--used' : ''}`} onClick={() => navigate(`/set/${set.id}`)}>
+      <button
+        className={`card-used-btn${isUsed ? ' active' : ''}`}
+        onClick={e => { e.stopPropagation(); onToggleUsed() }}
+        title={isUsed ? 'Убрать из используемых' : 'Отметить как используемый'}
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        {isUsed ? 'Используется' : 'Использую'}
+      </button>
       {authorRow && (
         <div className="card-author-row" onClick={e => e.stopPropagation()}>
           {authorRow}
+          {catLabel && <><span className="fa-sep">·</span><button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(set.category) }}>{catLabel}</button></>}
         </div>
       )}
       <div className="card-body">
         <div>
-          <div className="card-title-row">
-            <span className="card-title">{set.title}</span>
-            {catLabel && (
-              <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(set.category) }}>
-                {catLabel}
-              </button>
-            )}
-          </div>
+          <div className="card-title">{set.title}</div>
           <div className="card-desc">{set.desc}</div>
         </div>
       </div>
@@ -493,11 +531,12 @@ export default function Catalog() {
 
   const [cat, setCat]             = useState(() => initCatId ? new Set([initCatId]) : new Set())
   const [sourceFilter, setSrc]    = useState('all')
-  const [sortFilter, setSort]     = useState('popular_7d')
+  const [sortFilter, setSort]     = useState('popular')
   const [likedSets, setLikedSets] = useState(loadLikes)
   const [itemSearch, setItemSearch] = useState('')
   const [catalogLikes, setCatalogLikes] = useState(new Set())
   const [catalogDislikes, setCatalogDislikes] = useState(new Set())
+  const [usedSets, setUsedSets] = useState(loadUsedSets)
   const { modal: authModal, requireAuth } = useAuthModal()
   const [showSpotlight, setShowSpotlight] = useState(false)
 
@@ -543,10 +582,11 @@ export default function Catalog() {
       : (a, b) => (b.users || 0) - (a.users || 0)
   )
 
-  const hasFilters = cat.size > 0 || sourceFilter !== 'all' || sortFilter !== 'popular_7d' || itemSearch.trim() !== ''
+
+  const hasFilters = cat.size > 0 || sourceFilter !== 'all' || sortFilter !== 'popular' || itemSearch.trim() !== ''
 
   function resetFilters() {
-    setCat(new Set()); setSrc('all'); setSort('popular_7d'); setItemSearch('')
+    setCat(new Set()); setSrc('all'); setSort('popular'); setItemSearch('')
   }
 
   const fmtDate = iso => new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
@@ -640,6 +680,8 @@ export default function Catalog() {
               onLike={() => { if (!requireAuth()) return; setCatalogLikes(prev => { const n = new Set(prev); n.has(set.id) ? n.delete(set.id) : n.add(set.id); if (n.has(set.id)) setCatalogDislikes(p => { const d = new Set(p); d.delete(set.id); return d }); return n }) }}
               onDislike={() => { if (!requireAuth()) return; setCatalogDislikes(prev => { const n = new Set(prev); n.has(set.id) ? n.delete(set.id) : n.add(set.id); if (n.has(set.id)) setCatalogLikes(p => { const l = new Set(p); l.delete(set.id); return l }); return n }) }}
               onBookmark={() => { if (!requireAuth()) return; setLikedSets(prev => { const next = new Set(prev); next.has(set.id) ? next.delete(set.id) : next.add(set.id); saveLikes(next); return next }) }}
+              isUsed={usedSets.has(set.id)}
+              onToggleUsed={() => { if (!requireAuth()) return; setUsedSets(prev => { const n = new Set(prev); n.has(set.id) ? n.delete(set.id) : n.add(set.id); saveUsedSets(n); return n }) }}
               onCategoryClick={handleCatChange}
               navigate={navigate}
               username={username}
