@@ -410,7 +410,19 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
               </button>
             </div>
           ) : (
-            <div className={`inv-remainder${remCls}`}>{remainderText}</div>
+            <>
+              <div className={`inv-remainder${remCls}`}>{remainderText}</div>
+              {(status === 'urgent' || status === 'soon') && monthlyBlock?.type === 'deficit' && (
+                <div className="inv-deficit-inline">
+                  купить {monthlyBlock.deficitAmt} · ~{monthlyBlock.deficitRub.toLocaleString('ru')}&thinsp;₽
+                </div>
+              )}
+              {status === 'urgent' && item.type === 'wear' && !monthlyBlock && (
+                <div className="inv-deficit-inline">
+                  требует замены · ~{(item.price || 0).toLocaleString('ru')}&thinsp;₽
+                </div>
+              )}
+            </>
           )}
         </div>
         {editMode && (
@@ -767,6 +779,60 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+function ShoppingList({ items, infoMap, groups }) {
+  const urgentItems = items.filter(i => !i.paused && infoMap[i.id]?.filterStatus === 'urgent')
+
+  function getItemAction(item) {
+    const mb = infoMap[item.id]?.monthlyBlock
+    if (item.type === 'consumable' && mb?.type === 'deficit')
+      return { qty: mb.deficitAmt, cost: mb.deficitRub }
+    if (item.type === 'wear')
+      return { qty: '1 шт', cost: item.price || 0 }
+    return null
+  }
+
+  const grouped = groups
+    .map(g => ({ ...g, rows: urgentItems.filter(i => i.groupId === g.id) }))
+    .filter(g => g.rows.length > 0)
+
+  const grandTotal = urgentItems.reduce((s, item) => {
+    const a = getItemAction(item)
+    return s + (a?.cost || 0)
+  }, 0)
+
+  if (grouped.length === 0) return null
+
+  return (
+    <div className="inv-shopping-list">
+      <div className="inv-shopping-header">
+        <span className="inv-shopping-title">Список покупок</span>
+        <span className="inv-shopping-total">~{grandTotal.toLocaleString('ru')}&thinsp;₽</span>
+      </div>
+      {grouped.map(g => {
+        const groupTotal = g.rows.reduce((s, item) => s + (getItemAction(item)?.cost || 0), 0)
+        return (
+          <div key={g.id} className="inv-shopping-group">
+            <div className="inv-shopping-group-header">
+              <span className="inv-shopping-group-name">{g.name}</span>
+              <span className="inv-shopping-group-total">~{groupTotal.toLocaleString('ru')}&thinsp;₽</span>
+            </div>
+            {g.rows.map(item => {
+              const action = getItemAction(item)
+              return (
+                <div key={item.id} className="inv-shopping-row">
+                  <span className="inv-shopping-item-name">{item.name}</span>
+                  <span className="inv-shopping-item-qty">{action?.qty || '—'}</span>
+                  <span className="inv-shopping-item-cost">~{(action?.cost || 0).toLocaleString('ru')}&thinsp;₽</span>
+                </div>
+              )
+            })}
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -1193,6 +1259,11 @@ export default function Inventory() {
             </button>
           ))}
         </div>
+
+        {/* Shopping list — показывается при фильтре срочно */}
+        {statusFilter === 'urgent' && (
+          <ShoppingList items={items} infoMap={infoMap} groups={ALL_GROUPS} />
+        )}
 
         {/* Groups */}
         <div id="sp-inv-groups" className="inv-groups">
