@@ -262,6 +262,56 @@ function FilterSelect({ items, value, onChange, placeholder }) {
   )
 }
 
+// ── SIMPLE SELECT (single-value dropdown) ──────────────────────────────────────
+
+function SimpleSelect({ label, options, value, onChange, disabled }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handler(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('pointerdown', handler)
+    return () => document.removeEventListener('pointerdown', handler)
+  }, [open])
+
+  const selected = options.find(o => o.id === value)
+  const isDefault = value === 'all'
+
+  return (
+    <div className={`ssel-wrap${disabled ? ' ssel-disabled' : ''}`} ref={ref}>
+      <button
+        className={`ssel-btn${open ? ' open' : ''}${!isDefault ? ' active' : ''}`}
+        onClick={() => !disabled && setOpen(v => !v)}
+      >
+        <span className="ssel-label">{label}</span>
+        {!isDefault && <span className="ssel-value">{selected?.label}</span>}
+        <svg className="ssel-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      {open && (
+        <div className="ssel-panel">
+          {options.map(opt => (
+            <button
+              key={opt.id}
+              className={`ssel-option${value === opt.id ? ' active' : ''}`}
+              onClick={() => { onChange(opt.id); setOpen(false) }}
+            >
+              {opt.label}
+              {value === opt.id && (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── PROMO INTERACTIONS (shared: vote bar + comments) ───────────────────────────
 
 function getIni(author) {
@@ -987,7 +1037,7 @@ export default function Promo() {
   }
 
   // Broadcasts are always "regular", hide sub-filter for broadcast-only view
-  const showActsFilter = typeFilter !== 'broadcast'
+
 
   return (
     <Layout>
@@ -1001,26 +1051,26 @@ export default function Promo() {
 
         <div className={`filters-sticky${filtersScrolled ? ' scrolled' : ''}`}>
           <div className="filters-block">
-            {/* Row 1: Type chips */}
-            <div id="sp-promo-types" className="cats-scroll promo-type-chips">
-              {TYPE_CHIPS.map(chip => (
-                <button
-                  key={chip.id}
-                  className={`cat-pill${typeFilter === chip.id ? ' active' : ''}`}
-                  onClick={() => setTypeFilter(chip.id)}
-                >{chip.label}</button>
-              ))}
-            </div>
-
-            {/* Row 2: Acts sub-filter */}
-            {showActsFilter && (
-              <div id="sp-promo-acts" className="cats-scroll filters-acts-row">
-                {ACTS_FILTERS.map(f => (
-                  <button key={f.id} className={`cat-pill${actsFilter === f.id ? ' active' : ''}`}
-                    onClick={() => setActsFilter(f.id)}>{f.label}</button>
-                ))}
+            {/* Row 1: Source + Conditions dropdowns */}
+            <div className="promo-selects-row">
+              <div id="sp-promo-types">
+                <SimpleSelect
+                  label="Источник"
+                  options={TYPE_CHIPS}
+                  value={typeFilter}
+                  onChange={setTypeFilter}
+                />
               </div>
-            )}
+              <div id="sp-promo-acts">
+                <SimpleSelect
+                  label="Условия"
+                  options={ACTS_FILTERS}
+                  value={actsFilter}
+                  onChange={setActsFilter}
+                  disabled={typeFilter === 'broadcast'}
+                />
+              </div>
+            </div>
 
             {/* Scope */}
             <div id="sp-promo-scope" className="cats-scroll promo-type-chips">

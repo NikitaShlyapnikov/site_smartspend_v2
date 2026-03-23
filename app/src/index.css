@@ -7482,6 +7482,80 @@ body.dark .whisper-card--not {
 
 /* whisper-comments-toggle removed — replaced by fa-action-btn in JSX */
 
+/* ── SimpleSelect ── */
+.promo-selects-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ssel-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 120px;
+}
+.ssel-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 0 12px;
+  height: 34px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.ssel-btn:hover { border-color: var(--accent-green); color: var(--text-1); }
+.ssel-btn.active { border-color: var(--accent-green); color: var(--accent-green); background: rgba(78,130,104,0.06); }
+.ssel-btn.open { border-color: var(--accent-green); }
+.ssel-label { color: var(--text-3); font-size: 12px; flex-shrink: 0; }
+.ssel-value { color: var(--accent-green); font-weight: 500; font-size: 13px; flex: 1; text-align: left; }
+.ssel-arrow {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--text-3);
+  transition: transform .18s;
+}
+.ssel-btn.open .ssel-arrow { transform: rotate(180deg); }
+.ssel-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 100%;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  box-shadow: 0 4px 16px rgba(0,0,0,.1);
+  z-index: 200;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.ssel-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: var(--text-1);
+  cursor: pointer;
+  text-align: left;
+  transition: background .12s;
+}
+.ssel-option:hover { background: var(--hover); }
+.ssel-option.active { color: var(--accent-green); font-weight: 500; }
+.ssel-disabled { opacity: .45; pointer-events: none; }
+
 /* ── External Link Modal ── */
 .ext-modal-backdrop {
   position: fixed; inset: 0; z-index: 1200;
