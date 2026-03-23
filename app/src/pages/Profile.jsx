@@ -726,11 +726,17 @@ export default function Profile() {
   const emoAnnual = Math.round(capital * emoRate)
   const emoMonthly = Math.round(emoAnnual / 12)
 
-  const sustainableBudget = SMART_SPEND_BASE + emoMonthly
+  // Чистый доход = доход − жильё − кредиты (до конвертов)
+  const netIncome = income > 0 ? Math.max(0, income - housing - credit) : 0
+  // Устойчивый бюджет конвертов = чистый доход + EmoSpend от капитала
+  // Если доход не указан — используем SmartSpend базу как минимум
+  const sustainableBudget = (income > 0 ? netIncome : SMART_SPEND_BASE) + emoMonthly
   const envelopeDiff = grandTotal - sustainableBudget          // >0 превышение, <0 запас
-  const neededCapital = grandTotal > SMART_SPEND_BASE
-    ? Math.round((grandTotal - SMART_SPEND_BASE) * 12 / emoRate)
+  const neededCapital = envelopeDiff > 0
+    ? Math.round(envelopeDiff * 12 / emoRate)
     : 0
+  // Предупреждение: чистый доход ниже прожиточного минимума конвертов
+  const showPmWarn = income > 0 && netIncome < SMART_SPEND_BASE
 
   const savingsPct = income > 0 ? Math.round((savings / income) * 100) : 0
   const greetingSubtitle = (() => {
@@ -874,9 +880,9 @@ export default function Profile() {
 
                 <div className="budget-rows">
                   <div className="budget-row">
-                    <span className="budget-row-label">SmartSpend база</span>
-                    <span className="budget-row-hint">75% федерального ПМ РФ 2026 ({FEDERAL_PM_2026.toLocaleString('ru')} ₽)</span>
-                    <span className="budget-row-value">{SMART_SPEND_BASE.toLocaleString('ru')} ₽</span>
+                    <span className="budget-row-label">Чистый доход</span>
+                    <span className="budget-row-hint">доход − жильё − кредиты</span>
+                    <span className="budget-row-value">{income > 0 ? netIncome.toLocaleString('ru') : '—'} ₽</span>
                   </div>
                   <div className="budget-row">
                     <span className="budget-row-label">EmoSpend от капитала</span>
@@ -885,6 +891,7 @@ export default function Profile() {
                   </div>
                   <div className="budget-row budget-row--total">
                     <span className="budget-row-label">Можно тратить</span>
+                    <span className="budget-row-hint" style={{fontSize:10}}>мин. SmartSpend {SMART_SPEND_BASE.toLocaleString('ru')} ₽ · ПМ РФ 2026</span>
                     <span className="budget-row-value">{sustainableBudget.toLocaleString('ru')} ₽</span>
                   </div>
                 </div>
@@ -913,10 +920,10 @@ export default function Profile() {
                     )}
                   </div>
                 )}
-                {income > 0 && savings < FEDERAL_PM_2026 && (
+                {showPmWarn && (
                   <div className="budget-pm-warn">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-                    После всех расходов остаётся <strong>{savings.toLocaleString('ru')} ₽</strong> — меньше прожиточного минимума ({FEDERAL_PM_2026.toLocaleString('ru')} ₽). Рекомендуем пересмотреть конверты или увеличить доход.
+                    Чистый доход <strong>{netIncome.toLocaleString('ru')} ₽</strong> ниже прожиточного минимума ({SMART_SPEND_BASE.toLocaleString('ru')} ₽) — нужно увеличить доход.
                   </div>
                 )}
 
