@@ -108,8 +108,6 @@ export default function Account() {
     ? profile.displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : '?'
 
-  const profileEmpty = !profile.displayName && !profile.bio
-
   // ── Article actions ────────────────────────────────────────────────────────
 
   function handleEditArticle(a) {
@@ -195,28 +193,38 @@ export default function Account() {
       <main className="account-main">
 
         {/* Page title */}
-        <div>
-          <div className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            Аккаунт
-            <HelpButton seenKey="ss_spl_account" onOpen={() => setShowSpotlight(true)} />
+        <div className="inv-page-header">
+          <div>
+            <div className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              Аккаунт
+              <HelpButton seenKey="ss_spl_account" onOpen={() => setShowSpotlight(true)} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button id="sp-acc-edit" className={`btn-edit-mode${editing ? ' active' : ''}`} onClick={editing ? saveEdit : startEdit}>
+              {editing ? (
+                <>
+                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                  Готово
+                </>
+              ) : (
+                <>
+                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                  Редактировать
+                </>
+              )}
+            </button>
+            {editing && (
+              <button className="btn-edit-mode" onClick={cancelEdit}>Отмена</button>
+            )}
           </div>
         </div>
 
-        {/* Onboarding banner — if profile is empty */}
-        {profileEmpty && !editing && (
-          <div className="acc-onboarding">
-            <div className="acc-onboarding-icon">
-              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="8" r="4"/><path d="M5 20v-2a7 7 0 0114 0v2"/>
-              </svg>
-            </div>
-            <div className="acc-onboarding-text">
-              <strong>Заполните профиль</strong>
-              <span>Добавьте имя и расскажите о себе — это поможет другим авторам найти вас</span>
-            </div>
-            <button className="acc-onboarding-btn" onClick={startEdit}>Заполнить</button>
-          </div>
-        )}
 
         {/* Profile header */}
         <div id="sp-acc-header" className="user-header">
@@ -254,12 +262,6 @@ export default function Account() {
             </div>
 
             <div className="user-meta">
-              <span className="user-meta-item">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="8" r="4"/><path d="M5 20v-2a7 7 0 0 1 14 0v2"/>
-                </svg>
-                С нами с {profile.joined}
-              </span>
               {profile.followers > 0 && (
                 <span className="user-meta-item">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -271,28 +273,13 @@ export default function Account() {
             </div>
 
             {editing ? (
-              <>
-                <textarea className="user-bio-input" rows={3} value={draft.bio}
-                  onChange={e => setDraft(d => ({ ...d, bio: e.target.value }))}
-                  placeholder="Расскажите о себе..." />
-                <div className="profile-edit-actions">
-                  <button className="btn-save" onClick={saveEdit}>Сохранить</button>
-                  <button className="btn-cancel" onClick={cancelEdit}>Отмена</button>
-                </div>
-              </>
+              <textarea className="user-bio-input" rows={3} value={draft.bio}
+                onChange={e => setDraft(d => ({ ...d, bio: e.target.value }))}
+                placeholder="Расскажите о себе..." />
             ) : (
               <div className="user-bio">{profile.bio || <span className="acc-placeholder">Биография не заполнена</span>}</div>
             )}
           </div>
-
-          {!editing && (
-            <button id="sp-acc-edit" className="btn-edit-profile" onClick={startEdit}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-              </svg>
-              Редактировать
-            </button>
-          )}
         </div>
 
         {/* Tabs */}
