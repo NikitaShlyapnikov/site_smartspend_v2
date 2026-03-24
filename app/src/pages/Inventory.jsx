@@ -830,32 +830,44 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
 }
 
 function ShoppingList({ items, infoMap, groups, onClose }) {
+  const [period, setPeriod] = useState('month') // 'week' | 'month'
   const urgentItems = items.filter(i => !i.paused && infoMap[i.id]?.filterStatus === 'urgent')
 
-  function getItemAction(item) {
-    const mb = infoMap[item.id]?.monthlyBlock
-    if (item.type === 'consumable' && mb?.type === 'deficit')
-      return { qty: mb.deficitAmt, cost: mb.deficitRub }
-    if (item.type === 'wear')
-      return { qty: '1 шт', cost: item.price || 0 }
-    return null
+  function getAction(item, p) {
+    if (item.type === 'wear') return { qty: '1 шт', cost: item.price || 0 }
+    if (item.type !== 'consumable') return null
+    const unit = item.unit || 'г'
+    const remaining = Math.max(0, item.qty - daysSince(item.lastBought) * item.dailyUse)
+    const pricePerUnit = (item.price || 0) / item.qty
+    if (p === 'week') {
+      const need = item.dailyUse * 7
+      const deficit = need - remaining
+      if (deficit <= 0) return null
+      const amt = (unit === 'г' || unit === 'мл') ? `${Math.round(deficit)}\u00a0${unit}` : `${parseFloat(deficit.toFixed(1))}\u00a0${unit}`
+      return { qty: amt, cost: Math.round(deficit * pricePerUnit) }
+    } else {
+      const mb = infoMap[item.id]?.monthlyBlock
+      if (mb?.type === 'deficit') return { qty: mb.deficitAmt, cost: mb.deficitRub }
+      return null
+    }
   }
 
   const grouped = groups
-    .map(g => ({ ...g, rows: urgentItems.filter(i => i.groupId === g.id) }))
+    .map(g => ({ ...g, rows: urgentItems.filter(i => i.groupId === g.id && getAction(i, period)) }))
     .filter(g => g.rows.length > 0)
 
-  const grandTotal = urgentItems.reduce((s, item) => {
-    const a = getItemAction(item)
-    return s + (a?.cost || 0)
-  }, 0)
+  const grandTotal = grouped.reduce((s, g) => s + g.rows.reduce((ss, item) => ss + (getAction(item, period)?.cost || 0), 0), 0)
 
-  if (grouped.length === 0) return null
+  if (urgentItems.length === 0) return null
 
   return (
     <div className="inv-shopping-list">
       <div className="inv-shopping-header">
         <span className="inv-shopping-title">Список покупок</span>
+        <div className="inv-shopping-period-toggle">
+          <button className={`inv-shopping-period-btn${period === 'week' ? ' active' : ''}`} onClick={() => setPeriod('week')}>Неделя</button>
+          <button className={`inv-shopping-period-btn${period === 'month' ? ' active' : ''}`} onClick={() => setPeriod('month')}>Месяц</button>
+        </div>
         <span className="inv-shopping-total">~{grandTotal.toLocaleString('ru')}&thinsp;₽</span>
         <button className="inv-shopping-close" onClick={onClose} title="Закрыть">
           <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
@@ -863,8 +875,10 @@ function ShoppingList({ items, infoMap, groups, onClose }) {
           </svg>
         </button>
       </div>
-      {grouped.map(g => {
-        const groupTotal = g.rows.reduce((s, item) => s + (getItemAction(item)?.cost || 0), 0)
+      {grouped.length === 0 ? (
+        <div className="inv-shopping-empty">На эту неделю всё есть в запасе</div>
+      ) : grouped.map(g => {
+        const groupTotal = g.rows.reduce((s, item) => s + (getAction(item, period)?.cost || 0), 0)
         return (
           <div key={g.id} className="inv-shopping-group">
             <div className="inv-shopping-group-header">
@@ -872,7 +886,7 @@ function ShoppingList({ items, infoMap, groups, onClose }) {
               <span className="inv-shopping-group-total">~{groupTotal.toLocaleString('ru')}&thinsp;₽</span>
             </div>
             {g.rows.map(item => {
-              const action = getItemAction(item)
+              const action = getAction(item, period)
               return (
                 <div key={item.id} className="inv-shopping-row">
                   <span className="inv-shopping-item-name">{item.name}</span>
@@ -1119,7 +1133,10 @@ export default function Inventory() {
 
   // Sets available for selected category
   const setsInCategory = categoryFilter
-    ? [...new Set(items.filter(i => i.groupId === categoryFilter && i.set).map(i => i.set))]
+    ? [
+        ...new Set(items.filter(i => i.groupId === categoryFilter && i.set).map(i => i.set)),
+        ...(items.some(i => i.groupId === categoryFilter && !i.set) ? ['__personal__'] : []),
+      ]
     : []
 
   // Collapsed groups — по умолчанию свёрнуты группы без urgent/soon
@@ -1143,6 +1160,8 @@ export default function Inventory() {
       const next = new Set(prev)
       if (next.has(groupId)) {
         next.delete(groupId)
+        // при разворачивании восстанавливаем галерею если глобальный режим активен
+        if (globalGallery) setGalleryGroups(g => { const gs = new Set(g); gs.add(groupId); return gs })
       } else {
         next.add(groupId)
         // автовыход из галереи при сворачивании
@@ -1349,6 +1368,14 @@ export default function Inventory() {
               )}
             </button>
           ))}
+          {(statusFilter || categoryFilter || setFilter) && (
+            <button className="inv-chip-reset" onClick={() => { setStatusFilter(null); setCategoryFilter(null); setSetFilter(null) }}>
+              <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3" strokeLinecap="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Сбросить
+            </button>
+          )}
         </div>
 
         {/* Category + Set filters */}
@@ -1385,7 +1412,7 @@ export default function Inventory() {
                     className={`inv-filter-chip inv-filter-chip--set${setFilter === s ? ' active' : ''}`}
                     onClick={() => setSetFilter(f => f === s ? null : s)}
                   >
-                    {s}
+                    {s === '__personal__' ? 'Личное' : s}
                     {setFilter === s && (
                       <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3" strokeLinecap="round">
                         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -1425,7 +1452,7 @@ export default function Inventory() {
         {/* Groups */}
         <div id="sp-inv-groups" className="inv-groups">
           {visibleGroups.map(group => {
-            const groupItems = items.filter(i => i.groupId === group.id && (!setFilter || i.set === setFilter))
+            const groupItems = items.filter(i => i.groupId === group.id && (!setFilter || (setFilter === '__personal__' ? !i.set : i.set === setFilter)))
             const displayItems = statusFilter
               ? statusFilter === 'paused'
                 ? groupItems.filter(i => i.paused)
@@ -1551,6 +1578,10 @@ export default function Inventory() {
                             {/* Info column */}
                             <div className="inv-gallery-info-col">
                               <div className="inv-gallery-card-name">{item.name}</div>
+                              {item.set
+                                ? <span className="inv-gallery-card-set">{item.set}</span>
+                                : <span className="inv-gallery-card-set inv-gallery-card-set--personal">Личное</span>
+                              }
 
                               {needsReplacement && (
                                 <div className="inv-gallery-badge inv-gallery-badge--urgent">Требует замены</div>
@@ -1566,10 +1597,13 @@ export default function Inventory() {
                                       {dates.length === 1 ? 'Куплено' : 'Даты покупок'}
                                     </span>
                                     <span className="inv-gallery-meta-val">
-                                      {dates.length === 1
-                                        ? new Date(dates[0]).toLocaleDateString('ru', { day: 'numeric', month: 'short', year: 'numeric' })
-                                        : dates.map(d => new Date(d).toLocaleDateString('ru', { day: 'numeric', month: 'short' })).join(', ')
-                                      }
+                                      {dates.map(d => {
+                                        const dt = new Date(d)
+                                        const dd = String(dt.getDate()).padStart(2, '0')
+                                        const mm = String(dt.getMonth() + 1).padStart(2, '0')
+                                        const yy = String(dt.getFullYear()).slice(-2)
+                                        return `${dd}/${mm}/${yy}`
+                                      }).join(', ')}
                                     </span>
                                   </div>
                                 )}
@@ -1581,7 +1615,7 @@ export default function Inventory() {
                                 )}
                                 {lifespanLabel && (
                                   <div className="inv-gallery-meta-row">
-                                    <span className="inv-gallery-meta-label">Срок носки</span>
+                                    <span className="inv-gallery-meta-label">Срок</span>
                                     <span className="inv-gallery-meta-val">{lifespanLabel}</span>
                                   </div>
                                 )}
@@ -1829,8 +1863,8 @@ export default function Inventory() {
                       <span className="inv-gallery-lb-label">{current.dates.length === 1 ? 'Куплено' : 'Даты покупок'}</span>
                       <span className="inv-gallery-lb-val">
                         {current.dates.length === 1
-                          ? new Date(current.dates[0]).toLocaleDateString('ru', { day: 'numeric', month: 'long', year: 'numeric' })
-                          : current.dates.map(d => new Date(d).toLocaleDateString('ru', { day: 'numeric', month: 'short' })).join(', ')
+                          ? (() => { const dt = new Date(current.dates[0]); return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getFullYear()).slice(-2)}` })()
+                          : current.dates.map(d => { const dt = new Date(d); return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getFullYear()).slice(-2)}` }).join(', ')
                         }
                       </span>
                     </div>
@@ -1843,7 +1877,7 @@ export default function Inventory() {
                   )}
                   {current.lifespanLabel && (
                     <div className="inv-gallery-lb-row">
-                      <span className="inv-gallery-lb-label">Срок носки</span>
+                      <span className="inv-gallery-lb-label">Срок</span>
                       <span className="inv-gallery-lb-val">{current.lifespanLabel}</span>
                     </div>
                   )}
