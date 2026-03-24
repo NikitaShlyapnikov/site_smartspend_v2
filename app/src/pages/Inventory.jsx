@@ -97,13 +97,13 @@ function getItemInfo(item, override = null) {
         pct = Math.min(100, Math.round((weeksUsed / item.wearLifeWeeks) * 100))
 
         if (overExploit) {
-          remainderText = `+${weeksOver}\u00a0нед. сверх нормы (старейшая)`
+          remainderText = `+${weeksOver}\u00a0нед. сверх нормы`
           ringNum = '+' + weeksOver; ringUnit = 'нед'
           const bonusIncome = Math.round((item.price / item.wearLifeWeeks) * weeksOver)
           monthlyBlock = { type: 'overexploit', weeksOver, bonusIncome }
           status = 'overexploit'
         } else {
-          remainderText = weeksLeft > 0 ? `осталось ${weeksLeft}\u00a0нед. до замены (старейшая)` : 'требует замены'
+          remainderText = weeksLeft > 0 ? `осталось ${weeksLeft}\u00a0нед. до замены` : 'требует замены'
           if (weeksLeft === 0) { ringNum = '0'; ringUnit = 'нед' }
           else if (weeksLeft < 52) { ringNum = String(weeksLeft); ringUnit = 'нед' }
           else { ringNum = String(Math.floor(weeksLeft / 52)); ringUnit = 'лет' }
@@ -399,7 +399,10 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
       <div className="inv-item-main" onClick={onToggle}>
         <Ring pct={paused ? 50 : pct} ringNum={paused ? '⏸' : ringNum} ringUnit={paused ? '' : ringUnit} status={status} paused={paused} />
         <div className="inv-info">
-          <div className="inv-name">{item.name}</div>
+          <div className="inv-name">
+            {item.name}
+            {item.set && <span className="inv-set-tag">{item.set}</span>}
+          </div>
           {paused ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <span className="inv-remainder" style={{ color: '#5B8FD4' }}>на паузе</span>
@@ -473,7 +476,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
         {open && (
           <div className="inv-body">
             <div className="inv-detail-row">{details}</div>
-            <div className="inv-stepper-wrap">
+            {!Array.isArray(item.purchases) && <div className="inv-stepper-wrap">
               {item.type === 'consumable' ? (
                 <>
                   <div className="inv-field-lbl">Текущий остаток ({unit})</div>
@@ -492,9 +495,6 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
                       onMouseLeave={stopStep} onTouchStart={() => startStep(1)} onTouchEnd={stopStep}>+</button>
                   </div>
                 </>
-              ) : Array.isArray(item.purchases) ? (
-                // Multi-purchase: show purchases list in the inv-stepper-wrap
-                null
               ) : (
                 <>
                   <div className="inv-field-lbl">Дата покупки</div>
@@ -507,7 +507,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
                   />
                 </>
               )}
-            </div>
+            </div>}
           </div>
         )}
 
@@ -1019,6 +1019,8 @@ export default function Inventory() {
   const [globalGallery, setGlobalGallery] = useState(false)
   const [galleryLightbox, setGalleryLightbox] = useState(null) // { photos: [{url,name,itemName}], index }
   const [statusFilter, setStatusFilter] = useState(null)
+  const [categoryFilter, setCategoryFilter] = useState(null)  // group.id
+  const [setFilter, setSetFilter] = useState(null)             // set name string
   const [editMode, setEditMode] = useState(false)
   const [showSpotlight, setShowSpotlight] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(null)   // {id, name, set}
@@ -1108,11 +1110,17 @@ export default function Inventory() {
   const visibleGroups = editMode
     ? ALL_GROUPS
     : ALL_GROUPS.filter(g => {
+        if (categoryFilter && g.id !== categoryFilter) return false
         const gi = items.filter(i => i.groupId === g.id)
         if (!statusFilter) return gi.length > 0
         if (statusFilter === 'paused') return gi.some(i => i.paused)
         return gi.some(i => !i.paused && filterInfoMap[i.id]?.filterStatus === statusFilter)
       })
+
+  // Sets available for selected category
+  const setsInCategory = categoryFilter
+    ? [...new Set(items.filter(i => i.groupId === categoryFilter && i.set).map(i => i.set))]
+    : []
 
   // Collapsed groups — по умолчанию свёрнуты группы без urgent/soon
   const [collapsedGroups, setCollapsedGroups] = useState(() => {
@@ -1343,6 +1351,53 @@ export default function Inventory() {
           ))}
         </div>
 
+        {/* Category + Set filters */}
+        <div className="inv-filters-row">
+          <div className="inv-filter-group">
+            <span className="inv-filter-label">Категория</span>
+            <div className="inv-filter-chips">
+              {ALL_GROUPS.filter(g => items.some(i => i.groupId === g.id)).map(g => (
+                <button
+                  key={g.id}
+                  className={`inv-filter-chip${categoryFilter === g.id ? ' active' : ''}`}
+                  onClick={() => {
+                    if (categoryFilter === g.id) { setCategoryFilter(null); setSetFilter(null) }
+                    else { setCategoryFilter(g.id); setSetFilter(null) }
+                  }}
+                >
+                  {g.name}
+                  {categoryFilter === g.id && (
+                    <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3" strokeLinecap="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+          {categoryFilter && setsInCategory.length > 0 && (
+            <div className="inv-filter-group">
+              <span className="inv-filter-label">Набор</span>
+              <div className="inv-filter-chips">
+                {setsInCategory.map(s => (
+                  <button
+                    key={s}
+                    className={`inv-filter-chip inv-filter-chip--set${setFilter === s ? ' active' : ''}`}
+                    onClick={() => setSetFilter(f => f === s ? null : s)}
+                  >
+                    {s}
+                    {setFilter === s && (
+                      <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3" strokeLinecap="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Shopping list — показывается при фильтре срочно */}
         {statusFilter === 'urgent' && (
           <ShoppingList items={items} infoMap={infoMap} groups={ALL_GROUPS} onClose={() => setStatusFilter(null)} />
@@ -1370,7 +1425,7 @@ export default function Inventory() {
         {/* Groups */}
         <div id="sp-inv-groups" className="inv-groups">
           {visibleGroups.map(group => {
-            const groupItems = items.filter(i => i.groupId === group.id)
+            const groupItems = items.filter(i => i.groupId === group.id && (!setFilter || i.set === setFilter))
             const displayItems = statusFilter
               ? statusFilter === 'paused'
                 ? groupItems.filter(i => i.paused)
@@ -1426,9 +1481,29 @@ export default function Inventory() {
 
                 {!isCollapsed && isGallery && photoItems.length > 0 && (() => {
                   // flat array of all photos across all items for lightbox navigation
-                  const flatPhotos = photoItems.flatMap(item =>
-                    (item.notes?.photos || []).map(p => ({ ...p, itemName: item.name, noteText: item.notes?.text || '' }))
-                  )
+                  const flatPhotos = photoItems.flatMap(item => {
+                    const info = infoMap[item.id]
+                    const status = item.paused ? 'paused' : (info?.status || 'ok')
+                    const dates = Array.isArray(item.purchases)
+                      ? item.purchases.filter(p => p.bought && p.purchaseDate).map(p => p.purchaseDate)
+                      : item.purchaseDate ? [item.purchaseDate] : []
+                    const lifespanLabel = item.wearLifeWeeks
+                      ? item.wearLifeWeeks >= 52
+                        ? `${(item.wearLifeWeeks / 52).toFixed(1).replace('.0', '')} лет`
+                        : `${item.wearLifeWeeks} нед.`
+                      : null
+                    return (item.notes?.photos || []).map(p => ({
+                      ...p,
+                      itemName: item.name,
+                      setName: item.set || null,
+                      noteText: item.notes?.text || '',
+                      status,
+                      remainderText: info?.remainderText || null,
+                      price: item.price || 0,
+                      dates,
+                      lifespanLabel,
+                    }))
+                  })
                   return (
                     <div className="inv-gallery-grid">
                       {photoItems.map(item => {
@@ -1736,10 +1811,52 @@ export default function Inventory() {
             )}
             <div className="inv-lightbox-content" onClick={e => e.stopPropagation()}>
               <img src={current.url} alt={current.name} className="inv-lightbox-img" />
-              <div className="inv-gallery-lb-caption">
-                <span className="inv-gallery-lb-name">{current.itemName}</span>
-                {current.noteText && <span className="inv-gallery-lb-note">{current.noteText}</span>}
-                {total > 1 && <span className="inv-lightbox-counter">{index + 1} / {total}</span>}
+              <div className="inv-gallery-lb-panel">
+                <div className="inv-gallery-lb-header">
+                  <span className="inv-gallery-lb-name">{current.itemName}</span>
+                  {current.setName && <span className="inv-gallery-lb-set">{current.setName}</span>}
+                  {total > 1 && <span className="inv-lightbox-counter" style={{ marginLeft: 'auto' }}>{index + 1} / {total}</span>}
+                </div>
+                {(current.status === 'urgent' || current.status === 'overexploit') && (
+                  <div className="inv-gallery-lb-badge inv-gallery-lb-badge--urgent">Требует замены</div>
+                )}
+                {current.status === 'soon' && (
+                  <div className="inv-gallery-lb-badge inv-gallery-lb-badge--soon">Скоро заменить</div>
+                )}
+                <div className="inv-gallery-lb-meta">
+                  {current.dates?.length > 0 && (
+                    <div className="inv-gallery-lb-row">
+                      <span className="inv-gallery-lb-label">{current.dates.length === 1 ? 'Куплено' : 'Даты покупок'}</span>
+                      <span className="inv-gallery-lb-val">
+                        {current.dates.length === 1
+                          ? new Date(current.dates[0]).toLocaleDateString('ru', { day: 'numeric', month: 'long', year: 'numeric' })
+                          : current.dates.map(d => new Date(d).toLocaleDateString('ru', { day: 'numeric', month: 'short' })).join(', ')
+                        }
+                      </span>
+                    </div>
+                  )}
+                  {current.price > 0 && (
+                    <div className="inv-gallery-lb-row">
+                      <span className="inv-gallery-lb-label">Цена за шт.</span>
+                      <span className="inv-gallery-lb-val">{current.price.toLocaleString('ru')}&thinsp;₽</span>
+                    </div>
+                  )}
+                  {current.lifespanLabel && (
+                    <div className="inv-gallery-lb-row">
+                      <span className="inv-gallery-lb-label">Срок носки</span>
+                      <span className="inv-gallery-lb-val">{current.lifespanLabel}</span>
+                    </div>
+                  )}
+                  {current.remainderText && (
+                    <div className="inv-gallery-lb-row">
+                      <span className="inv-gallery-lb-label">Остаток</span>
+                      <span className={`inv-gallery-lb-val inv-gallery-lb-val--${current.status}`}>{current.remainderText}</span>
+                    </div>
+                  )}
+                </div>
+                {current.noteText && (
+                  <div className="inv-gallery-lb-note">{current.noteText}</div>
+                )}
               </div>
             </div>
             {total > 1 && (
