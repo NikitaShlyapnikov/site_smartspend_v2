@@ -694,7 +694,7 @@ export default function Profile() {
       hintType: housingPct != null && housingPct > 30 ? 'warn' : 'info',
     },
     {
-      id: 'credit', label: 'Кредитные обязательства', total: -credit, pct: creditPct,
+      id: 'credit', label: 'Кредиты', total: -credit, pct: creditPct,
       rows: credit > 0 ? [{ label: 'Кредиты и кредитные карты', value: -credit }] : [],
       hint: credit > 0 && creditPct != null
         ? `Кредитная нагрузка ${creditPct}% дохода — ${creditPct <= 20 ? 'в норме.' : 'выше рекомендуемых 20%. Рассмотрите досрочное погашение.'}`
@@ -708,7 +708,7 @@ export default function Profile() {
     label: 'Конверты',
     total: -grandTotal,
     pct: income > 0 ? Math.round(grandTotal / income * 100) : null,
-    hint: showPmWarn ? `Чистый доход ${netIncome.toLocaleString('ru')} ₽ ниже базового минимума — рекомендуем сначала увеличить доход.` : null,
+    hint: (income > 0 && netIncome < SMART_SPEND_BASE) ? `Чистый доход ${netIncome.toLocaleString('ru')} ₽ ниже базового минимума — рекомендуем сначала увеличить доход.` : null,
     hintType: 'warn',
     rows: CATEGORIES
       .filter(cat => (envelopes[cat.id] || []).some(x => !x.paused))
