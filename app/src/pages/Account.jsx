@@ -200,7 +200,7 @@ export default function Account() {
   const TABS = [
     { id: 'articles', label: `Статьи · ${articles.length}` },
     { id: 'sets',     label: `Наборы · ${sets.length}` },
-    { id: 'whispers', label: `Подслушано · ${whispers.length}` },
+    { id: 'whispers', label: `Промо · ${whispers.length}` },
     { id: 'subs',     label: `Подписки · ${subs.length}` },
   ]
 
@@ -367,8 +367,57 @@ export default function Account() {
                     <span className={`visibility-badge ${badgeClass}`}>{badgeLabel}</span>
                   </div>
                   <div className="acc-article-excerpt">{a.excerpt}</div>
+
+                  {isPublic && (
+                    <div className="acc-article-reactions">
+                      {/* Лайки */}
+                      <div className="fa-action-stat">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                          <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                        </svg>
+                        {a.likes ?? 0}
+                      </div>
+                      {/* Дизлайки */}
+                      <div className="fa-action-stat">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+                          <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                        </svg>
+                        {a.dislikes ?? 0}
+                      </div>
+                      {/* Комментарии */}
+                      <div className="fa-action-stat">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        {Array.isArray(a.comments) ? a.comments.length : (a.comments ?? 0)}
+                      </div>
+                      {/* Просмотры */}
+                      {a.views > 0 && (
+                        <div className="fa-action-stat">
+                          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                          </svg>
+                          {a.views.toLocaleString('ru')}
+                        </div>
+                      )}
+                      {/* Реакции */}
+                      {Array.isArray(a.reactions) && a.reactions.length > 0 && (
+                        <>
+                          <span className="fa-reactions-sep" />
+                          {a.reactions.slice(0, 4).map(r => (
+                            <span key={r.emoji} className="acc-reaction-pill">
+                              {r.emoji} {r.count}
+                            </span>
+                          ))}
+                        </>
+                      )}
+                    </div>
+                  )}
+
                   <div className="acc-card-actions">
-                    <span className="acc-card-meta">{a.meta}{a.views > 0 && ` · ${a.views.toLocaleString('ru')} просм.`}</span>
+                    <span className="acc-card-meta">{a.meta}</span>
                     <div className="acc-card-actions-right">
                       {!isPublic && (
                         <button className="acc-btn-edit" onClick={() => handleEditArticle(a)}>
@@ -515,7 +564,7 @@ export default function Account() {
                   </svg>
                 </div>
                 <div className="acc-empty-title">Нет записей</div>
-                <div className="acc-empty-desc">Делитесь скидками и промокодами в разделе Промо → Подслушано</div>
+                <div className="acc-empty-desc">Делитесь скидками и промокодами в разделе Промо → Промо</div>
               </div>
             )}
 
@@ -609,7 +658,7 @@ export default function Account() {
       <ConfirmModal
         open={!!confirmWhisper}
         title="Удалить запись?"
-        desc={confirmWhisper ? `«${confirmWhisper.title}» будет удалена из раздела Подслушано.` : ''}
+        desc={confirmWhisper ? `«${confirmWhisper.title}» будет удалена из раздела Промо.` : ''}
         onConfirm={confirmDeleteWhisperFn}
         onCancel={() => setConfirmWhisper(null)}
       />

@@ -1649,6 +1649,17 @@ body.dark .acc-btn-primary { background: var(--surface-3); color: var(--text); }
 .acc-article-title--link { cursor: pointer; }
 .acc-article-title--link:hover { color: var(--accent-green); }
 .acc-article-excerpt { font-size: 14px; color: var(--text-2); line-height: 1.5; margin-bottom: 12px; }
+.acc-article-reactions {
+  display: flex; align-items: center; gap: 2px; flex-wrap: wrap;
+  margin-bottom: 10px; padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+.acc-reaction-pill {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 3px 8px; border-radius: 20px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  font-size: 12px; color: var(--text-2);
+}
 .acc-card-meta { font-size: 12px; color: var(--text-3); flex: 1; }
 .acc-card-actions-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
 .acc-btn-delete-gray { color: var(--text-3) !important; }

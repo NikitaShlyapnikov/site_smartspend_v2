@@ -118,9 +118,9 @@ export default function CreateArticle() {
   }
 
   // ── Save ──────────────────────────────────────────────────────────────────
-  function saveArticle(pub) {
+  function saveArticle(pub, asDraft = false) {
     if (!title.trim()) { showToast('Введите заголовок статьи'); return false }
-    if (pub && category === null) { setCatError(true); showToast('Выберите категорию'); return false }
+    if (!asDraft && category === null) { setCatError(true); showToast('Выберите категорию'); return false }
     setCatError(false)
 
     let finalHtml = htmlBody
@@ -144,7 +144,7 @@ export default function CreateArticle() {
       meta:       today + ' · ' + readMin + ' мин',
       views:      0,
       pub,
-      draft:      !pub,
+      draft:      asDraft,
     }
     try {
       const saved = JSON.parse(localStorage.getItem('ss_account_articles') || '[]')
@@ -160,8 +160,8 @@ export default function CreateArticle() {
     return true
   }
 
-  function handlePublish() { if (saveArticle(true))  navigate('/account') }
-  function handleDraft()   { if (saveArticle(false)) { showToast('Черновик сохранён'); setTimeout(() => navigate('/account'), 1000) } }
+  function handlePublish() { if (saveArticle(isPublic, false)) navigate('/account') }
+  function handleDraft()   { if (saveArticle(false, true))     { showToast('Черновик сохранён'); setTimeout(() => navigate('/account'), 1000) } }
 
   // ── Sets ──────────────────────────────────────────────────────────────────
   const personalSets = category === null ? MY_SETS     : MY_SETS.filter(s => s.category === category)
