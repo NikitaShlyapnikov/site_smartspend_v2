@@ -332,7 +332,9 @@ function resolvePhotoUrls(html, images) {
 function isMyArticle(articleId) {
   try {
     const ids = JSON.parse(localStorage.getItem('ss_my_article_ids')) || []
-    return ids.includes(articleId)
+    if (ids.includes(articleId)) return true
+    const saved = JSON.parse(localStorage.getItem('ss_account_articles') || '[]')
+    return saved.some(a => a.id === articleId)
   } catch { return false }
 }
 
@@ -529,8 +531,7 @@ export default function Article() {
   }
 
   function handleEditArticle() {
-    navigate('/create-article')
-    showToastMsg('Открыт редактор статьи')
+    navigate(`/create-article?edit=${id}`)
   }
 
   function handleDeleteArticle() {
@@ -674,27 +675,31 @@ export default function Article() {
         </div>
 
         {/* Linked sets from user article */}
-        {article.linkedSets?.length > 0 && (
-          <>
-            <div className="article-set-label">
-              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-              </svg>
-              {article.linkedSets.length === 1 ? 'Набор, связанный с этой статьёй' : 'Наборы, связанные с этой статьёй'}
-            </div>
-            {article.linkedSets.map(s => (
-              <div key={s.id} className="linked-set-article-card">
-                <div className="linked-set-article-dot" style={{ background: s.color }} />
-                <div className="linked-set-article-info">
-                  <div className="linked-set-article-name">{s.name}</div>
-                  {s.category && <div className="linked-set-article-cat">{s.category}</div>}
-                </div>
-                {s.amount && <div className="linked-set-article-amount">{s.amount}<span className="linked-set-article-period"> {s.period}</span></div>}
+        {(() => {
+          const sets = (article.linkedSets || []).filter(s => s && typeof s === 'object' && s.id)
+          if (!sets.length) return null
+          return (
+            <>
+              <div className="article-set-label">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+                {sets.length === 1 ? 'Набор, связанный с этой статьёй' : 'Наборы, связанные с этой статьёй'}
               </div>
-            ))}
-          </>
-        )}
+              {sets.map(s => (
+                <div key={s.id} className="linked-set-article-card">
+                  <div className="linked-set-article-dot" style={{ background: s.color }} />
+                  <div className="linked-set-article-info">
+                    <div className="linked-set-article-name">{s.name}</div>
+                    {s.category && <div className="linked-set-article-cat">{s.category}</div>}
+                  </div>
+                  {s.amount && <div className="linked-set-article-amount">{s.amount}<span className="linked-set-article-period"> {s.period}</span></div>}
+                </div>
+              ))}
+            </>
+          )
+        })()}
 
         {/* Linked set as catalog card */}
         {set && (
@@ -793,7 +798,7 @@ export default function Article() {
             <div className="section-header">
               <div className="section-title">
                 Комментарии
-                <span className="section-count">{article.comments.length}</span>
+                {(Array.isArray(article.comments) ? article.comments.length : (article.comments || 0)) > 0 && <span className="section-count">{Array.isArray(article.comments) ? article.comments.length : article.comments}</span>}
               </div>
             </div>
 
