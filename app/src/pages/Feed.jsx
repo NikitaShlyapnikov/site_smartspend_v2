@@ -47,6 +47,49 @@ const MY_SET_TITLES = new Set([
   'Базовый уход за кошкой',
 ])
 
+const CAT_LABEL_TO_ID = {
+  'Еда и Супермаркеты':    'food',
+  'Кафе, Бары, Рестораны': 'cafe',
+  'Авто и Транспорт':      'transport',
+  'Дом и Техника':         'home',
+  'Одежда и Обувь':        'clothes',
+  'Развлечения и Хобби':   'leisure',
+  'Красота и Здоровье':    'health',
+  'Образование и Дети':    'education',
+  'Путешествия и Отдых':   'travel',
+  'Прочие расходы':        'other',
+}
+
+function loadUserPublicArticles() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('ss_account_articles') || '[]')
+    const profile = JSON.parse(localStorage.getItem('ss_account_profile') || '{}')
+    const regName = localStorage.getItem('ss_username') || ''
+    const displayName = profile.displayName || regName || 'Я'
+    const ini = displayName[0]?.toUpperCase() || 'Я'
+    return saved
+      .filter(a => a.pub && !a.draft)
+      .map(a => ({
+        id: a.id,
+        type: 'article',
+        ts: parseInt(a.id.slice(1)) || 0,
+        pop: 0,
+        readTime: parseInt((a.meta || '').match(/(\d+) мин/)?.[1]) || 1,
+        title: a.title,
+        preview: a.excerpt || '',
+        authorId: '__me__',
+        time: (a.meta || '').split(' · ')[0] || '',
+        views: a.views || 0,
+        likes: 0,
+        comments: 0,
+        reactions: [],
+        category: CAT_LABEL_TO_ID[a.category] || '',
+        _authorName: displayName,
+        _authorIni: ini,
+      }))
+  } catch { return [] }
+}
+
 // ── ARTICLE CARD ──────────────────────────────────────────────────────────────
 
 function AuthorPopoverCard({ author, authorId, navigate, onMouseEnter, onMouseLeave }) {
@@ -361,7 +404,7 @@ function BookmarkBtn({ bookmarked, onToggle }) {
 }
 
 function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeToggle, onDislikeToggle, onBookmarkToggle, onCategoryClick, onClick, navigate }) {
-  const author = feedAuthors[item.authorId]
+  const author = feedAuthors[item.authorId] || (item._authorName ? { name: item._authorName, initials: item._authorIni, color: '#4E8268', type: 'user' } : null)
   const catLabel = CATEGORIES.find(c => c.id === item.category)?.label
   const [reactions, setReactions] = useState(() => (item.reactions || []).map(r => ({ ...r })))
   const [myReactions, setMyReactions] = useState(new Set())
@@ -777,6 +820,7 @@ function FilterSelect({ items, value, onChange, placeholder }) {
 
 export default function Feed() {
   const navigate = useNavigate()
+  const [userArticles] = useState(() => loadUserPublicArticles())
   const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem('ss_tour_welcome'))
   const [showSpotlight, setShowSpotlight] = useState(false)
   const [mode,        setMode]        = useState(null)
@@ -832,7 +876,9 @@ export default function Feed() {
     setMode(prev => prev === m ? null : m)
   }
 
-  let filtered = feedItems.filter(item => {
+  const allItems = [...userArticles, ...feedItems]
+
+  let filtered = allItems.filter(item => {
     if (mode === 'liked')         return item.type === 'article' && likedIds.has(item.id)
     if (mode === 'subscriptions') return !!(item.authorId && feedAuthors[item.authorId]?.following)
     if (mode === 'my-sets')       return item.type === 'article' && item.setLink && MY_SET_TITLES.has(item.setLink.title)

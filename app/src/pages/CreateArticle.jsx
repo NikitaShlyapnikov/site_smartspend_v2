@@ -69,8 +69,7 @@ export default function CreateArticle() {
       setCategory(a.category || null)
       setIsPublic(!!a.pub)
       setImages(a.images || [])
-      const allSets = [...MY_SETS, ...PUBLIC_SETS]
-      setLinkedSets((a.linkedSets || []).map(id => allSets.find(s => s.id === id)).filter(Boolean))
+      setLinkedSets(a.linkedSets || [])
     } catch {}
   }, [editId])
 
@@ -140,7 +139,7 @@ export default function CreateArticle() {
       images:     images.map(img => ({ id: img.id, url: img.url })),
       editorMode,
       category,
-      linkedSets: linkedSets.map(s => s.id),
+      linkedSets: linkedSets,
       meta:       today + ' · ' + readMin + ' мин',
       views:      0,
       pub,
