@@ -888,8 +888,6 @@ export default function Profile() {
 
             <div className="combined-bottom">
               <div className="budget-block">
-                <div className="budget-block-title">Устойчивый бюджет конвертов</div>
-
                 <div className="budget-rows">
                   {useBasePM ? (
                     <div className="budget-row">
