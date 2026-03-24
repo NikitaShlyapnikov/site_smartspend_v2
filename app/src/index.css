@@ -5099,6 +5099,23 @@ body.dark .note-display:hover { background: #252210; }
 }
 .editor-html-prompt-btn:hover { background: var(--surface-3); color: var(--text); }
 .editor-body-input--html { font-family: var(--mono); font-size: 13px; }
+/* HTML validation warnings */
+.editor-html-warnings {
+  margin: 0; border-top: 1px solid #F5C5A3;
+  background: #FFF8F2; padding: 10px 14px;
+}
+body.dark .editor-html-warnings { background: rgba(200,100,30,0.1); border-color: rgba(200,100,30,0.3); }
+.editor-html-warnings-title {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; color: #B85000; margin-bottom: 6px;
+}
+body.dark .editor-html-warnings-title { color: #E8904A; }
+.editor-html-warnings-list {
+  margin: 0; padding-left: 16px;
+  font-size: 11px; color: #8B4000; font-family: var(--mono);
+  display: flex; flex-direction: column; gap: 2px;
+}
+body.dark .editor-html-warnings-list { color: #D4804A; }
 
 /* GPT Prompt Modal */
 .gpt-prompt-overlay {
@@ -5126,7 +5143,15 @@ body.dark .note-display:hover { background: #252210; }
   padding: 12px 20px; font-size: 13px; color: var(--text-2); flex-shrink: 0;
   border-bottom: 1px solid var(--border);
 }
-.gpt-prompt-img-note { color: var(--accent-green); font-weight: 500; }
+.gpt-prompt-steps {
+  margin: 0; padding-left: 18px;
+  font-size: 13px; color: var(--text-2); display: flex; flex-direction: column; gap: 4px;
+}
+.gpt-prompt-steps li { line-height: 1.5; }
+.gpt-prompt-img-note {
+  margin-top: 8px; font-size: 12px; font-weight: 500;
+  color: var(--accent-green); display: block;
+}
 .gpt-prompt-text {
   flex: 1; overflow-y: auto; padding: 14px 20px;
   font-family: var(--mono); font-size: 12px; line-height: 1.6;

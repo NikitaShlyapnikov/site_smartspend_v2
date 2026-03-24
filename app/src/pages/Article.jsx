@@ -322,6 +322,13 @@ function FollowBtn({ following, onToggle }) {
   )
 }
 
+function resolvePhotoUrls(html, images) {
+  if (!images?.length) return html
+  const map = {}
+  images.forEach(img => { map[img.id] = img.url })
+  return html.replace(/src="(photo-[^"]+)"/g, (_, id) => `src="${map[id] || ''}"`)
+}
+
 function isMyArticle(articleId) {
   try {
     const ids = JSON.parse(localStorage.getItem('ss_my_article_ids')) || []
@@ -613,12 +620,17 @@ export default function Article() {
         <div className="content-card">
           <div className="content-body">
             {article._userHtml
-              ? <div dangerouslySetInnerHTML={{ __html: article._userHtml }} />
+              ? <div dangerouslySetInnerHTML={{ __html: resolvePhotoUrls(article._userHtml, article.images) }} />
               : article._userBody
                 ? article._userBody.split('\n\n').filter(Boolean).map((block, i) => {
                     if (block.startsWith('## ')) return <h2 key={i}>{block.slice(3)}</h2>
                     if (block.startsWith('> ')) return <blockquote key={i} className="content-note">{block.slice(2)}</blockquote>
-                    const html = block.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>')
+                    // resolve ![alt](photo-id) → <img>
+                    const withImgs = block.replace(/!\[([^\]]*)\]\((photo-[^)]+)\)/g, (_, alt, id) => {
+                      const url = article.images?.find(img => img.id === id)?.url || ''
+                      return url ? `<img src="${url}" alt="${alt}" style="max-width:100%;border-radius:10px;display:block;margin:12px auto">` : `[${alt}]`
+                    })
+                    const html = withImgs.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>')
                     return <p key={i} dangerouslySetInnerHTML={{ __html: html }} />
                   })
                 : article.content.map((block, i) => renderBlock(block, i))

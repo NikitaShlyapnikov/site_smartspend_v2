@@ -112,6 +112,7 @@ export default function CreateArticle() {
   const [setPickerOpen,  setSetPickerOpen]  = useState(false)
   const [showSpotlight,  setShowSpotlight]  = useState(false)
   const [showPrompt,     setShowPrompt]     = useState(false)
+  const [htmlWarnings,   setHtmlWarnings]   = useState([])
 
   const activeText = editorMode === 'md' ? body : htmlBody
   const wordCount  = activeText.trim() ? activeText.trim().split(/\s+/).length : 0
@@ -159,17 +160,34 @@ export default function CreateArticle() {
 
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(null), 2200) }
 
+  // ── HTML sanitize on blur ────────────────────────────────────────────────────
+  function handleHtmlBlur() {
+    if (!htmlBody.trim()) return
+    const { clean, warnings } = sanitizeHtml(htmlBody)
+    setHtmlWarnings(warnings)
+    if (clean !== htmlBody) setHtmlBody(clean)
+  }
+
   // ── Publish ──────────────────────────────────────────────────────────────────
   function handlePublish() {
     if (!title.trim()) { showToast('Введите заголовок статьи'); return }
     if (category === null) { setCatError(true); showToast('Выберите категорию'); return }
     setCatError(false)
+    // Final sanitize for HTML mode
+    let finalHtml = htmlBody
+    if (editorMode === 'html' && htmlBody.trim()) {
+      const { clean, warnings } = sanitizeHtml(htmlBody)
+      finalHtml = clean
+      setHtmlBody(clean)
+      if (warnings.length) { setHtmlWarnings(warnings); showToast('HTML очищен от запрещённых элементов'); return }
+    }
     const article = {
       id:         'a' + Date.now(),
       title:      title.trim(),
       excerpt:    excerpt.trim() || (editorMode === 'md' ? body : htmlBody).trim().replace(/<[^>]+>/g, '').slice(0, 120) || '',
       body:       editorMode === 'md' ? body : '',
-      htmlBody:   editorMode === 'html' ? htmlBody : '',
+      htmlBody:   editorMode === 'html' ? finalHtml : '',
+      images:     images.map(img => ({ id: img.id, url: img.url })),
       editorMode,
       meta:       today + ' · ' + readMin + ' мин',
       views:      0,
@@ -444,7 +462,22 @@ export default function CreateArticle() {
                     </div>
                     <textarea className="editor-body-input editor-body-input--html"
                       placeholder="Вставьте HTML-разметку статьи..."
-                      value={htmlBody} onChange={e => setHtmlBody(e.target.value)} />
+                      value={htmlBody}
+                      onChange={e => { setHtmlBody(e.target.value); setHtmlWarnings([]) }}
+                      onBlur={handleHtmlBlur} />
+                    {htmlWarnings.length > 0 && (
+                      <div className="editor-html-warnings">
+                        <div className="editor-html-warnings-title">
+                          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                          </svg>
+                          Обнаружены и удалены запрещённые элементы:
+                        </div>
+                        <ul className="editor-html-warnings-list">
+                          {htmlWarnings.map((w, i) => <li key={i}>{w}</li>)}
+                        </ul>
+                      </div>
+                    )}
                   </>
                 )}
                 <div className={`editor-body-meta${activeText.length > 10000 ? ' warn' : ''}`}>
@@ -524,10 +557,96 @@ export default function CreateArticle() {
   )
 }
 
-// ── GPT Prompt Modal ─────────────────────────────────────────────────────────
-const GPT_PROMPT = `Ты помогаешь создавать статьи для платформы SmartSpend — приложения об осознанном потреблении и личных финансах.
+// ── HTML Sanitizer ────────────────────────────────────────────────────────────
+const ALLOWED_TAGS    = new Set(['h2','h3','p','ul','ol','li','strong','em','blockquote','div','img','br'])
+const ALLOWED_CLASSES = new Set(['content-note','content-highlight'])
+const FORBIDDEN_TAGS  = new Set(['script','style','iframe','frame','frameset','form','input','button','link','meta','base','object','embed','noscript','svg','math','template'])
 
-Напиши HTML-разметку статьи по заданной теме. Правила:
+function sanitizeHtml(raw) {
+  const warnings = []
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(raw, 'text/html')
+
+  // 1. Remove forbidden tags entirely (including content for script/style)
+  FORBIDDEN_TAGS.forEach(tag => {
+    doc.querySelectorAll(tag).forEach(el => {
+      warnings.push(`Удалён запрещённый тег <${el.tagName.toLowerCase()}>`)
+      el.remove()
+    })
+  })
+
+  // 2. Walk remaining elements bottom-up
+  const walk = (node) => {
+    Array.from(node.childNodes).forEach(walk)
+    if (node.nodeType !== 1) return
+    const tag = node.tagName.toLowerCase()
+
+    if (!ALLOWED_TAGS.has(tag)) {
+      // unwrap: keep text content, drop the tag
+      const parent = node.parentNode
+      if (parent) {
+        warnings.push(`Удалён недопустимый тег <${tag}>`)
+        while (node.firstChild) parent.insertBefore(node.firstChild, node)
+        parent.removeChild(node)
+      }
+      return
+    }
+
+    // 3. Validate attributes
+    Array.from(node.attributes).forEach(attr => {
+      const name = attr.name.toLowerCase()
+      const value = attr.value
+
+      // Event handlers — XSS
+      if (name.startsWith('on')) {
+        warnings.push(`Удалён обработчик "${attr.name}" — попытка выполнения скрипта`)
+        node.removeAttribute(attr.name); return
+      }
+      // javascript: in any attribute
+      if (/javascript\s*:/i.test(value)) {
+        warnings.push(`Удалён атрибут "${name}" — обнаружен javascript:`)
+        node.removeAttribute(attr.name); return
+      }
+      // data: URI (potential XSS)
+      if (/data\s*:/i.test(value) && name !== 'alt') {
+        warnings.push(`Удалён атрибут "${name}" — data: URI не разрешены`)
+        node.removeAttribute(attr.name); return
+      }
+      // style
+      if (name === 'style') {
+        warnings.push('Удалён атрибут style — встроенные стили запрещены')
+        node.removeAttribute('style'); return
+      }
+      // class — only allowed values
+      if (name === 'class') {
+        if (!ALLOWED_CLASSES.has(value.trim())) {
+          warnings.push(`Удалён класс "${value}" — допустимы только content-note и content-highlight`)
+          node.removeAttribute('class')
+        }
+        return
+      }
+      // img src — only photo- codes
+      if (tag === 'img' && name === 'src') {
+        if (!/^photo-[a-z0-9_-]+$/.test(value.trim())) {
+          warnings.push(`Удалён внешний src в <img> — используй только коды загруженных фото`)
+          node.removeAttribute('src')
+        }
+        return
+      }
+      // img alt — allowed
+      if (tag === 'img' && name === 'alt') return
+      // anything else — drop
+      warnings.push(`Удалён атрибут "${name}" в <${tag}>`)
+      node.removeAttribute(attr.name)
+    })
+  }
+  walk(doc.body)
+
+  return { clean: doc.body.innerHTML, warnings }
+}
+
+// ── GPT Prompt Modal ─────────────────────────────────────────────────────────
+const GPT_PROMPT = `Напиши HTML-разметку статьи по заданному тексту. Правила:
 
 СТРУКТУРА
 • Не включай теги <html>, <head>, <body> — только содержимое статьи
@@ -545,18 +664,16 @@ const GPT_PROMPT = `Ты помогаешь создавать статьи дл
 • <div class="content-highlight">Ключевая мысль или совет</div>
 
 ИЗОБРАЖЕНИЯ
-• Изображения загружаются отдельно в редакторе, каждое получает код вида photo-1234567890-abc
+• Изображения загружаются отдельно, каждое получает код вида photo-1234567890-abc
 • Для вставки: <img src="PHOTO_CODE" alt="описание">
-• Замени PHOTO_CODE на реальный код из редактора после загрузки фото
+• Замени PHOTO_CODE на реальный код после загрузки фото
 
 ЗАПРЕЩЕНО
-• Теги: <script>, <style>, <iframe>, <form>, <input>, <link>
+• Теги: <script>, <style>, <iframe>, <form>, <input>, <link> и другие
 • Атрибут style на любых элементах
 • Внешние URL в src изображений
 • Любые классы, кроме content-note и content-highlight
-
-ТЕМАТИКА
-SmartSpend — осознанное потребление, личные финансы, планирование бюджета, умные покупки, сравнение цен, наборы товаров.`
+• Атрибуты-обработчики событий (onclick, onerror и т.д.)`
 
 function GptPromptModal({ images, onClose, onCopied }) {
   const hasImages = images.length > 0
@@ -584,8 +701,13 @@ function GptPromptModal({ images, onClose, onCopied }) {
           </button>
         </div>
         <div className="gpt-prompt-desc">
-          Скопируй этот промт и вставь в ChatGPT. Опиши тему статьи — GPT сгенерирует готовую HTML-разметку. Затем вставь HTML в редактор.
-          {hasImages && <span className="gpt-prompt-img-note"> В промт будут добавлены коды загруженных фото ({images.length} шт.).</span>}
+          <ol className="gpt-prompt-steps">
+            <li>Напишите текст статьи и загрузите фотографии в нужных местах текста</li>
+            <li>Скопируйте этот промт и передайте его в ChatGPT вместе с вашим текстом</li>
+            <li>GPT вернёт текст с HTML-разметкой — вставьте его в редактор, заменив исходный текст</li>
+            <li>Опубликуйте статью</li>
+          </ol>
+          {hasImages && <div className="gpt-prompt-img-note">В промт будут добавлены коды загруженных фото ({images.length} шт.)</div>}
         </div>
         <pre className="gpt-prompt-text">{GPT_PROMPT}{hasImages && `\n\nЗАГРУЖЕННЫЕ ФОТО (используй эти коды)\n${images.map(img => `  ${img.id}  — ${img.name}`).join('\n')}`}</pre>
         <div className="gpt-prompt-actions">
