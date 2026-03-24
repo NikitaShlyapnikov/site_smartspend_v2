@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
@@ -17,7 +17,8 @@ function readLS(key, fallback) {
 
 function initProfile() {
   return readLS('ss_account_profile', {
-    displayName: '', pseudonym: '', username: '', bio: '', joined: 'март 2026', followers: 0,
+    displayName: '', pseudonym: '', username: '', bio: '', joined: 'март 2026',
+    followers: 0, avatar: '',
   })
 }
 
@@ -65,15 +66,19 @@ export default function Account() {
 
   const [articles,  setArticles]  = useState(() => readLS('ss_account_articles', []))
   const [sets,      setSets]      = useState(() => readLS('ss_account_sets', []))
-  const [subs]                    = useState(() => readLS('ss_account_subs', []))
+  const [subs,      setSubs]      = useState(() => readLS('ss_account_subs', []))
   const [whispers,  setWhispers]  = useState(() => readLS('ss_account_whispers', []))
 
   const [confirmArticle, setConfirmArticle] = useState(null)
   const [confirmSet,     setConfirmSet]     = useState(null)
   const [confirmWhisper, setConfirmWhisper] = useState(null)
-  const [showSpotlight, setShowSpotlight]   = useState(false)
+  const [showSpotlight,  setShowSpotlight]  = useState(false)
 
   const [toast, showToast] = useToast()
+
+  const avatarInputRef = useRef(null)
+
+  // ── Profile ────────────────────────────────────────────────────────────────
 
   function startEdit() { setDraft({ ...profile }); setEditing(true) }
   function cancelEdit() { setEditing(false) }
@@ -84,9 +89,26 @@ export default function Account() {
     showToast('Профиль обновлён')
   }
 
+  function handleAvatarChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = ev => {
+      const url = ev.target.result
+      const updated = { ...profile, avatar: url }
+      setProfile(updated)
+      localStorage.setItem('ss_account_profile', JSON.stringify(updated))
+      showToast('Фото обновлено')
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }
+
   const initials = profile.displayName
     ? profile.displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : '?'
+
+  const profileEmpty = !profile.displayName && !profile.bio
 
   // ── Article actions ────────────────────────────────────────────────────────
 
@@ -98,15 +120,19 @@ export default function Account() {
     }
   }
 
-  function handleDeleteArticle(a) {
-    setConfirmArticle(a)
+  function handleToggleArticleVisibility(a) {
+    const updated = articles.map(x => x.id === a.id ? { ...x, pub: !x.pub } : x)
+    setArticles(updated)
+    localStorage.setItem('ss_account_articles', JSON.stringify(updated))
+    showToast(a.pub ? 'Статья скрыта — теперь личная' : 'Статья опубликована')
   }
+
+  function handleDeleteArticle(a) { setConfirmArticle(a) }
 
   function confirmDeleteArticle() {
     const updated = articles.filter(a => a.id !== confirmArticle.id)
     setArticles(updated)
     localStorage.setItem('ss_account_articles', JSON.stringify(updated))
-    // Also remove from myArticleIds
     const myIds = readLS('ss_my_article_ids', []).filter(id => id !== confirmArticle.id)
     localStorage.setItem('ss_my_article_ids', JSON.stringify(myIds))
     setConfirmArticle(null)
@@ -116,17 +142,17 @@ export default function Account() {
   // ── Set actions ────────────────────────────────────────────────────────────
 
   function handleEditSet(s) {
-    if (s.setId) {
-      navigate(`/set/${s.setId}`)
-    } else {
-      navigate('/create-set')
-    }
-    showToast('Открыт редактор набора')
+    navigate(s.setId ? `/set/${s.setId}` : '/create-set')
   }
 
-  function handleDeleteSet(s) {
-    setConfirmSet(s)
+  function handleToggleSetVisibility(s) {
+    const updated = sets.map(x => x.id === s.id ? { ...x, pub: !x.pub } : x)
+    setSets(updated)
+    localStorage.setItem('ss_account_sets', JSON.stringify(updated))
+    showToast(s.pub ? 'Набор скрыт из каталога' : 'Набор опубликован в каталоге')
   }
+
+  function handleDeleteSet(s) { setConfirmSet(s) }
 
   function confirmDeleteSet() {
     const updated = sets.filter(s => s.id !== confirmSet.id)
@@ -136,12 +162,23 @@ export default function Account() {
     showToast('Набор удалён')
   }
 
+  // ── Whisper actions ────────────────────────────────────────────────────────
+
   function confirmDeleteWhisperFn() {
     const updated = whispers.filter(w => w.id !== confirmWhisper.id)
     setWhispers(updated)
     localStorage.setItem('ss_account_whispers', JSON.stringify(updated))
     setConfirmWhisper(null)
     showToast('Запись удалена')
+  }
+
+  // ── Sub actions ────────────────────────────────────────────────────────────
+
+  function handleUnsubscribe(s) {
+    const updated = subs.filter(x => x.handle !== s.handle)
+    setSubs(updated)
+    localStorage.setItem('ss_account_subs', JSON.stringify(updated))
+    showToast(`Вы отписались от ${s.name}`)
   }
 
   // ── Tabs ───────────────────────────────────────────────────────────────────
@@ -165,10 +202,37 @@ export default function Account() {
           </div>
         </div>
 
+        {/* Onboarding banner — if profile is empty */}
+        {profileEmpty && !editing && (
+          <div className="acc-onboarding">
+            <div className="acc-onboarding-icon">
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="8" r="4"/><path d="M5 20v-2a7 7 0 0114 0v2"/>
+              </svg>
+            </div>
+            <div className="acc-onboarding-text">
+              <strong>Заполните профиль</strong>
+              <span>Добавьте имя и расскажите о себе — это поможет другим авторам найти вас</span>
+            </div>
+            <button className="acc-onboarding-btn" onClick={startEdit}>Заполнить</button>
+          </div>
+        )}
+
         {/* Profile header */}
         <div id="sp-acc-header" className="user-header">
-          <div className="user-avatar-large">
-            <span>{initials}</span>
+          <div className="user-avatar-large-wrap">
+            <div className="user-avatar-large">
+              {profile.avatar
+                ? <img src={profile.avatar} alt="avatar" className="user-avatar-img" />
+                : <span>{initials}</span>
+              }
+            </div>
+            <button className="user-avatar-change" onClick={() => avatarInputRef.current?.click()} title="Сменить фото">
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+              </svg>
+            </button>
+            <input ref={avatarInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
           </div>
 
           <div className="user-info">
@@ -184,8 +248,8 @@ export default function Account() {
               {editing
                 ? <input className="acc-edit-field" value={draft.username} style={{ width: 180 }}
                     onChange={e => setDraft(d => ({ ...d, username: e.target.value }))}
-                    placeholder="@username" />
-                : <span className="user-username">{profile.username}</span>
+                    placeholder="@username (латиницей)" />
+                : <span className="user-username">{profile.username || <span className="acc-placeholder" style={{ fontSize: 13 }}>username не задан</span>}</span>
               }
             </div>
 
@@ -194,14 +258,16 @@ export default function Account() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="8" r="4"/><path d="M5 20v-2a7 7 0 0 1 14 0v2"/>
                 </svg>
-                Зарегистрирован: {profile.joined}
+                С нами с {profile.joined}
               </span>
-              <span className="user-meta-item">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M2 3h6a4 4 0 0 1 4 4v14"/><path d="M22 3h-6a4 4 0 0 0-4 4v14"/>
-                </svg>
-                {profile.followers} подписчиков
-              </span>
+              {profile.followers > 0 && (
+                <span className="user-meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14"/><path d="M22 3h-6a4 4 0 0 0-4 4v14"/>
+                  </svg>
+                  {profile.followers} подписчиков
+                </span>
+              )}
             </div>
 
             {editing ? (
@@ -260,7 +326,7 @@ export default function Account() {
                   </svg>
                   Публичный
                 </span>
-                <span className="acc-vh-desc">— видна всем в ленте и каталоге, набирает просмотры и подписчиков</span>
+                <span className="acc-vh-desc">— видна всем в ленте и каталоге</span>
               </div>
               <div className="acc-vh-item">
                 <span className="visibility-badge private">
@@ -310,8 +376,27 @@ export default function Account() {
                     )}
                   </span>
                 </div>
-                {/* UC-31 / UC-33: Edit & Delete */}
                 <div className="acc-card-actions">
+                  <button className="acc-btn-visibility" onClick={() => handleToggleArticleVisibility(a)}
+                    title={a.pub ? 'Скрыть статью' : 'Опубликовать статью'}>
+                    {a.pub ? (
+                      <>
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+                          <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+                          <line x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                        Скрыть
+                      </>
+                    ) : (
+                      <>
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        Опубликовать
+                      </>
+                    )}
+                  </button>
                   <button className="acc-btn-edit" onClick={() => handleEditArticle(a)}>
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                       <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
@@ -351,7 +436,7 @@ export default function Account() {
                   </svg>
                   Публичный
                 </span>
-                <span className="acc-vh-desc">— виден в каталоге, другие могут добавить его в свой инвентарь</span>
+                <span className="acc-vh-desc">— виден в каталоге, другие могут добавить его в инвентарь</span>
               </div>
               <div className="acc-vh-item">
                 <span className="visibility-badge private">
@@ -396,8 +481,27 @@ export default function Account() {
                     <span className="acc-set-amount">{s.amount}</span>
                     <span className="acc-set-period">{s.period}</span>
                   </div>
-                  {/* UC-35 / UC-36 / UC-37: Edit & Delete */}
                   <div className="acc-card-actions acc-card-actions-set">
+                    <button className="acc-btn-visibility" onClick={() => handleToggleSetVisibility(s)}
+                      title={s.pub ? 'Скрыть из каталога' : 'Опубликовать в каталоге'}>
+                      {s.pub ? (
+                        <>
+                          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+                            <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+                            <line x1="1" y1="1" x2="23" y2="23"/>
+                          </svg>
+                          Скрыть
+                        </>
+                      ) : (
+                        <>
+                          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                          </svg>
+                          Опубликовать
+                        </>
+                      )}
+                    </button>
                     <button className="acc-btn-edit" onClick={() => handleEditSet(s)}>
                       <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                         <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
@@ -487,14 +591,17 @@ export default function Account() {
               </div>
             )}
             {subs.map((s, i) => (
-              <div key={i} className="subscription-card" style={{ cursor: 'pointer' }}
-                onClick={() => navigate('/author/' + s.handle.replace('@', ''), { state: s })}>
-                <div className="subscription-header">
+              <div key={i} className="subscription-card">
+                <div className="subscription-header" style={{ cursor: 'pointer' }}
+                  onClick={() => navigate('/author/' + s.handle.replace('@', ''), { state: s })}>
                   <div className="subscription-avatar">{s.ini}</div>
                   <div style={{ flex: 1 }}>
                     <div className="subscription-name">{s.name}</div>
                     <div className="subscription-meta">{s.handle} · {s.followers}</div>
                   </div>
+                  <button className="acc-btn-unsub" onClick={e => { e.stopPropagation(); handleUnsubscribe(s) }}>
+                    Отписаться
+                  </button>
                 </div>
                 <div className="subscription-description">{s.desc}</div>
                 <div className="subscription-stats">

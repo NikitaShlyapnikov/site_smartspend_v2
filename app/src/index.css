@@ -1508,11 +1508,25 @@ body.dark .btn-danger-ghost:hover { background: rgba(200,72,72,0.12); }
   padding: 28px 32px; box-shadow: var(--shadow);
   position: relative;
 }
+/* Avatar wrap with upload button */
+.user-avatar-large-wrap {
+  position: relative; flex-shrink: 0; width: 80px; height: 80px;
+}
+.user-avatar-large-wrap:hover .user-avatar-change { opacity: 1; }
 .user-avatar-large {
-  width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
+  width: 80px; height: 80px; border-radius: 50%;
   background: var(--surface-3); border: 2px solid var(--border);
   display: flex; align-items: center; justify-content: center;
   font-size: 28px; font-weight: 500; color: var(--text-2);
+  overflow: hidden;
+}
+.user-avatar-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.user-avatar-change {
+  position: absolute; bottom: 0; right: 0;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--text); color: var(--surface); border: 2px solid var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; opacity: 0; transition: opacity 0.15s;
 }
 .user-info { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .user-name-line { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -6171,6 +6185,53 @@ body.dark .author-ghost-notice { background: #221D2A; border-color: #3A2E48; col
 .acc-btn-delete:hover { background: #FDF0EF; border-color: #B85555; }
 body.dark .acc-btn-delete { border-color: #7A3030; color: #E07070; }
 body.dark .acc-btn-delete:hover { background: #2A1A1A; border-color: #E07070; }
+
+/* Visibility toggle button */
+.acc-btn-visibility {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 12px; border-radius: 8px;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-3); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+}
+.acc-btn-visibility:hover { background: var(--surface-2); color: var(--text-2); border-color: var(--text-3); }
+
+/* Unsubscribe button */
+.acc-btn-unsub {
+  display: inline-flex; align-items: center;
+  padding: 4px 12px; border-radius: 20px; flex-shrink: 0;
+  border: 1px solid var(--border); background: var(--surface-2);
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  color: var(--text-3); cursor: pointer; transition: all 0.15s;
+  letter-spacing: -0.01em;
+}
+.acc-btn-unsub:hover { background: #FDF0EF; border-color: #D5928A; color: #B85555; }
+body.dark .acc-btn-unsub:hover { background: #2A1A1A; border-color: #7A3030; color: #E07070; }
+
+/* Onboarding banner */
+.acc-onboarding {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 20px; border-radius: var(--r);
+  background: var(--accent-green-light); border: 1.5px solid var(--accent-green-border);
+  flex-shrink: 0;
+}
+.acc-onboarding-icon {
+  width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+  background: var(--accent-green); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+}
+.acc-onboarding-text {
+  flex: 1; display: flex; flex-direction: column; gap: 2px;
+}
+.acc-onboarding-text strong { font-size: 13px; font-weight: 600; color: var(--text); }
+.acc-onboarding-text span { font-size: 12px; color: var(--text-2); line-height: 1.4; }
+.acc-onboarding-btn {
+  padding: 7px 16px; border-radius: 20px; flex-shrink: 0;
+  background: var(--accent-green); color: #fff; border: none;
+  font-family: var(--sans); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: opacity 0.15s; letter-spacing: -0.01em;
+}
+.acc-onboarding-btn:hover { opacity: 0.85; }
 
 /* ── ACCOUNT: confirm delete modal ── */
 /* ── ADD TO SET MODAL ──────────────────────────────────────────────────────── */
