@@ -829,36 +829,50 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
   )
 }
 
-function ShoppingList({ items, infoMap, groups, onClose }) {
+function ShoppingList({ items, infoMap, groups, overrides, categoryFilter, setFilter, onClose }) {
   const [period, setPeriod] = useState('month') // 'week' | 'month'
-  const urgentItems = items.filter(i => !i.paused && infoMap[i.id]?.filterStatus === 'urgent')
 
-  function getAction(item, p) {
-    if (item.type === 'wear') return { qty: '1 шт', cost: item.price || 0 }
+  // Для месяца — только срочные; для недели — все не на паузе (могут иметь дефицит на неделю даже при статусе 'soon')
+  const baseItems = items.filter(i => {
+    if (i.paused) return false
+    if (categoryFilter && i.groupId !== categoryFilter) return false
+    if (setFilter) {
+      if (setFilter === '__personal__' ? i.set : i.set !== setFilter) return false
+    }
+    if (period === 'month') return infoMap[i.id]?.filterStatus === 'urgent'
+    return true // week — все позиции, потом отфильтруем у которых дефицита нет
+  })
+
+  function getAction(item) {
+    if (item.type === 'wear') {
+      // Для вещей показываем только срочные
+      if (infoMap[item.id]?.filterStatus !== 'urgent') return null
+      return { qty: '1 шт', cost: item.price || 0 }
+    }
     if (item.type !== 'consumable') return null
     const unit = item.unit || 'г'
-    const remaining = Math.max(0, item.qty - daysSince(item.lastBought) * item.dailyUse)
-    const pricePerUnit = (item.price || 0) / item.qty
-    if (p === 'week') {
-      const need = item.dailyUse * 7
-      const deficit = need - remaining
-      if (deficit <= 0) return null
-      const amt = (unit === 'г' || unit === 'мл') ? `${Math.round(deficit)}\u00a0${unit}` : `${parseFloat(deficit.toFixed(1))}\u00a0${unit}`
-      return { qty: amt, cost: Math.round(deficit * pricePerUnit) }
-    } else {
-      const mb = infoMap[item.id]?.monthlyBlock
-      if (mb?.type === 'deficit') return { qty: mb.deficitAmt, cost: mb.deficitRub }
-      return null
-    }
+    const override = overrides?.[item.id] ?? null
+    const remaining = override !== null
+      ? Math.max(0, override)
+      : Math.max(0, item.qty - daysSince(item.lastBought) * item.dailyUse)
+    const pricePerUnit = item.qty > 0 ? (item.price || 0) / item.qty : 0
+    const days = period === 'week' ? 7 : 30
+    const need = item.dailyUse * days
+    const deficit = need - remaining
+    if (deficit <= 0) return null
+    const amt = (unit === 'г' || unit === 'мл')
+      ? `${Math.round(deficit)}\u00a0${unit}`
+      : `${parseFloat(deficit.toFixed(1))}\u00a0${unit}`
+    return { qty: amt, cost: Math.round(deficit * pricePerUnit) }
   }
 
   const grouped = groups
-    .map(g => ({ ...g, rows: urgentItems.filter(i => i.groupId === g.id && getAction(i, period)) }))
+    .map(g => ({ ...g, rows: baseItems.filter(i => i.groupId === g.id && getAction(i)) }))
     .filter(g => g.rows.length > 0)
 
-  const grandTotal = grouped.reduce((s, g) => s + g.rows.reduce((ss, item) => ss + (getAction(item, period)?.cost || 0), 0), 0)
+  const grandTotal = grouped.reduce((s, g) => s + g.rows.reduce((ss, i) => ss + (getAction(i)?.cost || 0), 0), 0)
 
-  if (urgentItems.length === 0) return null
+  if (items.filter(i => !i.paused && infoMap[i.id]?.filterStatus === 'urgent').length === 0) return null
 
   return (
     <div className="inv-shopping-list">
@@ -869,16 +883,13 @@ function ShoppingList({ items, infoMap, groups, onClose }) {
           <button className={`inv-shopping-period-btn${period === 'month' ? ' active' : ''}`} onClick={() => setPeriod('month')}>Месяц</button>
         </div>
         <span className="inv-shopping-total">~{grandTotal.toLocaleString('ru')}&thinsp;₽</span>
-        <button className="inv-shopping-close" onClick={onClose} title="Закрыть">
-          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
       </div>
       {grouped.length === 0 ? (
-        <div className="inv-shopping-empty">На эту неделю всё есть в запасе</div>
+        <div className="inv-shopping-empty">
+          {period === 'week' ? 'На эту неделю всё есть в запасе' : 'Нет срочных покупок'}
+        </div>
       ) : grouped.map(g => {
-        const groupTotal = g.rows.reduce((s, item) => s + (getAction(item, period)?.cost || 0), 0)
+        const groupTotal = g.rows.reduce((s, i) => s + (getAction(i)?.cost || 0), 0)
         return (
           <div key={g.id} className="inv-shopping-group">
             <div className="inv-shopping-group-header">
@@ -886,7 +897,7 @@ function ShoppingList({ items, infoMap, groups, onClose }) {
               <span className="inv-shopping-group-total">~{groupTotal.toLocaleString('ru')}&thinsp;₽</span>
             </div>
             {g.rows.map(item => {
-              const action = getAction(item, period)
+              const action = getAction(item)
               return (
                 <div key={item.id} className="inv-shopping-row">
                   <span className="inv-shopping-item-name">{item.name}</span>
@@ -1427,7 +1438,7 @@ export default function Inventory() {
 
         {/* Shopping list — показывается при фильтре срочно */}
         {statusFilter === 'urgent' && (
-          <ShoppingList items={items} infoMap={infoMap} groups={ALL_GROUPS} onClose={() => setStatusFilter(null)} />
+          <ShoppingList items={items} infoMap={infoMap} groups={ALL_GROUPS} overrides={overrides} categoryFilter={categoryFilter} setFilter={setFilter} onClose={() => setStatusFilter(null)} />
         )}
 
         {/* Global gallery exit bar */}

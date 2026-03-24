@@ -239,10 +239,10 @@ const FEDERAL_PM_2026 = 20644  // Прожиточный минимум РФ 202
 const SMART_SPEND_BASE = Math.round(FEDERAL_PM_2026 * 0.75) // 75% — конверты (без жилья ~25%)
 
 const EMO_RATES = [
-  { rate: 0.04, label: 'Осторожно', pct: '4%', level: 'low' },
-  { rate: 0.05, label: 'Умеренно', pct: '5%', level: 'medium' },
-  { rate: 0.07, label: 'Активно', pct: '7%', level: 'high' },
-  { rate: 0.10, label: 'Агрессивно', pct: '10%', level: 'extra' },
+  { rate: 0.04, label: 'Экономно', pct: '4%', level: 'low' },
+  { rate: 0.05, label: 'Нормально', pct: '5%', level: 'medium' },
+  { rate: 0.07, label: 'Богато', pct: '7%', level: 'high' },
+  { rate: 0.10, label: 'На всё', pct: '10%', level: 'extra' },
 ]
 
 // ── Категории конвертов ──
@@ -907,45 +907,29 @@ export default function Profile() {
                     <span className="budget-row-hint">{capital > 0 ? `${capital.toLocaleString('ru')} ₽ × ` : ''}{Math.round(emoRate * 100)}% годовых ÷ 12 месяцев</span>
                     <span className="budget-row-value">+ {emoMonthly.toLocaleString('ru')} ₽</span>
                   </div>
-                  <div className="budget-row budget-row--total">
-                    <span className="budget-row-label">Можно тратить</span>
-                    <span className="budget-row-value">{sustainableBudget.toLocaleString('ru')} ₽</span>
-                  </div>
-                </div>
-
-                {showPmWarn && (
-                  <div className="budget-pm-warn">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-                    Чистый доход <strong>{netIncome.toLocaleString('ru')} ₽</strong> ниже базового минимума — нужно увеличить доход.
-                  </div>
-                )}
-
-                <div className={`budget-status${grandTotal === 0 ? ' empty' : envelopeDiff > 0 ? ' over' : ' ok'}`}>
-                  <div className="budget-status-row">
-                    <span className="budget-status-label">Конверты</span>
-                    <span className="budget-status-envelopes">{grandTotal > 0 ? `${grandTotal.toLocaleString('ru')} ₽` : '—'}</span>
-                  </div>
-                  {grandTotal === 0 ? (
-                    <div className="budget-status-msg empty">
-                      Заполни конверты — добавь наборы по категориям: еда, одежда, здоровье, транспорт. Система покажет, сколько остаётся на спонтанные расходы.
-                    </div>
-                  ) : envelopeDiff > 0 ? (
-                    <>
-                      <div className="budget-status-msg over">
-                        Превышение бюджета на <strong>{envelopeDiff.toLocaleString('ru')} ₽/мес</strong>
-                      </div>
-                      {neededCapital > 0 && (
-                        <div className="budget-needed">
-                          Для устойчивости нужен капитал&nbsp;<strong>~{neededCapital.toLocaleString('ru')} ₽</strong>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="budget-status-msg ok">
-                      Можно потратить ещё <strong>{Math.abs(envelopeDiff).toLocaleString('ru')} ₽ в месяц</strong>
+                  {grandTotal > 0 && (
+                    <div className="budget-row">
+                      <span className="budget-row-label">Конверты</span>
+                      <span className="budget-row-hint">план расходов по категориям</span>
+                      <span className="budget-row-value budget-row-value--minus">− {grandTotal.toLocaleString('ru')} ₽</span>
                     </div>
                   )}
+                  <div className={`budget-row budget-row--total${envelopeDiff > 0 ? ' budget-row--over' : ''}`}>
+                    <span className="budget-row-label">Свободный остаток</span>
+                    {grandTotal === 0 && <span className="budget-row-hint">заполните конверты для точного расчёта</span>}
+                    <span className="budget-row-value">
+                      {envelopeDiff > 0 ? '−' : ''}{Math.abs(grandTotal > 0 ? sustainableBudget - grandTotal : sustainableBudget).toLocaleString('ru')} ₽
+                      {income > 0 && grandTotal > 0 && <> <span className={`bl-tag${envelopeDiff > 0 ? ' bl-tag--over' : ''}`}>{envelopeDiff > 0 ? 'превышение' : Math.round((sustainableBudget - grandTotal) / sustainableBudget * 100) + '%'}</span></>}
+                    </span>
+                  </div>
                 </div>
+
+                {envelopeDiff > 0 && neededCapital > 0 && (
+                  <div className="budget-pm-warn">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                    Превышение на <strong>{envelopeDiff.toLocaleString('ru')} ₽/мес</strong>. Для устойчивости нужен капитал ~<strong>{neededCapital.toLocaleString('ru')} ₽</strong>
+                  </div>
+                )}
 
                 <div className="emo-rate-row">
                   <div className="emo-rate-left">
@@ -1024,6 +1008,13 @@ export default function Profile() {
               )}
             </button>
           </div>
+
+          {showPmWarn && (
+            <div className="budget-pm-warn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+              Чистый доход <strong>{netIncome.toLocaleString('ru')} ₽</strong> ниже базового минимума — рекомендуем сначала увеличить доход.
+            </div>
+          )}
 
           <div className="envelopes-list">
             {visibleCats.length === 0 && (
@@ -1140,10 +1131,6 @@ export default function Profile() {
             })}
           </div>
 
-          <div className="envelopes-total">
-            <span className="et-label">Итого в конвертах</span>
-            <span className="et-value">{grandTotal.toLocaleString('ru')} ₽ <span className="et-sub">/ месяц</span></span>
-          </div>
 
           <button id="sp-cards" className="profile-tool-row" onClick={() => navigate('/cards')}>
             <div className="profile-tool-icon">
