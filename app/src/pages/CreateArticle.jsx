@@ -336,7 +336,7 @@ export default function CreateArticle() {
             </div>
             {editorMode === 'md' ? (
               <>
-                <div className="editor-html-hint">
+                <div className="editor-html-hint" style={{ borderTop: '1px solid var(--border)' }}>
                   <span>Поддерживается Markdown-разметка</span>
                   <div style={{ position: 'relative' }}>
                     <button className="editor-html-prompt-btn" onClick={() => setShowMdHelp(p => !p)}>
@@ -361,7 +361,9 @@ export default function CreateArticle() {
                 </div>
                 <textarea ref={bodyRef} className="editor-body-input"
                 placeholder={`Начните писать статью...\n\nMarkdown: **жирный**, *курсив*, ## Заголовок, > Цитата\nФото: загрузите изображение, кликните по нему — код скопируется`}
-                value={body} onChange={e => setBody(e.target.value.slice(0, 30000))} />
+                value={body}
+                onChange={e => setBody(e.target.value.slice(0, 30000))}
+                onInput={e => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px' }} />
               </>
             ) : (
               <>
@@ -378,7 +380,8 @@ export default function CreateArticle() {
                   placeholder={`1. Напишите текст статьи. В местах где нужны фото — загрузите их в раздел «Фотографии» и вставьте коды в текст\n2. Скопируйте промт для GPT, откройте любой GPT-сервис и отправьте его\n3. В следующем сообщении отправьте ваш текст — GPT добавит HTML-оформление, не меняя содержание\n4. Скопируйте результат, замените исходный текст на HTML-версию и опубликуйте`}
                   value={htmlBody}
                   onChange={e => { setHtmlBody(e.target.value.slice(0, 30000)); setHtmlWarnings([]) }}
-                  onBlur={handleHtmlBlur} />
+                  onBlur={handleHtmlBlur}
+                  onInput={e => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px' }} />
                 {htmlWarnings.length > 0 && (
                   <div className="editor-html-warnings">
                     <div className="editor-html-warnings-title">

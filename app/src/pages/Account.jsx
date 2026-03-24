@@ -350,68 +350,40 @@ export default function Account() {
               </div>
             )}
 
-            {articles.map((a) => (
-              <div key={a.id} className="acc-article-card">
-                <div className="acc-article-title-row">
-                  {a.pub
-                    ? <span className="acc-article-title acc-article-title--link" onClick={() => navigate(`/article/${a.id}`)}>{a.title}</span>
-                    : <span className="acc-article-title">{a.title}</span>
-                  }
-                  <span className={`visibility-badge ${a.pub ? 'public' : 'private'}`}>
-                    {a.pub ? (
-                      <>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="3"/><path d="M22 12c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2s10 4.48 10 10z"/>
-                        </svg>
-                        Публичный
-                      </>
-                    ) : (
-                      <>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                        </svg>
-                        Личное
-                      </>
-                    )}
-                  </span>
-                </div>
-                <div className="acc-article-excerpt">{a.excerpt}</div>
-                <div className="acc-card-actions">
-                  <span className="acc-card-meta">{a.meta}{a.views > 0 && ` · ${a.views.toLocaleString('ru')} просм.`}</span>
-                  <div className="acc-card-actions-right">
-                    <button className="acc-btn-visibility" onClick={() => handleToggleArticleVisibility(a)}
-                      title={a.pub ? 'Скрыть статью' : 'Опубликовать статью'}>
-                      {a.pub ? (
-                        <>
-                          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
-                            <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
-                            <line x1="1" y1="1" x2="23" y2="23"/>
+            {articles.map((a) => {
+              const isDraft  = !!a.draft
+              const isPublic = !!a.pub
+              const badgeClass = isPublic ? 'public' : isDraft ? 'draft' : 'private'
+              const badgeLabel = isPublic ? 'Публичный' : isDraft ? 'Черновик' : 'Личное'
+              const canOpen  = !isDraft
+              return (
+                <div key={a.id} className="acc-article-card">
+                  <div className="acc-article-title-row">
+                    <span
+                      className={`acc-article-title${canOpen ? ' acc-article-title--link' : ''}`}
+                      onClick={() => canOpen ? navigate(`/article/${a.id}`) : null}>
+                      {a.title}
+                    </span>
+                    <span className={`visibility-badge ${badgeClass}`}>{badgeLabel}</span>
+                  </div>
+                  <div className="acc-article-excerpt">{a.excerpt}</div>
+                  <div className="acc-card-actions">
+                    <span className="acc-card-meta">{a.meta}{a.views > 0 && ` · ${a.views.toLocaleString('ru')} просм.`}</span>
+                    <div className="acc-card-actions-right">
+                      {!isPublic && (
+                        <button className="acc-btn-edit" onClick={() => handleEditArticle(a)}>
+                          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
                           </svg>
-                          Скрыть
-                        </>
-                      ) : (
-                        <>
-                          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                          </svg>
-                          Опубликовать
-                        </>
+                          Редактировать
+                        </button>
                       )}
-                    </button>
-                    {!a.pub && (
-                      <button className="acc-btn-edit" onClick={() => handleEditArticle(a)}>
-                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                          <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                        </svg>
-                        Редактировать
-                      </button>
-                    )}
-                    <button className="acc-btn-visibility acc-btn-delete-gray" onClick={() => handleDeleteArticle(a)}>Удалить</button>
+                      <button className="acc-btn-visibility acc-btn-delete-gray" onClick={() => handleDeleteArticle(a)}>Удалить</button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
 

@@ -1664,6 +1664,7 @@ body.dark .acc-btn-primary { background: var(--surface-3); color: var(--text); }
 .visibility-badge.public { background: var(--accent-green-light); border-color: var(--accent-green-border); color: var(--accent-green); }
 body.dark .visibility-badge.public { background: #1A2820; color: #7AAF96; border-color: #2A4035; }
 .visibility-badge.private { background: var(--surface-3); color: var(--text-3); }
+.visibility-badge.draft { background: var(--surface-3); color: var(--text-3); border-style: dashed; }
 
 /* Sets grid */
 .acc-sets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
@@ -5066,7 +5067,7 @@ body.dark .note-display:hover { background: #252210; }
 .editor-title-input::placeholder { color: var(--text-3); }
 
 .editor-body-input {
-  width: 100%; flex: 1; min-height: 400px;
+  width: 100%; min-height: 300px; overflow: hidden;
   padding: 0; border: none; outline: none; resize: none;
   font-family: var(--sans); font-size: 16px; line-height: 1.75;
   background: transparent; color: var(--text);
