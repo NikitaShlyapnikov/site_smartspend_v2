@@ -58,7 +58,9 @@ export default function CreateArticle() {
 
   // ── Images ───────────────────────────────────────────────────────────────────
   function addFiles(files) {
-    Array.from(files).filter(f => f.type.startsWith('image/')).forEach(file => {
+    const remaining = 10 - images.length
+    if (remaining <= 0) { showToast('Максимум 10 фотографий'); return }
+    Array.from(files).filter(f => f.type.startsWith('image/')).slice(0, remaining).forEach(file => {
       const reader = new FileReader()
       reader.onload = e => {
         const id   = 'photo-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6)
@@ -153,21 +155,20 @@ export default function CreateArticle() {
 
   return (
     <Layout>
-      <main className="editor-main">
+      <main className="inventory-main">
 
-        {/* ── Page header ── */}
-        <div className="ca-page-header">
-          <div className="ca-header-left">
-            <span className="page-title">Создание статьи</span>
+        {/* ── Header ── */}
+        <div className="inv-page-header">
+          <div className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            Создание статьи
             <HelpButton seenKey="ss_spl_createarticle" onOpen={() => setShowSpotlight(true)} />
           </div>
-          <div className="ca-header-right">
-            <button className="btn-draft" onClick={handleDraft}>Черновик</button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn-draft" onClick={handleDraft}>Сохранить черновик</button>
             <button id="sp-ca-publish" className="btn-publish" onClick={handlePublish}>Опубликовать</button>
           </div>
         </div>
 
-        <div className="editor-scroll">
 
           {/* ── Meta ── */}
           <div id="sp-ca-meta" className="editor-meta-block">
@@ -190,6 +191,11 @@ export default function CreateArticle() {
                   Публичная
                 </button>
               </div>
+            <div className="editor-visibility-hint">
+              {isPublic
+                ? 'Статья будет опубликована в ленте и на странице вашего аккаунта, доступна всем пользователям.'
+                : 'Статья будет доступна на странице вашего аккаунта и видна пользователям в зависимости от настроек конфиденциальности.'}
+            </div>
             </div>
 
             {/* Категория */}
@@ -272,16 +278,22 @@ export default function CreateArticle() {
 
           {/* ── Title ── */}
           <div className="editor-field-block">
-            <div className="editor-field-label">Заголовок</div>
+            <div className="editor-field-label editor-field-label--body">
+              <span>Заголовок</span>
+              <span className={`editor-char-count${title.length > 90 ? ' warn' : ''}`}>{title.length}/100</span>
+            </div>
             <textarea className="editor-title-input" placeholder="Введите заголовок статьи..."
-              value={title} onChange={e => setTitle(e.target.value)} rows={2} />
+              value={title} onChange={e => setTitle(e.target.value.slice(0, 100))} rows={2} />
           </div>
 
           {/* ── Excerpt ── */}
           <div className="editor-field-block">
-            <div className="editor-field-label">Краткое описание</div>
+            <div className="editor-field-label editor-field-label--body">
+              <span>Краткое описание</span>
+              <span className={`editor-char-count${excerpt.length > 220 ? ' warn' : ''}`}>{excerpt.length}/250</span>
+            </div>
             <textarea className="editor-excerpt-input" placeholder="Короткий анонс статьи, который будет виден в ленте..."
-              value={excerpt} onChange={e => setExcerpt(e.target.value)} rows={2} />
+              value={excerpt} onChange={e => setExcerpt(e.target.value.slice(0, 250))} rows={2} />
           </div>
 
           {/* ── Body ── */}
@@ -296,7 +308,7 @@ export default function CreateArticle() {
             {editorMode === 'md' ? (
               <textarea ref={bodyRef} className="editor-body-input"
                 placeholder={`Начните писать статью...\n\nMarkdown: **жирный**, *курсив*, ## Заголовок, > Цитата\nФото: загрузите изображение, кликните по нему — код скопируется`}
-                value={body} onChange={e => setBody(e.target.value)} />
+                value={body} onChange={e => setBody(e.target.value.slice(0, 30000))} />
             ) : (
               <>
                 <div className="editor-html-hint">
@@ -311,7 +323,7 @@ export default function CreateArticle() {
                 <textarea className="editor-body-input editor-body-input--html"
                   placeholder="Вставьте HTML-разметку статьи..."
                   value={htmlBody}
-                  onChange={e => { setHtmlBody(e.target.value); setHtmlWarnings([]) }}
+                  onChange={e => { setHtmlBody(e.target.value.slice(0, 30000)); setHtmlWarnings([]) }}
                   onBlur={handleHtmlBlur} />
                 {htmlWarnings.length > 0 && (
                   <div className="editor-html-warnings">
@@ -329,9 +341,9 @@ export default function CreateArticle() {
                 )}
               </>
             )}
-            <div className={`editor-body-meta${activeText.length > 10000 ? ' warn' : ''}`}>
+            <div className={`editor-body-meta${activeText.length > 27000 ? ' warn' : ''}`}>
               <span>{wordCount} сл. · ~{readMin} мин</span>
-              {activeText.length > 0 && <span>{activeText.length.toLocaleString('ru')} симв.{activeText.length > 10000 ? ' — сократите' : ''}</span>}
+              {activeText.length > 0 && <span>{activeText.length.toLocaleString('ru')} / 30 000 симв.{activeText.length > 27000 ? ' — почти лимит' : ''}</span>}
             </div>
           </div>
 
@@ -385,8 +397,6 @@ export default function CreateArticle() {
               </div>
             )}
           </div>
-
-        </div>{/* /editor-scroll */}
 
         {/* Toast */}
         <div className={`toast${toast ? ' show' : ''}`}>

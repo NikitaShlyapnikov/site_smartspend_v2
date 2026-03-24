@@ -4991,16 +4991,6 @@ body.dark .note-display:hover { background: #252210; }
   display: flex; flex-direction: column;
   height: 100vh; overflow: hidden; min-width: 0;
 }
-/* CreateArticle page header */
-.ca-page-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 20px; gap: 12px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface); flex-shrink: 0;
-}
-.ca-header-left  { display: flex; align-items: center; gap: 10px; }
-.ca-header-right { display: flex; align-items: center; gap: 8px; }
-
 /* Set picker — absolute dropdown */
 .set-picker-wrap   { flex: 1; display: flex; flex-direction: column; gap: 6px; }
 .set-picker-anchor { position: relative; display: inline-block; }
@@ -5034,8 +5024,6 @@ body.dark .note-display:hover { background: #252210; }
 }
 .btn-draft:hover { background: var(--surface-3); color: var(--text); }
 
-.editor-scroll { flex: 1; overflow-y: auto; padding: 0 20% 40px; display: flex; flex-direction: column; }
-@media (max-width: 900px) { .editor-scroll { padding: 0 5% 40px; } }
 
 .editor-meta-block {
   padding: 20px 0 16px; border-bottom: 1px solid var(--border);
@@ -5054,6 +5042,9 @@ body.dark .note-display:hover { background: #252210; }
 .editor-cat-btn.active { background: var(--accent-green-light); border-color: var(--accent-green-border); color: var(--accent-green); font-weight: 600; }
 .editor-cat-btn--none { border-style: dashed; color: var(--text-3); }
 .editor-cat-btn--none.active { background: var(--surface-2); border-color: var(--text-2); border-style: solid; color: var(--text-2); font-weight: 500; }
+.editor-visibility-hint { font-size: 12px; color: var(--text-3); margin-top: 6px; }
+.editor-char-count { font-size: 11px; color: var(--text-3); font-family: var(--mono); font-weight: 400; text-transform: none; letter-spacing: 0; }
+.editor-char-count.warn { color: #C84848; }
 .editor-meta-label--error { color: #C84848; }
 .editor-cat-required { font-style: normal; font-weight: 500; }
 .editor-cats--error .editor-cat-btn:not(.active) { border-color: rgba(200,72,72,0.35); }
@@ -9411,7 +9402,6 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
     overflow-y: visible;
     flex: none;
   }
-  .ca-page-header { padding: 10px 16px; }
   .fmt-group { flex-wrap: wrap; }
 
   /* ── Create Set item row: 2-col (name + qty), then price on next line ── */
@@ -9511,8 +9501,6 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   .inventory-main { padding: 16px 12px; }
   .settings-inner { padding: 16px 12px; }
   .account-main { padding: 16px 12px; }
-  .editor-scroll { padding: 12px 12px 32px; }
-  .ca-page-header { padding: 8px 12px; }
   .form-section { padding: 14px 12px; }
 
   /* ── Font sizes ── */
@@ -9565,8 +9553,6 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   .inventory-main { padding: 12px 8px; }
   .settings-inner { padding: 12px 8px; }
   .account-main { padding: 12px 8px; }
-  .editor-scroll { padding: 10px 8px 28px; }
-  .ca-page-header { padding: 6px 8px; }
   .form-section { padding: 12px 8px; }
 
   /* ── Font ── */
