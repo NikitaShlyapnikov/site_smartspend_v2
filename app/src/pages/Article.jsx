@@ -385,6 +385,26 @@ export default function Article() {
     return src.map(r => ({ ...r }))
   })
 
+  const [noteText,  setNoteText]  = useState('')
+  const [notes,     setNotes]     = useState(() => {
+    try { return JSON.parse(localStorage.getItem(`ss_article_notes_${id}`) || '[]') } catch { return [] }
+  })
+
+  function addNote(e) {
+    e.preventDefault()
+    if (!noteText.trim()) return
+    const n = { id: Date.now(), text: noteText.trim(), createdAt: new Date().toLocaleDateString('ru', { day: 'numeric', month: 'long', year: 'numeric' }) }
+    const next = [n, ...notes]
+    setNotes(next)
+    localStorage.setItem(`ss_article_notes_${id}`, JSON.stringify(next))
+    setNoteText('')
+  }
+  function deleteNote(noteId) {
+    const next = notes.filter(n => n.id !== noteId)
+    setNotes(next)
+    localStorage.setItem(`ss_article_notes_${id}`, JSON.stringify(next))
+  }
+
   const isMine = isMyArticle(id)
   const article = articles.find(a => a.id === id) || (() => {
     try {
@@ -686,8 +706,51 @@ export default function Article() {
           </>
         )}
 
+        {/* Notes block for private articles */}
+        {isMine && !article.pub && (
+          <div className="section-card">
+            <div className="section-header">
+              <div className="section-title">
+                Заметки
+                {notes.length > 0 && <span className="section-count">{notes.length}</span>}
+              </div>
+            </div>
+            {notes.length === 0 && (
+              <div className="sd-notes-empty">
+                <div className="sd-notes-empty-text">Заметок пока нет. Добавьте мысли или наблюдения к этой статье.</div>
+              </div>
+            )}
+            {notes.length > 0 && (
+              <div className="sd-notes-list">
+                {notes.map(note => (
+                  <div key={note.id} className="sd-note-item">
+                    <div className="sd-note-text">{note.text}</div>
+                    <div className="sd-note-footer">
+                      <span className="sd-note-date">{note.createdAt}</span>
+                      <button className="sd-note-delete" onClick={() => deleteNote(note.id)} title="Удалить">
+                        <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <form className="sd-note-form" onSubmit={addNote}>
+              <input className="sd-note-input" placeholder="Добавить заметку…"
+                value={noteText} onChange={e => setNoteText(e.target.value)} />
+              <button type="submit" className="sd-note-submit" disabled={!noteText.trim()}>
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+              </button>
+            </form>
+          </div>
+        )}
+
         {/* Comments */}
-        {article.comments && article.comments.length > 0 && (
+        {article.pub !== false && article.comments && article.comments.length > 0 && (
           <div className="section-card" ref={commentsRef}>
             <div className="section-header">
               <div className="section-title">

@@ -1644,8 +1644,14 @@ body.dark .acc-btn-primary { background: var(--surface-3); color: var(--text); }
   background: var(--surface); border-radius: var(--r);
   padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border);
 }
-.acc-article-title { font-size: 17px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.01em; }
+.acc-article-title-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.acc-article-title { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.35; }
+.acc-article-title--link { cursor: pointer; }
+.acc-article-title--link:hover { color: var(--accent-green); }
 .acc-article-excerpt { font-size: 14px; color: var(--text-2); line-height: 1.5; margin-bottom: 12px; }
+.acc-card-meta { font-size: 12px; color: var(--text-3); flex: 1; }
+.acc-card-actions-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+.acc-btn-delete-gray { color: var(--text-3) !important; }
 .article-footer-meta {
   display: flex; gap: 16px; font-size: 12px; color: var(--text-3); flex-wrap: wrap;
   border-top: 1px solid var(--border); padding-top: 12px; align-items: center;
@@ -5109,14 +5115,6 @@ body.dark .note-display:hover { background: #252210; }
 }
 .md-help-row span { font-size: 12px; color: var(--text-2); }
 
-/* HTML mode steps */
-.editor-html-steps {
-  margin: 0; padding: 10px 14px 10px 30px;
-  background: var(--surface-2); border-bottom: 1px solid var(--border);
-  display: flex; flex-direction: column; gap: 4px;
-}
-.editor-html-steps li { font-size: 12px; color: var(--text-2); line-height: 1.5; }
-
 /* HTML mode hint bar */
 .editor-html-hint {
   display: flex; align-items: center; justify-content: space-between;
@@ -6328,7 +6326,7 @@ body.dark .author-ghost-notice { background: #221D2A; border-color: #3A2E48; col
 
 /* ── ACCOUNT: card action buttons (edit / delete) ── */
 .acc-card-actions {
-  display: flex; gap: 8px; margin-top: 12px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px;
   padding-top: 10px; border-top: 1px solid var(--border);
 }
 .acc-card-actions-set {
