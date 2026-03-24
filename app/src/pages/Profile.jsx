@@ -703,27 +703,6 @@ export default function Profile() {
     },
   ]
 
-  const envelopesGroup = {
-    id: 'envelopes',
-    label: 'Конверты',
-    total: -grandTotal,
-    pct: income > 0 ? Math.round(grandTotal / income * 100) : null,
-    hint: (income > 0 && netIncome < SMART_SPEND_BASE) ? `Чистый доход ${netIncome.toLocaleString('ru')} ₽ ниже базового минимума — рекомендуем сначала увеличить доход.` : null,
-    hintType: 'warn',
-    rows: CATEGORIES
-      .filter(cat => (envelopes[cat.id] || []).some(x => !x.paused))
-      .map(cat => ({
-        label: cat.name,
-        value: -(envelopes[cat.id] || []).filter(x => !x.paused).reduce((s, x) => s + x.amount, 0),
-      })),
-  }
-
-  const budgetGroups = [
-    ...staticGroups,
-    envelopesGroup,
-    { id: 'other', label: 'Прочие расходы', total: null, pct: null, rows: [] },
-  ]
-
   const emoAnnual = Math.round(capital * emoRate)
   const emoMonthly = Math.round(emoAnnual / 12)
 
@@ -739,6 +718,27 @@ export default function Profile() {
     : 0
   // Предупреждение: чистый доход ниже прожиточного минимума конвертов
   const showPmWarn = income > 0 && netIncome < SMART_SPEND_BASE
+
+  const envelopesGroup = {
+    id: 'envelopes',
+    label: 'Конверты',
+    total: -grandTotal,
+    pct: income > 0 ? Math.round(grandTotal / income * 100) : null,
+    hint: showPmWarn ? `Чистый доход ${netIncome.toLocaleString('ru')} ₽ ниже базового минимума — рекомендуем сначала увеличить доход.` : null,
+    hintType: 'warn',
+    rows: CATEGORIES
+      .filter(cat => (envelopes[cat.id] || []).some(x => !x.paused))
+      .map(cat => ({
+        label: cat.name,
+        value: -(envelopes[cat.id] || []).filter(x => !x.paused).reduce((s, x) => s + x.amount, 0),
+      })),
+  }
+
+  const budgetGroups = [
+    ...staticGroups,
+    envelopesGroup,
+    { id: 'other', label: 'Прочие расходы', total: null, pct: null, rows: [] },
+  ]
 
   const savingsPct = income > 0 ? Math.round((savings / income) * 100) : 0
   const greetingSubtitle = (() => {
