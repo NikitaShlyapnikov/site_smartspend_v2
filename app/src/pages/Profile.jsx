@@ -708,6 +708,8 @@ export default function Profile() {
     label: 'Конверты',
     total: -grandTotal,
     pct: income > 0 ? Math.round(grandTotal / income * 100) : null,
+    hint: showPmWarn ? `Чистый доход ${netIncome.toLocaleString('ru')} ₽ ниже базового минимума — рекомендуем сначала увеличить доход.` : null,
+    hintType: 'warn',
     rows: CATEGORIES
       .filter(cat => (envelopes[cat.id] || []).some(x => !x.paused))
       .map(cat => ({
@@ -907,12 +909,6 @@ export default function Profile() {
                     <span className="budget-row-hint">{capital > 0 ? `${capital.toLocaleString('ru')} ₽ × ` : ''}{Math.round(emoRate * 100)}% годовых ÷ 12 месяцев</span>
                     <span className="budget-row-value">+ {emoMonthly.toLocaleString('ru')} ₽</span>
                   </div>
-                  {capital === 0 && (
-                    <div className="budget-capital-hint">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-                      Увеличьте накопления — каждые 100 000 ₽ капитала дают +{Math.round(100000 * emoRate / 12).toLocaleString('ru')} ₽ к бюджету в месяц
-                    </div>
-                  )}
                   {grandTotal > 0 && (
                     <div className="budget-row">
                       <span className="budget-row-label">Конверты</span>
@@ -1014,13 +1010,6 @@ export default function Profile() {
               )}
             </button>
           </div>
-
-          {showPmWarn && (
-            <div className="budget-pm-warn">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-              Чистый доход <strong>{netIncome.toLocaleString('ru')} ₽</strong> ниже базового минимума — рекомендуем сначала увеличить доход.
-            </div>
-          )}
 
           <div className="envelopes-list">
             {visibleCats.length === 0 && (
