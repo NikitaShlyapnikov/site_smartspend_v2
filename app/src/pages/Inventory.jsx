@@ -156,7 +156,7 @@ function Ring({ pct, ringNum, ringUnit, status, paused }) {
     : 'ring-ok'
   return (
     <div className={`ring-wrap ${cls}`}>
-      <svg viewBox="0 0 44 44" width="48" height="48" style={{ transform: 'rotate(-90deg)' }}>
+      <svg viewBox="0 0 44 44" width="46" height="46" style={{ transform: 'rotate(-90deg)' }}>
         <circle className="ring-bg" cx="22" cy="22" r={r} />
         <circle className="ring-fg" cx="22" cy="22" r={r} strokeDasharray={`${dash} ${circ}`} strokeDashoffset="0" />
       </svg>
@@ -783,7 +783,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
   )
 }
 
-function ShoppingList({ items, infoMap, groups }) {
+function ShoppingList({ items, infoMap, groups, onClose }) {
   const urgentItems = items.filter(i => !i.paused && infoMap[i.id]?.filterStatus === 'urgent')
 
   function getItemAction(item) {
@@ -811,6 +811,11 @@ function ShoppingList({ items, infoMap, groups }) {
       <div className="inv-shopping-header">
         <span className="inv-shopping-title">Список покупок</span>
         <span className="inv-shopping-total">~{grandTotal.toLocaleString('ru')}&thinsp;₽</span>
+        <button className="inv-shopping-close" onClick={onClose} title="Закрыть">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
       </div>
       {grouped.map(g => {
         const groupTotal = g.rows.reduce((s, item) => s + (getItemAction(item)?.cost || 0), 0)
@@ -965,6 +970,7 @@ export default function Inventory() {
   const [personalSets] = useState(() => loadPersonalSets())
   const [openItems, setOpenItems] = useState(new Set())
   const [galleryGroups, setGalleryGroups] = useState(new Set())
+  const [globalGallery, setGlobalGallery] = useState(false)
   const [galleryLightbox, setGalleryLightbox] = useState(null) // { photos: [{url,name,itemName}], index }
   const [statusFilter, setStatusFilter] = useState(null)
   const [editMode, setEditMode] = useState(false)
@@ -1211,6 +1217,18 @@ export default function Inventory() {
     if (editMode) setAddFormGroup(null)
   }
 
+  function toggleGlobalGallery() {
+    if (globalGallery) {
+      setGlobalGallery(false)
+      setGalleryGroups(new Set())
+    } else {
+      setGlobalGallery(true)
+      setGalleryGroups(new Set(visibleGroups.map(g => g.id)))
+      // разворачиваем все свёрнутые группы
+      setCollapsedGroups(new Set())
+    }
+  }
+
   return (
     <Layout>
       <main className="inventory-main">
@@ -1224,6 +1242,13 @@ export default function Inventory() {
             <div className="page-subtitle">{items.length} позиций</div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
+            <button className={`btn-gallery-mode${globalGallery ? ' active' : ''}`} onClick={toggleGlobalGallery}>
+              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+              Галерея
+            </button>
             <button id="sp-inv-edit" className={`btn-edit-mode${editMode ? ' active' : ''}`} onClick={toggleEditMode}>
               {editMode ? (
                 <>
@@ -1263,13 +1288,37 @@ export default function Inventory() {
               <span className="inv-chip-count">{count}</span>
               <span className="inv-chip-label">{label}</span>
               {sub && <span className="inv-chip-sub">{sub}</span>}
+              {statusFilter === key && (
+                <svg className="inv-chip-close" width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              )}
             </button>
           ))}
         </div>
 
         {/* Shopping list — показывается при фильтре срочно */}
         {statusFilter === 'urgent' && (
-          <ShoppingList items={items} infoMap={infoMap} groups={ALL_GROUPS} />
+          <ShoppingList items={items} infoMap={infoMap} groups={ALL_GROUPS} onClose={() => setStatusFilter(null)} />
+        )}
+
+        {/* Global gallery exit bar */}
+        {globalGallery && (
+          <div className="inv-gallery-exit-bar">
+            <span className="inv-gallery-exit-label">
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+              Режим галереи
+            </span>
+            <button className="inv-gallery-exit-btn" onClick={toggleGlobalGallery}>
+              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Выйти из галереи
+            </button>
+          </div>
         )}
 
         {/* Groups */}
@@ -1304,6 +1353,8 @@ export default function Inventory() {
               setGalleryGroups(prev => {
                 const s = new Set(prev)
                 s.has(group.id) ? s.delete(group.id) : s.add(group.id)
+                // если вручную закрыли — выходим из глобального режима
+                if (s.has(group.id) === false) setGlobalGallery(false)
                 return s
               })
             }
@@ -1331,6 +1382,16 @@ export default function Inventory() {
                     <path d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
+
+                {!isCollapsed && isGallery && photoItems.length === 0 && (
+                  <div className="inv-gallery-empty">
+                    <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)' }}>
+                      <rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                      <path d="M21 15l-5-5L5 21"/>
+                    </svg>
+                    <span>Нет заметок с фото</span>
+                  </div>
+                )}
 
                 {!isCollapsed && isGallery && photoItems.length > 0 && (() => {
                   // flat array of all photos across all items for lightbox navigation
