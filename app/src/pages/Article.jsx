@@ -379,7 +379,29 @@ export default function Article() {
   })
 
   const isMine = isMyArticle(id)
-  const article = articles.find(a => a.id === id)
+  const article = articles.find(a => a.id === id) || (() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('ss_account_articles') || '[]')
+      const a = saved.find(x => x.id === id)
+      if (!a) return null
+      const profile = JSON.parse(localStorage.getItem('ss_account_profile') || '{}')
+      const regName = localStorage.getItem('ss_username') || 'Я'
+      const displayName = profile.displayName || regName
+      const ini = displayName[0]?.toUpperCase() || 'Я'
+      return {
+        ...a,
+        preview: a.excerpt || '',
+        catLabel: 'Мои статьи',
+        date: (a.meta || '').split(' · ')[0] || '',
+        readTime: ((a.meta || '').match(/(\d+) мин/) || [])[1] || '',
+        likes: 0, comments: [],
+        author: displayName, authorInitials: ini,
+        authorColor: '#4E8268', authorBio: '',
+        content: [],
+        _userBody: a.body || '',
+      }
+    } catch { return null }
+  })()
 
   if (!article) {
     return (
@@ -589,7 +611,15 @@ export default function Article() {
         {/* Article content */}
         <div className="content-card">
           <div className="content-body">
-            {article.content.map((block, i) => renderBlock(block, i))}
+            {article._userBody
+              ? article._userBody.split('\n\n').filter(Boolean).map((block, i) => {
+                  if (block.startsWith('## ')) return <h2 key={i}>{block.slice(3)}</h2>
+                  if (block.startsWith('> ')) return <blockquote key={i} className="content-note">{block.slice(2)}</blockquote>
+                  const html = block.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>')
+                  return <p key={i} dangerouslySetInnerHTML={{ __html: html }} />
+                })
+              : article.content.map((block, i) => renderBlock(block, i))
+            }
           </div>
         </div>
 

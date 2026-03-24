@@ -1528,6 +1528,17 @@ body.dark .btn-danger-ghost:hover { background: rgba(200,72,72,0.12); }
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; opacity: 0; transition: opacity 0.15s;
 }
+.user-avatar-delete {
+  position: absolute; top: 0; right: 0;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #C84848; color: #fff; border: 2px solid var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background 0.15s;
+}
+.user-avatar-delete:hover { background: #a83030; }
+/* Username @ input wrapper */
+.acc-username-input-wrap { display: flex; align-items: center; gap: 2px; }
+.acc-username-at { font-family: var(--mono); font-size: 14px; color: var(--text-3); user-select: none; }
 .user-info { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .user-name-line { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .user-display-name { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; }

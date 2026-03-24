@@ -161,7 +161,7 @@ export default function CreateSet() {
   const [shortDesc, setShortDesc] = useState('')
   const [introText, setIntroText] = useState('')
   const [category,  setCategory]  = useState('clothes')
-  const [isPublic,  setIsPublic]  = useState(true)
+  const [isPublic,  setIsPublic]  = useState(false)
   const [items,     setItems]     = useState([])
   const [showForm,  setShowForm]  = useState(false)
 

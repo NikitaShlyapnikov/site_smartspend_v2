@@ -131,11 +131,7 @@ export default function Account() {
   // ── Article actions ────────────────────────────────────────────────────────
 
   function handleEditArticle(a) {
-    if (a.pub && a.id && !a.id.startsWith('draft')) {
-      navigate(`/article/${a.id}`)
-    } else {
-      navigate('/create-article')
-    }
+    navigate(`/article/${a.id}`)
   }
 
   function handleToggleArticleVisibility(a) {
@@ -255,6 +251,19 @@ export default function Account() {
                 : <span>{initials}</span>
               }
             </div>
+            {editing && profile.avatar && (
+              <button className="user-avatar-delete" onClick={() => {
+                const updated = { ...profile, avatar: '' }
+                setProfile(updated)
+                setDraft(d => ({ ...d, avatar: '' }))
+                localStorage.setItem('ss_account_profile', JSON.stringify(updated))
+                showToast('Фото удалено')
+              }} title="Удалить фото">
+                <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            )}
             <button className="user-avatar-change" onClick={() => avatarInputRef.current?.click()} title="Сменить фото">
               <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
@@ -274,10 +283,13 @@ export default function Account() {
             </div>
             <div className="user-nickname-line">
               {editing
-                ? <input className="acc-edit-field" value={draft.username} style={{ width: 180 }}
-                    onChange={e => setDraft(d => ({ ...d, username: e.target.value }))}
-                    placeholder="@username (латиницей)" />
-                : <span className="user-username">{profile.username || <span className="acc-placeholder" style={{ fontSize: 13 }}>username не задан</span>}</span>
+                ? <div className="acc-username-input-wrap">
+                    <span className="acc-username-at">@</span>
+                    <input className="acc-edit-field" value={draft.username} style={{ width: 160 }}
+                      onChange={e => setDraft(d => ({ ...d, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') }))}
+                      placeholder="username" />
+                  </div>
+                : <span className="user-username">{profile.username ? '@' + profile.username : <span className="acc-placeholder" style={{ fontSize: 13 }}>username не задан</span>}</span>
               }
             </div>
 

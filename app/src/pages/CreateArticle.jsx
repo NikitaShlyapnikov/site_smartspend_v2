@@ -100,7 +100,7 @@ export default function CreateArticle() {
   const [excerpt,   setExcerpt]   = useState('')
   const [body,      setBody]      = useState('')
   const [category,  setCategory]  = useState('Финансы')
-  const [isPublic,  setIsPublic]  = useState(true)
+  const [isPublic,  setIsPublic]  = useState(false)
   const [preview,   setPreview]   = useState(false)
   const [images,    setImages]    = useState([])
   const [dragOver,  setDragOver]  = useState(false)
@@ -161,6 +161,7 @@ export default function CreateArticle() {
       id:      'a' + Date.now(),
       title:   title.trim(),
       excerpt: excerpt.trim() || body.trim().slice(0, 120) || '',
+      body:    body,
       meta:    today + ' · ' + readMin + ' мин',
       views:   0,
       pub:     isPublic,
