@@ -2781,7 +2781,6 @@ body.dark .inv-gallery-card-set { color: #7AABDF; background: #1A2535; border-co
 .inv-gallery-card-set--personal {
   color: var(--text-3); background: var(--surface-3); border-color: var(--border);
 }
-}
 .inv-gallery-badge {
   display: inline-flex; align-items: center;
   font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px;
