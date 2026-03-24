@@ -15,11 +15,28 @@ function readLS(key, fallback) {
   catch { return fallback }
 }
 
+// Russian → Latin transliteration for auto-username
+function toLatinUsername(name) {
+  const map = {
+    'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh',
+    'з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o',
+    'п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'kh','ц':'ts',
+    'ч':'ch','ш':'sh','щ':'sch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya',
+  }
+  return name.toLowerCase()
+    .split('').map(c => map[c] ?? (c.match(/[a-z0-9]/) ? c : ' '))
+    .join('').trim().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '').slice(0, 20)
+}
+
 function initProfile() {
-  return readLS('ss_account_profile', {
-    displayName: '', pseudonym: '', username: '', bio: '', joined: 'март 2026',
-    followers: 0, avatar: '',
-  })
+  // Seed displayName from registration username if not set
+  const regName = localStorage.getItem('ss_username') || ''
+  const saved = readLS('ss_account_profile', null)
+  if (saved) return { followers: 0, avatar: '', ...saved }
+  return {
+    displayName: regName, pseudonym: '', username: toLatinUsername(regName),
+    bio: '', followers: 0, avatar: '',
+  }
 }
 
 // ── Confirm delete modal ─────────────────────────────────────────────────────
@@ -80,7 +97,12 @@ export default function Account() {
 
   // ── Profile ────────────────────────────────────────────────────────────────
 
-  function startEdit() { setDraft({ ...profile }); setEditing(true) }
+  function startEdit() {
+    const base = { ...profile }
+    if (!base.username && base.displayName) base.username = toLatinUsername(base.displayName)
+    setDraft(base)
+    setEditing(true)
+  }
   function cancelEdit() { setEditing(false) }
   function saveEdit() {
     setProfile({ ...draft })
@@ -104,9 +126,7 @@ export default function Account() {
     e.target.value = ''
   }
 
-  const initials = profile.displayName
-    ? profile.displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-    : '?'
+  const initials = (profile.displayName || profile.username || localStorage.getItem('ss_username') || 'U')[0].toUpperCase()
 
   // ── Article actions ────────────────────────────────────────────────────────
 
@@ -249,7 +269,7 @@ export default function Account() {
                 ? <input className="acc-edit-field large" value={draft.displayName}
                     onChange={e => setDraft(d => ({ ...d, displayName: e.target.value }))}
                     placeholder="Имя и фамилия" />
-                : <span className="user-display-name">{profile.displayName || <span className="acc-placeholder">Имя не указано</span>}</span>
+                : <span className="user-display-name">{profile.displayName || <span className="acc-placeholder acc-placeholder--name">Имя не указано</span>}</span>
               }
             </div>
             <div className="user-nickname-line">
@@ -275,9 +295,9 @@ export default function Account() {
             {editing ? (
               <textarea className="user-bio-input" rows={3} value={draft.bio}
                 onChange={e => setDraft(d => ({ ...d, bio: e.target.value }))}
-                placeholder="Расскажите о себе..." />
+                placeholder="О себе..." />
             ) : (
-              <div className="user-bio">{profile.bio || <span className="acc-placeholder">Биография не заполнена</span>}</div>
+              <div className="user-bio">{profile.bio || <span className="acc-placeholder acc-placeholder--bio">О себе...</span>}</div>
             )}
           </div>
         </div>

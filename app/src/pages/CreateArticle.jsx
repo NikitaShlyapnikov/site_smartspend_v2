@@ -154,6 +154,25 @@ export default function CreateArticle() {
 
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(null), 2200) }
 
+  // ── Publish ──────────────────────────────────────────────────────────────────
+  function handlePublish() {
+    if (!title.trim()) { showToast('Введите заголовок статьи'); return }
+    const article = {
+      id:      'a' + Date.now(),
+      title:   title.trim(),
+      excerpt: excerpt.trim() || body.trim().slice(0, 120) || '',
+      meta:    today + ' · ' + readMin + ' мин',
+      views:   0,
+      pub:     isPublic,
+    }
+    try {
+      const saved = JSON.parse(localStorage.getItem('ss_account_articles') || '[]')
+      saved.unshift(article)
+      localStorage.setItem('ss_account_articles', JSON.stringify(saved))
+    } catch {}
+    navigate('/account')
+  }
+
   // ── Set picker ───────────────────────────────────────────────────────────────
   function selectSet(s) { setLinkedSet(s); setSetPickerOpen(false) }
   function clearSet()   { setLinkedSet(null) }
@@ -183,7 +202,7 @@ export default function CreateArticle() {
               </svg>
               {preview ? 'Редактор' : 'Предпросмотр'}
             </button>
-            <button id="sp-ca-publish" className="btn-publish" onClick={() => navigate('/feed')}>Опубликовать</button>
+            <button id="sp-ca-publish" className="btn-publish" onClick={handlePublish}>Опубликовать</button>
           </div>
         </div>
 

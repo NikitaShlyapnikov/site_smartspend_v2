@@ -6150,7 +6150,9 @@ body.dark .author-ghost-notice { background: #221D2A; border-color: #3A2E48; col
 }
 
 /* ── ACCOUNT: placeholder text ── */
-.acc-placeholder { color: var(--text-3); font-style: italic; }
+.acc-placeholder { color: var(--text-3); }
+.acc-placeholder--name { font-size: 15px; font-weight: 400; }
+.acc-placeholder--bio { }
 
 /* ── ACCOUNT: article excerpt ── */
 .acc-article-excerpt {
