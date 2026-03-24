@@ -10,6 +10,7 @@ const CA_SPOTLIGHT = [
 ]
 
 const CATEGORIES = [
+  null,
   'Прочие расходы', 'Еда и Супермаркеты', 'Кафе, Бары, Рестораны',
   'Авто и Транспорт', 'Дом и Техника', 'Одежда и Обувь',
   'Развлечения и Хобби', 'Красота и Здоровье', 'Образование и Дети', 'Путешествия и Отдых',
@@ -99,7 +100,8 @@ export default function CreateArticle() {
   const [title,     setTitle]     = useState('')
   const [excerpt,   setExcerpt]   = useState('')
   const [body,      setBody]      = useState('')
-  const [category,  setCategory]  = useState('Финансы')
+  const [category,  setCategory]  = useState(null)
+  const [catError,  setCatError]  = useState(false)
   const [isPublic,  setIsPublic]  = useState(false)
   const [preview,   setPreview]   = useState(false)
   const [images,    setImages]    = useState([])
@@ -157,6 +159,8 @@ export default function CreateArticle() {
   // ── Publish ──────────────────────────────────────────────────────────────────
   function handlePublish() {
     if (!title.trim()) { showToast('Введите заголовок статьи'); return }
+    if (category === null) { setCatError(true); showToast('Выберите категорию'); return }
+    setCatError(false)
     const article = {
       id:      'a' + Date.now(),
       title:   title.trim(),
@@ -184,26 +188,31 @@ export default function CreateArticle() {
 
         {/* ── Toolbar ── */}
         <div id="sp-ca-toolbar" className="editor-toolbar">
-          <div className="editor-format-bar">
-            {FORMAT_BTNS.map(btn => (
-              <button key={btn.label} className="fmt-btn" title={btn.title}
-                onClick={() => insertFormat(btn.wrap)} disabled={preview}>
-                {btn.label}
+          <div className="editor-toolbar-top">
+            <span className="page-title" style={{ fontSize: 18, lineHeight: 1 }}>Создание статьи</span>
+            <div className="editor-toolbar-top-right">
+              <span className="editor-counter">{wordCount} сл. · ~{readMin} мин</span>
+              <HelpButton seenKey="ss_spl_createarticle" onOpen={() => setShowSpotlight(true)} />
+              <button className={`btn-preview-toggle${preview ? ' active' : ''}`} onClick={() => setPreview(p => !p)}>
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+                {preview ? 'Редактор' : 'Предпросмотр'}
               </button>
-            ))}
-            <div className="fmt-divider" />
-            <span className="fmt-hint">**жирный** *курсив* ## заголовок &gt; цитата</span>
+              <button id="sp-ca-publish" className="btn-publish" onClick={handlePublish}>Опубликовать</button>
+            </div>
           </div>
-          <div className="editor-toolbar-right">
-            <span className="editor-counter">{wordCount} сл. · ~{readMin} мин</span>
-            <HelpButton seenKey="ss_spl_createarticle" onOpen={() => setShowSpotlight(true)} />
-            <button className={`btn-preview-toggle${preview ? ' active' : ''}`} onClick={() => setPreview(p => !p)}>
-              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-              </svg>
-              {preview ? 'Редактор' : 'Предпросмотр'}
-            </button>
-            <button id="sp-ca-publish" className="btn-publish" onClick={handlePublish}>Опубликовать</button>
+          <div className="editor-format-row">
+            <div className="editor-format-bar">
+              {FORMAT_BTNS.map(btn => (
+                <button key={btn.label} className="fmt-btn" title={btn.title}
+                  onClick={() => insertFormat(btn.wrap)} disabled={preview}>
+                  {btn.label}
+                </button>
+              ))}
+              <div className="fmt-divider" />
+              <span className="fmt-hint">**жирный** *курсив* ## заголовок &gt; цитата</span>
+            </div>
           </div>
         </div>
 
@@ -218,7 +227,7 @@ export default function CreateArticle() {
                 <div className="hero-body">
                   <div className="hero-badges">
                     <span className="article-type-badge">Статья</span>
-                    <span className="cat-badge">{category}</span>
+                    {category && <span className="cat-badge">{category}</span>}
                   </div>
                   <div className="hero-title">{title || 'Без заголовка'}</div>
                   {excerpt && <div className="hero-desc">{excerpt}</div>}
@@ -319,11 +328,16 @@ export default function CreateArticle() {
               {/* Meta */}
               <div id="sp-ca-meta" className="editor-meta-block">
                 <div className="editor-meta-row">
-                  <div className="editor-meta-label">Категория</div>
-                  <div className="editor-cats">
+                  <div className={`editor-meta-label${catError ? ' editor-meta-label--error' : ''}`}>
+                    Категория{catError && <span className="editor-cat-required"> — обязательно</span>}
+                  </div>
+                  <div className={`editor-cats${catError ? ' editor-cats--error' : ''}`}>
                     {CATEGORIES.map(cat => (
-                      <button key={cat} className={`editor-cat-btn${category === cat ? ' active' : ''}`}
-                        onClick={() => setCategory(cat)}>{cat}</button>
+                      <button key={cat ?? '__none__'}
+                        className={`editor-cat-btn${category === cat ? ' active' : ''}${cat === null ? ' editor-cat-btn--none' : ''}`}
+                        onClick={() => { setCategory(cat); setCatError(false) }}>
+                        {cat ?? 'Без категории'}
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -341,7 +355,7 @@ export default function CreateArticle() {
                       <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
                       </svg>
-                      Приватная
+                      Личное
                     </button>
                   </div>
                 </div>
