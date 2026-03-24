@@ -4,9 +4,8 @@ import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 
 const CA_SPOTLIGHT = [
-  { targetId: 'sp-ca-toolbar', btnId: 'sp-ca-publish', title: 'Панель редактора',    desc: 'Кнопки форматирования текста: жирный, курсив, заголовок, цитата. Справа — предпросмотр и публикация статьи.' },
-  { targetId: 'sp-ca-meta',    btnId: null,            title: 'Категория и настройки', desc: 'Укажи тему статьи и видимость. Можно прикрепить свой набор — он появится в конце статьи.' },
-  { targetId: 'sp-ca-photo',   btnId: null,            title: 'Фотографии',           desc: 'Загружай фото перетаскиванием или кликом. Нажми на фото — скопируется код для вставки в текст.' },
+  { targetId: 'sp-ca-meta',  btnId: null, title: 'Категория и настройки', desc: 'Укажи тему статьи и видимость. Можно прикрепить свой набор — он появится в конце статьи.' },
+  { targetId: 'sp-ca-photo', btnId: null, title: 'Фотографии',            desc: 'Загружай фото перетаскиванием или кликом. Нажми на фото — скопируется код для вставки в текст.' },
 ]
 
 const CATEGORIES = [
@@ -97,22 +96,26 @@ export default function CreateArticle() {
   const bodyRef   = useRef(null)
   const fileInput = useRef(null)
 
-  const [title,     setTitle]     = useState('')
-  const [excerpt,   setExcerpt]   = useState('')
-  const [body,      setBody]      = useState('')
-  const [category,  setCategory]  = useState(null)
-  const [catError,  setCatError]  = useState(false)
-  const [isPublic,  setIsPublic]  = useState(false)
-  const [preview,   setPreview]   = useState(false)
-  const [images,    setImages]    = useState([])
-  const [dragOver,  setDragOver]  = useState(false)
-  const [toast,     setToast]     = useState(null)
-  const [linkedSet, setLinkedSet] = useState(null)   // выбранный набор
-  const [setPickerOpen, setSetPickerOpen] = useState(false)
-  const [showSpotlight, setShowSpotlight] = useState(false)
+  const [title,       setTitle]       = useState('')
+  const [excerpt,     setExcerpt]     = useState('')
+  const [body,        setBody]        = useState('')
+  const [htmlBody,    setHtmlBody]    = useState('')
+  const [editorMode,  setEditorMode]  = useState('md')   // 'md' | 'html'
+  const [category,    setCategory]    = useState(null)
+  const [catError,    setCatError]    = useState(false)
+  const [isPublic,    setIsPublic]    = useState(false)
+  const [preview,     setPreview]     = useState(false)
+  const [images,      setImages]      = useState([])
+  const [dragOver,    setDragOver]    = useState(false)
+  const [toast,       setToast]       = useState(null)
+  const [linkedSet,   setLinkedSet]   = useState(null)
+  const [setPickerOpen,  setSetPickerOpen]  = useState(false)
+  const [showSpotlight,  setShowSpotlight]  = useState(false)
+  const [showPrompt,     setShowPrompt]     = useState(false)
 
-  const wordCount = body.trim() ? body.trim().split(/\s+/).length : 0
-  const readMin   = Math.max(1, Math.round(wordCount / 200))
+  const activeText = editorMode === 'md' ? body : htmlBody
+  const wordCount  = activeText.trim() ? activeText.trim().split(/\s+/).length : 0
+  const readMin    = Math.max(1, Math.round(wordCount / 200))
   const today = new Date().toLocaleDateString('ru', { day: 'numeric', month: 'long', year: 'numeric' })
 
   // ── Text formatting ──────────────────────────────────────────────────────────
@@ -162,13 +165,15 @@ export default function CreateArticle() {
     if (category === null) { setCatError(true); showToast('Выберите категорию'); return }
     setCatError(false)
     const article = {
-      id:      'a' + Date.now(),
-      title:   title.trim(),
-      excerpt: excerpt.trim() || body.trim().slice(0, 120) || '',
-      body:    body,
-      meta:    today + ' · ' + readMin + ' мин',
-      views:   0,
-      pub:     isPublic,
+      id:         'a' + Date.now(),
+      title:      title.trim(),
+      excerpt:    excerpt.trim() || (editorMode === 'md' ? body : htmlBody).trim().replace(/<[^>]+>/g, '').slice(0, 120) || '',
+      body:       editorMode === 'md' ? body : '',
+      htmlBody:   editorMode === 'html' ? htmlBody : '',
+      editorMode,
+      meta:       today + ' · ' + readMin + ' мин',
+      views:      0,
+      pub:        isPublic,
     }
     try {
       const saved = JSON.parse(localStorage.getItem('ss_account_articles') || '[]')
@@ -201,10 +206,9 @@ export default function CreateArticle() {
       <main className="editor-main">
 
         {/* ── Toolbar ── */}
-        <div id="sp-ca-toolbar" className="editor-toolbar">
+        <div className="editor-toolbar">
           <span className="page-title" style={{ fontSize: 18, lineHeight: 1 }}>Создание статьи</span>
           <div className="editor-toolbar-top-right">
-            <span className="editor-counter">{wordCount} сл. · ~{readMin} мин</span>
             <HelpButton seenKey="ss_spl_createarticle" onOpen={() => setShowSpotlight(true)} />
             <button className={`btn-preview-toggle${preview ? ' active' : ''}`} onClick={() => setPreview(p => !p)}>
               <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -416,16 +420,37 @@ export default function CreateArticle() {
 
               {/* Body */}
               <div className="editor-field-block editor-field-block--body">
-                <div className="editor-field-label">Текст статьи</div>
-                <textarea ref={bodyRef} className="editor-body-input"
-                  placeholder={`Начните писать статью...\n\nMarkdown: **жирный**, *курсив*, ## Заголовок, > Цитата\nФото: загрузите изображение, кликните по нему — код скопируется`}
-                  value={body} onChange={e => setBody(e.target.value)} />
-                {body.length > 0 && (
-                  <div className={`editor-char-count${body.length > 10000 ? ' warn' : ''}`}>
-                    {body.length.toLocaleString('ru')} символов
-                    {body.length > 10000 && ' — рекомендуем сократить'}
+                <div className="editor-field-label editor-field-label--body">
+                  <span>Текст статьи</span>
+                  <div className="editor-mode-toggle">
+                    <button className={`editor-mode-btn${editorMode === 'md' ? ' active' : ''}`} onClick={() => setEditorMode('md')}>Markdown</button>
+                    <button className={`editor-mode-btn${editorMode === 'html' ? ' active' : ''}`} onClick={() => setEditorMode('html')}>HTML</button>
                   </div>
+                </div>
+                {editorMode === 'md' ? (
+                  <textarea ref={bodyRef} className="editor-body-input"
+                    placeholder={`Начните писать статью...\n\nMarkdown: **жирный**, *курсив*, ## Заголовок, > Цитата\nФото: загрузите изображение, кликните по нему — код скопируется`}
+                    value={body} onChange={e => setBody(e.target.value)} />
+                ) : (
+                  <>
+                    <div className="editor-html-hint">
+                      <span>Вставьте HTML, сгенерированный по промту</span>
+                      <button className="editor-html-prompt-btn" onClick={() => setShowPrompt(true)}>
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                        </svg>
+                        Промт для GPT
+                      </button>
+                    </div>
+                    <textarea className="editor-body-input editor-body-input--html"
+                      placeholder="Вставьте HTML-разметку статьи..."
+                      value={htmlBody} onChange={e => setHtmlBody(e.target.value)} />
+                  </>
                 )}
+                <div className={`editor-body-meta${activeText.length > 10000 ? ' warn' : ''}`}>
+                  <span>{wordCount} сл. · ~{readMin} мин</span>
+                  {activeText.length > 0 && <span>{activeText.length.toLocaleString('ru')} симв.{activeText.length > 10000 ? ' — сократите' : ''}</span>}
+                </div>
               </div>
 
               {/* Photo section */}
@@ -491,7 +516,89 @@ export default function CreateArticle() {
         </div>
 
       {showSpotlight && <SpotlightTour steps={CA_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
+
+      {/* ── GPT Prompt modal ── */}
+      {showPrompt && <GptPromptModal images={images} onClose={() => setShowPrompt(false)} onCopied={() => showToast('Промт скопирован')} />}
       </main>
     </Layout>
+  )
+}
+
+// ── GPT Prompt Modal ─────────────────────────────────────────────────────────
+const GPT_PROMPT = `Ты помогаешь создавать статьи для платформы SmartSpend — приложения об осознанном потреблении и личных финансах.
+
+Напиши HTML-разметку статьи по заданной теме. Правила:
+
+СТРУКТУРА
+• Не включай теги <html>, <head>, <body> — только содержимое статьи
+• Начинай сразу с контента, без обёрток
+
+ДОПУСТИМЫЕ ТЕГИ
+• <h2>Заголовок раздела</h2>
+• <h3>Подзаголовок</h3>
+• <p>Текст абзаца</p>
+• <ul><li>Пункт</li></ul> — маркированный список
+• <ol><li>Пункт</li></ol> — нумерованный список
+• <strong>жирный</strong>
+• <em>курсив</em>
+• <blockquote class="content-note">Важная заметка или цитата</blockquote>
+• <div class="content-highlight">Ключевая мысль или совет</div>
+
+ИЗОБРАЖЕНИЯ
+• Изображения загружаются отдельно в редакторе, каждое получает код вида photo-1234567890-abc
+• Для вставки: <img src="PHOTO_CODE" alt="описание">
+• Замени PHOTO_CODE на реальный код из редактора после загрузки фото
+
+ЗАПРЕЩЕНО
+• Теги: <script>, <style>, <iframe>, <form>, <input>, <link>
+• Атрибут style на любых элементах
+• Внешние URL в src изображений
+• Любые классы, кроме content-note и content-highlight
+
+ТЕМАТИКА
+SmartSpend — осознанное потребление, личные финансы, планирование бюджета, умные покупки, сравнение цен, наборы товаров.`
+
+function GptPromptModal({ images, onClose, onCopied }) {
+  const hasImages = images.length > 0
+
+  function handleCopy() {
+    let text = GPT_PROMPT
+    if (hasImages) {
+      const codes = images.map(img => `  ${img.id}  — ${img.name}`).join('\n')
+      text += `\n\nЗАГРУЖЕННЫЕ ФОТО (используй эти коды)\n${codes}`
+    }
+    navigator.clipboard.writeText(text).catch(() => {})
+    onCopied()
+    onClose()
+  }
+
+  return (
+    <div className="gpt-prompt-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="gpt-prompt-modal">
+        <div className="gpt-prompt-header">
+          <div className="gpt-prompt-title">Промт для ChatGPT</div>
+          <button className="gpt-prompt-close" onClick={onClose}>
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div className="gpt-prompt-desc">
+          Скопируй этот промт и вставь в ChatGPT. Опиши тему статьи — GPT сгенерирует готовую HTML-разметку. Затем вставь HTML в редактор.
+          {hasImages && <span className="gpt-prompt-img-note"> В промт будут добавлены коды загруженных фото ({images.length} шт.).</span>}
+        </div>
+        <pre className="gpt-prompt-text">{GPT_PROMPT}{hasImages && `\n\nЗАГРУЖЕННЫЕ ФОТО (используй эти коды)\n${images.map(img => `  ${img.id}  — ${img.name}`).join('\n')}`}</pre>
+        <div className="gpt-prompt-actions">
+          <button className="gpt-prompt-cancel" onClick={onClose}>Закрыть</button>
+          <button className="gpt-prompt-copy" onClick={handleCopy}>
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2"/>
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+            </svg>
+            Скопировать промт
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }

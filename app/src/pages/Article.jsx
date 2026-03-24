@@ -398,7 +398,8 @@ export default function Article() {
         author: displayName, authorInitials: ini,
         authorColor: '#4E8268', authorBio: '',
         content: [],
-        _userBody: a.body || '',
+        _userBody: a.editorMode !== 'html' ? (a.body || '') : '',
+        _userHtml: a.editorMode === 'html' ? (a.htmlBody || '') : '',
       }
     } catch { return null }
   })()
@@ -611,14 +612,16 @@ export default function Article() {
         {/* Article content */}
         <div className="content-card">
           <div className="content-body">
-            {article._userBody
-              ? article._userBody.split('\n\n').filter(Boolean).map((block, i) => {
-                  if (block.startsWith('## ')) return <h2 key={i}>{block.slice(3)}</h2>
-                  if (block.startsWith('> ')) return <blockquote key={i} className="content-note">{block.slice(2)}</blockquote>
-                  const html = block.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>')
-                  return <p key={i} dangerouslySetInnerHTML={{ __html: html }} />
-                })
-              : article.content.map((block, i) => renderBlock(block, i))
+            {article._userHtml
+              ? <div dangerouslySetInnerHTML={{ __html: article._userHtml }} />
+              : article._userBody
+                ? article._userBody.split('\n\n').filter(Boolean).map((block, i) => {
+                    if (block.startsWith('## ')) return <h2 key={i}>{block.slice(3)}</h2>
+                    if (block.startsWith('> ')) return <blockquote key={i} className="content-note">{block.slice(2)}</blockquote>
+                    const html = block.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>')
+                    return <p key={i} dangerouslySetInnerHTML={{ __html: html }} />
+                  })
+                : article.content.map((block, i) => renderBlock(block, i))
             }
           </div>
         </div>
