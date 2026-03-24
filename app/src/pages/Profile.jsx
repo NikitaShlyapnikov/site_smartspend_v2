@@ -239,10 +239,10 @@ const FEDERAL_PM_2026 = 20644  // Прожиточный минимум РФ 202
 const SMART_SPEND_BASE = Math.round(FEDERAL_PM_2026 * 0.75) // 75% — конверты (без жилья ~25%)
 
 const EMO_RATES = [
-  { rate: 0.04, label: 'Экономно', pct: '4%', level: 'low' },
-  { rate: 0.05, label: 'Нормально', pct: '5%', level: 'medium' },
-  { rate: 0.07, label: 'Богато', pct: '7%', level: 'high' },
-  { rate: 0.10, label: 'На всё', pct: '10%', level: 'extra' },
+  { rate: 0.04, label: 'FIRE', pct: '4%', level: 'low' },
+  { rate: 0.05, label: 'SMART', pct: '5%', level: 'medium' },
+  { rate: 0.07, label: 'RICH', pct: '7%', level: 'high' },
+  { rate: 0.10, label: 'EXTRA', pct: '10%', level: 'extra' },
 ]
 
 // ── Категории конвертов ──
@@ -907,6 +907,12 @@ export default function Profile() {
                     <span className="budget-row-hint">{capital > 0 ? `${capital.toLocaleString('ru')} ₽ × ` : ''}{Math.round(emoRate * 100)}% годовых ÷ 12 месяцев</span>
                     <span className="budget-row-value">+ {emoMonthly.toLocaleString('ru')} ₽</span>
                   </div>
+                  {capital === 0 && (
+                    <div className="budget-capital-hint">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                      Увеличьте накопления — каждые 100 000 ₽ капитала дают +{Math.round(100000 * emoRate / 12).toLocaleString('ru')} ₽ к бюджету в месяц
+                    </div>
+                  )}
                   {grandTotal > 0 && (
                     <div className="budget-row">
                       <span className="budget-row-label">Конверты</span>

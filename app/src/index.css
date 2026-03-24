@@ -3752,6 +3752,13 @@ body.dark .budget-status-msg.over { color: #D47878; }
   background: #FDF4E7; border: 1px solid #E8C87A;
   font-size: 12px; color: #7A5A1A; line-height: 1.5;
 }
+.budget-capital-hint {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 10px 12px; border-radius: 8px;
+  background: var(--accent-green-light); border: 1px solid var(--accent-green-border);
+  font-size: 12px; color: var(--accent-green); line-height: 1.5;
+}
+body.dark .budget-capital-hint { background: #1A2E22; border-color: #2A4E35; color: #6AAF8E; }
 .budget-pm-warn svg { flex-shrink: 0; margin-top: 1px; color: #C89A2A; }
 .budget-pm-warn strong { font-weight: 600; }
 body.dark .budget-pm-warn { background: #2A2010; border-color: #6A5020; color: #C8A850; }
