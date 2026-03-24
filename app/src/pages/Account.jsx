@@ -353,81 +353,81 @@ export default function Account() {
             {articles.map((a) => {
               const isDraft  = !!a.draft
               const isPublic = !!a.pub
-              const badgeClass = isPublic ? 'public' : isDraft ? 'draft' : 'private'
-              const badgeLabel = isPublic ? 'Публичный' : isDraft ? 'Черновик' : 'Личное'
-              const canOpen  = !isDraft
-              return (
-                <div key={a.id} className="acc-article-card">
-                  <div className="acc-article-title-row">
-                    <span
-                      className={`acc-article-title${canOpen ? ' acc-article-title--link' : ''}`}
-                      onClick={() => canOpen ? navigate(`/article/${a.id}`) : null}>
-                      {a.title}
-                    </span>
-                    <span className={`visibility-badge ${badgeClass}`}>{badgeLabel}</span>
-                  </div>
-                  <div className="acc-article-excerpt">{a.excerpt}</div>
+              const commentCount = Array.isArray(a.comments) ? a.comments.length : (a.comments ?? 0)
 
-                  {isPublic && (
-                    <div className="acc-article-reactions">
-                      {/* Лайки */}
+              if (isPublic) {
+                return (
+                  <article key={a.id} className="feed-article acc-feed-article"
+                    onClick={() => navigate(`/article/${a.id}`)}>
+                    <div className="fa-author-row">
+                      {a.category && <><span className="fa-category">{a.category}</span><span className="fa-sep">·</span></>}
+                      <span className="visibility-badge public">Публичный</span>
+                    </div>
+                    <h2 className="fa-title">{a.title}</h2>
+                    <p className="fa-preview">{a.excerpt}</p>
+                    <div className="fa-bottom" onClick={e => e.stopPropagation()}>
                       <div className="fa-action-stat">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
                           <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
                         </svg>
                         {a.likes ?? 0}
                       </div>
-                      {/* Дизлайки */}
                       <div className="fa-action-stat">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        {commentCount}
+                      </div>
+                      <div className="fa-action-stat">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
                           <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
                         </svg>
                         {a.dislikes ?? 0}
                       </div>
-                      {/* Комментарии */}
-                      <div className="fa-action-stat">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                        </svg>
-                        {Array.isArray(a.comments) ? a.comments.length : (a.comments ?? 0)}
-                      </div>
-                      {/* Просмотры */}
-                      {a.views > 0 && (
-                        <div className="fa-action-stat">
-                          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                          </svg>
-                          {a.views.toLocaleString('ru')}
-                        </div>
-                      )}
-                      {/* Реакции */}
                       {Array.isArray(a.reactions) && a.reactions.length > 0 && (
-                        <>
-                          <span className="fa-reactions-sep" />
+                        <><span className="fa-reactions-sep" />
                           {a.reactions.slice(0, 4).map(r => (
-                            <span key={r.emoji} className="acc-reaction-pill">
-                              {r.emoji} {r.count}
-                            </span>
-                          ))}
-                        </>
+                            <span key={r.emoji} className="acc-reaction-pill">{r.emoji} {r.count}</span>
+                          ))}</>
                       )}
+                      <div className="f-spacer" />
+                      <span className="fa-time">{a.meta}</span>
+                      <button className="acc-btn-visibility acc-btn-delete-gray"
+                        onClick={e => { e.stopPropagation(); handleDeleteArticle(a) }}>
+                        Удалить
+                      </button>
                     </div>
-                  )}
+                  </article>
+                )
+              }
 
-                  <div className="acc-card-actions">
+              // ── Личная / черновик ──
+              const badgeClass = isDraft ? 'draft' : 'private'
+              const badgeLabel = isDraft ? 'Черновик' : 'Личное'
+              const handleCardClick = () => isDraft ? handleEditArticle(a) : navigate(`/article/${a.id}`)
+              return (
+                <div key={a.id} className="acc-article-card acc-article-card--clickable"
+                  onClick={handleCardClick}>
+                  <div className="acc-article-title-row">
+                    <span className="acc-article-title">{a.title}</span>
+                    <span className={`visibility-badge ${badgeClass}`}>{badgeLabel}</span>
+                  </div>
+                  <div className="acc-article-excerpt">{a.excerpt}</div>
+                  <div className="acc-card-actions" onClick={e => e.stopPropagation()}>
                     <span className="acc-card-meta">{a.meta}</span>
                     <div className="acc-card-actions-right">
-                      {!isPublic && (
-                        <button className="acc-btn-edit" onClick={() => handleEditArticle(a)}>
-                          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                          </svg>
-                          Редактировать
-                        </button>
-                      )}
-                      <button className="acc-btn-visibility acc-btn-delete-gray" onClick={() => handleDeleteArticle(a)}>Удалить</button>
+                      <button className="acc-btn-edit" onClick={() => handleEditArticle(a)}>
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                          <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                        </svg>
+                        Редактировать
+                      </button>
+                      <button className="acc-btn-visibility acc-btn-delete-gray"
+                        onClick={e => { e.stopPropagation(); handleDeleteArticle(a) }}>
+                        Удалить
+                      </button>
                     </div>
                   </div>
                 </div>
