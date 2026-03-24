@@ -190,6 +190,7 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
   const [isEditingParams, setIsEditingParams] = useState(false)
   const [paramForm, setParamForm] = useState(null)
   const [localNoteEdit, setLocalNoteEdit] = useState(false)
+  const [photoDeleteMode, setPhotoDeleteMode] = useState(false)
 
   function startEditParams(e) {
     e.stopPropagation()
@@ -665,6 +666,24 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
               </svg>
               Заметки
+              {/* Кнопка редактировать прямо в заголовке заметок */}
+              {!editMode && !localNoteEdit && (
+                <button className="inv-notes-edit-btn" onClick={e => { e.stopPropagation(); setLocalNoteEdit(true); setPhotoDeleteMode(false) }}>
+                  <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                  Редактировать
+                </button>
+              )}
+              {localNoteEdit && !editMode && (
+                <button className="inv-notes-done-btn" onClick={e => { e.stopPropagation(); setLocalNoteEdit(false); setPhotoDeleteMode(false) }}>
+                  <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 6L9 17l-5-5"/>
+                  </svg>
+                  Готово
+                </button>
+              )}
             </div>
             {(editMode || localNoteEdit) ? (
               <>
@@ -674,22 +693,49 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
                   value={notes.text || ''}
                   onChange={e => onNotesChange({ ...notes, text: e.target.value })}
                 />
-                <div className="inv-notes-photo-row">
+                <div className="inv-notes-photo-actions">
                   <button className="inv-notes-add-photo-btn" onClick={e => { e.stopPropagation(); notePhotoInputRef.current?.click() }}>
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
                     </svg>
                     Добавить фото
                   </button>
-                  {(notes.photos || []).map((p, i) => (
-                    <div key={i} className="inv-notes-thumb-wrap" onClick={e => openLightbox(i, e)}>
-                      <img src={p.url} alt={p.name} className="inv-notes-thumb" />
-                      <button className="inv-notes-thumb-remove" onClick={e => { e.stopPropagation(); onNotesChange({ ...notes, photos: notes.photos.filter((_, j) => j !== i) }) }}>
-                        <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                      </button>
-                    </div>
-                  ))}
+                  {(notes.photos || []).length > 0 && (
+                    <button
+                      className={`inv-notes-delete-photo-btn${photoDeleteMode ? ' active' : ''}`}
+                      onClick={e => { e.stopPropagation(); setPhotoDeleteMode(m => !m) }}
+                    >
+                      {photoDeleteMode ? (
+                        <>
+                          <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                          Готово
+                        </>
+                      ) : (
+                        <>
+                          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                            <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+                          </svg>
+                          Удалить фото
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
+                {(notes.photos || []).length > 0 && (
+                  <div className="inv-notes-photo-row">
+                    {(notes.photos || []).map((p, i) => (
+                      <div key={i} className="inv-notes-thumb-wrap" onClick={e => !photoDeleteMode && openLightbox(i, e)}>
+                        <img src={p.url} alt={p.name} className="inv-notes-thumb" style={{ opacity: photoDeleteMode ? 0.6 : 1 }} />
+                        {photoDeleteMode && (
+                          <button className="inv-notes-thumb-remove" onClick={e => { e.stopPropagation(); onNotesChange({ ...notes, photos: notes.photos.filter((_, j) => j !== i) }) }}>
+                            <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <input ref={notePhotoInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handlePhotoAdd} />
               </>
             ) : (
@@ -1348,16 +1394,6 @@ export default function Inventory() {
               })
             }
 
-            function toggleGallery(e) {
-              e.stopPropagation()
-              setGalleryGroups(prev => {
-                const s = new Set(prev)
-                s.has(group.id) ? s.delete(group.id) : s.add(group.id)
-                // если вручную закрыли — выходим из глобального режима
-                if (s.has(group.id) === false) setGlobalGallery(false)
-                return s
-              })
-            }
 
             return (
               <div key={group.id} className="inv-section-card">
@@ -1366,11 +1402,6 @@ export default function Inventory() {
                   {urgentCount > 0 && <span className="inv-cat-urgent">{urgentCount} срочно</span>}
                   {urgentCount === 0 && soonCount > 0 && <span className="inv-cat-soon">{soonCount} скоро</span>}
                   <span className="inv-cat-count">{groupItems.length} поз.</span>
-                  {!isCollapsed && photoItems.length > 0 && (
-                    <button className={`inv-gallery-toggle${isGallery ? ' active' : ''}`} onClick={toggleGallery}>
-                      {isGallery ? 'Список' : 'Галерея'}
-                    </button>
-                  )}
                   {!isCollapsed && !isGallery && displayItems.length > 1 && (
                     <button className="inv-expand-all-btn" onClick={toggleAllInGroup}>
                       {anyOpen ? 'Свернуть все' : 'Развернуть все'}
@@ -1404,25 +1435,90 @@ export default function Inventory() {
                         const photos = item.notes?.photos || []
                         const noteText = item.notes?.text || ''
                         const info = infoMap[item.id]
-                        const statusCls = item.paused ? 'paused' : (info?.status || 'ok')
-                        // index of first photo of this item in flatPhotos
+                        const status = item.paused ? 'paused' : (info?.status || 'ok')
                         const firstIdx = flatPhotos.findIndex(p => p.itemName === item.name && p.url === photos[0]?.url)
+
+                        // Purchase dates
+                        const dates = Array.isArray(item.purchases)
+                          ? item.purchases.filter(p => p.bought && p.purchaseDate).map(p => p.purchaseDate)
+                          : item.purchaseDate ? [item.purchaseDate] : []
+
+                        // Lifespan label
+                        const lifespanLabel = item.wearLifeWeeks
+                          ? item.wearLifeWeeks >= 52
+                            ? `${(item.wearLifeWeeks / 52).toFixed(1).replace('.0', '')} лет`
+                            : `${item.wearLifeWeeks} нед.`
+                          : null
+
+                        const needsReplacement = status === 'urgent' || status === 'overexploit'
+
                         return (
-                          <div key={item.id} className="inv-gallery-card">
-                            <div className="inv-gallery-photos">
-                              {photos.map((p, i) => (
-                                <img key={i} src={p.url} alt={p.name} className="inv-gallery-img"
-                                  style={{ cursor: 'pointer' }}
-                                  onClick={() => setGalleryLightbox({ photos: flatPhotos, index: firstIdx + i })}
-                                />
-                              ))}
-                            </div>
-                            <div className="inv-gallery-info">
-                              <div className="inv-gallery-item-header">
-                                <span className={`inv-gallery-dot inv-gallery-dot--${statusCls}`} />
-                                <span className="inv-gallery-item-name">{item.name}</span>
+                          <div key={item.id} className={`inv-gallery-card${needsReplacement ? ' inv-gallery-card--urgent' : ''}`}>
+                            {/* Photo column */}
+                            <div className="inv-gallery-photo-col">
+                              <div className="inv-gallery-main-photo" onClick={() => setGalleryLightbox({ photos: flatPhotos, index: firstIdx })}>
+                                <img src={photos[0].url} alt={photos[0].name} className="inv-gallery-img" />
+                                {photos.length > 1 && (
+                                  <span className="inv-gallery-photo-count">1 / {photos.length}</span>
+                                )}
                               </div>
-                              {noteText && <div className="inv-gallery-note">{noteText}</div>}
+                              {photos.length > 1 && (
+                                <div className="inv-gallery-thumbs">
+                                  {photos.slice(1).map((p, i) => (
+                                    <img key={i} src={p.url} alt={p.name} className="inv-gallery-thumb"
+                                      onClick={() => setGalleryLightbox({ photos: flatPhotos, index: firstIdx + i + 1 })}
+                                    />
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Info column */}
+                            <div className="inv-gallery-info-col">
+                              <div className="inv-gallery-card-name">{item.name}</div>
+
+                              {needsReplacement && (
+                                <div className="inv-gallery-badge inv-gallery-badge--urgent">Требует замены</div>
+                              )}
+                              {status === 'soon' && (
+                                <div className="inv-gallery-badge inv-gallery-badge--soon">Скоро заменить</div>
+                              )}
+
+                              <div className="inv-gallery-meta">
+                                {dates.length > 0 && (
+                                  <div className="inv-gallery-meta-row">
+                                    <span className="inv-gallery-meta-label">
+                                      {dates.length === 1 ? 'Куплено' : 'Даты покупок'}
+                                    </span>
+                                    <span className="inv-gallery-meta-val">
+                                      {dates.length === 1
+                                        ? new Date(dates[0]).toLocaleDateString('ru', { day: 'numeric', month: 'short', year: 'numeric' })
+                                        : dates.map(d => new Date(d).toLocaleDateString('ru', { day: 'numeric', month: 'short' })).join(', ')
+                                      }
+                                    </span>
+                                  </div>
+                                )}
+                                {item.price > 0 && (
+                                  <div className="inv-gallery-meta-row">
+                                    <span className="inv-gallery-meta-label">Цена за шт.</span>
+                                    <span className="inv-gallery-meta-val">{item.price.toLocaleString('ru')}&thinsp;₽</span>
+                                  </div>
+                                )}
+                                {lifespanLabel && (
+                                  <div className="inv-gallery-meta-row">
+                                    <span className="inv-gallery-meta-label">Срок носки</span>
+                                    <span className="inv-gallery-meta-val">{lifespanLabel}</span>
+                                  </div>
+                                )}
+                                {info?.remainderText && (
+                                  <div className="inv-gallery-meta-row">
+                                    <span className="inv-gallery-meta-label">Остаток</span>
+                                    <span className={`inv-gallery-meta-val inv-gallery-meta-val--${status}`}>{info.remainderText}</span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {noteText && <div className="inv-gallery-note-text">{noteText}</div>}
                             </div>
                           </div>
                         )
