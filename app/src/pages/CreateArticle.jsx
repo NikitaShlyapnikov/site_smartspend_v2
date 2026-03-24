@@ -25,11 +25,11 @@ const FORMAT_BTNS = [
 
 // Наборы автора (мок)
 const MY_SETS = [
-  { id: 's1', name: 'Базовое питание',      color: '#8DBFA8', amount: '7 500 ₽', period: '/ мес',    tags: ['18 поз.', 'еженедельно'] },
-  { id: 's2', name: 'Вкусняшки',            color: '#C4A882', amount: '2 500 ₽', period: '/ мес',    tags: ['6 поз.',  'еженедельно'] },
-  { id: 's3', name: 'Домашняя аптечка',     color: '#B89AAE', amount: '1 200 ₽', period: '/ квартал',tags: ['12 поз.','квартально']  },
-  { id: 's4', name: 'Базовый уход за кошкой',color:'#9AB8A8', amount: '3 800 ₽', period: '/ мес',    tags: ['9 поз.', 'ежемесячно']  },
-  { id: 's5', name: 'Домашний офис',        color: '#8A9EB8', amount: '65 000 ₽',period: 'разово',   tags: ['8 поз.', 'разово']      },
+  { id: 's1', name: 'Базовое питание',       color: '#8DBFA8', amount: '7 500 ₽',  period: '/ мес',     tags: ['18 поз.', 'еженедельно'], category: 'Еда и Супермаркеты' },
+  { id: 's2', name: 'Вкусняшки',             color: '#C4A882', amount: '2 500 ₽',  period: '/ мес',     tags: ['6 поз.',  'еженедельно'], category: 'Еда и Супермаркеты' },
+  { id: 's3', name: 'Домашняя аптечка',      color: '#B89AAE', amount: '1 200 ₽',  period: '/ квартал', tags: ['12 поз.', 'квартально'],  category: 'Красота и Здоровье' },
+  { id: 's4', name: 'Базовый уход за кошкой',color: '#9AB8A8', amount: '3 800 ₽',  period: '/ мес',     tags: ['9 поз.', 'ежемесячно'],   category: 'Прочие расходы' },
+  { id: 's5', name: 'Домашний офис',         color: '#8A9EB8', amount: '65 000 ₽', period: 'разово',    tags: ['8 поз.', 'разово'],       category: 'Дом и Техника' },
 ]
 
 // ── Разбивает строку на части: текст + картинки ───────────────────────────────
@@ -179,8 +179,22 @@ export default function CreateArticle() {
   }
 
   // ── Set picker ───────────────────────────────────────────────────────────────
+  // Наборы, доступные для прикрепления: фильтруем по выбранной категории
+  const availableSets = category === null
+    ? MY_SETS
+    : MY_SETS.filter(s => s.category === category)
+
   function selectSet(s) { setLinkedSet(s); setSetPickerOpen(false) }
   function clearSet()   { setLinkedSet(null) }
+
+  // Сбросить прикреплённый набор, если он не подходит под новую категорию
+  function handleCategoryChange(cat) {
+    setCategory(cat)
+    setCatError(false)
+    if (linkedSet && cat !== null && linkedSet.category !== cat) {
+      setLinkedSet(null)
+    }
+  }
 
   return (
     <Layout>
@@ -188,31 +202,17 @@ export default function CreateArticle() {
 
         {/* ── Toolbar ── */}
         <div id="sp-ca-toolbar" className="editor-toolbar">
-          <div className="editor-toolbar-top">
-            <span className="page-title" style={{ fontSize: 18, lineHeight: 1 }}>Создание статьи</span>
-            <div className="editor-toolbar-top-right">
-              <span className="editor-counter">{wordCount} сл. · ~{readMin} мин</span>
-              <HelpButton seenKey="ss_spl_createarticle" onOpen={() => setShowSpotlight(true)} />
-              <button className={`btn-preview-toggle${preview ? ' active' : ''}`} onClick={() => setPreview(p => !p)}>
-                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                </svg>
-                {preview ? 'Редактор' : 'Предпросмотр'}
-              </button>
-              <button id="sp-ca-publish" className="btn-publish" onClick={handlePublish}>Опубликовать</button>
-            </div>
-          </div>
-          <div className="editor-format-row">
-            <div className="editor-format-bar">
-              {FORMAT_BTNS.map(btn => (
-                <button key={btn.label} className="fmt-btn" title={btn.title}
-                  onClick={() => insertFormat(btn.wrap)} disabled={preview}>
-                  {btn.label}
-                </button>
-              ))}
-              <div className="fmt-divider" />
-              <span className="fmt-hint">**жирный** *курсив* ## заголовок &gt; цитата</span>
-            </div>
+          <span className="page-title" style={{ fontSize: 18, lineHeight: 1 }}>Создание статьи</span>
+          <div className="editor-toolbar-top-right">
+            <span className="editor-counter">{wordCount} сл. · ~{readMin} мин</span>
+            <HelpButton seenKey="ss_spl_createarticle" onOpen={() => setShowSpotlight(true)} />
+            <button className={`btn-preview-toggle${preview ? ' active' : ''}`} onClick={() => setPreview(p => !p)}>
+              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+              {preview ? 'Редактор' : 'Предпросмотр'}
+            </button>
+            <button id="sp-ca-publish" className="btn-publish" onClick={handlePublish}>Опубликовать</button>
           </div>
         </div>
 
@@ -328,22 +328,14 @@ export default function CreateArticle() {
               {/* Meta */}
               <div id="sp-ca-meta" className="editor-meta-block">
                 <div className="editor-meta-row">
-                  <div className={`editor-meta-label${catError ? ' editor-meta-label--error' : ''}`}>
-                    Категория{catError && <span className="editor-cat-required"> — обязательно</span>}
-                  </div>
-                  <div className={`editor-cats${catError ? ' editor-cats--error' : ''}`}>
-                    {CATEGORIES.map(cat => (
-                      <button key={cat ?? '__none__'}
-                        className={`editor-cat-btn${category === cat ? ' active' : ''}${cat === null ? ' editor-cat-btn--none' : ''}`}
-                        onClick={() => { setCategory(cat); setCatError(false) }}>
-                        {cat ?? 'Без категории'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="editor-meta-row">
                   <div className="editor-meta-label">Видимость</div>
                   <div className="visibility-toggle">
+                    <button className={`visibility-btn${!isPublic ? ' active' : ''}`} onClick={() => setIsPublic(false)}>
+                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                      </svg>
+                      Личное
+                    </button>
                     <button className={`visibility-btn${isPublic ? ' active' : ''}`} onClick={() => setIsPublic(true)}>
                       <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                         <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
@@ -351,12 +343,20 @@ export default function CreateArticle() {
                       </svg>
                       Публичная
                     </button>
-                    <button className={`visibility-btn${!isPublic ? ' active' : ''}`} onClick={() => setIsPublic(false)}>
-                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
-                      </svg>
-                      Личное
-                    </button>
+                  </div>
+                </div>
+                <div className="editor-meta-row">
+                  <div className={`editor-meta-label${catError ? ' editor-meta-label--error' : ''}`}>
+                    Категория{catError && <span className="editor-cat-required"> — обязательно</span>}
+                  </div>
+                  <div className={`editor-cats${catError ? ' editor-cats--error' : ''}`}>
+                    {CATEGORIES.map(cat => (
+                      <button key={cat ?? '__none__'}
+                        className={`editor-cat-btn${category === cat ? ' active' : ''}${cat === null ? ' editor-cat-btn--none' : ''}`}
+                        onClick={() => handleCategoryChange(cat)}>
+                        {cat ?? 'Без категории'}
+                      </button>
+                    ))}
                   </div>
                 </div>
                 <div className="editor-meta-row" style={{ alignItems: 'flex-start' }}>
@@ -383,7 +383,7 @@ export default function CreateArticle() {
                     )}
                     {setPickerOpen && (
                       <div className="set-picker-list">
-                        {MY_SETS.map(s => (
+                        {availableSets.length > 0 ? availableSets.map(s => (
                           <div key={s.id} className="set-picker-item" onClick={() => selectSet(s)}>
                             <div className="set-picker-dot" style={{ background: s.color }} />
                             <div className="set-picker-info">
@@ -391,7 +391,9 @@ export default function CreateArticle() {
                               <span className="set-picker-meta">{s.amount} {s.period} · {s.tags.join(', ')}</span>
                             </div>
                           </div>
-                        ))}
+                        )) : (
+                          <div className="set-picker-empty">Нет наборов для категории «{category}»</div>
+                        )}
                       </div>
                     )}
                   </div>
