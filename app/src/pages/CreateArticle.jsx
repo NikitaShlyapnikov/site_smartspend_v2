@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useRef, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 
@@ -29,9 +29,11 @@ const PUBLIC_SETS = [
 ]
 
 export default function CreateArticle() {
-  const navigate  = useNavigate()
-  const bodyRef   = useRef(null)
-  const fileInput = useRef(null)
+  const navigate       = useNavigate()
+  const [searchParams] = useSearchParams()
+  const editId         = searchParams.get('edit')
+  const bodyRef        = useRef(null)
+  const fileInput      = useRef(null)
 
   const [title,         setTitle]         = useState('')
   const [excerpt,       setExcerpt]       = useState('')
@@ -49,7 +51,28 @@ export default function CreateArticle() {
   const [setType,       setSetType]       = useState('personal')
   const [showSpotlight, setShowSpotlight] = useState(false)
   const [showPrompt,    setShowPrompt]    = useState(false)
+  const [showMdHelp,    setShowMdHelp]    = useState(false)
   const [htmlWarnings,  setHtmlWarnings]  = useState([])
+
+  // ── Load draft for editing ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (!editId) return
+    try {
+      const saved = JSON.parse(localStorage.getItem('ss_account_articles') || '[]')
+      const a = saved.find(x => x.id === editId)
+      if (!a) return
+      setTitle(a.title || '')
+      setExcerpt(a.excerpt || '')
+      setBody(a.body || '')
+      setHtmlBody(a.htmlBody || '')
+      setEditorMode(a.editorMode || 'md')
+      setCategory(a.category || null)
+      setIsPublic(!!a.pub)
+      setImages(a.images || [])
+      const allSets = [...MY_SETS, ...PUBLIC_SETS]
+      setLinkedSets((a.linkedSets || []).map(id => allSets.find(s => s.id === id)).filter(Boolean))
+    } catch {}
+  }, [editId])
 
   const activeText = editorMode === 'md' ? body : htmlBody
   const wordCount  = activeText.trim() ? activeText.trim().split(/\s+/).length : 0
@@ -109,7 +132,7 @@ export default function CreateArticle() {
     }
 
     const article = {
-      id:         'a' + Date.now(),
+      id:         editId || ('a' + Date.now()),
       title:      title.trim(),
       excerpt:    excerpt.trim() || (editorMode === 'md' ? body : htmlBody).trim().replace(/<[^>]+>/g, '').slice(0, 120) || '',
       body:       editorMode === 'md' ? body : '',
@@ -125,7 +148,13 @@ export default function CreateArticle() {
     }
     try {
       const saved = JSON.parse(localStorage.getItem('ss_account_articles') || '[]')
-      saved.unshift(article)
+      if (editId) {
+        const idx = saved.findIndex(x => x.id === editId)
+        if (idx !== -1) saved[idx] = article
+        else saved.unshift(article)
+      } else {
+        saved.unshift(article)
+      }
       localStorage.setItem('ss_account_articles', JSON.stringify(saved))
     } catch {}
     return true
@@ -160,7 +189,7 @@ export default function CreateArticle() {
         {/* ── Header ── */}
         <div className="inv-page-header">
           <div className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            Создание статьи
+            {editId ? 'Редактирование статьи' : 'Создание статьи'}
             <HelpButton seenKey="ss_spl_createarticle" onOpen={() => setShowSpotlight(true)} />
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -306,9 +335,34 @@ export default function CreateArticle() {
               </div>
             </div>
             {editorMode === 'md' ? (
-              <textarea ref={bodyRef} className="editor-body-input"
+              <>
+                <div className="editor-html-hint">
+                  <span>Поддерживается Markdown-разметка</span>
+                  <div style={{ position: 'relative' }}>
+                    <button className="editor-html-prompt-btn" onClick={() => setShowMdHelp(p => !p)}>
+                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                      </svg>
+                      Справка по разметке
+                    </button>
+                    {showMdHelp && (
+                      <div className="md-help-panel">
+                        <div className="md-help-row"><code>**текст**</code><span>жирный</span></div>
+                        <div className="md-help-row"><code>*текст*</code><span>курсив</span></div>
+                        <div className="md-help-row"><code>## Заголовок</code><span>заголовок раздела</span></div>
+                        <div className="md-help-row"><code>### Подзаголовок</code><span>подзаголовок</span></div>
+                        <div className="md-help-row"><code>&gt; текст</code><span>цитата / заметка</span></div>
+                        <div className="md-help-row"><code>- пункт</code><span>маркированный список</span></div>
+                        <div className="md-help-row"><code>1. пункт</code><span>нумерованный список</span></div>
+                        <div className="md-help-row"><code>![alt](photo-код)</code><span>изображение</span></div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <textarea ref={bodyRef} className="editor-body-input"
                 placeholder={`Начните писать статью...\n\nMarkdown: **жирный**, *курсив*, ## Заголовок, > Цитата\nФото: загрузите изображение, кликните по нему — код скопируется`}
                 value={body} onChange={e => setBody(e.target.value.slice(0, 30000))} />
+              </>
             ) : (
               <>
                 <div className="editor-html-hint">
@@ -320,6 +374,12 @@ export default function CreateArticle() {
                     Промт для GPT
                   </button>
                 </div>
+                <ol className="editor-html-steps">
+                  <li>Напишите текст статьи. В местах где нужны фото — загрузите их в раздел «Фотографии» и вставьте коды в текст</li>
+                  <li>Скопируйте промт для GPT, откройте любой GPT-сервис и отправьте его</li>
+                  <li>В следующем сообщении отправьте ваш текст — GPT добавит HTML-оформление, не меняя содержание</li>
+                  <li>Скопируйте результат, замените исходный текст на HTML-версию и опубликуйте</li>
+                </ol>
                 <textarea className="editor-body-input editor-body-input--html"
                   placeholder="Вставьте HTML-разметку статьи..."
                   value={htmlBody}

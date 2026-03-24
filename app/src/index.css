@@ -5014,7 +5014,9 @@ body.dark .note-display:hover { background: #252210; }
 .set-picker-check { margin-left: auto; font-size: 12px; color: var(--accent-green); font-weight: 600; }
 /* Remove green focus outline on editor inputs */
 .editor-main input:focus,
-.editor-main textarea:focus { outline: none; box-shadow: none; }
+.editor-main textarea:focus,
+.editor-field-block input:focus,
+.editor-field-block textarea:focus { outline: none; box-shadow: none; }
 
 .btn-draft {
   padding: 6px 12px; border-radius: 8px;
@@ -5042,7 +5044,7 @@ body.dark .note-display:hover { background: #252210; }
 .editor-cat-btn.active { background: var(--accent-green-light); border-color: var(--accent-green-border); color: var(--accent-green); font-weight: 600; }
 .editor-cat-btn--none { border-style: dashed; color: var(--text-3); }
 .editor-cat-btn--none.active { background: var(--surface-2); border-color: var(--text-2); border-style: solid; color: var(--text-2); font-weight: 500; }
-.editor-visibility-hint { font-size: 12px; color: var(--text-3); margin-top: 6px; }
+.editor-visibility-hint { font-size: 12px; color: var(--text-2); margin-top: 8px; padding: 8px 12px; background: var(--surface-2); border-radius: var(--r-sm); border-left: 3px solid var(--accent-green-border); }
 .editor-char-count { font-size: 11px; color: var(--text-3); font-family: var(--mono); font-weight: 400; text-transform: none; letter-spacing: 0; }
 .editor-char-count.warn { color: #C84848; }
 .editor-meta-label--error { color: #C84848; }
@@ -5086,6 +5088,34 @@ body.dark .note-display:hover { background: #252210; }
   background: none; cursor: pointer; transition: all 0.12s;
 }
 .editor-mode-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+
+/* Markdown help panel */
+.md-help-panel {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 200;
+  width: 280px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  padding: 8px 0;
+}
+.md-help-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 14px; gap: 12px;
+}
+.md-help-row:hover { background: var(--surface-2); }
+.md-help-row code {
+  font-family: var(--mono); font-size: 12px; color: var(--accent-green);
+  background: var(--accent-green-light); padding: 2px 6px; border-radius: 4px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.md-help-row span { font-size: 12px; color: var(--text-2); }
+
+/* HTML mode steps */
+.editor-html-steps {
+  margin: 0; padding: 10px 14px 10px 30px;
+  background: var(--surface-2); border-bottom: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.editor-html-steps li { font-size: 12px; color: var(--text-2); line-height: 1.5; }
 
 /* HTML mode hint bar */
 .editor-html-hint {
@@ -6323,6 +6353,8 @@ body.dark .author-ghost-notice { background: #221D2A; border-color: #3A2E48; col
 .acc-btn-delete:hover { background: #FDF0EF; border-color: #B85555; }
 body.dark .acc-btn-delete { border-color: #7A3030; color: #E07070; }
 body.dark .acc-btn-delete:hover { background: #2A1A1A; border-color: #E07070; }
+.acc-btn-delete--muted { opacity: 0.45; }
+.acc-btn-delete--muted:hover { opacity: 1; }
 
 /* Visibility toggle button */
 .acc-btn-visibility {

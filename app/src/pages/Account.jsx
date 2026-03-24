@@ -131,7 +131,7 @@ export default function Account() {
   // ── Article actions ────────────────────────────────────────────────────────
 
   function handleEditArticle(a) {
-    navigate(`/article/${a.id}`)
+    navigate(`/create-article?edit=${a.id}`)
   }
 
   function handleToggleArticleVisibility(a) {
@@ -396,13 +396,15 @@ export default function Account() {
                       </>
                     )}
                   </button>
-                  <button className="acc-btn-edit" onClick={() => handleEditArticle(a)}>
-                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                      <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                    </svg>
-                    Редактировать
-                  </button>
-                  <button className="acc-btn-delete" onClick={() => handleDeleteArticle(a)}>
+                  {!a.pub && (
+                    <button className="acc-btn-edit" onClick={() => handleEditArticle(a)}>
+                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                      </svg>
+                      Редактировать
+                    </button>
+                  )}
+                  <button className="acc-btn-delete acc-btn-delete--muted" onClick={() => handleDeleteArticle(a)}>
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                       <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
                     </svg>
