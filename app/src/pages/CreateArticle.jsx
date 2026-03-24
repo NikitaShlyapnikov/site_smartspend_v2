@@ -650,7 +650,7 @@ function sanitizeHtml(raw) {
       node.removeAttribute(attr.name)
     })
   }
-  walk(doc.body)
+  Array.from(doc.body.childNodes).forEach(walk)
 
   return { clean: doc.body.innerHTML, warnings }
 }
