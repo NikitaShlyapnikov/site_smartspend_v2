@@ -4,142 +4,64 @@ import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 
 const CA_SPOTLIGHT = [
-  { targetId: 'sp-ca-meta',  btnId: null, title: 'Категория и настройки', desc: 'Укажи тему статьи и видимость. Можно прикрепить свой набор — он появится в конце статьи.' },
+  { targetId: 'sp-ca-meta',  btnId: null, title: 'Категория и настройки', desc: 'Укажи тему статьи и видимость. Можно прикрепить набор — он появится в конце статьи.' },
   { targetId: 'sp-ca-photo', btnId: null, title: 'Фотографии',            desc: 'Загружай фото перетаскиванием или кликом. Нажми на фото — скопируется код для вставки в текст.' },
 ]
 
 const CATEGORIES = [
-  null,
   'Прочие расходы', 'Еда и Супермаркеты', 'Кафе, Бары, Рестораны',
   'Авто и Транспорт', 'Дом и Техника', 'Одежда и Обувь',
   'Развлечения и Хобби', 'Красота и Здоровье', 'Образование и Дети', 'Путешествия и Отдых',
 ]
 
-const FORMAT_BTNS = [
-  { label: 'B',  title: 'Жирный',    wrap: ['**', '**'] },
-  { label: 'I',  title: 'Курсив',    wrap: ['*', '*'] },
-  { label: 'H2', title: 'Заголовок', wrap: ['## ', ''] },
-  { label: '"',  title: 'Цитата',    wrap: ['> ', ''] },
-]
-
-// Наборы автора (мок)
 const MY_SETS = [
-  { id: 's1', name: 'Базовое питание',       color: '#8DBFA8', amount: '7 500 ₽',  period: '/ мес',     tags: ['18 поз.', 'еженедельно'], category: 'Еда и Супермаркеты' },
-  { id: 's2', name: 'Вкусняшки',             color: '#C4A882', amount: '2 500 ₽',  period: '/ мес',     tags: ['6 поз.',  'еженедельно'], category: 'Еда и Супермаркеты' },
-  { id: 's3', name: 'Домашняя аптечка',      color: '#B89AAE', amount: '1 200 ₽',  period: '/ квартал', tags: ['12 поз.', 'квартально'],  category: 'Красота и Здоровье' },
-  { id: 's4', name: 'Базовый уход за кошкой',color: '#9AB8A8', amount: '3 800 ₽',  period: '/ мес',     tags: ['9 поз.', 'ежемесячно'],   category: 'Прочие расходы' },
-  { id: 's5', name: 'Домашний офис',         color: '#8A9EB8', amount: '65 000 ₽', period: 'разово',    tags: ['8 поз.', 'разово'],       category: 'Дом и Техника' },
+  { id: 's1', name: 'Базовое питание',        color: '#8DBFA8', amount: '7 500 ₽',  period: '/ мес',     tags: ['18 поз.', 'еженедельно'], category: 'Еда и Супермаркеты' },
+  { id: 's2', name: 'Вкусняшки',              color: '#C4A882', amount: '2 500 ₽',  period: '/ мес',     tags: ['6 поз.',  'еженедельно'], category: 'Еда и Супермаркеты' },
+  { id: 's3', name: 'Домашняя аптечка',       color: '#B89AAE', amount: '1 200 ₽',  period: '/ квартал', tags: ['12 поз.', 'квартально'],  category: 'Красота и Здоровье' },
+  { id: 's4', name: 'Базовый уход за кошкой', color: '#9AB8A8', amount: '3 800 ₽',  period: '/ мес',     tags: ['9 поз.',  'ежемесячно'],  category: 'Прочие расходы' },
+  { id: 's5', name: 'Домашний офис',          color: '#8A9EB8', amount: '65 000 ₽', period: 'разово',    tags: ['8 поз.',  'разово'],       category: 'Дом и Техника' },
 ]
 
-// ── Разбивает строку на части: текст + картинки ───────────────────────────────
-function inlineWithImages(text, imgMap) {
-  const parts = []
-  const re = /!\[([^\]]*)\]\(([^)]+)\)/g
-  let last = 0, m
-  while ((m = re.exec(text)) !== null) {
-    if (m.index > last) parts.push({ type: 'text', value: text.slice(last, m.index) })
-    const img = imgMap[m[2]]
-    parts.push(img
-      ? { type: 'img', url: img.url, alt: m[1] }
-      : { type: 'text', value: `[изображение: ${m[1]}]` }
-    )
-    last = m.index + m[0].length
-  }
-  if (last < text.length) parts.push({ type: 'text', value: text.slice(last) })
-  return parts
-}
+const PUBLIC_SETS = [
+  { id: 'p1', name: 'Базовая аптечка',    color: '#7DAABD', amount: '2 800 ₽', period: '/ квартал', tags: ['14 поз.', 'квартально'],  category: 'Красота и Здоровье' },
+  { id: 'p2', name: 'Рацион на неделю',   color: '#A8BD8D', amount: '4 500 ₽', period: '/ неделю',  tags: ['22 поз.', 'еженедельно'], category: 'Еда и Супермаркеты' },
+  { id: 'p3', name: 'Уход за авто',       color: '#BDA88D', amount: '8 200 ₽', period: '/ год',     tags: ['11 поз.', 'ежегодно'],    category: 'Авто и Транспорт' },
+]
 
-// ── Markdown → JSX (для превью внутри hero) ───────────────────────────────────
-function renderMarkdown(text, images) {
-  const imgMap = {}
-  images.forEach(img => { imgMap[img.id] = img })
-
-  return text.split('\n\n').filter(Boolean).map((block, i) => {
-    if (block.startsWith('## '))  return <h2 key={i}>{block.slice(3)}</h2>
-    if (block.startsWith('> '))   return <blockquote key={i} className="content-note">{block.slice(2)}</blockquote>
-
-    // Если весь блок — одна картинка, рендерим по центру
-    const soloImg = block.match(/^!\[([^\]]*)\]\(([^)]+)\)$/)
-    if (soloImg) {
-      const img = imgMap[soloImg[2]]
-      if (img) return (
-        <div key={i} style={{ display: 'flex', justifyContent: 'center', margin: '16px 0' }}>
-          <img src={img.url} alt={soloImg[1]}
-            style={{ maxWidth: '100%', maxHeight: 400, borderRadius: 10, objectFit: 'contain' }} />
-        </div>
-      )
-      return <div key={i} className="preview-img-placeholder">[изображение: {soloImg[1]}]</div>
-    }
-
-    // Параграф с возможными инлайн-картинками
-    const parts = inlineWithImages(block, imgMap)
-    const hasImg = parts.some(p => p.type === 'img')
-    if (!hasImg) {
-      const inline = block.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>')
-      return <p key={i} dangerouslySetInnerHTML={{ __html: inline }} />
-    }
-    return (
-      <p key={i}>
-        {parts.map((p, j) => p.type === 'img'
-          ? <img key={j} src={p.url} alt={p.alt}
-              style={{ maxWidth: '100%', maxHeight: 400, borderRadius: 10, objectFit: 'contain', display: 'block', margin: '12px auto' }} />
-          : <span key={j} dangerouslySetInnerHTML={{ __html: p.value.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>') }} />
-        )}
-      </p>
-    )
-  })
-}
-
-// ── Component ─────────────────────────────────────────────────────────────────
 export default function CreateArticle() {
   const navigate  = useNavigate()
   const bodyRef   = useRef(null)
   const fileInput = useRef(null)
 
-  const [title,       setTitle]       = useState('')
-  const [excerpt,     setExcerpt]     = useState('')
-  const [body,        setBody]        = useState('')
-  const [htmlBody,    setHtmlBody]    = useState('')
-  const [editorMode,  setEditorMode]  = useState('md')   // 'md' | 'html'
-  const [category,    setCategory]    = useState(null)
-  const [catError,    setCatError]    = useState(false)
-  const [isPublic,    setIsPublic]    = useState(false)
-  const [preview,     setPreview]     = useState(false)
-  const [images,      setImages]      = useState([])
-  const [dragOver,    setDragOver]    = useState(false)
-  const [toast,       setToast]       = useState(null)
-  const [linkedSet,   setLinkedSet]   = useState(null)
-  const [setPickerOpen,  setSetPickerOpen]  = useState(false)
-  const [showSpotlight,  setShowSpotlight]  = useState(false)
-  const [showPrompt,     setShowPrompt]     = useState(false)
-  const [htmlWarnings,   setHtmlWarnings]   = useState([])
+  const [title,         setTitle]         = useState('')
+  const [excerpt,       setExcerpt]       = useState('')
+  const [body,          setBody]          = useState('')
+  const [htmlBody,      setHtmlBody]      = useState('')
+  const [editorMode,    setEditorMode]    = useState('md')
+  const [category,      setCategory]      = useState(null)
+  const [catError,      setCatError]      = useState(false)
+  const [isPublic,      setIsPublic]      = useState(false)
+  const [images,        setImages]        = useState([])
+  const [dragOver,      setDragOver]      = useState(false)
+  const [toast,         setToast]         = useState(null)
+  const [linkedSets,    setLinkedSets]    = useState([])
+  const [setPickerOpen, setSetPickerOpen] = useState(false)
+  const [setType,       setSetType]       = useState('personal')
+  const [showSpotlight, setShowSpotlight] = useState(false)
+  const [showPrompt,    setShowPrompt]    = useState(false)
+  const [htmlWarnings,  setHtmlWarnings]  = useState([])
 
   const activeText = editorMode === 'md' ? body : htmlBody
   const wordCount  = activeText.trim() ? activeText.trim().split(/\s+/).length : 0
   const readMin    = Math.max(1, Math.round(wordCount / 200))
-  const today = new Date().toLocaleDateString('ru', { day: 'numeric', month: 'long', year: 'numeric' })
-
-  // ── Text formatting ──────────────────────────────────────────────────────────
-  function insertFormat(wrap) {
-    const ta = bodyRef.current
-    if (!ta) return
-    const start = ta.selectionStart, end = ta.selectionEnd
-    const selected = body.slice(start, end)
-    const newText = body.slice(0, start) + wrap[0] + (selected || 'текст') + wrap[1] + body.slice(end)
-    setBody(newText)
-    setTimeout(() => {
-      ta.focus()
-      const cur = start + wrap[0].length + (selected || 'текст').length + wrap[1].length
-      ta.setSelectionRange(cur, cur)
-    }, 0)
-  }
+  const today      = new Date().toLocaleDateString('ru', { day: 'numeric', month: 'long', year: 'numeric' })
 
   // ── Images ───────────────────────────────────────────────────────────────────
   function addFiles(files) {
     Array.from(files).filter(f => f.type.startsWith('image/')).forEach(file => {
       const reader = new FileReader()
       reader.onload = e => {
-        const id = 'photo-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6)
+        const id   = 'photo-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6)
         const name = file.name.replace(/\.[^.]+$/, '')
         setImages(prev => [...prev, { id, name, url: e.target.result }])
       }
@@ -147,20 +69,22 @@ export default function CreateArticle() {
     })
   }
 
-  function handleDrop(e) {
-    e.preventDefault(); setDragOver(false); addFiles(e.dataTransfer.files)
-  }
-
-  function removeImage(id) { setImages(prev => prev.filter(img => img.id !== id)) }
+  function handleDrop(e)    { e.preventDefault(); setDragOver(false); addFiles(e.dataTransfer.files) }
+  function removeImage(id)  { setImages(prev => prev.filter(img => img.id !== id)) }
 
   function copyImageCode(img) {
-    navigator.clipboard.writeText(`![${img.name}](${img.id})`).catch(() => {})
-    showToast('Код скопирован — вставьте в текст статьи')
+    if (editorMode === 'md') {
+      navigator.clipboard.writeText(`![${img.name}](${img.id})`).catch(() => {})
+      showToast('Markdown-код скопирован — вставьте в текст')
+    } else {
+      navigator.clipboard.writeText(img.id).catch(() => {})
+      showToast('Код фото скопирован — вставьте в src=""')
+    }
   }
 
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(null), 2200) }
 
-  // ── HTML sanitize on blur ────────────────────────────────────────────────────
+  // ── HTML sanitize on blur ─────────────────────────────────────────────────
   function handleHtmlBlur() {
     if (!htmlBody.trim()) return
     const { clean, warnings } = sanitizeHtml(htmlBody)
@@ -168,19 +92,20 @@ export default function CreateArticle() {
     if (clean !== htmlBody) setHtmlBody(clean)
   }
 
-  // ── Publish ──────────────────────────────────────────────────────────────────
-  function handlePublish() {
-    if (!title.trim()) { showToast('Введите заголовок статьи'); return }
-    if (category === null) { setCatError(true); showToast('Выберите категорию'); return }
+  // ── Save ──────────────────────────────────────────────────────────────────
+  function saveArticle(pub) {
+    if (!title.trim()) { showToast('Введите заголовок статьи'); return false }
+    if (pub && category === null) { setCatError(true); showToast('Выберите категорию'); return false }
     setCatError(false)
-    // Final sanitize for HTML mode
+
     let finalHtml = htmlBody
     if (editorMode === 'html' && htmlBody.trim()) {
       const { clean, warnings } = sanitizeHtml(htmlBody)
       finalHtml = clean
       setHtmlBody(clean)
-      if (warnings.length) { setHtmlWarnings(warnings); showToast('HTML очищен от запрещённых элементов'); return }
+      if (warnings.length) { setHtmlWarnings(warnings); showToast('HTML очищен от запрещённых элементов'); return false }
     }
+
     const article = {
       id:         'a' + Date.now(),
       title:      title.trim(),
@@ -189,356 +114,279 @@ export default function CreateArticle() {
       htmlBody:   editorMode === 'html' ? finalHtml : '',
       images:     images.map(img => ({ id: img.id, url: img.url })),
       editorMode,
+      category,
+      linkedSets: linkedSets.map(s => s.id),
       meta:       today + ' · ' + readMin + ' мин',
       views:      0,
-      pub:        isPublic,
+      pub,
+      draft:      !pub,
     }
     try {
       const saved = JSON.parse(localStorage.getItem('ss_account_articles') || '[]')
       saved.unshift(article)
       localStorage.setItem('ss_account_articles', JSON.stringify(saved))
     } catch {}
-    navigate('/account')
+    return true
   }
 
-  // ── Set picker ───────────────────────────────────────────────────────────────
-  // Наборы, доступные для прикрепления: фильтруем по выбранной категории
-  const availableSets = category === null
-    ? MY_SETS
-    : MY_SETS.filter(s => s.category === category)
+  function handlePublish() { if (saveArticle(true))  navigate('/account') }
+  function handleDraft()   { if (saveArticle(false)) { showToast('Черновик сохранён'); setTimeout(() => navigate('/account'), 1000) } }
 
-  function selectSet(s) { setLinkedSet(s); setSetPickerOpen(false) }
-  function clearSet()   { setLinkedSet(null) }
+  // ── Sets ──────────────────────────────────────────────────────────────────
+  const personalSets = category === null ? MY_SETS     : MY_SETS.filter(s => s.category === category)
+  const publicSets   = category === null ? PUBLIC_SETS : PUBLIC_SETS.filter(s => s.category === category)
+  const pickerSets   = setType === 'personal' ? personalSets : publicSets
 
-  // Сбросить прикреплённый набор, если он не подходит под новую категорию
+  function selectSet(s) {
+    if (linkedSets.some(l => l.id === s.id)) return
+    if (linkedSets.length >= 5) { showToast('Можно прикрепить не более 5 наборов'); return }
+    setLinkedSets(prev => [...prev, s])
+    setSetPickerOpen(false)
+  }
+  function removeSet(id) { setLinkedSets(prev => prev.filter(s => s.id !== id)) }
+
   function handleCategoryChange(cat) {
     setCategory(cat)
     setCatError(false)
-    if (linkedSet && cat !== null && linkedSet.category !== cat) {
-      setLinkedSet(null)
-    }
+    if (cat !== null) setLinkedSets(prev => prev.filter(s => s.category === cat))
   }
 
   return (
     <Layout>
       <main className="editor-main">
 
-        {/* ── Toolbar ── */}
-        <div className="editor-toolbar">
-          <span className="page-title" style={{ fontSize: 18, lineHeight: 1 }}>Создание статьи</span>
-          <div className="editor-toolbar-top-right">
+        {/* ── Page header ── */}
+        <div className="ca-page-header">
+          <div className="ca-header-left">
+            <span className="page-title">Создание статьи</span>
             <HelpButton seenKey="ss_spl_createarticle" onOpen={() => setShowSpotlight(true)} />
-            <button className={`btn-preview-toggle${preview ? ' active' : ''}`} onClick={() => setPreview(p => !p)}>
-              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-              </svg>
-              {preview ? 'Редактор' : 'Предпросмотр'}
-            </button>
+          </div>
+          <div className="ca-header-right">
+            <button className="btn-draft" onClick={handleDraft}>Черновик</button>
             <button id="sp-ca-publish" className="btn-publish" onClick={handlePublish}>Опубликовать</button>
           </div>
         </div>
 
         <div className="editor-scroll">
 
-          {preview ? (
-            /* ══════════════════ PREVIEW MODE ══════════════════ */
-            <div className="editor-preview-article" style={{ paddingTop: 24 }}>
+          {/* ── Meta ── */}
+          <div id="sp-ca-meta" className="editor-meta-block">
 
-              {/* Hero card */}
-              <div className="hero-card">
-                <div className="hero-body">
-                  <div className="hero-badges">
-                    <span className="article-type-badge">Статья</span>
-                    {category && <span className="cat-badge">{category}</span>}
-                  </div>
-                  <div className="hero-title">{title || 'Без заголовка'}</div>
-                  {excerpt && <div className="hero-desc">{excerpt}</div>}
-
-                  <div className="hero-stats">
-                    <div className="hstat">
-                      <div className="hstat-val">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                        </svg>
-                        0
-                      </div>
-                      <div className="hstat-lbl">просмотров</div>
-                    </div>
-                    <div className="hstat">
-                      <div className="hstat-val">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                        </svg>
-                        0
-                      </div>
-                      <div className="hstat-lbl">лайков</div>
-                    </div>
-                    <div className="hstat">
-                      <div className="hstat-val" style={{ fontSize: 15, color: 'var(--text-2)' }}>{today}</div>
-                      <div className="hstat-lbl">дата публикации</div>
-                    </div>
-                  </div>
-
-                  <div className="hero-actions">
-                    <button className="btn-liked">
-                      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                      </svg>
-                      Нравится
-                    </button>
-                    <button className="btn-secondary">
-                      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-                      </svg>
-                      Поделиться
-                    </button>
-                    <button className="btn-secondary">
-                      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                        <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
-                      </svg>
-                      Сохранить
-                    </button>
-                  </div>
-                </div>
-
-                {/* Author */}
-                <div className="hero-author">
-                  <div className="author-avatar" style={{ background: '#4E8268' }}>НО</div>
-                  <div className="author-info">
-                    <div className="author-name">Никита Орлов</div>
-                    <div className="author-bio">Интересуюсь личными финансами, инвестициями и оптимизацией бюджета. Создаю наборы для разных жизненных сценариев.</div>
-                  </div>
-                  <button className="btn-follow">Подписаться</button>
-                </div>
+            {/* Видимость */}
+            <div className="editor-meta-row">
+              <div className="editor-meta-label">Видимость</div>
+              <div className="visibility-toggle">
+                <button className={`visibility-btn${!isPublic ? ' active' : ''}`} onClick={() => setIsPublic(false)}>
+                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                  </svg>
+                  Личная
+                </button>
+                <button className={`visibility-btn${isPublic ? ' active' : ''}`} onClick={() => setIsPublic(true)}>
+                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+                  </svg>
+                  Публичная
+                </button>
               </div>
-
-              {/* Content */}
-              <div className="content-card">
-                <div className="content-body">
-                  {body.trim()
-                    ? renderMarkdown(body, images)
-                    : <p style={{ color: 'var(--text-3)', fontStyle: 'italic' }}>Текст статьи пуст</p>
-                  }
-                </div>
-              </div>
-
-              {/* Linked set */}
-              {linkedSet && (
-                <div className="catalog-card" style={{ cursor: 'default' }}>
-                  <div className="card-accent-bar" style={{ background: linkedSet.color }} />
-                  <div className="card-body">
-                    <div className="card-badges">
-                      <span className="source-badge community">Моё</span>
-                    </div>
-                    <div className="card-title">{linkedSet.name}</div>
-                    <div className="card-desc">Прикреплённый набор</div>
-                  </div>
-                  <div className="card-footer">
-                    <div className="card-amount-left">
-                      <div className="card-amount">{linkedSet.amount}</div>
-                      <div className="card-amount-label">{linkedSet.period}</div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
 
-          ) : (
-            /* ══════════════════ EDITOR MODE ══════════════════ */
-            <>
-              {/* Meta */}
-              <div id="sp-ca-meta" className="editor-meta-block">
-                <div className="editor-meta-row">
-                  <div className="editor-meta-label">Видимость</div>
-                  <div className="visibility-toggle">
-                    <button className={`visibility-btn${!isPublic ? ' active' : ''}`} onClick={() => setIsPublic(false)}>
-                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+            {/* Категория */}
+            <div className="editor-meta-row">
+              <div className={`editor-meta-label${catError ? ' editor-meta-label--error' : ''}`}>
+                Категория{catError && <span className="editor-cat-required"> — обязательно</span>}
+              </div>
+              <div className={`editor-cats${catError ? ' editor-cats--error' : ''}`}>
+                {CATEGORIES.map(cat => (
+                  <button key={cat}
+                    className={`editor-cat-btn${category === cat ? ' active' : ''}`}
+                    onClick={() => handleCategoryChange(cat)}>
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Наборы */}
+            <div className="editor-meta-row" style={{ alignItems: 'flex-start' }}>
+              <div className="editor-meta-label" style={{ paddingTop: 6 }}>
+                Наборы{linkedSets.length > 0 && ` · ${linkedSets.length}/5`}
+              </div>
+              <div className="set-picker-wrap">
+                {linkedSets.map(s => (
+                  <div className="linked-set-chip" key={s.id}>
+                    <div className="linked-set-dot" style={{ background: s.color }} />
+                    <span className="linked-set-name">{s.name}</span>
+                    <span className="linked-set-amount">{s.amount} {s.period}</span>
+                    <button className="linked-set-remove" onClick={() => removeSet(s.id)} title="Открепить">
+                      <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                       </svg>
-                      Личное
                     </button>
-                    <button className={`visibility-btn${isPublic ? ' active' : ''}`} onClick={() => setIsPublic(true)}>
+                  </div>
+                ))}
+
+                {linkedSets.length < 5 && (
+                  <div className="set-picker-anchor">
+                    <button className="linked-set-add" onClick={() => setSetPickerOpen(p => !p)}>
                       <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
-                        <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+                        <path d="M12 5v14M5 12h14"/>
                       </svg>
-                      Публичная
+                      Прикрепить набор
                     </button>
-                  </div>
-                </div>
-                <div className="editor-meta-row">
-                  <div className={`editor-meta-label${catError ? ' editor-meta-label--error' : ''}`}>
-                    Категория{catError && <span className="editor-cat-required"> — обязательно</span>}
-                  </div>
-                  <div className={`editor-cats${catError ? ' editor-cats--error' : ''}`}>
-                    {CATEGORIES.map(cat => (
-                      <button key={cat ?? '__none__'}
-                        className={`editor-cat-btn${category === cat ? ' active' : ''}${cat === null ? ' editor-cat-btn--none' : ''}`}
-                        onClick={() => handleCategoryChange(cat)}>
-                        {cat ?? 'Без категории'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="editor-meta-row" style={{ alignItems: 'flex-start' }}>
-                  <div className="editor-meta-label" style={{ paddingTop: 6 }}>Набор</div>
-                  <div style={{ flex: 1 }}>
-                    {linkedSet ? (
-                      <div className="linked-set-chip">
-                        <div className="linked-set-dot" style={{ background: linkedSet.color }} />
-                        <span className="linked-set-name">{linkedSet.name}</span>
-                        <span className="linked-set-amount">{linkedSet.amount} {linkedSet.period}</span>
-                        <button className="linked-set-remove" onClick={clearSet} title="Открепить">
-                          <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                          </svg>
-                        </button>
-                      </div>
-                    ) : (
-                      <button className="linked-set-add" onClick={() => setSetPickerOpen(p => !p)}>
-                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                          <path d="M12 5v14M5 12h14"/>
-                        </svg>
-                        Прикрепить набор
-                      </button>
-                    )}
                     {setPickerOpen && (
-                      <div className="set-picker-list">
-                        {availableSets.length > 0 ? availableSets.map(s => (
-                          <div key={s.id} className="set-picker-item" onClick={() => selectSet(s)}>
-                            <div className="set-picker-dot" style={{ background: s.color }} />
-                            <div className="set-picker-info">
-                              <span className="set-picker-name">{s.name}</span>
-                              <span className="set-picker-meta">{s.amount} {s.period} · {s.tags.join(', ')}</span>
+                      <div className="set-picker-panel">
+                        <div className="set-picker-tabs">
+                          <button className={`set-picker-tab${setType === 'personal' ? ' active' : ''}`} onClick={() => setSetType('personal')}>Личные</button>
+                          <button className={`set-picker-tab${setType === 'public'   ? ' active' : ''}`} onClick={() => setSetType('public')}>Публичные</button>
+                        </div>
+                        <div className="set-picker-list">
+                          {pickerSets.length > 0 ? pickerSets.map(s => {
+                            const already = linkedSets.some(l => l.id === s.id)
+                            return (
+                              <div key={s.id}
+                                className={`set-picker-item${already ? ' set-picker-item--added' : ''}`}
+                                onClick={() => !already && selectSet(s)}>
+                                <div className="set-picker-dot" style={{ background: s.color }} />
+                                <div className="set-picker-info">
+                                  <span className="set-picker-name">{s.name}</span>
+                                  <span className="set-picker-meta">{s.amount} {s.period} · {s.tags.join(', ')}</span>
+                                </div>
+                                {already && <span className="set-picker-check">✓</span>}
+                              </div>
+                            )
+                          }) : (
+                            <div className="set-picker-empty">
+                              {category ? `Нет наборов для «${category}»` : 'Сначала выберите категорию'}
                             </div>
-                          </div>
-                        )) : (
-                          <div className="set-picker-empty">Нет наборов для категории «{category}»</div>
-                        )}
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Title ── */}
+          <div className="editor-field-block">
+            <div className="editor-field-label">Заголовок</div>
+            <textarea className="editor-title-input" placeholder="Введите заголовок статьи..."
+              value={title} onChange={e => setTitle(e.target.value)} rows={2} />
+          </div>
+
+          {/* ── Excerpt ── */}
+          <div className="editor-field-block">
+            <div className="editor-field-label">Краткое описание</div>
+            <textarea className="editor-excerpt-input" placeholder="Короткий анонс статьи, который будет виден в ленте..."
+              value={excerpt} onChange={e => setExcerpt(e.target.value)} rows={2} />
+          </div>
+
+          {/* ── Body ── */}
+          <div className="editor-field-block editor-field-block--body">
+            <div className="editor-field-label editor-field-label--body">
+              <span>Текст статьи</span>
+              <div className="editor-mode-toggle">
+                <button className={`editor-mode-btn${editorMode === 'md' ? ' active' : ''}`} onClick={() => setEditorMode('md')}>Markdown</button>
+                <button className={`editor-mode-btn${editorMode === 'html' ? ' active' : ''}`} onClick={() => setEditorMode('html')}>HTML</button>
+              </div>
+            </div>
+            {editorMode === 'md' ? (
+              <textarea ref={bodyRef} className="editor-body-input"
+                placeholder={`Начните писать статью...\n\nMarkdown: **жирный**, *курсив*, ## Заголовок, > Цитата\nФото: загрузите изображение, кликните по нему — код скопируется`}
+                value={body} onChange={e => setBody(e.target.value)} />
+            ) : (
+              <>
+                <div className="editor-html-hint">
+                  <span>Вставьте HTML, сгенерированный по промту</span>
+                  <button className="editor-html-prompt-btn" onClick={() => setShowPrompt(true)}>
+                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                    </svg>
+                    Промт для GPT
+                  </button>
                 </div>
-              </div>
-
-              {/* Title */}
-              <div className="editor-field-block">
-                <div className="editor-field-label">Заголовок</div>
-                <textarea className="editor-title-input" placeholder="Введите заголовок статьи..."
-                  value={title} onChange={e => setTitle(e.target.value)} rows={2} />
-              </div>
-
-              {/* Excerpt */}
-              <div className="editor-field-block">
-                <div className="editor-field-label">Краткое описание</div>
-                <textarea className="editor-excerpt-input" placeholder="Короткий анонс статьи, который будет виден в ленте..."
-                  value={excerpt} onChange={e => setExcerpt(e.target.value)} rows={2} />
-              </div>
-
-              {/* Body */}
-              <div className="editor-field-block editor-field-block--body">
-                <div className="editor-field-label editor-field-label--body">
-                  <span>Текст статьи</span>
-                  <div className="editor-mode-toggle">
-                    <button className={`editor-mode-btn${editorMode === 'md' ? ' active' : ''}`} onClick={() => setEditorMode('md')}>Markdown</button>
-                    <button className={`editor-mode-btn${editorMode === 'html' ? ' active' : ''}`} onClick={() => setEditorMode('html')}>HTML</button>
-                  </div>
-                </div>
-                {editorMode === 'md' ? (
-                  <textarea ref={bodyRef} className="editor-body-input"
-                    placeholder={`Начните писать статью...\n\nMarkdown: **жирный**, *курсив*, ## Заголовок, > Цитата\nФото: загрузите изображение, кликните по нему — код скопируется`}
-                    value={body} onChange={e => setBody(e.target.value)} />
-                ) : (
-                  <>
-                    <div className="editor-html-hint">
-                      <span>Вставьте HTML, сгенерированный по промту</span>
-                      <button className="editor-html-prompt-btn" onClick={() => setShowPrompt(true)}>
-                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-                        </svg>
-                        Промт для GPT
-                      </button>
+                <textarea className="editor-body-input editor-body-input--html"
+                  placeholder="Вставьте HTML-разметку статьи..."
+                  value={htmlBody}
+                  onChange={e => { setHtmlBody(e.target.value); setHtmlWarnings([]) }}
+                  onBlur={handleHtmlBlur} />
+                {htmlWarnings.length > 0 && (
+                  <div className="editor-html-warnings">
+                    <div className="editor-html-warnings-title">
+                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                      </svg>
+                      Обнаружены и удалены запрещённые элементы:
                     </div>
-                    <textarea className="editor-body-input editor-body-input--html"
-                      placeholder="Вставьте HTML-разметку статьи..."
-                      value={htmlBody}
-                      onChange={e => { setHtmlBody(e.target.value); setHtmlWarnings([]) }}
-                      onBlur={handleHtmlBlur} />
-                    {htmlWarnings.length > 0 && (
-                      <div className="editor-html-warnings">
-                        <div className="editor-html-warnings-title">
-                          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-                          </svg>
-                          Обнаружены и удалены запрещённые элементы:
-                        </div>
-                        <ul className="editor-html-warnings-list">
-                          {htmlWarnings.map((w, i) => <li key={i}>{w}</li>)}
-                        </ul>
-                      </div>
-                    )}
-                  </>
+                    <ul className="editor-html-warnings-list">
+                      {htmlWarnings.map((w, i) => <li key={i}>{w}</li>)}
+                    </ul>
+                  </div>
                 )}
-                <div className={`editor-body-meta${activeText.length > 10000 ? ' warn' : ''}`}>
-                  <span>{wordCount} сл. · ~{readMin} мин</span>
-                  {activeText.length > 0 && <span>{activeText.length.toLocaleString('ru')} симв.{activeText.length > 10000 ? ' — сократите' : ''}</span>}
-                </div>
-              </div>
+              </>
+            )}
+            <div className={`editor-body-meta${activeText.length > 10000 ? ' warn' : ''}`}>
+              <span>{wordCount} сл. · ~{readMin} мин</span>
+              {activeText.length > 0 && <span>{activeText.length.toLocaleString('ru')} симв.{activeText.length > 10000 ? ' — сократите' : ''}</span>}
+            </div>
+          </div>
 
-              {/* Photo section */}
-              <div id="sp-ca-photo" className="photo-section">
-                <div className="photo-section-title">
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
-                    <polyline points="21 15 16 10 5 21"/>
-                  </svg>
-                  Фотографии{images.length > 0 && ` · ${images.length}`}
-                </div>
-                <div className={`photo-drop-zone${dragOver ? ' drag-over' : ''}`}
-                  onDragOver={e => { e.preventDefault(); setDragOver(true) }}
-                  onDragLeave={() => setDragOver(false)}
-                  onDrop={handleDrop}
-                  onClick={() => fileInput.current?.click()}>
-                  <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
-                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                    <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-                  </svg>
-                  <div className="drop-zone-text">
-                    {dragOver ? 'Отпустите для загрузки' : 'Перетащите фото или нажмите для выбора'}
-                  </div>
-                  <div className="drop-zone-hint">PNG, JPG, GIF, WebP</div>
-                  <input ref={fileInput} type="file" accept="image/*" multiple style={{ display: 'none' }}
-                    onChange={e => { addFiles(e.target.files); e.target.value = '' }} />
-                </div>
-                {images.length > 0 && (
-                  <div className="photo-gallery">
-                    {images.map(img => (
-                      <div key={img.id} className="photo-thumb" onClick={() => copyImageCode(img)}
-                        title="Нажмите, чтобы скопировать код">
-                        <img src={img.url} alt={img.name} />
-                        <div className="photo-thumb-overlay">
-                          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                            <rect x="9" y="9" width="13" height="13" rx="2"/>
-                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-                          </svg>
-                          Скопировать код
-                        </div>
-                        <button className="photo-thumb-remove"
-                          onClick={e => { e.stopPropagation(); removeImage(img.id) }} title="Удалить">
-                          <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                          </svg>
-                        </button>
-                        <div className="photo-thumb-name">{img.name}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+          {/* ── Photos ── */}
+          <div id="sp-ca-photo" className="photo-section">
+            <div className="photo-section-title">
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+              Фотографии{images.length > 0 && ` · ${images.length}`}
+            </div>
+            <div className={`photo-drop-zone${dragOver ? ' drag-over' : ''}`}
+              onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={handleDrop}
+              onClick={() => fileInput.current?.click()}>
+              <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <div className="drop-zone-text">
+                {dragOver ? 'Отпустите для загрузки' : 'Перетащите фото или нажмите для выбора'}
               </div>
-            </>
-          )}
-        </div>
+              <div className="drop-zone-hint">PNG, JPG, GIF, WebP</div>
+              <input ref={fileInput} type="file" accept="image/*" multiple style={{ display: 'none' }}
+                onChange={e => { addFiles(e.target.files); e.target.value = '' }} />
+            </div>
+            {images.length > 0 && (
+              <div className="photo-gallery">
+                {images.map(img => (
+                  <div key={img.id} className="photo-thumb" onClick={() => copyImageCode(img)}
+                    title="Нажмите, чтобы скопировать код">
+                    <img src={img.url} alt={img.name} />
+                    <div className="photo-thumb-overlay">
+                      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                      </svg>
+                      Скопировать код
+                    </div>
+                    <button className="photo-thumb-remove"
+                      onClick={e => { e.stopPropagation(); removeImage(img.id) }} title="Удалить">
+                      <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
+                    <div className="photo-thumb-name">{img.name}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+        </div>{/* /editor-scroll */}
 
         {/* Toast */}
         <div className={`toast${toast ? ' show' : ''}`}>
@@ -548,10 +396,9 @@ export default function CreateArticle() {
           {toast}
         </div>
 
-      {showSpotlight && <SpotlightTour steps={CA_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
+        {showSpotlight && <SpotlightTour steps={CA_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
+        {showPrompt && <GptPromptModal images={images} onClose={() => setShowPrompt(false)} onCopied={() => showToast('Промт скопирован')} />}
 
-      {/* ── GPT Prompt modal ── */}
-      {showPrompt && <GptPromptModal images={images} onClose={() => setShowPrompt(false)} onCopied={() => showToast('Промт скопирован')} />}
       </main>
     </Layout>
   )
@@ -565,11 +412,9 @@ const FORBIDDEN_TAGS  = new Set(['script','style','iframe','frame','frameset','f
 function sanitizeHtml(raw) {
   const warnings = []
   const parser = new DOMParser()
-  const doc = parser.parseFromString(raw, 'text/html')
-
+  const doc    = parser.parseFromString(raw, 'text/html')
   if (!doc.body) return { clean: raw, warnings }
 
-  // 1. Remove forbidden tags entirely (including content for script/style)
   FORBIDDEN_TAGS.forEach(tag => {
     doc.querySelectorAll(tag).forEach(el => {
       warnings.push(`Удалён запрещённый тег <${el.tagName.toLowerCase()}>`)
@@ -577,14 +422,12 @@ function sanitizeHtml(raw) {
     })
   })
 
-  // 2. Walk remaining elements bottom-up
   const walk = (node) => {
     Array.from(node.childNodes).forEach(walk)
     if (node.nodeType !== 1) return
     const tag = node.tagName.toLowerCase()
 
     if (!ALLOWED_TAGS.has(tag)) {
-      // unwrap: keep text content, drop the tag
       const parent = node.parentNode
       if (parent) {
         warnings.push(`Удалён недопустимый тег <${tag}>`)
@@ -594,32 +437,26 @@ function sanitizeHtml(raw) {
       return
     }
 
-    // 3. Validate attributes
     Array.from(node.attributes).forEach(attr => {
-      const name = attr.name.toLowerCase()
+      const name  = attr.name.toLowerCase()
       const value = attr.value
 
-      // Event handlers — XSS
       if (name.startsWith('on')) {
         warnings.push(`Удалён обработчик "${attr.name}" — попытка выполнения скрипта`)
         node.removeAttribute(attr.name); return
       }
-      // javascript: in any attribute
       if (/javascript\s*:/i.test(value)) {
         warnings.push(`Удалён атрибут "${name}" — обнаружен javascript:`)
         node.removeAttribute(attr.name); return
       }
-      // data: URI (potential XSS)
       if (/data\s*:/i.test(value) && name !== 'alt') {
         warnings.push(`Удалён атрибут "${name}" — data: URI не разрешены`)
         node.removeAttribute(attr.name); return
       }
-      // style
       if (name === 'style') {
         warnings.push('Удалён атрибут style — встроенные стили запрещены')
         node.removeAttribute('style'); return
       }
-      // class — only allowed values
       if (name === 'class') {
         if (!ALLOWED_CLASSES.has(value.trim())) {
           warnings.push(`Удалён класс "${value}" — допустимы только content-note и content-highlight`)
@@ -627,35 +464,31 @@ function sanitizeHtml(raw) {
         }
         return
       }
-      // img src — only photo- codes
-      // DOMParser may resolve 'photo-xxx' to an absolute URL — normalize it back
       if (tag === 'img' && name === 'src') {
         let srcVal = value.trim()
         try {
           const url = new URL(srcVal)
           srcVal = url.pathname.split('/').pop()
-        } catch {} // not a valid absolute URL — keep as-is
+        } catch {} // not an absolute URL — keep as-is
         if (/^photo-[a-z0-9_-]+$/.test(srcVal)) {
-          node.setAttribute('src', srcVal) // normalize to bare code
+          node.setAttribute('src', srcVal)
         } else {
           warnings.push('Удалён внешний src в <img> — используй только коды загруженных фото')
           node.removeAttribute('src')
         }
         return
       }
-      // img alt — allowed
       if (tag === 'img' && name === 'alt') return
-      // anything else — drop
       warnings.push(`Удалён атрибут "${name}" в <${tag}>`)
       node.removeAttribute(attr.name)
     })
   }
-  Array.from(doc.body.childNodes).forEach(walk)
 
+  Array.from(doc.body.childNodes).forEach(walk)
   return { clean: doc.body.innerHTML, warnings }
 }
 
-// ── GPT Prompt Modal ─────────────────────────────────────────────────────────
+// ── GPT Prompt Modal ──────────────────────────────────────────────────────────
 const GPT_PROMPT = `Напиши HTML-разметку статьи по тексту который я пришлю в следующем сообщении. Правила:
 
 СТРУКТУРА
@@ -716,14 +549,21 @@ function GptPromptModal({ images, onClose, onCopied }) {
         </div>
         <div className="gpt-prompt-desc">
           <ol className="gpt-prompt-steps">
-            <li>Напишите текст статьи и загрузите фотографии в нужных местах текста</li>
-            <li>Скопируйте этот промт и передайте его в GPT-сервис вместе с вашим текстом</li>
-            <li>GPT вернёт текст с HTML-разметкой — вставьте его в редактор, заменив исходный текст</li>
-            <li>Опубликуйте статью</li>
+            <li>Напишите текст статьи. В местах где нужны фото — загрузите их в раздел «Фотографии» и вставьте коды в текст</li>
+            <li>Скопируйте этот промт, откройте любой GPT-сервис и отправьте его</li>
+            <li>В следующем сообщении отправьте ваш текст — GPT добавит HTML-оформление, не меняя содержание</li>
+            <li>Скопируйте результат, замените исходный текст на HTML-версию и опубликуйте</li>
           </ol>
-          {hasImages && <div className="gpt-prompt-img-note">В промт будут добавлены коды загруженных фото ({images.length} шт.)</div>}
+          {hasImages && (
+            <div className="gpt-prompt-img-note">
+              В промт будут добавлены коды загруженных фото ({images.length} шт.)
+            </div>
+          )}
         </div>
-        <pre className="gpt-prompt-text">{GPT_PROMPT}{hasImages && `\n\nЗАГРУЖЕННЫЕ ФОТО (используй эти коды)\n${images.map(img => `  ${img.id}  — ${img.name}`).join('\n')}`}</pre>
+        <pre className="gpt-prompt-text">
+          {GPT_PROMPT}
+          {hasImages && `\n\nЗАГРУЖЕННЫЕ ФОТО (используй эти коды)\n${images.map(img => `  ${img.id}  — ${img.name}`).join('\n')}`}
+        </pre>
         <div className="gpt-prompt-actions">
           <button className="gpt-prompt-cancel" onClick={onClose}>Закрыть</button>
           <button className="gpt-prompt-copy" onClick={handleCopy}>

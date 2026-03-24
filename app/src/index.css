@@ -4991,25 +4991,37 @@ body.dark .note-display:hover { background: #252210; }
   display: flex; flex-direction: column;
   height: 100vh; overflow: hidden; min-width: 0;
 }
-.editor-toolbar {
+/* CreateArticle page header */
+.ca-page-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 20px; gap: 12px;
+  padding: 12px 20px; gap: 12px;
   border-bottom: 1px solid var(--border);
   background: var(--surface); flex-shrink: 0;
 }
-.editor-toolbar-top-right { display: flex; align-items: center; gap: 6px; }
-.editor-format-bar { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-.fmt-btn {
-  padding: 4px 9px; border-radius: 6px;
-  background: none; border: 1px solid var(--border);
-  font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--text-2);
+.ca-header-left  { display: flex; align-items: center; gap: 10px; }
+.ca-header-right { display: flex; align-items: center; gap: 8px; }
+
+/* Set picker — absolute dropdown */
+.set-picker-wrap   { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.set-picker-anchor { position: relative; display: inline-block; }
+.set-picker-panel  {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 200;
+  width: 320px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+}
+.set-picker-tabs {
+  display: flex; gap: 0; border-bottom: 1px solid var(--border);
+}
+.set-picker-tab {
+  flex: 1; padding: 8px 12px;
+  background: none; border: none;
+  font-family: var(--sans); font-size: 12px; font-weight: 500; color: var(--text-2);
   cursor: pointer; transition: all 0.12s;
 }
-.fmt-btn:hover { background: var(--surface-2); color: var(--text); }
-.fmt-divider { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
-.fmt-hint { font-size: 11px; color: var(--text-3); font-family: var(--mono); }
-.editor-toolbar-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-.editor-counter { font-size: 11px; color: var(--text-3); font-family: var(--mono); white-space: nowrap; }
+.set-picker-tab.active { color: var(--accent-green); font-weight: 600; }
+.set-picker-item--added { opacity: 0.55; cursor: default; }
+.set-picker-check { margin-left: auto; font-size: 12px; color: var(--accent-green); font-weight: 600; }
 /* Remove green focus outline on editor inputs */
 .editor-main input:focus,
 .editor-main textarea:focus { outline: none; box-shadow: none; }
@@ -9399,11 +9411,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
     overflow-y: visible;
     flex: none;
   }
-  .editor-toolbar {
-    padding: 10px 16px;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
+  .ca-page-header { padding: 10px 16px; }
   .fmt-group { flex-wrap: wrap; }
 
   /* ── Create Set item row: 2-col (name + qty), then price on next line ── */
@@ -9504,7 +9512,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   .settings-inner { padding: 16px 12px; }
   .account-main { padding: 16px 12px; }
   .editor-scroll { padding: 12px 12px 32px; }
-  .editor-toolbar { padding: 8px 12px; }
+  .ca-page-header { padding: 8px 12px; }
   .form-section { padding: 14px 12px; }
 
   /* ── Font sizes ── */
@@ -9558,7 +9566,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   .settings-inner { padding: 12px 8px; }
   .account-main { padding: 12px 8px; }
   .editor-scroll { padding: 10px 8px 28px; }
-  .editor-toolbar { padding: 6px 8px; gap: 2px; }
+  .ca-page-header { padding: 6px 8px; }
   .form-section { padding: 12px 8px; }
 
   /* ── Font ── */
