@@ -64,29 +64,42 @@ export default function CreateWhisper() {
 
   function resetCo() { setSelCo(null); setSelCat(null); setCoSearch('') }
 
-  function publish() {
-    if (!canSubmit) { showToast(!selCo ? 'Выберите компанию' : 'Добавьте описание'); return }
-    const item = {
+  function buildItem(isDraft) {
+    return {
       id:           'wh-u-' + Date.now(),
-      companyId:    selCo.id,
-      companyName:  selCo.name,
-      companyAbbr:  selCo.abbr,
-      companyColor: selCo.color,
-      category:     selCo.catId,
+      companyId:    selCo?.id || null,
+      companyName:  selCo?.name || '',
+      companyAbbr:  selCo?.abbr || '',
+      companyColor: selCo?.color || '',
+      category:     selCo?.catId || null,
       title:        title.trim(),
       code:         code.trim() || null,
       expires:      expires || null,
       source:       source.trim() || null,
       addedBy:      localStorage.getItem('ss_username') || 'вы',
       addedAt:      Date.now(),
+      draft:        isDraft,
       history:      [],
       comments:     [],
     }
+  }
+
+  function saveItem(isDraft) {
     try {
       const saved = JSON.parse(localStorage.getItem('ss_account_whispers') || '[]')
-      localStorage.setItem('ss_account_whispers', JSON.stringify([item, ...saved]))
-    } catch {}
-    navigate('/account', { state: { tab: 'whispers' } })
+      localStorage.setItem('ss_account_whispers', JSON.stringify([buildItem(isDraft), ...saved]))
+      return true
+    } catch { return false }
+  }
+
+  function publish() {
+    if (!canSubmit) { showToast(!selCo ? 'Выберите компанию' : 'Добавьте описание'); return }
+    if (saveItem(false)) navigate('/account', { state: { tab: 'whispers' } })
+  }
+
+  function handleDraft() {
+    if (!title.trim() && !selCo) { showToast('Добавьте хотя бы компанию или описание'); return }
+    if (saveItem(true)) { showToast('Черновик сохранён'); setTimeout(() => navigate('/account', { state: { tab: 'whispers' } }), 1000) }
   }
 
   return (
@@ -99,9 +112,10 @@ export default function CreateWhisper() {
             Поделиться скидкой
             <HelpButton seenKey="ss_spl_createwhisper" onOpen={() => setShowSpotlight(true)} />
           </div>
-          <button className="btn-publish" disabled={!canSubmit} onClick={publish}>
-            Опубликовать
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn-draft" onClick={handleDraft}>Сохранить черновик</button>
+            <button className="btn-publish" disabled={!canSubmit} onClick={publish}>Опубликовать</button>
+          </div>
         </div>
 
         {/* Company picker */}

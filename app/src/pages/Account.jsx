@@ -640,26 +640,35 @@ export default function Account() {
                 <div className="acc-empty-desc">Подписывайтесь на авторов, чтобы следить за их статьями и наборами</div>
               </div>
             )}
-            {subs.map((s, i) => (
-              <div key={i} className="subscription-card">
-                <div className="subscription-header" style={{ cursor: 'pointer' }}
-                  onClick={() => navigate('/author/' + s.handle.replace('@', ''), { state: s })}>
-                  <div className="subscription-avatar">{s.ini}</div>
-                  <div style={{ flex: 1 }}>
-                    <div className="subscription-name">{s.name}</div>
-                    <div className="subscription-meta">{s.handle} · {s.followers}</div>
+            <div className="subs-grid">
+              {subs.map((s, i) => (
+                <div key={i} className="subscription-card"
+                  onClick={() => navigate('/author/' + (s.handle || '').replace('@', ''), { state: s })}>
+                  <div className="subscription-top">
+                    <div className="subscription-avatar" style={{ background: s.color || '#4E8268' }}>
+                      {s.ini || (s.name || '?')[0].toUpperCase()}
+                    </div>
+                    <div className="subscription-info">
+                      <div className="subscription-name">{s.name}</div>
+                      {s.handle && <div className="subscription-handle">{s.handle}</div>}
+                    </div>
                   </div>
-                  <button className="acc-btn-unsub" onClick={e => { e.stopPropagation(); handleUnsubscribe(s) }}>
-                    Отписаться
-                  </button>
+                  {(s.bio || s.desc) && (
+                    <div className="subscription-bio">{s.bio || s.desc}</div>
+                  )}
+                  <div className="subscription-bottom" onClick={e => e.stopPropagation()}>
+                    <div className="subscription-stats">
+                      {s.followers && s.followers !== '—' && <span>{s.followers} подписчиков</span>}
+                      {s.articles > 0 && <span>{s.articles} статей</span>}
+                      {s.sets > 0 && <span>{s.sets} наборов</span>}
+                    </div>
+                    <button className="acc-btn-unsub" onClick={() => handleUnsubscribe(s)}>
+                      Отменить подписку
+                    </button>
+                  </div>
                 </div>
-                <div className="subscription-description">{s.desc}</div>
-                <div className="subscription-stats">
-                  <span>{s.articles} статей</span>
-                  <span>{s.sets} наборов</span>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 

@@ -1730,23 +1730,29 @@ body.dark .visibility-badge.public { background: #1A2820; color: #7AAF96; border
 .acc-set-period { font-size: 10px; color: var(--text-3); }
 
 /* Subscription cards */
+.subs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
 .subscription-card {
   background: var(--surface); border-radius: var(--r);
-  padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border);
+  padding: 18px; box-shadow: var(--shadow-sm); border: 1px solid var(--border);
+  cursor: pointer; transition: background 0.15s, box-shadow 0.15s;
+  display: flex; flex-direction: column; gap: 10px;
 }
-.subscription-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.subscription-card:hover { background: var(--surface-2); box-shadow: var(--shadow); }
+.subscription-top { display: flex; align-items: center; gap: 12px; }
 .subscription-avatar {
-  width: 40px; height: 40px; border-radius: 10px;
-  background: var(--surface-3); display: flex; align-items: center; justify-content: center;
-  font-size: 18px; font-weight: 600; color: var(--text-2); flex-shrink: 0;
+  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.02em;
 }
-.subscription-name { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
-.subscription-meta { font-size: 12px; color: var(--text-3); margin-top: 2px; }
-.subscription-description { font-size: 13px; color: var(--text-3); margin-bottom: 10px; line-height: 1.5; }
-.subscription-stats {
-  display: flex; gap: 16px; font-size: 12px; color: var(--text-2);
-  border-top: 1px solid var(--border); padding-top: 12px;
+.subscription-info { flex: 1; min-width: 0; }
+.subscription-name { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.subscription-handle { font-size: 12px; color: var(--text-3); margin-top: 2px; font-family: var(--mono); }
+.subscription-bio { font-size: 13px; color: var(--text-2); line-height: 1.5; }
+.subscription-bottom {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  border-top: 1px solid var(--border); padding-top: 10px; margin-top: 2px; flex-wrap: wrap;
 }
+.subscription-stats { display: flex; gap: 10px; font-size: 11px; color: var(--text-3); flex-wrap: wrap; }
 
 /* Legacy (keep for compatibility) */
 .btn-sm {
@@ -8128,8 +8134,7 @@ body.dark .feed-section-card.active.promo    { background: #A86828; border-color
 }
 .promo-company-info { flex: 1; min-width: 0; }
 .promo-company-name { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-.whisper-company-name { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-.promo-expires { font-size: 12px; color: var(--text-3); margin-top: 1px; }
+.promo-expires { font-size: 12px; color: var(--text-3); margin-top: 1px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .promo-type-badge {
   padding: 3px 9px; border-radius: 6px;
   font-size: 11px; font-weight: 600; flex-shrink: 0;
@@ -8290,12 +8295,7 @@ body.dark .whisper-add-cta:hover { background: rgba(106,175,142,.08); }
 
 .pc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .whisper-card .pc-header { align-items: flex-start; }
-.whisper-co-block { display: flex; flex-direction: column; flex: 1; min-width: 0; }
-.whisper-co-block .promo-co-btn { flex: unset; align-self: flex-start; }
-.whisper-company-info { flex: 1; min-width: 0; }
-.whisper-company-name { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.whisper-meta { font-size: 12px; color: var(--text-3); margin-top: 2px; }
-.whisper-co-block .whisper-meta { padding-left: 46px; }
+.whisper-card .promo-co-btn { flex: 1; min-width: 0; }
 
 .whisper-badge {
   flex-shrink: 0; font-size: 11px; font-weight: 600;
@@ -8422,8 +8422,6 @@ body.dark .whisper-card--not {
   font-size: inherit; font-family: inherit;
 }
 .whisper-author:hover { text-decoration: underline; }
-.whisper-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-
 /* whisper-comments-toggle removed — replaced by fa-action-btn in JSX */
 
 /* ── SimpleSelect ── */

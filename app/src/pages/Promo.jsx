@@ -840,21 +840,21 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
   return (
     <div className={`whisper-card${cardMood ? ` whisper-card--${cardMood}` : ''}`}>
       <div className="pc-header">
-        <div className="whisper-co-block">
-          <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId)}>
-            <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
-            <div className="whisper-company-name">
+        <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId)}>
+          <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
+          <div className="promo-company-info">
+            <div className="promo-company-name">
               {company?.name}
               {catLabel && catLabel !== 'Все' && (
                 <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
               )}
             </div>
-          </button>
-          <div className="whisper-meta">
-            {item.addedBy && <WhisperAuthorChip username={item.addedBy} navigate={navigate} />}
-            <span>{timeAgo(item.addedAt)}{item.expires ? ` · до ${item.expires}` : ''}</span>
+            <div className="promo-expires">
+              {item.addedBy && <WhisperAuthorChip username={item.addedBy} navigate={navigate} />}
+              <span>{timeAgo(item.addedAt)}{item.expires ? ` · до ${item.expires}` : ''}</span>
+            </div>
           </div>
-        </div>
+        </button>
         <ConditionBadge filter={item.promo_filter} />
       </div>
 

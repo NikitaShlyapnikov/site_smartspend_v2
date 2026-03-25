@@ -235,6 +235,9 @@ export default function Settings() {
   // Timezone
   const [timezone, setTimezone] = useState(() => localStorage.getItem('ss_timezone') || 'Europe/Moscow')
 
+  // Location
+  const [location, setLocation] = useState(() => localStorage.getItem('ss_location') || '')
+
   // Privacy
   const [privacy, setPrivacy] = useState({ sets: 'all', articles: 'all', profile: 'all' })
   const setPriv = k => v => setPrivacy(p => ({ ...p, [k]: v }))
@@ -329,7 +332,7 @@ export default function Settings() {
           ))}
         </div>
 
-        {/* Часовой пояс */}
+        {/* Часовой пояс + Локация */}
         <div className="settings-section">
           <div className="settings-section-title">Региональные настройки</div>
           <div className="settings-row">
@@ -353,6 +356,46 @@ export default function Settings() {
               <option value="Asia/Vladivostok">UTC+10 — Владивосток</option>
               <option value="Asia/Magadan">UTC+11 — Магадан</option>
               <option value="Asia/Kamchatka">UTC+12 — Камчатка</option>
+            </select>
+          </div>
+          <div className="settings-row">
+            <div>
+              <div className="settings-row-label">Местоположение</div>
+              <div className="settings-row-desc">Влияет на локальные акции и предложения в вашем регионе</div>
+            </div>
+            <select
+              className="settings-tz-select"
+              value={location}
+              onChange={e => { setLocation(e.target.value); localStorage.setItem('ss_location', e.target.value) }}
+            >
+              <option value="">Не указано</option>
+              <optgroup label="Крупные города">
+                <option value="moscow">Москва</option>
+                <option value="spb">Санкт-Петербург</option>
+                <option value="novosibirsk">Новосибирск</option>
+                <option value="ekaterinburg">Екатеринбург</option>
+                <option value="kazan">Казань</option>
+                <option value="nizhny">Нижний Новгород</option>
+                <option value="chelyabinsk">Челябинск</option>
+                <option value="samara">Самара</option>
+                <option value="omsk">Омск</option>
+                <option value="rostov">Ростов-на-Дону</option>
+                <option value="ufa">Уфа</option>
+                <option value="krasnoyarsk">Красноярск</option>
+                <option value="voronezh">Воронеж</option>
+                <option value="perm">Пермь</option>
+                <option value="volgograd">Волгоград</option>
+              </optgroup>
+              <optgroup label="Федеральные округа">
+                <option value="cfo">Центральный федеральный округ</option>
+                <option value="szfo">Северо-Западный федеральный округ</option>
+                <option value="yufo">Южный федеральный округ</option>
+                <option value="skfo">Северо-Кавказский федеральный округ</option>
+                <option value="pfo">Приволжский федеральный округ</option>
+                <option value="ufo">Уральский федеральный округ</option>
+                <option value="sfo">Сибирский федеральный округ</option>
+                <option value="dfo">Дальневосточный федеральный округ</option>
+              </optgroup>
             </select>
           </div>
         </div>
