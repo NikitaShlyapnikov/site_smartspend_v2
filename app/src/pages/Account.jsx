@@ -650,24 +650,34 @@ export default function Account() {
             )}
 
             <div className="acc-sets-grid">
-              {sets.map((s) => (
+              {sets.map((s) => {
+                const setName = s.title || s.name || 'Без названия'
+                const setDesc = s.shortDesc || s.desc || ''
+                const itemCount = (s.items || []).length
+                return (
                 <div key={s.id} className="acc-set-card">
-                  <div className="acc-set-accent" style={{ background: s.color }} />
+                  <div className="acc-set-accent" style={{ background: s.color || 'var(--accent-green)' }} />
                   <div className="acc-set-body">
                     <div className="acc-set-top-row">
-                      <span className="acc-set-source">{s.source}</span>
+                      <span className="acc-set-source">{s.meta || s.source || ''}</span>
                       <span className={`visibility-badge ${s.pub ? 'public' : 'private'}`} style={{ fontSize: 9 }}>
-                        {s.pub ? 'Публичный' : 'Личный'}
+                        {s.draft ? 'Черновик' : s.pub ? 'Публичный' : 'Личный'}
                       </span>
                     </div>
-                    <div className="acc-set-name">{s.name}</div>
-                    <div className="acc-set-tags">
-                      {s.tags.map((tag, j) => <span key={j} className="acc-set-tag">{tag}</span>)}
-                    </div>
+                    <div className="acc-set-name">{setName}</div>
+                    {setDesc ? (
+                      <div className="acc-set-tags" style={{ fontWeight: 400, fontSize: 11, color: 'var(--text-3)', textTransform: 'none', letterSpacing: 0 }}>
+                        {setDesc.slice(0, 80)}{setDesc.length > 80 ? '…' : ''}
+                      </div>
+                    ) : itemCount > 0 ? (
+                      <div className="acc-set-tags">
+                        <span className="acc-set-tag">{itemCount} позиций</span>
+                      </div>
+                    ) : null}
                   </div>
                   <div className="acc-set-footer">
-                    <span className="acc-set-amount">{s.amount}</span>
-                    <span className="acc-set-period">{s.period}</span>
+                    <span className="acc-set-amount">{s.amount || ''}</span>
+                    <span className="acc-set-period">{s.period || ''}</span>
                   </div>
                   <div className="acc-card-actions acc-card-actions-set">
                     <button className="acc-btn-visibility" onClick={() => handleToggleSetVisibility(s)}
@@ -704,7 +714,7 @@ export default function Account() {
                     </button>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
           </div>
         )}
