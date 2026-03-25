@@ -25,6 +25,13 @@ function calcPerMonth(item) {
   }
 }
 
+// Разрешить вводить только цифры и точку/запятую
+function numOnly(e) {
+  if (!/[\d.,\b]/.test(e.key) && !['ArrowLeft','ArrowRight','Tab','Delete','Backspace'].includes(e.key)) {
+    e.preventDefault()
+  }
+}
+
 function AddItemForm({ onAdd, onCancel }) {
   const today = new Date().toISOString().slice(0, 10)
   const [form, setForm] = useState({
@@ -55,16 +62,16 @@ function AddItemForm({ onAdd, onCancel }) {
 
         <div className="inv-add-form-field">
           <div className="inv-add-form-lbl">Цена, руб.</div>
-          <input className="inv-add-form-input" type="number" value={form.price}
-            onChange={e => set('price')(e.target.value)} placeholder="0" />
+          <input className="inv-add-form-input" type="text" inputMode="decimal" value={form.price}
+            onKeyDown={numOnly} onChange={e => set('price')(e.target.value)} placeholder="0" />
         </div>
 
         {form.type === 'consumable' ? (
           <>
             <div className="inv-add-form-field">
               <div className="inv-add-form-lbl">Объём / масса</div>
-              <input className="inv-add-form-input" type="number" value={form.qty}
-                onChange={e => set('qty')(e.target.value)} placeholder="500" />
+              <input className="inv-add-form-input" type="text" inputMode="decimal" value={form.qty}
+                onKeyDown={numOnly} onChange={e => set('qty')(e.target.value)} placeholder="500" />
             </div>
             <div className="inv-add-form-field">
               <div className="inv-add-form-lbl">Единица</div>
@@ -78,21 +85,21 @@ function AddItemForm({ onAdd, onCancel }) {
             </div>
             <div className="inv-add-form-field">
               <div className="inv-add-form-lbl">Расход в день</div>
-              <input className="inv-add-form-input" type="number" value={form.dailyUse}
-                onChange={e => set('dailyUse')(e.target.value)} placeholder="10" step="0.1" />
+              <input className="inv-add-form-input" type="text" inputMode="decimal" value={form.dailyUse}
+                onKeyDown={numOnly} onChange={e => set('dailyUse')(e.target.value)} placeholder="10" />
             </div>
           </>
         ) : (
           <>
             <div className="inv-add-form-field">
               <div className="inv-add-form-lbl">Срок службы, нед.</div>
-              <input className="inv-add-form-input" type="number" value={form.wearLifeWeeks}
-                onChange={e => set('wearLifeWeeks')(e.target.value)} placeholder="52" />
+              <input className="inv-add-form-input" type="text" inputMode="decimal" value={form.wearLifeWeeks}
+                onKeyDown={numOnly} onChange={e => set('wearLifeWeeks')(e.target.value)} placeholder="52" />
             </div>
             <div className="inv-add-form-field">
               <div className="inv-add-form-lbl">Плановая цена, руб.</div>
-              <input className="inv-add-form-input" type="number" value={form.expectedPrice}
-                onChange={e => set('expectedPrice')(e.target.value)} placeholder="необязательно" />
+              <input className="inv-add-form-input" type="text" inputMode="decimal" value={form.expectedPrice}
+                onKeyDown={numOnly} onChange={e => set('expectedPrice')(e.target.value)} placeholder="необязательно" />
             </div>
             <div className="inv-add-form-field">
               <div className="inv-add-form-lbl">Дата покупки</div>
@@ -105,7 +112,8 @@ function AddItemForm({ onAdd, onCancel }) {
       </div>
       <div className="inv-add-form-actions">
         <button className="inv-add-cancel" onClick={onCancel}>Отмена</button>
-        <button className="inv-add-submit" onClick={() => { if (!form.name.trim() || !form.price) return; onAdd(form) }}
+        <button className="inv-add-submit"
+          onClick={() => { if (!form.name.trim() || !form.price) return; onAdd(form) }}
           disabled={!form.name.trim() || !form.price}>Добавить</button>
       </div>
     </div>
@@ -153,7 +161,6 @@ export default function CreateSet() {
   const [catError,  setCatError]  = useState(false)
   const [toast,     setToast]     = useState(null)
 
-  // Load for editing
   useEffect(() => {
     if (!editId) return
     try {
@@ -197,7 +204,6 @@ export default function CreateSet() {
       pub,
       draft:     asDraft,
     }
-
     try {
       const saved = JSON.parse(localStorage.getItem('ss_account_sets') || '[]')
       if (editId) {
@@ -214,67 +220,66 @@ export default function CreateSet() {
   function handlePublish() { if (saveSet(isPublic, false)) navigate('/account') }
   function handleDraft()   { if (saveSet(false, true)) { showToast('Черновик сохранён'); setTimeout(() => navigate('/account'), 1000) } }
 
-  const catLabel = CATEGORIES.find(c => c.id === category)?.label
-  const visHint  = isPublic
-    ? 'Набор будет виден всем в каталоге — его смогут добавить другие пользователи.'
-    : 'Набор виден только вам — хранится в вашем аккаунте.'
-
   return (
     <Layout>
       <main className="inventory-main">
 
         {/* Header */}
         <div className="inv-page-header">
-          <div>
-            <div className="page-title">{editId ? 'Редактировать набор' : 'Создать набор'}</div>
-          </div>
+          <div className="page-title">{editId ? 'Редактировать набор' : 'Создать набор'}</div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn-edit-mode" onClick={handleDraft}>Сохранить черновик</button>
-            <button className="btn-publish" onClick={handlePublish}>
-              {isPublic ? 'Опубликовать' : 'Сохранить'}
-            </button>
+            <button className="btn-draft" onClick={handleDraft}>Сохранить черновик</button>
+            <button className="btn-publish" onClick={handlePublish}>Опубликовать</button>
           </div>
         </div>
 
-        {/* Visibility */}
-        <div className="editor-field-block">
-          <div className="editor-field-label">Видимость</div>
-          <div className="visibility-toggle">
-            <button className={`visibility-btn${!isPublic ? ' active' : ''}`} onClick={() => setIsPublic(false)}>
-              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
-              </svg>
-              Личная
-            </button>
-            <button className={`visibility-btn${isPublic ? ' active' : ''}`} onClick={() => setIsPublic(true)}>
-              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
-                <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
-              </svg>
-              Публичная
-            </button>
-          </div>
-          <div className="editor-visibility-hint">{visHint}</div>
-        </div>
+        {/* Meta block: видимость + категория */}
+        <div className="editor-meta-block">
 
-        {/* Category */}
-        <div className="editor-field-block">
-          <div className="editor-field-label" style={catError ? { color: '#C84848' } : {}}>
-            Категория
-            {catError && <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: 6 }}>— обязательно</span>}
-          </div>
-          <div className="editor-cats">
-            {CATEGORIES.map(cat => (
-              <button key={cat.id}
-                className={`editor-cat-btn${category === cat.id ? ' active' : ''}`}
-                onClick={() => { setCategory(cat.id); setCatError(false) }}>
-                {cat.label}
+          {/* Видимость */}
+          <div className="editor-meta-row">
+            <div className="editor-meta-label">Видимость</div>
+            <div className="visibility-toggle">
+              <button className={`visibility-btn${!isPublic ? ' active' : ''}`} onClick={() => setIsPublic(false)}>
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                </svg>
+                Личная
               </button>
-            ))}
+              <button className={`visibility-btn${isPublic ? ' active' : ''}`} onClick={() => setIsPublic(true)}>
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                  <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+                </svg>
+                Публичная
+              </button>
+            </div>
+            <div className="editor-visibility-hint">
+              {isPublic
+                ? 'Набор будет опубликован в каталоге и доступен всем пользователям.'
+                : 'Набор виден только вам — хранится в вашем аккаунте.'}
+            </div>
           </div>
+
+          {/* Категория */}
+          <div className="editor-meta-row">
+            <div className={`editor-meta-label${catError ? ' editor-meta-label--error' : ''}`}>
+              Категория{catError && <span className="editor-cat-required"> — обязательно</span>}
+            </div>
+            <div className={`editor-cats${catError ? ' editor-cats--error' : ''}`}>
+              {CATEGORIES.map(cat => (
+                <button key={cat.id}
+                  className={`editor-cat-btn${category === cat.id ? ' active' : ''}`}
+                  onClick={() => { setCategory(cat.id); setCatError(false) }}>
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
         </div>
 
-        {/* Title */}
+        {/* Название */}
         <div className="editor-field-block">
           <div className="editor-field-label">
             Название набора
@@ -285,7 +290,7 @@ export default function CreateSet() {
             onInput={e => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px' }} />
         </div>
 
-        {/* Short description */}
+        {/* Краткое описание */}
         <div className="editor-field-block">
           <div className="editor-field-label">
             Краткое описание
@@ -297,8 +302,8 @@ export default function CreateSet() {
             value={shortDesc} onChange={e => setShortDesc(e.target.value.slice(0, 250))} rows={2} />
         </div>
 
-        {/* Items */}
-        <div className="editor-field-block">
+        {/* Позиции набора */}
+        <div className="editor-field-block editor-field-block--overflow">
           <div className="editor-field-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span>Позиции набора{items.length > 0 && ` · ${items.length} поз.`}</span>
             {totalPerMonth > 0 && (
@@ -331,7 +336,7 @@ export default function CreateSet() {
           )}
         </div>
 
-        {/* Body */}
+        {/* Подробное описание */}
         <div className="editor-field-block">
           <div className="editor-field-label">Подробное описание</div>
           <textarea className="editor-body-input"
