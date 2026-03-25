@@ -71,6 +71,143 @@ function useToast() {
   return [msg, show]
 }
 
+// ── Whisper detail modal ──────────────────────────────────────────────────────
+
+function timeAgo(ts) {
+  if (!ts) return ''
+  const diff = Date.now() - ts
+  const m = Math.floor(diff / 60000)
+  if (m < 2)   return 'только что'
+  if (m < 60)  return `${m} мин. назад`
+  const h = Math.floor(m / 60)
+  if (h < 24)  return `${h} ч. назад`
+  const d = Math.floor(h / 24)
+  if (d < 30)  return `${d} дн. назад`
+  return new Date(ts).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+}
+
+function AccWhisperModal({ whisper: w, onClose, onDelete }) {
+  const [myVote,    setMyVote]    = useState(null)
+  const [copied,    setCopied]    = useState(false)
+  const [commentText, setCommentText] = useState('')
+  const [comments,  setComments]  = useState(w.comments || [])
+
+  const hist = w.history || []
+  const displayHistory = myVote ? [...hist, myVote === 'works' ? 'w' : 'n'] : hist
+  const works    = displayHistory.filter(v => v === 'w').length
+  const notWorks = displayHistory.filter(v => v === 'n').length
+
+  function copyCode() {
+    navigator.clipboard.writeText(w.code).catch(() => {})
+    setCopied(true); setTimeout(() => setCopied(false), 2000)
+  }
+
+  function addComment() {
+    const text = commentText.trim()
+    if (!text) return
+    setComments(prev => [...prev, { author: localStorage.getItem('ss_username') || 'вы', text, ts: Date.now() }])
+    setCommentText('')
+  }
+
+  return (
+    <div className="acc-confirm-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="acc-wmodal" onClick={e => e.stopPropagation()}>
+        <div className="acc-wmodal-header">
+          <div className="acc-whisper-header">
+            {w.companyColor && (
+              <div className="promo-logo" style={{ background: w.companyColor, width: 32, height: 32, fontSize: 11 }}>{w.companyAbbr}</div>
+            )}
+            <div>
+              <div className="acc-whisper-company">{w.companyName}</div>
+              <div className="acc-whisper-meta">
+                {w.addedBy && <span style={{ marginRight: 6 }}>{w.addedBy}</span>}
+                {timeAgo(w.addedAt)}{w.expires ? ` · до ${w.expires}` : ''}
+              </div>
+            </div>
+          </div>
+          <button className="acc-wmodal-close" onClick={onClose}>
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div className="whisper-title" style={{ margin: '10px 0 6px' }}>{w.title}</div>
+        {w.desc && <div className="whisper-desc">{w.desc}</div>}
+
+        {w.code && (
+          <div className="whisper-code-row">
+            <div className="whisper-code">{w.code}</div>
+            <button className={`fa-action-btn pc-copy-btn${copied ? ' copied' : ''}`} onClick={copyCode}>
+              {copied ? (
+                <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Скопировано</>
+              ) : (
+                <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Скопировать</>
+              )}
+            </button>
+          </div>
+        )}
+
+        {displayHistory.length > 0 && (
+          <div className="whisper-history" style={{ margin: '10px 0' }}>
+            {displayHistory.slice(-40).map((v, i) => (
+              <div key={i} className="wvh-stripe" style={{ background: v === 'w' ? '#5E9478' : '#B85555' }} />
+            ))}
+          </div>
+        )}
+        {displayHistory.length === 0 && !myVote && (
+          <div className="whisper-first-check">Будь первым, кто проверит</div>
+        )}
+
+        <div className="fa-bottom whisper-actions" style={{ marginTop: 8 }}>
+          <button className={`fa-action-btn wvb-works${myVote === 'works' ? ' active' : ''}`}
+            onClick={() => setMyVote(v => v === 'works' ? null : 'works')}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill={myVote === 'works' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+              <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+            </svg>
+            Работает{works > 0 ? ` · ${works}` : ''}
+          </button>
+          <button className={`fa-action-btn wvb-not${myVote === 'not' ? ' active' : ''}`}
+            onClick={() => setMyVote(v => v === 'not' ? null : 'not')}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill={myVote === 'not' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+              <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+            </svg>
+            Не работает{notWorks > 0 ? ` · ${notWorks}` : ''}
+          </button>
+          <div className="f-spacer" />
+          <button className="acc-btn-visibility acc-btn-delete-gray" onClick={() => onDelete(w)}>Удалить</button>
+        </div>
+
+        {/* Comments */}
+        <div className="acc-wmodal-comments">
+          <div className="acc-wmodal-comments-title">Комментарии{comments.length > 0 ? ` · ${comments.length}` : ''}</div>
+          {comments.length === 0 && (
+            <div style={{ fontSize: 13, color: 'var(--text-3)', padding: '8px 0' }}>Пока нет комментариев</div>
+          )}
+          {comments.map((c, i) => (
+            <div key={i} className="acc-wmodal-comment">
+              <span className="acc-wmodal-comment-author">{c.author}</span>
+              <span className="acc-wmodal-comment-text">{c.text}</span>
+            </div>
+          ))}
+          <div className="acc-wmodal-comment-input-row">
+            <input className="acc-wmodal-comment-input" placeholder="Написать комментарий..."
+              value={commentText} onChange={e => setCommentText(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addComment()} />
+            <button className="acc-wmodal-send" onClick={addComment} disabled={!commentText.trim()}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main component ───────────────────────────────────────────────────────────
 
 export default function Account() {
@@ -89,6 +226,7 @@ export default function Account() {
   const [confirmArticle, setConfirmArticle] = useState(null)
   const [confirmSet,     setConfirmSet]     = useState(null)
   const [confirmWhisper, setConfirmWhisper] = useState(null)
+  const [activeWhisper,  setActiveWhisper]  = useState(null)
   const [showSpotlight,  setShowSpotlight]  = useState(false)
 
   const [artTypeFilter, setArtTypeFilter] = useState(null)  // null | 'public' | 'private' | 'draft'
@@ -597,29 +735,66 @@ export default function Account() {
               </div>
             )}
 
-            {whispers.map(w => (
-              <div key={w.id} className="acc-article-card">
-                <div className="acc-whisper-header">
-                  <div className="promo-logo" style={{ background: w.companyColor, width: 28, height: 28, fontSize: 10 }}>{w.companyAbbr}</div>
-                  <div>
-                    <div className="acc-whisper-company">{w.companyName}</div>
-                    <div className="acc-whisper-meta">{w.expires ? `до ${w.expires}` : 'бессрочно'}</div>
+            {whispers.map(w => {
+              const hist = w.history || []
+              const works    = hist.filter(v => v === 'w').length
+              const notWorks = hist.filter(v => v === 'n').length
+              const cmtCount = (w.comments || []).length
+              return (
+                <div key={w.id} className="acc-article-card acc-article-card--clickable"
+                  onClick={() => setActiveWhisper(w)}>
+                  <div className="acc-whisper-header">
+                    <div className="promo-logo" style={{ background: w.companyColor, width: 28, height: 28, fontSize: 10 }}>{w.companyAbbr}</div>
+                    <div>
+                      <div className="acc-whisper-company">{w.companyName}</div>
+                      <div className="acc-whisper-meta">{w.expires ? `до ${w.expires}` : 'бессрочно'}</div>
+                    </div>
+                  </div>
+                  <div className="acc-article-title" style={{ marginTop: 8 }}>{w.title}</div>
+                  {w.code && <div className="acc-whisper-code">{w.code}</div>}
+
+                  {hist.length > 0 && (
+                    <div className="whisper-history acc-whisper-history">
+                      {hist.slice(-40).map((v, i) => (
+                        <div key={i} className="wvh-stripe" style={{ background: v === 'w' ? '#5E9478' : '#B85555' }} />
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="acc-card-actions" onClick={e => e.stopPropagation()}>
+                    <span className="acc-card-meta">
+                      {w.addedAt ? new Date(w.addedAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
+                      {w.draft && <span className="visibility-badge badge-draft" style={{ marginLeft: 6 }}>Черновик</span>}
+                    </span>
+                    <div className="acc-whisper-stats">
+                      <span className="acc-wstat acc-wstat--works">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                          <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                        </svg>
+                        {works}
+                      </span>
+                      <span className="acc-wstat acc-wstat--not">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+                          <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                        </svg>
+                        {notWorks}
+                      </span>
+                      <span className="acc-wstat">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        {cmtCount}
+                      </span>
+                      <button className="acc-btn-visibility acc-btn-delete-gray" onClick={() => setConfirmWhisper(w)}>
+                        Удалить
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div className="acc-article-title" style={{ marginTop: 8 }}>{w.title}</div>
-                {w.code && (
-                  <div className="acc-whisper-code">{w.code}</div>
-                )}
-                <div className="acc-card-actions">
-                  <button className="acc-btn-delete" onClick={() => setConfirmWhisper(w)}>
-                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-                    </svg>
-                    Удалить
-                  </button>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
 
@@ -710,6 +885,12 @@ export default function Account() {
       </div>
 
       {showSpotlight && <SpotlightTour steps={ACC_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
+
+      {/* Whisper detail modal */}
+      {activeWhisper && (
+        <AccWhisperModal whisper={activeWhisper} onClose={() => setActiveWhisper(null)}
+          onDelete={w => { setConfirmWhisper(w); setActiveWhisper(null) }} />
+      )}
     </Layout>
   )
 }

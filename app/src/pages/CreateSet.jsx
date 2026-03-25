@@ -444,18 +444,18 @@ export default function CreateSet() {
         </div>
 
         {/* Название */}
-        <div className="editor-field-block">
+        <div className="editor-field-block editor-field-block--overflow">
           <div className="editor-field-label">
             Название набора
             <span className={`editor-char-count${title.length > 90 ? ' warn' : ''}`}> {title.length}/100</span>
           </div>
-          <textarea className="editor-title-input" placeholder="Например: Базовый гардероб на лето"
+          <textarea className="editor-excerpt-input cs-title-input" placeholder="Например: Базовый гардероб на лето"
             value={title} onChange={e => setTitle(e.target.value.slice(0, 100))} rows={1}
             onInput={e => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px' }} />
         </div>
 
         {/* Краткое описание */}
-        <div className="editor-field-block">
+        <div className="editor-field-block editor-field-block--overflow">
           <div className="editor-field-label">
             Краткое описание
             <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}> — видно в карточке</span>
@@ -463,7 +463,8 @@ export default function CreateSet() {
           </div>
           <textarea className="editor-excerpt-input"
             placeholder="Одно-два предложения: для кого набор и что в нём..."
-            value={shortDesc} onChange={e => setShortDesc(e.target.value.slice(0, 250))} rows={2} />
+            value={shortDesc} onChange={e => setShortDesc(e.target.value.slice(0, 250))} rows={2}
+            onInput={e => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px' }} />
         </div>
 
         {/* Позиции набора */}
@@ -485,39 +486,45 @@ export default function CreateSet() {
               {showItemsHelp && (
                 <div className="md-help-panel items-help-panel">
                   <div className="items-help-type">
-                    <div className="items-help-type-title">📦 Расходник</div>
-                    <div className="items-help-type-desc">Товар, который расходуется со временем. Нужно указать объём/количество и расход в день — система посчитает стоимость в месяц.</div>
+                    <div className="items-help-type-header">
+                      <span className="items-help-type-pill consumable">Расходник</span>
+                      <span className="items-help-type-desc">товар, который тратится со временем</span>
+                    </div>
+                    <p className="items-help-body">Укажите объём и расход в день — система сама посчитает стоимость в месяц по формуле: <code>(цена / объём) × расход × 30</code></p>
                     <div className="items-help-examples">
-                      <div className="items-help-ex items-help-ex--ok">
-                        <span className="items-help-badge ok">✓</span>
-                        <span>Оливковое масло · 500 г · расход 10 г/день → <strong>~600 ₽/мес</strong></span>
+                      <div className="items-help-ex">
+                        <span className="items-help-badge ok">OK</span>
+                        <span>Оливковое масло · 500 г · 10 г/день → <strong>~600 ₽/мес</strong></span>
                       </div>
-                      <div className="items-help-ex items-help-ex--ok">
-                        <span className="items-help-badge ok">✓</span>
-                        <span>Шампунь · 400 мл · расход 8 мл/день → <strong>~360 ₽/мес</strong></span>
+                      <div className="items-help-ex">
+                        <span className="items-help-badge ok">OK</span>
+                        <span>Шампунь · 400 мл · 8 мл/день → <strong>~360 ₽/мес</strong></span>
                       </div>
-                      <div className="items-help-ex items-help-ex--bad">
-                        <span className="items-help-badge bad">✗</span>
-                        <span>Масло · 0 г · расход 0 → расчёт недоступен</span>
+                      <div className="items-help-ex">
+                        <span className="items-help-badge bad">—</span>
+                        <span>Цена или расход не заполнены → расчёт недоступен</span>
                       </div>
                     </div>
                   </div>
                   <div className="items-help-divider" />
                   <div className="items-help-type">
-                    <div className="items-help-type-title">👕 Вещь (износ)</div>
-                    <div className="items-help-type-desc">Одежда, техника, инвентарь — то, что служит определённый срок. Укажите цену и срок службы в неделях, система посчитает амортизацию.</div>
+                    <div className="items-help-type-header">
+                      <span className="items-help-type-pill wear">Вещь (износ)</span>
+                      <span className="items-help-type-desc">одежда, техника, инвентарь</span>
+                    </div>
+                    <p className="items-help-body">Укажите цену и срок службы в неделях — система посчитает амортизацию: <code>цена / недели × 4.33</code></p>
                     <div className="items-help-examples">
-                      <div className="items-help-ex items-help-ex--ok">
-                        <span className="items-help-badge ok">✓</span>
+                      <div className="items-help-ex">
+                        <span className="items-help-badge ok">OK</span>
                         <span>Кроссовки · 3 500 ₽ · 52 нед → <strong>~291 ₽/мес</strong></span>
                       </div>
-                      <div className="items-help-ex items-help-ex--ok">
-                        <span className="items-help-badge ok">✓</span>
+                      <div className="items-help-ex">
+                        <span className="items-help-badge ok">OK</span>
                         <span>Смартфон · 35 000 ₽ · 104 нед → <strong>~1 456 ₽/мес</strong></span>
                       </div>
-                      <div className="items-help-ex items-help-ex--bad">
-                        <span className="items-help-badge bad">✗</span>
-                        <span>Куртка · 0 ₽ · 0 нед → расчёт недоступен</span>
+                      <div className="items-help-ex">
+                        <span className="items-help-badge bad">—</span>
+                        <span>Срок службы не указан → расчёт недоступен</span>
                       </div>
                     </div>
                   </div>
