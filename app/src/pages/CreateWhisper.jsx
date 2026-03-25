@@ -79,7 +79,7 @@ export default function CreateWhisper() {
       addedBy:      localStorage.getItem('ss_username') || 'вы',
       addedAt:      Date.now(),
       draft:        isDraft,
-      history:      [],
+      history:      isDraft ? [] : ['w'],
       comments:     [],
     }
   }

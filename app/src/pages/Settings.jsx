@@ -386,15 +386,32 @@ export default function Settings() {
                 <option value="perm">Пермь</option>
                 <option value="volgograd">Волгоград</option>
               </optgroup>
-              <optgroup label="Федеральные округа">
-                <option value="cfo">Центральный федеральный округ</option>
-                <option value="szfo">Северо-Западный федеральный округ</option>
-                <option value="yufo">Южный федеральный округ</option>
-                <option value="skfo">Северо-Кавказский федеральный округ</option>
-                <option value="pfo">Приволжский федеральный округ</option>
-                <option value="ufo">Уральский федеральный округ</option>
-                <option value="sfo">Сибирский федеральный округ</option>
-                <option value="dfo">Дальневосточный федеральный округ</option>
+              <optgroup label="Области и регионы">
+                <option value="moskovskaya">Московская область</option>
+                <option value="leningradskaya">Ленинградская область</option>
+                <option value="sverdlovskaya">Свердловская область</option>
+                <option value="chelyabinskaya">Челябинская область</option>
+                <option value="krasnodarsky">Краснодарский край</option>
+                <option value="tatarstan">Республика Татарстан</option>
+                <option value="bashkortostan">Республика Башкортостан</option>
+                <option value="novosibirskaya">Новосибирская область</option>
+                <option value="samarskaya">Самарская область</option>
+                <option value="nizhegorodskaya">Нижегородская область</option>
+                <option value="permsky">Пермский край</option>
+                <option value="omskaya">Омская область</option>
+                <option value="volgogradskaya">Волгоградская область</option>
+                <option value="voronezhskaya">Воронежская область</option>
+                <option value="saratovskaya">Саратовская область</option>
+                <option value="tyumenskaya">Тюменская область</option>
+                <option value="krasnoярsky">Красноярский край</option>
+                <option value="irkutskaya">Иркутская область</option>
+                <option value="primorsky">Приморский край</option>
+                <option value="khabarovsk">Хабаровский край</option>
+                <option value="murmanskaya">Мурманская область</option>
+                <option value="arhangelskaya">Архангельская область</option>
+                <option value="kalinigradskaya">Калининградская область</option>
+                <option value="stavropol">Ставропольский край</option>
+                <option value="rostovskaya">Ростовская область</option>
               </optgroup>
             </select>
           </div>

@@ -3,6 +3,13 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 
+const SET_CATEGORIES = {
+  other: 'Прочие расходы', food: 'Еда и Супермаркеты', cafe: 'Кафе, Бары, Рестораны',
+  transport: 'Авто и Транспорт', home: 'Дом и Техника', clothes: 'Одежда и Обувь',
+  leisure: 'Развлечения и Хобби', health: 'Красота и Здоровье',
+  education: 'Образование и Дети', travel: 'Путешествия и Отдых',
+}
+
 const ACC_SPOTLIGHT = [
   { targetId: 'sp-acc-header', btnId: 'sp-acc-edit',   title: 'Профиль',        desc: 'Твоё имя, аватар и биография. Нажми «Редактировать», чтобы обновить информацию о себе.' },
   { targetId: 'sp-acc-tabs',   btnId: null,             title: 'Разделы аккаунта', desc: 'Статьи, наборы и подписки — три раздела твоего профиля. Переключайся между ними.' },
@@ -69,6 +76,133 @@ function useToast() {
   const [msg, setMsg] = useState(null)
   function show(text) { setMsg(text); setTimeout(() => setMsg(null), 2200) }
   return [msg, show]
+}
+
+// ── Popular authors mock data ─────────────────────────────────────────────────
+
+const POPULAR_AUTHORS = [
+  { id: 'pa1', name: 'Алина Морозова',  handle: '@alina_m',    ini: 'АМ', color: '#4E8268', bio: 'Рационализирую быт и бюджет. Веду учёт расходов уже 4 года.',         followers: 4812, articles: 38, sets: 12, rating: 98 },
+  { id: 'pa2', name: 'Дмитрий Ковалёв', handle: '@dm_kovalev',  ini: 'ДК', color: '#5B8FD4', bio: 'Финансовый аналитик. Пишу про инвестиции и осознанные покупки.',       followers: 3240, articles: 55, sets: 8,  rating: 95 },
+  { id: 'pa3', name: 'Мария Иванова',   handle: '@mari_smart',  ini: 'МИ', color: '#B08840', bio: 'Составляю наборы для семейного бюджета и экономии на продуктах.',       followers: 2890, articles: 22, sets: 19, rating: 92 },
+  { id: 'pa4', name: 'Сергей Попов',    handle: '@s_popov',     ini: 'СП', color: '#7B5EA7', bio: 'Минимализм и осознанное потребление. Каталогизирую вещи и расходы.',    followers: 2150, articles: 17, sets: 31, rating: 89 },
+  { id: 'pa5', name: 'Ольга Смирнова',  handle: '@olga_saves',  ini: 'ОС', color: '#B85555', bio: 'Мама троих детей. Делюсь лайфхаками по экономии и планированию.',      followers: 1920, articles: 41, sets: 14, rating: 86 },
+  { id: 'pa6', name: 'Артём Зайцев',    handle: '@artem_z',     ini: 'АЗ', color: '#4E7090', bio: 'IT-специалист. Автоматизирую личные финансы и делюсь инструментами.',   followers: 1680, articles: 29, sets: 7,  rating: 83 },
+]
+
+function fmtFollowers(n) {
+  if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'K'
+  return String(n)
+}
+
+function SubsTab({ subs, onUnsub, navigate }) {
+  const [subsView, setSubsView] = useState('mine')
+  const subsSet = new Set(subs.map(s => s.handle))
+
+  return (
+    <div className="acc-panel">
+      <div className="panel-header">
+        <div className="subs-view-toggle">
+          <button className={`subs-view-btn${subsView === 'mine' ? ' active' : ''}`} onClick={() => setSubsView('mine')}>
+            Мои подписки
+          </button>
+          <button className={`subs-view-btn${subsView === 'popular' ? ' active' : ''}`} onClick={() => setSubsView('popular')}>
+            Популярные авторы
+          </button>
+        </div>
+      </div>
+
+      {subsView === 'mine' && (
+        <>
+          {subs.length === 0 && (
+            <div className="acc-empty">
+              <div className="acc-empty-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                  <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+                </svg>
+              </div>
+              <div className="acc-empty-title">Нет подписок</div>
+              <div className="acc-empty-desc">Подписывайтесь на авторов — их новые статьи и наборы будут появляться в вашей ленте</div>
+            </div>
+          )}
+          <div className="subs-grid">
+            {subs.map((s, i) => (
+              <div key={i} className="subscription-card"
+                onClick={() => navigate('/author/' + (s.handle || '').replace('@', ''), { state: s })}>
+                <div className="subscription-top">
+                  <div className="subscription-avatar" style={{ background: s.color || '#4E8268' }}>
+                    {s.ini || (s.name || '?')[0].toUpperCase()}
+                  </div>
+                  <div className="subscription-info">
+                    <div className="subscription-name">{s.name}</div>
+                    {s.handle && <div className="subscription-handle">{s.handle}</div>}
+                  </div>
+                </div>
+                {(s.bio || s.desc) && <div className="subscription-bio">{s.bio || s.desc}</div>}
+                <div className="subscription-bottom" onClick={e => e.stopPropagation()}>
+                  <div className="subscription-stats">
+                    {s.followers && s.followers !== '—' && <span>{s.followers} подписчиков</span>}
+                    {s.articles > 0 && <span>{s.articles} статей</span>}
+                    {s.sets > 0 && <span>{s.sets} наборов</span>}
+                  </div>
+                  <button className="acc-btn-unsub" onClick={() => onUnsub(s)}>Отменить подписку</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {subsView === 'popular' && (
+        <div className="popular-authors-list">
+          {POPULAR_AUTHORS.map((a, i) => {
+            const isSubscribed = subsSet.has(a.handle)
+            return (
+              <div key={a.id} className="popular-author-row"
+                onClick={() => navigate('/author/' + a.handle.replace('@', ''), { state: a })}>
+                <div className="pa-rank">{i + 1}</div>
+                <div className="pa-avatar" style={{ background: a.color }}>{a.ini}</div>
+                <div className="pa-info">
+                  <div className="pa-name">{a.name}</div>
+                  <div className="pa-handle">{a.handle}</div>
+                  <div className="pa-bio">{a.bio}</div>
+                </div>
+                <div className="pa-stats">
+                  <div className="pa-stat-row">
+                    <span className="pa-stat-val">{fmtFollowers(a.followers)}</span>
+                    <span className="pa-stat-lbl">подписчиков</span>
+                  </div>
+                  <div className="pa-stat-row">
+                    <span className="pa-stat-val">{a.articles}</span>
+                    <span className="pa-stat-lbl">статей</span>
+                  </div>
+                  <div className="pa-stat-row">
+                    <span className="pa-stat-val">{a.sets}</span>
+                    <span className="pa-stat-lbl">наборов</span>
+                  </div>
+                </div>
+                <div className="pa-right" onClick={e => e.stopPropagation()}>
+                  <div className="pa-rating">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                    {a.rating}
+                  </div>
+                  {isSubscribed ? (
+                    <button className="acc-btn-unsub pa-sub-btn">Подписан</button>
+                  ) : (
+                    <button className="acc-btn-primary pa-sub-btn" style={{ fontSize: 11, padding: '4px 12px', height: 'auto' }}>
+                      Подписаться
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
 }
 
 // ── Whisper detail modal ──────────────────────────────────────────────────────
@@ -649,72 +783,77 @@ export default function Account() {
               </div>
             )}
 
-            <div className="acc-sets-grid">
+            <div className="catalog-grid">
               {sets.map((s) => {
-                const setName = s.title || s.name || 'Без названия'
-                const setDesc = s.shortDesc || s.desc || ''
-                const itemCount = (s.items || []).length
+                const setName  = s.title || s.name || 'Без названия'
+                const setDesc  = s.shortDesc || s.desc || ''
+                const items    = s.items || []
+                const monthly  = s.amount || items.reduce((sum, it) => {
+                  if (it.type === 'consumable' && it.price && it.qty && it.dailyUse)
+                    return sum + (it.price / it.qty) * it.dailyUse * 30
+                  if (it.type === 'wear' && it.price && it.wearLifeWeeks)
+                    return sum + (it.price / it.wearLifeWeeks) * 4.33
+                  return sum
+                }, 0)
+                const catLabel = SET_CATEGORIES[s.category] || ''
                 return (
-                <div key={s.id} className="acc-set-card">
-                  <div className="acc-set-accent" style={{ background: s.color || 'var(--accent-green)' }} />
-                  <div className="acc-set-body">
-                    <div className="acc-set-top-row">
-                      <span className="acc-set-source">{s.meta || s.source || ''}</span>
-                      <span className={`visibility-badge ${s.pub ? 'public' : 'private'}`} style={{ fontSize: 9 }}>
-                        {s.draft ? 'Черновик' : s.pub ? 'Публичный' : 'Личный'}
-                      </span>
-                    </div>
-                    <div className="acc-set-name">{setName}</div>
-                    {setDesc ? (
-                      <div className="acc-set-tags" style={{ fontWeight: 400, fontSize: 11, color: 'var(--text-3)', textTransform: 'none', letterSpacing: 0 }}>
-                        {setDesc.slice(0, 80)}{setDesc.length > 80 ? '…' : ''}
+                  <div key={s.id} className="catalog-card">
+                    <div className="card-body">
+                      <div className="card-badges">
+                        {catLabel && <span className="card-item-tag">{catLabel}</span>}
+                        <span className={`visibility-badge ${s.draft ? 'draft' : s.pub ? 'public' : 'private'}`} style={{ fontSize: 9 }}>
+                          {s.draft ? 'Черновик' : s.pub ? 'Публичный' : 'Личный'}
+                        </span>
                       </div>
-                    ) : itemCount > 0 ? (
-                      <div className="acc-set-tags">
-                        <span className="acc-set-tag">{itemCount} позиций</span>
+                      <div>
+                        <div className="card-title">{setName}</div>
+                        {setDesc && <div className="card-desc">{setDesc}</div>}
                       </div>
-                    ) : null}
-                  </div>
-                  <div className="acc-set-footer">
-                    <span className="acc-set-amount">{s.amount || ''}</span>
-                    <span className="acc-set-period">{s.period || ''}</span>
-                  </div>
-                  <div className="acc-card-actions acc-card-actions-set">
-                    <button className="acc-btn-visibility" onClick={() => handleToggleSetVisibility(s)}
-                      title={s.pub ? 'Скрыть из каталога' : 'Опубликовать в каталоге'}>
-                      {s.pub ? (
-                        <>
-                          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
-                            <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
-                            <line x1="1" y1="1" x2="23" y2="23"/>
-                          </svg>
-                          Скрыть
-                        </>
-                      ) : (
-                        <>
-                          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                          </svg>
-                          Опубликовать
-                        </>
+                      {items.length > 0 && (
+                        <div className="card-items">
+                          {items.slice(0, 4).map((it, j) => <span key={j} className="card-item-tag">{it.name}</span>)}
+                          {items.length > 4 && <span className="card-item-more">+{items.length - 4}</span>}
+                        </div>
                       )}
-                    </button>
-                    <button className="acc-btn-edit" onClick={() => handleEditSet(s)}>
-                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                        <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                      </svg>
-                      Редактировать
-                    </button>
-                    <button className="acc-btn-delete" onClick={() => handleDeleteSet(s)}>
-                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-                      </svg>
-                      Удалить
-                    </button>
+                    </div>
+                    {monthly > 0 && (
+                      <div className="card-cost-row">
+                        <div className="card-cost-item card-cost-monthly">
+                          <div className="card-cost-val">{Math.round(monthly).toLocaleString('ru')} ₽</div>
+                          <div className="card-cost-lbl">в месяц</div>
+                        </div>
+                        <div className="card-cost-sep" />
+                        <div className="card-cost-item">
+                          <div className="card-cost-val">{items.length}</div>
+                          <div className="card-cost-lbl">позиций</div>
+                        </div>
+                      </div>
+                    )}
+                    <div className="card-bottom" onClick={e => e.stopPropagation()}>
+                      <button className="fa-action-btn" onClick={() => handleEditSet(s)}>
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                          <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                        </svg>
+                        Редактировать
+                      </button>
+                      <button className="fa-action-btn" onClick={() => handleToggleSetVisibility(s)}>
+                        {s.pub ? (
+                          <><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>Скрыть</>
+                        ) : (
+                          <><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Опубликовать</>
+                        )}
+                      </button>
+                      <div className="f-spacer" />
+                      <button className="fa-action-btn" style={{ color: 'var(--text-3)' }} onClick={() => handleDeleteSet(s)}>
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                        </svg>
+                        Удалить
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )})}
+                )
+              })}
             </div>
           </div>
         )}
@@ -810,51 +949,7 @@ export default function Account() {
 
         {/* Subscriptions */}
         {tab === 'subs' && (
-          <div className="acc-panel">
-            <div className="panel-header">
-              <span className="panel-title">Авторы и блоги, на которые вы подписаны</span>
-            </div>
-            {subs.length === 0 && (
-              <div className="acc-empty">
-                <div className="acc-empty-icon">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
-                  </svg>
-                </div>
-                <div className="acc-empty-title">Нет подписок</div>
-                <div className="acc-empty-desc">Подписывайтесь на авторов, чтобы следить за их статьями и наборами</div>
-              </div>
-            )}
-            <div className="subs-grid">
-              {subs.map((s, i) => (
-                <div key={i} className="subscription-card"
-                  onClick={() => navigate('/author/' + (s.handle || '').replace('@', ''), { state: s })}>
-                  <div className="subscription-top">
-                    <div className="subscription-avatar" style={{ background: s.color || '#4E8268' }}>
-                      {s.ini || (s.name || '?')[0].toUpperCase()}
-                    </div>
-                    <div className="subscription-info">
-                      <div className="subscription-name">{s.name}</div>
-                      {s.handle && <div className="subscription-handle">{s.handle}</div>}
-                    </div>
-                  </div>
-                  {(s.bio || s.desc) && (
-                    <div className="subscription-bio">{s.bio || s.desc}</div>
-                  )}
-                  <div className="subscription-bottom" onClick={e => e.stopPropagation()}>
-                    <div className="subscription-stats">
-                      {s.followers && s.followers !== '—' && <span>{s.followers} подписчиков</span>}
-                      {s.articles > 0 && <span>{s.articles} статей</span>}
-                      {s.sets > 0 && <span>{s.sets} наборов</span>}
-                    </div>
-                    <button className="acc-btn-unsub" onClick={() => handleUnsubscribe(s)}>
-                      Отменить подписку
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <SubsTab subs={subs} onUnsub={handleUnsubscribe} navigate={navigate} />
         )}
 
       </main>
