@@ -1792,7 +1792,7 @@ body.dark .visibility-badge.public { background: #1A2820; color: #7AAF96; border
 .pa-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
 .pa-rating {
   display: flex; align-items: center; gap: 4px;
-  font-size: 12px; font-weight: 700; color: #B08840;
+  font-size: 14px; font-weight: 700; color: #B08840; font-family: var(--mono);
   font-family: var(--mono);
 }
 .pa-sub-btn { font-size: 11px !important; padding: 4px 12px !important; height: auto !important; }

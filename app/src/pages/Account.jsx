@@ -166,10 +166,7 @@ function AccWhisperCard({ w, onDelete }) {
           </svg>
           {comments.length > 0 ? comments.length : 'Комментарии'}
         </button>
-        <button className="fa-action-btn" style={{ color: 'var(--text-3)' }} onClick={() => onDelete(w)}>
-          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-          </svg>
+        <button className="acc-btn-visibility acc-btn-delete-gray" onClick={() => onDelete(w)}>
           Удалить
         </button>
       </div>
@@ -306,11 +303,14 @@ function SubsTab({ subs, onUnsub, navigate }) {
                   </div>
                 </div>
                 <div className="pa-right" onClick={e => e.stopPropagation()}>
-                  <div className="pa-rating">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                    </svg>
-                    {a.rating}
+                  <div className="pa-stat-row" style={{ alignItems: 'flex-end' }}>
+                    <div className="pa-rating">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                      {a.rating}
+                    </div>
+                    <div className="pa-stat-lbl">рейтинг</div>
                   </div>
                   {isSubscribed ? (
                     <button className="acc-btn-unsub pa-sub-btn">Подписан</button>
@@ -353,6 +353,8 @@ export default function Account() {
 
   const [artTypeFilter, setArtTypeFilter] = useState(null)  // null | 'public' | 'private' | 'draft'
   const [artCatFilter,  setArtCatFilter]  = useState(null)
+  const [setTypeFilter, setSetTypeFilter] = useState(null)
+  const [setCatFilter,  setSetCatFilter]  = useState(null)
 
   const [toast, showToast] = useToast()
 
@@ -759,6 +761,42 @@ export default function Account() {
             </div>
 
 
+            {sets.length > 0 && (() => {
+              const SET_TYPE_FILTERS = [
+                { id: null,      label: 'Все' },
+                { id: 'public',  label: 'Публичный' },
+                { id: 'private', label: 'Личный' },
+                { id: 'draft',   label: 'Черновик' },
+              ]
+              const byType = setTypeFilter === null ? sets
+                : setTypeFilter === 'public'  ? sets.filter(s => s.pub && !s.draft)
+                : setTypeFilter === 'private' ? sets.filter(s => !s.pub && !s.draft)
+                : sets.filter(s => !!s.draft)
+              const availCats = [...new Set(byType.map(s => s.category).filter(Boolean))]
+              return (
+                <div className="acc-filters">
+                  <div className="acc-filter-row">
+                    {SET_TYPE_FILTERS.map(f => (
+                      <button key={String(f.id)} className={`acc-filter-pill${setTypeFilter === f.id ? ' active' : ''}`}
+                        onClick={() => { setSetTypeFilter(f.id); setSetCatFilter(null) }}>
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                  {setTypeFilter !== null && availCats.length > 0 && (
+                    <div className="acc-filter-row acc-filter-row--cats">
+                      {availCats.map(cat => (
+                        <button key={cat} className={`acc-filter-pill acc-filter-pill--cat${setCatFilter === cat ? ' active' : ''}`}
+                          onClick={() => setSetCatFilter(prev => prev === cat ? null : cat)}>
+                          {SET_CATEGORIES[cat] || cat}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
+
             {sets.length === 0 && (
               <div className="acc-empty">
                 <div className="acc-empty-icon">
@@ -772,7 +810,14 @@ export default function Account() {
             )}
 
             <div className="catalog-grid">
-              {sets.map((s) => {
+              {(() => {
+                const byType = setTypeFilter === null ? sets
+                  : setTypeFilter === 'public'  ? sets.filter(s => s.pub && !s.draft)
+                  : setTypeFilter === 'private' ? sets.filter(s => !s.pub && !s.draft)
+                  : sets.filter(s => !!s.draft)
+                const filtered = setCatFilter ? byType.filter(s => s.category === setCatFilter) : byType
+                return filtered
+              })().map((s) => {
                 const setName  = s.title || s.name || 'Без названия'
                 const setDesc  = s.shortDesc || s.desc || ''
                 const items    = s.items || []
@@ -818,24 +863,16 @@ export default function Account() {
                       </div>
                     )}
                     <div className="card-bottom" onClick={e => { e.stopPropagation(); e.preventDefault(); }}>
-                      <button className="fa-action-btn" onClick={() => handleEditSet(s)}>
-                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                          <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                        </svg>
-                        Редактировать
-                      </button>
-                      <button className="fa-action-btn" onClick={() => handleToggleSetVisibility(s)}>
-                        {s.pub ? (
-                          <><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>Скрыть</>
-                        ) : (
-                          <><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Опубликовать</>
-                        )}
-                      </button>
+                      {!s.pub && (
+                        <button className="fa-action-btn" onClick={() => handleEditSet(s)}>
+                          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                          </svg>
+                          Редактировать
+                        </button>
+                      )}
                       <div className="f-spacer" />
-                      <button className="fa-action-btn" style={{ color: 'var(--text-3)' }} onClick={() => handleDeleteSet(s)}>
-                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-                        </svg>
+                      <button className="acc-btn-visibility acc-btn-delete-gray" onClick={() => handleDeleteSet(s)}>
                         Удалить
                       </button>
                     </div>
