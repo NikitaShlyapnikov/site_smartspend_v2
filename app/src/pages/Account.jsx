@@ -78,6 +78,226 @@ function useToast() {
   return [msg, show]
 }
 
+// ── Set card action buttons (mirrors Catalog.jsx) ────────────────────────────
+
+const EMOJI_ANIM = { '🔥':'fire','😂':'laugh','💡':'bulb','🤯':'mindblown','💸':'money','👏':'clap','❤️':'heart','✨':'sparkle','🎉':'party','💪':'flex' }
+const EMOJI_DUR  = { fire:900, laugh:650, bulb:1400, mindblown:1100, money:1000, clap:500, heart:1000, sparkle:1200, party:750, flex:1100 }
+
+function SLikeBtn({ liked, count, onToggle }) {
+  const [anim, setAnim] = useState(false)
+  const [sparks, setSparks] = useState([])
+  function handleClick(e) {
+    e.stopPropagation()
+    setAnim(true); setTimeout(() => setAnim(false), 480)
+    if (!liked) {
+      const s = Array.from({ length: 6 }, (_, i) => ({ id: Date.now() + i, angle: i * 60 + Math.random() * 18 - 9, dist: 16 + Math.random() * 8 }))
+      setSparks(s); setTimeout(() => setSparks([]), 560)
+    }
+    onToggle()
+  }
+  return (
+    <div className="action-wrap">
+      <button className={`fa-action-btn${liked ? ' liked' : ''}${anim ? ' like-pop' : ''}`} onClick={handleClick} title="Нравится">
+        <svg width="16" height="16" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+          <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+        </svg>
+        {count}
+      </button>
+      {sparks.map(s => <span key={s.id} className="like-spark" style={{ '--angle': `${s.angle}deg`, '--dist': `${s.dist}px` }}>✦</span>)}
+    </div>
+  )
+}
+
+function SDislikeBtn({ disliked, onToggle }) {
+  const [anim, setAnim] = useState(false)
+  function handleClick(e) { e.stopPropagation(); setAnim(true); setTimeout(() => setAnim(false), 420); onToggle() }
+  return (
+    <button className={`fa-action-btn fa-action-dislike${disliked ? ' active' : ''}${anim ? ' dislike-shake' : ''}`} onClick={handleClick} title="Не нравится">
+      <svg width="16" height="16" fill={disliked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+        <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+      </svg>
+    </button>
+  )
+}
+
+function SBookmarkBtn({ bookmarked, onToggle }) {
+  const [anim, setAnim] = useState(false)
+  const [fly,  setFly]  = useState(false)
+  function handleClick(e) {
+    e.stopPropagation(); setAnim(true); setTimeout(() => setAnim(false), 420)
+    if (!bookmarked) { setFly(true); setTimeout(() => setFly(false), 520) }
+    onToggle()
+  }
+  return (
+    <div className="action-wrap">
+      <button className={`fa-action-btn fa-action-bookmark${bookmarked ? ' active' : ''}${anim ? ' bookmark-snap' : ''}`} onClick={handleClick} title="В избранное">
+        <svg width="16" height="16" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+        </svg>
+      </button>
+      {fly && <span className="bookmark-fly">🔖</span>}
+    </div>
+  )
+}
+
+function SReactionPill({ emoji, count, active, onToggle }) {
+  const [popping, setPopping] = useState(false)
+  const [emojiAnim, setEmojiAnim] = useState(false)
+  const [particles, setParticles] = useState([])
+  function handleClick(e) {
+    e.stopPropagation(); setPopping(true); setTimeout(() => setPopping(false), 400)
+    const key = EMOJI_ANIM[emoji]
+    if (key) { setEmojiAnim(true); setTimeout(() => setEmojiAnim(false), EMOJI_DUR[key] + 50) }
+    if (!active) {
+      const newP = Array.from({ length: 6 }, (_, i) => ({ id: Date.now() + i, angle: i * 60 + Math.random() * 20 - 10, dist: 22 + Math.random() * 10 }))
+      setParticles(newP); setTimeout(() => setParticles([]), 600)
+    }
+    onToggle(emoji)
+  }
+  return (
+    <div className="r-pill-wrap">
+      <button className={`fa-reaction${active ? ' active' : ''}${popping ? ' popping' : ''}`} onClick={handleClick}>
+        <span className={`r-emoji${emojiAnim && EMOJI_ANIM[emoji] ? ` r-emoji--${EMOJI_ANIM[emoji]}` : ''}`}>{emoji}</span>
+        <span className="r-count">{count}</span>
+      </button>
+      {particles.map(p => <span key={p.id} className="r-particle" style={{ '--angle': `${p.angle}deg`, '--dist': `${p.dist}px` }}>{emoji}</span>)}
+    </div>
+  )
+}
+
+// ── AccSetCard — public-style catalog card with interactions ──────────────────
+
+function AccSetCard({ s, onDelete, onEdit, navigate }) {
+  const [liked,      setLiked]      = useState(false)
+  const [disliked,   setDisliked]   = useState(false)
+  const [bookmarked, setBookmarked] = useState(false)
+  const [myReactions, setMyReactions] = useState(new Set())
+
+  const items    = s.items || []
+  const setName  = s.title || s.name || 'Без названия'
+  const setDesc  = s.shortDesc || s.desc || ''
+  const catLabel = SET_CATEGORIES[s.category] || ''
+  const monthly  = s.amount || items.reduce((sum, it) => {
+    if (it.type === 'consumable' && it.price && it.qty && it.dailyUse)
+      return sum + (it.price / it.qty) * it.dailyUse * 30
+    if (it.type === 'wear' && it.price && it.wearLifeWeeks)
+      return sum + (it.price / it.wearLifeWeeks) * 4.33
+    return sum
+  }, 0)
+  const totalCost = items.reduce((sum, it) => sum + (it.price || 0), 0)
+
+  const reactions = (s.reactions || [
+    { emoji: '🔥', count: 3 }, { emoji: '💡', count: 1 },
+  ])
+  function toggleReaction(emoji) {
+    setMyReactions(prev => {
+      const next = new Set(prev)
+      next.has(emoji) ? next.delete(emoji) : next.add(emoji)
+      return next
+    })
+  }
+
+  const likes    = (s.likes || 0) + (liked ? 1 : 0)
+  const comments = s.comments || 0
+
+  return (
+    <div className="catalog-card" style={{ cursor: 'pointer' }} onClick={() => navigate(`/set/${s.id}`)}>
+      <div className="card-body">
+        <div className="card-badges">
+          {catLabel && <span className="card-item-tag">{catLabel}</span>}
+          <span className={`visibility-badge ${s.draft ? 'draft' : s.pub ? 'public' : 'private'}`} style={{ fontSize: 9 }}>
+            {s.draft ? 'Черновик' : s.pub ? 'Публичный' : 'Личный'}
+          </span>
+        </div>
+        <div>
+          <div className="card-title">{setName}</div>
+          {setDesc && <div className="card-desc">{setDesc}</div>}
+        </div>
+        {items.length > 0 && (
+          <div className="card-items">
+            {items.slice(0, 4).map((it, j) => <span key={j} className="card-item-tag">{it.name}</span>)}
+            {items.length > 4 && <span className="card-item-more">+{items.length - 4}</span>}
+          </div>
+        )}
+      </div>
+
+      {/* Cost row — shown for public sets or when cost is known */}
+      {(s.pub || monthly > 0) && (
+        <div className="card-cost-row">
+          {monthly > 0 && (
+            <>
+              <div className="card-cost-item card-cost-monthly">
+                <div className="card-cost-val">{Math.round(monthly).toLocaleString('ru')} ₽</div>
+                <div className="card-cost-lbl">в месяц</div>
+              </div>
+              <div className="card-cost-sep" />
+            </>
+          )}
+          <div className="card-cost-item">
+            <div className="card-cost-val">{items.length}</div>
+            <div className="card-cost-lbl">позиций</div>
+          </div>
+          {totalCost > 0 && (
+            <>
+              <div className="card-cost-sep" />
+              <div className="card-cost-item">
+                <div className="card-cost-val">{totalCost.toLocaleString('ru')} ₽</div>
+                <div className="card-cost-lbl">общая стоимость</div>
+              </div>
+            </>
+          )}
+          {s.pub && (
+            <>
+              <div className="card-cost-sep" />
+              <div className="card-cost-item">
+                <div className="card-cost-val">{(s.users || 0).toLocaleString('ru')}</div>
+                <div className="card-cost-lbl">подписчиков</div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      <div className="card-bottom" onClick={e => { e.stopPropagation(); e.preventDefault() }}>
+        <SLikeBtn liked={liked} count={likes} onToggle={() => { if (disliked) setDisliked(false); setLiked(v => !v) }} />
+        {comments > 0 && (
+          <button className="fa-action-stat fa-action-stat--btn" onClick={() => navigate(`/set/${s.id}`)}>
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            {comments}
+          </button>
+        )}
+        <SDislikeBtn disliked={disliked} onToggle={() => { if (liked) setLiked(false); setDisliked(v => !v) }} />
+        <SBookmarkBtn bookmarked={bookmarked} onToggle={() => setBookmarked(v => !v)} />
+        {reactions.length > 0 && (
+          <>
+            <span className="fa-reactions-sep" />
+            {reactions.map(r => (
+              <SReactionPill key={r.emoji} emoji={r.emoji} count={r.count + (myReactions.has(r.emoji) ? 1 : 0)}
+                active={myReactions.has(r.emoji)} onToggle={toggleReaction} />
+            ))}
+          </>
+        )}
+        <div className="f-spacer" />
+        {!s.pub && !s.draft && (
+          <button className="fa-action-btn" onClick={e => { e.stopPropagation(); onEdit(s) }}>
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+              <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+            Редактировать
+          </button>
+        )}
+        <button className="acc-btn-visibility acc-btn-delete-gray" onClick={e => { e.stopPropagation(); onDelete(s) }}>
+          Удалить
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ── Inline whisper card with expandable comments ──────────────────────────────
 
 function AccWhisperCard({ w, onDelete }) {
@@ -202,12 +422,31 @@ function AccWhisperCard({ w, onDelete }) {
 // ── Popular authors mock data ─────────────────────────────────────────────────
 
 const POPULAR_AUTHORS = [
-  { id: 'pa1', name: 'Алина Морозова',  handle: '@alina_m',    ini: 'АМ', color: '#4E8268', bio: 'Рационализирую быт и бюджет. Веду учёт расходов уже 4 года.',         followers: 4812, articles: 38, sets: 12, rating: 98 },
-  { id: 'pa2', name: 'Дмитрий Ковалёв', handle: '@dm_kovalev',  ini: 'ДК', color: '#5B8FD4', bio: 'Финансовый аналитик. Пишу про инвестиции и осознанные покупки.',       followers: 3240, articles: 55, sets: 8,  rating: 95 },
-  { id: 'pa3', name: 'Мария Иванова',   handle: '@mari_smart',  ini: 'МИ', color: '#B08840', bio: 'Составляю наборы для семейного бюджета и экономии на продуктах.',       followers: 2890, articles: 22, sets: 19, rating: 92 },
-  { id: 'pa4', name: 'Сергей Попов',    handle: '@s_popov',     ini: 'СП', color: '#7B5EA7', bio: 'Минимализм и осознанное потребление. Каталогизирую вещи и расходы.',    followers: 2150, articles: 17, sets: 31, rating: 89 },
-  { id: 'pa5', name: 'Ольга Смирнова',  handle: '@olga_saves',  ini: 'ОС', color: '#B85555', bio: 'Мама троих детей. Делюсь лайфхаками по экономии и планированию.',      followers: 1920, articles: 41, sets: 14, rating: 86 },
-  { id: 'pa6', name: 'Артём Зайцев',    handle: '@artem_z',     ini: 'АЗ', color: '#4E7090', bio: 'IT-специалист. Автоматизирую личные финансы и делюсь инструментами.',   followers: 1680, articles: 29, sets: 7,  rating: 83 },
+  { id: 'pa1',  name: 'Алина Морозова',    handle: '@alina_m',      ini: 'АМ', color: '#4E8268', category: 'budget',    bio: 'Рационализирую быт и бюджет. Веду учёт расходов уже 4 года.',              followers: 4812, articles: 38, sets: 12, rating: 98 },
+  { id: 'pa2',  name: 'Дмитрий Ковалёв',  handle: '@dm_kovalev',    ini: 'ДК', color: '#5B8FD4', category: 'finance',   bio: 'Финансовый аналитик. Пишу про инвестиции и осознанные покупки.',          followers: 3240, articles: 55, sets: 8,  rating: 95 },
+  { id: 'pa3',  name: 'Мария Иванова',     handle: '@mari_smart',    ini: 'МИ', color: '#B08840', category: 'food',      bio: 'Составляю наборы для семейного бюджета и экономии на продуктах.',        followers: 2890, articles: 22, sets: 19, rating: 92 },
+  { id: 'pa4',  name: 'Сергей Попов',      handle: '@s_popov',       ini: 'СП', color: '#7B5EA7', category: 'clothes',   bio: 'Минимализм и осознанное потребление. Каталогизирую вещи и расходы.',     followers: 2150, articles: 17, sets: 31, rating: 89 },
+  { id: 'pa5',  name: 'Ольга Смирнова',    handle: '@olga_saves',    ini: 'ОС', color: '#B85555', category: 'family',    bio: 'Мама троих детей. Делюсь лайфхаками по экономии и планированию.',       followers: 1920, articles: 41, sets: 14, rating: 86 },
+  { id: 'pa6',  name: 'Артём Зайцев',      handle: '@artem_z',       ini: 'АЗ', color: '#4E7090', category: 'tech',      bio: 'IT-специалист. Автоматизирую личные финансы и делюсь инструментами.',   followers: 1680, articles: 29, sets: 7,  rating: 83 },
+  { id: 'pa7',  name: 'Наталья Фёдорова',  handle: '@natasha_food',  ini: 'НФ', color: '#C07840', category: 'food',      bio: 'Готовлю вкусно и экономно. Делюсь рецептами и списками покупок.',        followers: 1540, articles: 33, sets: 22, rating: 81 },
+  { id: 'pa8',  name: 'Павел Орлов',       handle: '@pavel_wear',    ini: 'ПО', color: '#6B8E6B', category: 'clothes',   bio: 'Мужской гардероб без переплат. Качественные базовые вещи надолго.',      followers: 1320, articles: 19, sets: 27, rating: 78 },
+  { id: 'pa9',  name: 'Екатерина Белова',  handle: '@kate_home',     ini: 'ЕБ', color: '#9E6B9E', category: 'home',      bio: 'Обустраиваю дом с умом. Сравниваю технику и товары для быта.',          followers: 1180, articles: 26, sets: 18, rating: 75 },
+  { id: 'pa10', name: 'Иван Соколов',      handle: '@ivan_travel',   ini: 'ИС', color: '#4E8AAA', category: 'travel',    bio: 'Путешествую бюджетно. Составляю наборы для поездок и отпусков.',        followers: 1050, articles: 14, sets: 11, rating: 72 },
+  { id: 'pa11', name: 'Юлия Николаева',    handle: '@julia_health',  ini: 'ЮН', color: '#A04868', category: 'health',    bio: 'Здоровый образ жизни без лишних трат. Спорт и питание в рамках бюджета.', followers: 980,  articles: 21, sets: 16, rating: 70 },
+  { id: 'pa12', name: 'Максим Козлов',     handle: '@max_finance',   ini: 'МК', color: '#557A55', category: 'finance',   bio: 'Веду семейный бюджет 6 лет. Таблицы, приложения, лайфхаки экономии.',   followers: 870,  articles: 18, sets: 9,  rating: 67 },
+]
+
+const PA_CATEGORIES = [
+  { id: null,      label: 'Все' },
+  { id: 'food',    label: 'Еда' },
+  { id: 'clothes', label: 'Одежда' },
+  { id: 'finance', label: 'Финансы' },
+  { id: 'budget',  label: 'Бюджет' },
+  { id: 'home',    label: 'Дом' },
+  { id: 'health',  label: 'Здоровье' },
+  { id: 'travel',  label: 'Путешествия' },
+  { id: 'tech',    label: 'Технологии' },
+  { id: 'family',  label: 'Семья' },
 ]
 
 function fmtFollowers(n) {
@@ -217,6 +456,7 @@ function fmtFollowers(n) {
 
 function SubsTab({ subs, onUnsub, navigate }) {
   const [subsView, setSubsView] = useState('mine')
+  const [paCatFilter, setPaCatFilter] = useState(null)
   const subsSet = new Set(subs.map(s => s.handle))
 
   return (
@@ -276,7 +516,16 @@ function SubsTab({ subs, onUnsub, navigate }) {
 
       {subsView === 'popular' && (
         <div className="popular-authors-list">
-          {POPULAR_AUTHORS.map((a, i) => {
+          <div className="acc-filter-row acc-filter-row--cats" style={{ paddingBottom: 4 }}>
+            {PA_CATEGORIES.map(cat => (
+              <button
+                key={String(cat.id)}
+                className={`acc-filter-pill${paCatFilter === cat.id ? ' active' : ''}`}
+                onClick={() => setPaCatFilter(cat.id)}
+              >{cat.label}</button>
+            ))}
+          </div>
+          {(paCatFilter ? POPULAR_AUTHORS.filter(a => a.category === paCatFilter) : POPULAR_AUTHORS).map((a, i) => {
             const isSubscribed = subsSet.has(a.handle)
             return (
               <div key={a.id} className="popular-author-row"
@@ -817,68 +1066,12 @@ export default function Account() {
                   : sets.filter(s => !!s.draft)
                 const filtered = setCatFilter ? byType.filter(s => s.category === setCatFilter) : byType
                 return filtered
-              })().map((s) => {
-                const setName  = s.title || s.name || 'Без названия'
-                const setDesc  = s.shortDesc || s.desc || ''
-                const items    = s.items || []
-                const monthly  = s.amount || items.reduce((sum, it) => {
-                  if (it.type === 'consumable' && it.price && it.qty && it.dailyUse)
-                    return sum + (it.price / it.qty) * it.dailyUse * 30
-                  if (it.type === 'wear' && it.price && it.wearLifeWeeks)
-                    return sum + (it.price / it.wearLifeWeeks) * 4.33
-                  return sum
-                }, 0)
-                const catLabel = SET_CATEGORIES[s.category] || ''
-                return (
-                  <div key={s.id} className="catalog-card" style={{ cursor: 'pointer' }} onClick={() => navigate(`/set/${s.id}`)}>
-                    <div className="card-body">
-                      <div className="card-badges">
-                        {catLabel && <span className="card-item-tag">{catLabel}</span>}
-                        <span className={`visibility-badge ${s.draft ? 'draft' : s.pub ? 'public' : 'private'}`} style={{ fontSize: 9 }}>
-                          {s.draft ? 'Черновик' : s.pub ? 'Публичный' : 'Личный'}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="card-title">{setName}</div>
-                        {setDesc && <div className="card-desc">{setDesc}</div>}
-                      </div>
-                      {items.length > 0 && (
-                        <div className="card-items">
-                          {items.slice(0, 4).map((it, j) => <span key={j} className="card-item-tag">{it.name}</span>)}
-                          {items.length > 4 && <span className="card-item-more">+{items.length - 4}</span>}
-                        </div>
-                      )}
-                    </div>
-                    {monthly > 0 && (
-                      <div className="card-cost-row">
-                        <div className="card-cost-item card-cost-monthly">
-                          <div className="card-cost-val">{Math.round(monthly).toLocaleString('ru')} ₽</div>
-                          <div className="card-cost-lbl">в месяц</div>
-                        </div>
-                        <div className="card-cost-sep" />
-                        <div className="card-cost-item">
-                          <div className="card-cost-val">{items.length}</div>
-                          <div className="card-cost-lbl">позиций</div>
-                        </div>
-                      </div>
-                    )}
-                    <div className="card-bottom" onClick={e => { e.stopPropagation(); e.preventDefault(); }}>
-                      {!s.pub && (
-                        <button className="fa-action-btn" onClick={() => handleEditSet(s)}>
-                          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                          </svg>
-                          Редактировать
-                        </button>
-                      )}
-                      <div className="f-spacer" />
-                      <button className="acc-btn-visibility acc-btn-delete-gray" onClick={() => handleDeleteSet(s)}>
-                        Удалить
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
+              })().map(s => (
+                <AccSetCard key={s.id} s={s}
+                  onDelete={handleDeleteSet}
+                  onEdit={handleEditSet}
+                  navigate={navigate} />
+              ))}
             </div>
           </div>
         )}
