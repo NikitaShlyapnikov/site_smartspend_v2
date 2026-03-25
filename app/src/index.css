@@ -5173,6 +5173,18 @@ body.dark .note-display:hover { background: #252210; }
 }
 .md-help-row span { font-size: 12px; color: var(--text-2); }
 
+/* Items help panel (CreateSet) */
+.items-help-panel { width: 360px; padding: 14px; }
+.items-help-type { }
+.items-help-type-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+.items-help-type-desc { font-size: 12px; color: var(--text-2); line-height: 1.45; margin-bottom: 10px; }
+.items-help-examples { display: flex; flex-direction: column; gap: 5px; }
+.items-help-ex { display: flex; align-items: flex-start; gap: 7px; font-size: 12px; color: var(--text-2); line-height: 1.4; }
+.items-help-badge { font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; }
+.items-help-badge.ok  { background: rgba(94,148,120,0.15); color: #4E8268; }
+.items-help-badge.bad { background: rgba(200,72,72,0.12);  color: #C84848; }
+.items-help-divider { height: 1px; background: var(--border); margin: 12px 0; }
+
 /* HTML mode hint bar */
 .editor-html-hint {
   display: flex; align-items: center; justify-content: space-between;
