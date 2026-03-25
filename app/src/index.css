@@ -1797,6 +1797,28 @@ body.dark .visibility-badge.public { background: #1A2820; color: #7AAF96; border
 }
 .pa-sub-btn { font-size: 11px !important; padding: 4px 12px !important; height: auto !important; }
 
+/* Section header inside subs panel */
+.pa-section-header { padding: 14px 16px 8px; border-bottom: 1px solid var(--border); }
+.pa-section-title {
+  font-size: 13px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--text-3); margin-bottom: 8px; text-align: center;
+}
+
+/* Subscribe CTA button — whisper-add-cta style */
+.pa-sub-cta {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 5px 12px; border-radius: var(--r-sm);
+  border: 1.5px dashed var(--border); background: transparent;
+  color: var(--text-2); font-size: 11px; font-weight: 500; font-family: var(--sans);
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.pa-sub-cta:hover { border-color: var(--accent-green); color: var(--accent-green); background: var(--accent-green-bg); }
+.pa-sub-cta--active {
+  border-style: solid; border-color: var(--border);
+  color: var(--text-3); background: var(--surface-2); cursor: default;
+}
+body.dark .pa-sub-cta:hover { background: rgba(106,175,142,.08); }
+
 /* Legacy (keep for compatibility) */
 .btn-sm {
   padding: 6px 14px; border-radius: 8px;

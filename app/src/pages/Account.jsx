@@ -170,9 +170,8 @@ function SReactionPill({ emoji, count, active, onToggle }) {
 // ── AccSetCard — public-style catalog card with interactions ──────────────────
 
 function AccSetCard({ s, onDelete, onEdit, navigate }) {
-  const [liked,      setLiked]      = useState(false)
-  const [disliked,   setDisliked]   = useState(false)
-  const [bookmarked, setBookmarked] = useState(false)
+  const [liked,       setLiked]      = useState(false)
+  const [disliked,    setDisliked]   = useState(false)
   const [myReactions, setMyReactions] = useState(new Set())
 
   const items    = s.items || []
@@ -223,8 +222,8 @@ function AccSetCard({ s, onDelete, onEdit, navigate }) {
         )}
       </div>
 
-      {/* Cost row — shown for public sets or when cost is known */}
-      {(s.pub || monthly > 0) && (
+      {/* Cost row — shown when there are items */}
+      {items.length > 0 && (
         <div className="card-cost-row">
           {monthly > 0 && (
             <>
@@ -261,24 +260,25 @@ function AccSetCard({ s, onDelete, onEdit, navigate }) {
       )}
 
       <div className="card-bottom" onClick={e => { e.stopPropagation(); e.preventDefault() }}>
-        <SLikeBtn liked={liked} count={likes} onToggle={() => { if (disliked) setDisliked(false); setLiked(v => !v) }} />
-        {comments > 0 && (
-          <button className="fa-action-stat fa-action-stat--btn" onClick={() => navigate(`/set/${s.id}`)}>
-            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            {comments}
-          </button>
-        )}
-        <SDislikeBtn disliked={disliked} onToggle={() => { if (liked) setLiked(false); setDisliked(v => !v) }} />
-        <SBookmarkBtn bookmarked={bookmarked} onToggle={() => setBookmarked(v => !v)} />
-        {reactions.length > 0 && (
+        {s.pub && (
           <>
-            <span className="fa-reactions-sep" />
-            {reactions.map(r => (
-              <SReactionPill key={r.emoji} emoji={r.emoji} count={r.count + (myReactions.has(r.emoji) ? 1 : 0)}
-                active={myReactions.has(r.emoji)} onToggle={toggleReaction} />
-            ))}
+            <SLikeBtn liked={liked} count={likes} onToggle={() => { if (disliked) setDisliked(false); setLiked(v => !v) }} />
+            <button className="fa-action-stat fa-action-stat--btn" onClick={() => navigate(`/set/${s.id}`)}>
+              <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              {comments > 0 ? comments : ''}
+            </button>
+            <SDislikeBtn disliked={disliked} onToggle={() => { if (liked) setLiked(false); setDisliked(v => !v) }} />
+            {reactions.length > 0 && (
+              <>
+                <span className="fa-reactions-sep" />
+                {reactions.map(r => (
+                  <SReactionPill key={r.emoji} emoji={r.emoji} count={r.count + (myReactions.has(r.emoji) ? 1 : 0)}
+                    active={myReactions.has(r.emoji)} onToggle={toggleReaction} />
+                ))}
+              </>
+            )}
           </>
         )}
         <div className="f-spacer" />
@@ -422,32 +422,27 @@ function AccWhisperCard({ w, onDelete }) {
 // ── Popular authors mock data ─────────────────────────────────────────────────
 
 const POPULAR_AUTHORS = [
-  { id: 'pa1',  name: 'Алина Морозова',    handle: '@alina_m',      ini: 'АМ', color: '#4E8268', category: 'budget',    bio: 'Рационализирую быт и бюджет. Веду учёт расходов уже 4 года.',              followers: 4812, articles: 38, sets: 12, rating: 98 },
-  { id: 'pa2',  name: 'Дмитрий Ковалёв',  handle: '@dm_kovalev',    ini: 'ДК', color: '#5B8FD4', category: 'finance',   bio: 'Финансовый аналитик. Пишу про инвестиции и осознанные покупки.',          followers: 3240, articles: 55, sets: 8,  rating: 95 },
+  { id: 'pa1',  name: 'Алина Морозова',    handle: '@alina_m',      ini: 'АМ', color: '#4E8268', category: 'other',     bio: 'Рационализирую быт и бюджет. Веду учёт расходов уже 4 года.',              followers: 4812, articles: 38, sets: 12, rating: 98 },
+  { id: 'pa2',  name: 'Дмитрий Ковалёв',  handle: '@dm_kovalev',    ini: 'ДК', color: '#5B8FD4', category: 'other',     bio: 'Финансовый аналитик. Пишу про инвестиции и осознанные покупки.',          followers: 3240, articles: 55, sets: 8,  rating: 95 },
   { id: 'pa3',  name: 'Мария Иванова',     handle: '@mari_smart',    ini: 'МИ', color: '#B08840', category: 'food',      bio: 'Составляю наборы для семейного бюджета и экономии на продуктах.',        followers: 2890, articles: 22, sets: 19, rating: 92 },
   { id: 'pa4',  name: 'Сергей Попов',      handle: '@s_popov',       ini: 'СП', color: '#7B5EA7', category: 'clothes',   bio: 'Минимализм и осознанное потребление. Каталогизирую вещи и расходы.',     followers: 2150, articles: 17, sets: 31, rating: 89 },
-  { id: 'pa5',  name: 'Ольга Смирнова',    handle: '@olga_saves',    ini: 'ОС', color: '#B85555', category: 'family',    bio: 'Мама троих детей. Делюсь лайфхаками по экономии и планированию.',       followers: 1920, articles: 41, sets: 14, rating: 86 },
-  { id: 'pa6',  name: 'Артём Зайцев',      handle: '@artem_z',       ini: 'АЗ', color: '#4E7090', category: 'tech',      bio: 'IT-специалист. Автоматизирую личные финансы и делюсь инструментами.',   followers: 1680, articles: 29, sets: 7,  rating: 83 },
+  { id: 'pa5',  name: 'Ольга Смирнова',    handle: '@olga_saves',    ini: 'ОС', color: '#B85555', category: 'education', bio: 'Мама троих детей. Делюсь лайфхаками по экономии и планированию.',       followers: 1920, articles: 41, sets: 14, rating: 86 },
+  { id: 'pa6',  name: 'Артём Зайцев',      handle: '@artem_z',       ini: 'АЗ', color: '#4E7090', category: 'leisure',   bio: 'IT-специалист. Автоматизирую личные финансы и делюсь инструментами.',   followers: 1680, articles: 29, sets: 7,  rating: 83 },
   { id: 'pa7',  name: 'Наталья Фёдорова',  handle: '@natasha_food',  ini: 'НФ', color: '#C07840', category: 'food',      bio: 'Готовлю вкусно и экономно. Делюсь рецептами и списками покупок.',        followers: 1540, articles: 33, sets: 22, rating: 81 },
   { id: 'pa8',  name: 'Павел Орлов',       handle: '@pavel_wear',    ini: 'ПО', color: '#6B8E6B', category: 'clothes',   bio: 'Мужской гардероб без переплат. Качественные базовые вещи надолго.',      followers: 1320, articles: 19, sets: 27, rating: 78 },
   { id: 'pa9',  name: 'Екатерина Белова',  handle: '@kate_home',     ini: 'ЕБ', color: '#9E6B9E', category: 'home',      bio: 'Обустраиваю дом с умом. Сравниваю технику и товары для быта.',          followers: 1180, articles: 26, sets: 18, rating: 75 },
   { id: 'pa10', name: 'Иван Соколов',      handle: '@ivan_travel',   ini: 'ИС', color: '#4E8AAA', category: 'travel',    bio: 'Путешествую бюджетно. Составляю наборы для поездок и отпусков.',        followers: 1050, articles: 14, sets: 11, rating: 72 },
   { id: 'pa11', name: 'Юлия Николаева',    handle: '@julia_health',  ini: 'ЮН', color: '#A04868', category: 'health',    bio: 'Здоровый образ жизни без лишних трат. Спорт и питание в рамках бюджета.', followers: 980,  articles: 21, sets: 16, rating: 70 },
-  { id: 'pa12', name: 'Максим Козлов',     handle: '@max_finance',   ini: 'МК', color: '#557A55', category: 'finance',   bio: 'Веду семейный бюджет 6 лет. Таблицы, приложения, лайфхаки экономии.',   followers: 870,  articles: 18, sets: 9,  rating: 67 },
+  { id: 'pa12', name: 'Максим Козлов',     handle: '@max_finance',   ini: 'МК', color: '#557A55', category: 'other',     bio: 'Веду семейный бюджет 6 лет. Таблицы, приложения, лайфхаки экономии.',   followers: 870,  articles: 18, sets: 9,  rating: 67 },
 ]
 
+// Only categories that appear in POPULAR_AUTHORS, using SET_CATEGORIES labels
 const PA_CATEGORIES = [
-  { id: null,      label: 'Все' },
-  { id: 'food',    label: 'Еда' },
-  { id: 'clothes', label: 'Одежда' },
-  { id: 'finance', label: 'Финансы' },
-  { id: 'budget',  label: 'Бюджет' },
-  { id: 'home',    label: 'Дом' },
-  { id: 'health',  label: 'Здоровье' },
-  { id: 'travel',  label: 'Путешествия' },
-  { id: 'tech',    label: 'Технологии' },
-  { id: 'family',  label: 'Семья' },
-]
+  { id: null },
+  ...Object.entries(SET_CATEGORIES)
+    .filter(([id]) => POPULAR_AUTHORS.some(a => a.category === id))
+    .map(([id, label]) => ({ id, label })),
+].map(c => c.id === null ? { id: null, label: 'Все' } : c)
 
 function fmtFollowers(n) {
   if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'K'
@@ -455,123 +450,118 @@ function fmtFollowers(n) {
 }
 
 function SubsTab({ subs, onUnsub, navigate }) {
-  const [subsView, setSubsView] = useState('mine')
   const [paCatFilter, setPaCatFilter] = useState(null)
   const subsSet = new Set(subs.map(s => s.handle))
+  const filteredAuthors = paCatFilter
+    ? POPULAR_AUTHORS.filter(a => a.category === paCatFilter)
+    : POPULAR_AUTHORS
 
   return (
     <div className="acc-panel">
-      <div className="panel-header">
-        <div className="subs-view-toggle">
-          <button className={`subs-view-btn${subsView === 'mine' ? ' active' : ''}`} onClick={() => setSubsView('mine')}>
-            Мои подписки
-          </button>
-          <button className={`subs-view-btn${subsView === 'popular' ? ' active' : ''}`} onClick={() => setSubsView('popular')}>
-            Популярные авторы
-          </button>
+
+      {/* ── Popular authors rating ── */}
+      <div className="pa-section-header">
+        <div className="pa-section-title">Рейтинг авторов</div>
+        <div className="acc-filter-row acc-filter-row--cats">
+          {PA_CATEGORIES.map(cat => (
+            <button
+              key={String(cat.id)}
+              className={`acc-filter-pill${paCatFilter === cat.id ? ' active' : ''}`}
+              onClick={() => setPaCatFilter(cat.id)}
+            >{cat.label}</button>
+          ))}
         </div>
       </div>
 
-      {subsView === 'mine' && (
-        <>
-          {subs.length === 0 && (
-            <div className="acc-empty">
-              <div className="acc-empty-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                  <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
-                </svg>
+      <div className="popular-authors-list">
+        {filteredAuthors.map((a, i) => {
+          const isSubscribed = subsSet.has(a.handle)
+          return (
+            <div key={a.id} className="popular-author-row"
+              onClick={() => navigate('/author/' + a.handle.replace('@', ''), { state: a })}>
+              <div className="pa-rank">{i + 1}</div>
+              <div className="pa-avatar" style={{ background: a.color }}>{a.ini}</div>
+              <div className="pa-info">
+                <div className="pa-name">{a.name}</div>
+                <div className="pa-handle">{a.handle}</div>
+                <div className="pa-bio">{a.bio}</div>
               </div>
-              <div className="acc-empty-title">Нет подписок</div>
-              <div className="acc-empty-desc">Подписывайтесь на авторов — их новые статьи и наборы будут появляться в вашей ленте</div>
+              <div className="pa-stats">
+                <div className="pa-stat-row">
+                  <span className="pa-stat-val">{fmtFollowers(a.followers)}</span>
+                  <span className="pa-stat-lbl">подписчиков</span>
+                </div>
+                <div className="pa-stat-row">
+                  <span className="pa-stat-val">{a.articles}</span>
+                  <span className="pa-stat-lbl">статей</span>
+                </div>
+                <div className="pa-stat-row">
+                  <span className="pa-stat-val">{a.sets}</span>
+                  <span className="pa-stat-lbl">наборов</span>
+                </div>
+              </div>
+              <div className="pa-right" onClick={e => e.stopPropagation()}>
+                <div className="pa-stat-row" style={{ alignItems: 'flex-end' }}>
+                  <div className="pa-rating">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                    {a.rating}
+                  </div>
+                  <div className="pa-stat-lbl">рейтинг</div>
+                </div>
+                {isSubscribed ? (
+                  <button className="pa-sub-cta pa-sub-cta--active">Подписан</button>
+                ) : (
+                  <button className="pa-sub-cta">Подписаться</button>
+                )}
+              </div>
             </div>
-          )}
-          <div className="subs-grid">
-            {subs.map((s, i) => (
-              <div key={i} className="subscription-card"
-                onClick={() => navigate('/author/' + (s.handle || '').replace('@', ''), { state: s })}>
-                <div className="subscription-top">
-                  <div className="subscription-avatar" style={{ background: s.color || '#4E8268' }}>
-                    {s.ini || (s.name || '?')[0].toUpperCase()}
-                  </div>
-                  <div className="subscription-info">
-                    <div className="subscription-name">{s.name}</div>
-                    {s.handle && <div className="subscription-handle">{s.handle}</div>}
-                  </div>
-                </div>
-                {(s.bio || s.desc) && <div className="subscription-bio">{s.bio || s.desc}</div>}
-                <div className="subscription-bottom" onClick={e => e.stopPropagation()}>
-                  <div className="subscription-stats">
-                    {s.followers && s.followers !== '—' && <span>{s.followers} подписчиков</span>}
-                    {s.articles > 0 && <span>{s.articles} статей</span>}
-                    {s.sets > 0 && <span>{s.sets} наборов</span>}
-                  </div>
-                  <button className="acc-btn-unsub" onClick={() => onUnsub(s)}>Отменить подписку</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
+          )
+        })}
+      </div>
 
-      {subsView === 'popular' && (
-        <div className="popular-authors-list">
-          <div className="acc-filter-row acc-filter-row--cats" style={{ paddingBottom: 4 }}>
-            {PA_CATEGORIES.map(cat => (
-              <button
-                key={String(cat.id)}
-                className={`acc-filter-pill${paCatFilter === cat.id ? ' active' : ''}`}
-                onClick={() => setPaCatFilter(cat.id)}
-              >{cat.label}</button>
-            ))}
+      {/* ── My subscriptions ── */}
+      <div className="pa-section-header" style={{ marginTop: 8 }}>
+        <div className="pa-section-title">Мои подписки</div>
+      </div>
+
+      {subs.length === 0 ? (
+        <div className="acc-empty" style={{ paddingTop: 16, paddingBottom: 20 }}>
+          <div className="acc-empty-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+            </svg>
           </div>
-          {(paCatFilter ? POPULAR_AUTHORS.filter(a => a.category === paCatFilter) : POPULAR_AUTHORS).map((a, i) => {
-            const isSubscribed = subsSet.has(a.handle)
-            return (
-              <div key={a.id} className="popular-author-row"
-                onClick={() => navigate('/author/' + a.handle.replace('@', ''), { state: a })}>
-                <div className="pa-rank">{i + 1}</div>
-                <div className="pa-avatar" style={{ background: a.color }}>{a.ini}</div>
-                <div className="pa-info">
-                  <div className="pa-name">{a.name}</div>
-                  <div className="pa-handle">{a.handle}</div>
-                  <div className="pa-bio">{a.bio}</div>
+          <div className="acc-empty-title">Нет подписок</div>
+          <div className="acc-empty-desc">Подписывайтесь на авторов из рейтинга выше</div>
+        </div>
+      ) : (
+        <div className="subs-grid">
+          {subs.map((s, i) => (
+            <div key={i} className="subscription-card"
+              onClick={() => navigate('/author/' + (s.handle || '').replace('@', ''), { state: s })}>
+              <div className="subscription-top">
+                <div className="subscription-avatar" style={{ background: s.color || '#4E8268' }}>
+                  {s.ini || (s.name || '?')[0].toUpperCase()}
                 </div>
-                <div className="pa-stats">
-                  <div className="pa-stat-row">
-                    <span className="pa-stat-val">{fmtFollowers(a.followers)}</span>
-                    <span className="pa-stat-lbl">подписчиков</span>
-                  </div>
-                  <div className="pa-stat-row">
-                    <span className="pa-stat-val">{a.articles}</span>
-                    <span className="pa-stat-lbl">статей</span>
-                  </div>
-                  <div className="pa-stat-row">
-                    <span className="pa-stat-val">{a.sets}</span>
-                    <span className="pa-stat-lbl">наборов</span>
-                  </div>
-                </div>
-                <div className="pa-right" onClick={e => e.stopPropagation()}>
-                  <div className="pa-stat-row" style={{ alignItems: 'flex-end' }}>
-                    <div className="pa-rating">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                      </svg>
-                      {a.rating}
-                    </div>
-                    <div className="pa-stat-lbl">рейтинг</div>
-                  </div>
-                  {isSubscribed ? (
-                    <button className="acc-btn-unsub pa-sub-btn">Подписан</button>
-                  ) : (
-                    <button className="acc-btn-primary pa-sub-btn" style={{ fontSize: 11, padding: '4px 12px', height: 'auto' }}>
-                      Подписаться
-                    </button>
-                  )}
+                <div className="subscription-info">
+                  <div className="subscription-name">{s.name}</div>
+                  {s.handle && <div className="subscription-handle">{s.handle}</div>}
                 </div>
               </div>
-            )
-          })}
+              {(s.bio || s.desc) && <div className="subscription-bio">{s.bio || s.desc}</div>}
+              <div className="subscription-bottom" onClick={e => e.stopPropagation()}>
+                <div className="subscription-stats">
+                  {s.followers && s.followers !== '—' && <span>{s.followers} подписчиков</span>}
+                  {s.articles > 0 && <span>{s.articles} статей</span>}
+                  {s.sets > 0 && <span>{s.sets} наборов</span>}
+                </div>
+                <button className="acc-btn-unsub" onClick={() => onUnsub(s)}>Отменить</button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
