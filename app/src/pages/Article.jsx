@@ -749,8 +749,8 @@ export default function Article() {
           </>
         )}
 
-        {/* Notes block for own articles */}
-        {isMine && (
+        {/* Notes block for private own articles only */}
+        {isMine && !article.pub && (
           <div className="section-card">
             <div className="section-header">
               <div className="section-title">

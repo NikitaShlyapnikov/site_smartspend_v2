@@ -1,13 +1,6 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import Layout from '../components/Layout'
-import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
-
-const CS_SPOTLIGHT = [
-  { targetId: 'sp-cs-toolbar', btnId: 'sp-cs-publish', title: 'Панель инструментов', desc: 'Здесь кнопки предпросмотра и публикации набора. Сначала заполни состав и настройки, а потом нажми «Опубликовать».' },
-  { targetId: 'sp-cs-meta',    btnId: null,            title: 'Категория и видимость', desc: 'Выбери категорию набора и укажи, будет ли он публичным для сообщества или останется приватным.' },
-  { targetId: 'sp-cs-items',   btnId: null,            title: 'Позиции набора', desc: 'Добавляй товары или вещи в набор. Для каждой позиции укажи цену и срок службы — система посчитает ежемесячную амортизацию.' },
-]
 
 const CATEGORIES = [
   { id: 'other',      label: 'Прочие расходы'        },
@@ -32,7 +25,6 @@ function calcPerMonth(item) {
   }
 }
 
-// ── Точная копия AddItemForm из Inventory (без поля «Привязать к набору») ─────
 function AddItemForm({ onAdd, onCancel }) {
   const today = new Date().toISOString().slice(0, 10)
   const [form, setForm] = useState({
@@ -40,11 +32,6 @@ function AddItemForm({ onAdd, onCancel }) {
     wearLifeWeeks: '', purchaseDate: today, expectedPrice: '',
   })
   const set = k => v => setForm(p => ({ ...p, [k]: v }))
-
-  function handleSubmit() {
-    if (!form.name.trim() || !form.price) return
-    onAdd(form)
-  }
 
   return (
     <div className="inv-add-form">
@@ -118,14 +105,13 @@ function AddItemForm({ onAdd, onCancel }) {
       </div>
       <div className="inv-add-form-actions">
         <button className="inv-add-cancel" onClick={onCancel}>Отмена</button>
-        <button className="inv-add-submit" onClick={handleSubmit}
+        <button className="inv-add-submit" onClick={() => { if (!form.name.trim() || !form.price) return; onAdd(form) }}
           disabled={!form.name.trim() || !form.price}>Добавить</button>
       </div>
     </div>
   )
 }
 
-// ── Строка добавленной позиции ────────────────────────────────────────────────
 function SetItemRow({ item, onDelete }) {
   const pm = calcPerMonth(item)
   const meta = item.type === 'consumable'
@@ -154,18 +140,38 @@ function SetItemRow({ item, onDelete }) {
 
 export default function CreateSet() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const editId = searchParams.get('edit')
 
-  const [showSpotlight, setShowSpotlight] = useState(false)
-  const [preview,   setPreview]   = useState(false)
   const [title,     setTitle]     = useState('')
   const [shortDesc, setShortDesc] = useState('')
   const [introText, setIntroText] = useState('')
-  const [category,  setCategory]  = useState('clothes')
+  const [category,  setCategory]  = useState(null)
   const [isPublic,  setIsPublic]  = useState(false)
   const [items,     setItems]     = useState([])
   const [showForm,  setShowForm]  = useState(false)
+  const [catError,  setCatError]  = useState(false)
+  const [toast,     setToast]     = useState(null)
+
+  // Load for editing
+  useEffect(() => {
+    if (!editId) return
+    try {
+      const saved = JSON.parse(localStorage.getItem('ss_account_sets') || '[]')
+      const s = saved.find(x => x.id === editId)
+      if (!s) return
+      setTitle(s.title || '')
+      setShortDesc(s.shortDesc || '')
+      setIntroText(s.introText || '')
+      setCategory(s.category || null)
+      setIsPublic(!!s.pub)
+      setItems(s.items || [])
+    } catch {}
+  }, [editId])
 
   const totalPerMonth = items.reduce((s, it) => s + calcPerMonth(it), 0)
+
+  function showToast(msg) { setToast(msg); setTimeout(() => setToast(null), 2200) }
 
   function addItem(form) {
     setItems(prev => [...prev, { ...form, id: Date.now() }])
@@ -175,231 +181,166 @@ export default function CreateSet() {
     setItems(prev => prev.filter(it => it.id !== id))
   }
 
+  function saveSet(pub, asDraft = false) {
+    if (!title.trim()) { showToast('Введите название набора'); return false }
+    if (!asDraft && category === null) { setCatError(true); showToast('Выберите категорию'); return false }
+
+    const today = new Date().toLocaleDateString('ru', { day: 'numeric', month: 'long', year: 'numeric' })
+    const set = {
+      id:        editId || ('cs' + Date.now()),
+      title:     title.trim(),
+      shortDesc: shortDesc.trim(),
+      introText: introText.trim(),
+      category,
+      items,
+      meta:      today,
+      pub,
+      draft:     asDraft,
+    }
+
+    try {
+      const saved = JSON.parse(localStorage.getItem('ss_account_sets') || '[]')
+      if (editId) {
+        const idx = saved.findIndex(x => x.id === editId)
+        if (idx !== -1) saved[idx] = set; else saved.unshift(set)
+      } else {
+        saved.unshift(set)
+      }
+      localStorage.setItem('ss_account_sets', JSON.stringify(saved))
+    } catch { return false }
+    return true
+  }
+
+  function handlePublish() { if (saveSet(isPublic, false)) navigate('/account') }
+  function handleDraft()   { if (saveSet(false, true)) { showToast('Черновик сохранён'); setTimeout(() => navigate('/account'), 1000) } }
+
+  const catLabel = CATEGORIES.find(c => c.id === category)?.label
+  const visHint  = isPublic
+    ? 'Набор будет виден всем в каталоге — его смогут добавить другие пользователи.'
+    : 'Набор виден только вам — хранится в вашем аккаунте.'
+
   return (
     <Layout>
-      <main className="editor-main">
+      <main className="inventory-main">
 
-        {/* ── Toolbar ── */}
-        <div id="sp-cs-toolbar" className="editor-toolbar">
-          <div className="editor-format-bar">
-            <span className="editor-toolbar-title" style={{display:'flex',alignItems:'center',gap:8}}>
-              Создать набор
-              <HelpButton seenKey="ss_spl_createset" onOpen={() => setShowSpotlight(true)} />
-            </span>
+        {/* Header */}
+        <div className="inv-page-header">
+          <div>
+            <div className="page-title">{editId ? 'Редактировать набор' : 'Создать набор'}</div>
           </div>
-          <div className="editor-toolbar-right">
-            {items.length > 0 && (
-              <span className="editor-counter">
-                {items.length} поз.{totalPerMonth > 0 && ` · ${Math.round(totalPerMonth).toLocaleString('ru')} ₽/мес`}
-              </span>
-            )}
-            <button className={`btn-preview-toggle${preview ? ' active' : ''}`} onClick={() => setPreview(p => !p)}>
-              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-              </svg>
-              {preview ? 'Редактор' : 'Предпросмотр'}
-            </button>
-            <button id="sp-cs-publish" className="btn-publish" onClick={() => navigate('/catalog')}>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn-edit-mode" onClick={handleDraft}>Сохранить черновик</button>
+            <button className="btn-publish" onClick={handlePublish}>
               {isPublic ? 'Опубликовать' : 'Сохранить'}
             </button>
           </div>
         </div>
 
-        <div className="editor-scroll">
+        {/* Visibility */}
+        <div className="editor-field-block">
+          <div className="editor-field-label">Видимость</div>
+          <div className="visibility-toggle">
+            <button className={`visibility-btn${!isPublic ? ' active' : ''}`} onClick={() => setIsPublic(false)}>
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+              </svg>
+              Личная
+            </button>
+            <button className={`visibility-btn${isPublic ? ' active' : ''}`} onClick={() => setIsPublic(true)}>
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+              </svg>
+              Публичная
+            </button>
+          </div>
+          <div className="editor-visibility-hint">{visHint}</div>
+        </div>
 
-          {preview ? (
-            /* ══════════════════ PREVIEW MODE ══════════════════ */
-            <div className="editor-preview-article" style={{ paddingTop: 24 }}>
+        {/* Category */}
+        <div className="editor-field-block">
+          <div className="editor-field-label" style={catError ? { color: '#C84848' } : {}}>
+            Категория
+            {catError && <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: 6 }}>— обязательно</span>}
+          </div>
+          <div className="editor-cats">
+            {CATEGORIES.map(cat => (
+              <button key={cat.id}
+                className={`editor-cat-btn${category === cat.id ? ' active' : ''}`}
+                onClick={() => { setCategory(cat.id); setCatError(false) }}>
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
-              <div className="hero-card">
-                <div className="hero-body">
-                  <div className="hero-badges">
-                    <span className="source-badge community">{isPublic ? 'Сообщество' : 'Личный'}</span>
-                    <span className="cat-badge">{CATEGORIES.find(c => c.id === category)?.label}</span>
-                  </div>
-                  <div className="hero-title">{title || 'Без названия'}</div>
-                  {shortDesc && <div className="hero-desc">{shortDesc}</div>}
-                  <div className="hero-stats">
-                    <div className="hstat">
-                      <div className="hstat-val">
-                        {totalPerMonth > 0 ? Math.round(totalPerMonth).toLocaleString('ru') + ' ₽' : '— ₽'}
-                      </div>
-                      <div className="hstat-lbl">в месяц</div>
-                    </div>
-                    <div className="hstat">
-                      <div className="hstat-val">{items.length || '—'}</div>
-                      <div className="hstat-lbl">позиций в наборе</div>
-                    </div>
-                  </div>
-                  <div className="hero-actions">
-                    <button className="btn-liked">
-                      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                        <path d="M12 5v14M5 12h14"/>
-                      </svg>
-                      Добавить в конверт
-                    </button>
-                  </div>
-                </div>
-                <div className="hero-author">
-                  <div className="author-avatar" style={{ background: '#4E8268' }}>НО</div>
-                  <div className="author-info">
-                    <div className="author-name">Никита Орлов</div>
-                    <div className="author-bio">Интересуюсь личными финансами, инвестициями и оптимизацией бюджета.</div>
-                  </div>
-                  <button className="btn-follow">Подписаться</button>
-                </div>
-              </div>
+        {/* Title */}
+        <div className="editor-field-block">
+          <div className="editor-field-label">
+            Название набора
+            <span className={`editor-char-count${title.length > 90 ? ' warn' : ''}`}> {title.length}/100</span>
+          </div>
+          <textarea className="editor-title-input" placeholder="Например: Базовый гардероб на лето"
+            value={title} onChange={e => setTitle(e.target.value.slice(0, 100))} rows={1}
+            onInput={e => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px' }} />
+        </div>
 
-              {items.length > 0 && (
-                <div className="section-card">
-                  <div className="section-header">
-                    <div className="section-title">
-                      Состав набора
-                      <span className="section-count">{items.length} позиций</span>
-                    </div>
-                  </div>
-                  <table className="cs-items-table">
-                    <thead>
-                      <tr>
-                        <th>Позиция</th>
-                        <th>Тип</th>
-                        <th style={{ textAlign: 'right' }}>Цена, ₽</th>
-                        <th style={{ textAlign: 'right' }}>₽/мес</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {items.map(item => {
-                        const pm = calcPerMonth(item)
-                        return (
-                          <tr key={item.id} className="cs-item-row">
-                            <td style={{ padding: '9px 14px', fontWeight: 500 }}>{item.name}</td>
-                            <td style={{ padding: '9px 10px', fontSize: 12, color: 'var(--text-3)' }}>
-                              {item.type === 'consumable' ? 'Расходник' : 'Износ'}
-                            </td>
-                            <td style={{ padding: '9px 10px', textAlign: 'right', fontFamily: 'var(--mono)' }}>
-                              {parseInt(item.price).toLocaleString('ru')}
-                            </td>
-                            <td style={{ padding: '9px 14px', textAlign: 'right', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent-green)' }}>
-                              {pm > 0 ? Math.round(pm).toLocaleString('ru') : '—'}
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+        {/* Short description */}
+        <div className="editor-field-block">
+          <div className="editor-field-label">
+            Краткое описание
+            <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}> — видно в карточке</span>
+            <span className={`editor-char-count${shortDesc.length > 240 ? ' warn' : ''}`}> {shortDesc.length}/250</span>
+          </div>
+          <textarea className="editor-excerpt-input"
+            placeholder="Одно-два предложения: для кого набор и что в нём..."
+            value={shortDesc} onChange={e => setShortDesc(e.target.value.slice(0, 250))} rows={2} />
+        </div>
 
-              {introText && (
-                <div className="content-card">
-                  <div className="content-body">
-                    {introText.split('\n\n').filter(Boolean).map((p, i) => <p key={i}>{p}</p>)}
-                  </div>
-                </div>
-              )}
+        {/* Items */}
+        <div className="editor-field-block">
+          <div className="editor-field-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Позиции набора{items.length > 0 && ` · ${items.length} поз.`}</span>
+            {totalPerMonth > 0 && (
+              <span style={{ fontWeight: 700, color: 'var(--accent-green)', fontFamily: 'var(--mono)', textTransform: 'none', letterSpacing: 0, fontSize: 14 }}>
+                {Math.round(totalPerMonth).toLocaleString('ru')} ₽/мес
+              </span>
+            )}
+          </div>
+
+          {items.length > 0 && (
+            <div className="cs-set-items-list">
+              {items.map(item => (
+                <SetItemRow key={item.id} item={item} onDelete={() => removeItem(item.id)} />
+              ))}
             </div>
+          )}
 
+          {showForm ? (
+            <AddItemForm onAdd={addItem} onCancel={() => setShowForm(false)} />
           ) : (
-            /* ══════════════════ EDITOR MODE ══════════════════ */
-            <>
-              {/* Meta */}
-              <div id="sp-cs-meta" className="editor-meta-block">
-                <div className="editor-meta-row">
-                  <div className="editor-meta-label">Категория</div>
-                  <div className="editor-cats">
-                    {CATEGORIES.map(cat => (
-                      <button key={cat.id}
-                        className={`editor-cat-btn${category === cat.id ? ' active' : ''}`}
-                        onClick={() => setCategory(cat.id)}>
-                        {cat.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="editor-meta-row">
-                  <div className="editor-meta-label">Видимость</div>
-                  <div className="visibility-toggle">
-                    <button className={`visibility-btn${isPublic ? ' active' : ''}`} onClick={() => setIsPublic(true)}>
-                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
-                        <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
-                      </svg>
-                      Публичный
-                    </button>
-                    <button className={`visibility-btn${!isPublic ? ' active' : ''}`} onClick={() => setIsPublic(false)}>
-                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
-                      </svg>
-                      Приватный
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Название */}
-              <div className="editor-field-block">
-                <div className="editor-field-label">Название набора</div>
-                <textarea className="editor-title-input" placeholder="Например: Базовый гардероб на лето"
-                  value={title} onChange={e => setTitle(e.target.value)} rows={1} />
-              </div>
-
-              {/* Краткое описание */}
-              <div className="editor-field-block">
-                <div className="editor-field-label">
-                  Краткое описание
-                  <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}> — видно в карточке</span>
-                </div>
-                <textarea className="editor-excerpt-input"
-                  placeholder="Одно-два предложения: для кого набор и что в нём..."
-                  value={shortDesc} onChange={e => setShortDesc(e.target.value)} rows={2} />
-              </div>
-
-              {/* Позиции */}
-              <div id="sp-cs-items" className="editor-field-block">
-                <div className="editor-field-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>Позиции набора</span>
-                  {totalPerMonth > 0 && (
-                    <span style={{ fontWeight: 700, color: 'var(--accent-green)', fontFamily: 'var(--mono)', textTransform: 'none', letterSpacing: 0 }}>
-                      {Math.round(totalPerMonth).toLocaleString('ru')} ₽/мес
-                    </span>
-                  )}
-                </div>
-
-                {items.length > 0 && (
-                  <div className="cs-set-items-list">
-                    {items.map(item => (
-                      <SetItemRow key={item.id} item={item} onDelete={() => removeItem(item.id)} />
-                    ))}
-                  </div>
-                )}
-
-                {showForm ? (
-                  <AddItemForm onAdd={addItem} onCancel={() => setShowForm(false)} />
-                ) : (
-                  <div style={{ padding: '10px 14px' }}>
-                    <button className="inv-add-toggle" onClick={() => setShowForm(true)}>
-                      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                      </svg>
-                      Добавить позицию
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Подробное описание */}
-              <div className="editor-field-block editor-field-block--body">
-                <div className="editor-field-label">Подробное описание</div>
-                <textarea className="editor-body-input"
-                  placeholder="Расскажите подробнее: принципы подбора, расчёт стоимости, для кого подойдёт..."
-                  value={introText} onChange={e => setIntroText(e.target.value)} />
-              </div>
-            </>
+            <div style={{ padding: '10px 14px' }}>
+              <button className="inv-add-toggle" onClick={() => setShowForm(true)}>
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Добавить позицию
+              </button>
+            </div>
           )}
         </div>
 
-      {showSpotlight && <SpotlightTour steps={CS_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
+        {/* Body */}
+        <div className="editor-field-block">
+          <div className="editor-field-label">Подробное описание</div>
+          <textarea className="editor-body-input"
+            placeholder="Расскажите подробнее: принципы подбора, расчёт стоимости, для кого подойдёт..."
+            value={introText} onChange={e => setIntroText(e.target.value)}
+            onInput={e => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px' }} />
+        </div>
+
+        {toast && <div className="editor-toast">{toast}</div>}
       </main>
     </Layout>
   )

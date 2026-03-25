@@ -91,6 +91,9 @@ export default function Account() {
   const [confirmWhisper, setConfirmWhisper] = useState(null)
   const [showSpotlight,  setShowSpotlight]  = useState(false)
 
+  const [artTypeFilter, setArtTypeFilter] = useState(null)  // null | 'public' | 'private' | 'draft'
+  const [artCatFilter,  setArtCatFilter]  = useState(null)
+
   const [toast, showToast] = useToast()
 
   const avatarInputRef = useRef(null)
@@ -156,7 +159,7 @@ export default function Account() {
   // ── Set actions ────────────────────────────────────────────────────────────
 
   function handleEditSet(s) {
-    navigate(s.setId ? `/set/${s.setId}` : '/create-set')
+    navigate(`/create-set?edit=${s.id}`)
   }
 
   function handleToggleSetVisibility(s) {
@@ -325,7 +328,23 @@ export default function Account() {
         </div>
 
         {/* Articles */}
-        {tab === 'articles' && (
+        {tab === 'articles' && (() => {
+          // ── filter logic ──
+          const TYPE_FILTERS = [
+            { id: null,      label: 'Все' },
+            { id: 'public',  label: 'Публичный' },
+            { id: 'private', label: 'Личное' },
+            { id: 'draft',   label: 'Черновик' },
+          ]
+          const byType = artTypeFilter === null ? articles
+            : artTypeFilter === 'public'  ? articles.filter(a => a.pub && !a.draft)
+            : artTypeFilter === 'private' ? articles.filter(a => !a.pub && !a.draft)
+            : articles.filter(a => !!a.draft)
+
+          const availCats = [...new Set(byType.map(a => a.category).filter(Boolean))]
+          const filtered = artCatFilter ? byType.filter(a => a.category === artCatFilter) : byType
+
+          return (
           <div className="acc-panel">
             <div className="panel-header">
               <span className="panel-title">Статьи, которые вы написали</span>
@@ -337,6 +356,28 @@ export default function Account() {
               </button>
             </div>
 
+            {articles.length > 0 && (
+              <div className="acc-filters">
+                <div className="acc-filter-row">
+                  {TYPE_FILTERS.map(f => (
+                    <button key={String(f.id)} className={`acc-filter-pill${artTypeFilter === f.id ? ' active' : ''}`}
+                      onClick={() => { setArtTypeFilter(f.id); setArtCatFilter(null) }}>
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+                {artTypeFilter !== null && availCats.length > 0 && (
+                  <div className="acc-filter-row acc-filter-row--cats">
+                    {availCats.map(cat => (
+                      <button key={cat} className={`acc-filter-pill acc-filter-pill--cat${artCatFilter === cat ? ' active' : ''}`}
+                        onClick={() => setArtCatFilter(prev => prev === cat ? null : cat)}>
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {articles.length === 0 && (
               <div className="acc-empty">
@@ -350,7 +391,14 @@ export default function Account() {
               </div>
             )}
 
-            {articles.map((a) => {
+            {filtered.length === 0 && articles.length > 0 && (
+              <div className="acc-empty">
+                <div className="acc-empty-title">Ничего не найдено</div>
+                <div className="acc-empty-desc">Нет статей, соответствующих выбранным фильтрам</div>
+              </div>
+            )}
+
+            {filtered.map((a) => {
               const isDraft  = !!a.draft
               const isPublic = !!a.pub
               const commentCount = Array.isArray(a.comments) ? a.comments.length : (a.comments ?? 0)
@@ -434,7 +482,8 @@ export default function Account() {
               )
             })}
           </div>
-        )}
+          )
+        })()}
 
         {/* Sets */}
         {tab === 'sets' && (

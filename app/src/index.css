@@ -1639,6 +1639,36 @@ body.dark .acc-btn-primary { background: var(--surface-3); color: var(--text); }
 .comment-post-link:hover { color: var(--text); }
 .comment-post-link svg { opacity: 0.5; }
 
+/* Account article filters */
+.acc-filters {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px 0 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.acc-filter-row {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.acc-filter-row--cats { padding-top: 2px; }
+.acc-filter-pill {
+  padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;
+  background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--text-2); cursor: pointer; transition: all 0.15s;
+}
+.acc-filter-pill:hover { background: var(--surface-3); color: var(--text-1); }
+.acc-filter-pill.active {
+  background: var(--accent-green); border-color: var(--accent-green);
+  color: #fff;
+}
+.acc-filter-pill--cat {
+  font-size: 12px; padding: 4px 12px;
+  background: transparent;
+}
+.acc-filter-pill--cat.active {
+  background: var(--accent-green-bg); border-color: var(--accent-green-border);
+  color: var(--accent-green);
+}
+
 /* Article cards */
 .acc-article-card {
   background: var(--surface); border-radius: var(--r);
