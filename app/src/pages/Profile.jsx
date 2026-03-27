@@ -346,6 +346,7 @@ function TypeTag({ type, period }) {
 }
 
 function SetCard({ set, onDelete, onOpen, onPause, editMode }) {
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const isClickable = !editMode && (set.id || set.source === 'personal')
   const isPaused = !!set.paused
   return (
@@ -354,12 +355,12 @@ function SetCard({ set, onDelete, onOpen, onPause, editMode }) {
       {set.desc && !isPaused && <div className="set-card-desc">{set.desc}</div>}
       {isPaused && <div className="set-card-paused-label">На паузе</div>}
       <div className="set-card-bottom">
-        <span className={`set-card-amount${isPaused ? ' muted' : ''}`}>{set.amount ? set.amount.toLocaleString('ru') + ' ₽' : '—'}</span>
+        <span className={`set-card-amount${isPaused ? ' muted' : ''}`}>{set.amount ? '₽' + set.amount.toLocaleString('ru') : '—'}</span>
         <span className="set-card-period">/ мес</span>
       </div>
-      {set.source !== 'personal' && (
+      {editMode && set.source !== 'personal' && (
         <button
-          className={`set-pause-btn${isPaused ? ' playing' : ''}${editMode ? ' always-show' : ''}`}
+          className={`set-pause-btn playing always-show`}
           onClick={e => { e.stopPropagation(); onPause() }}
           title={isPaused ? 'Запустить' : 'Поставить на паузу'}
         >
@@ -370,8 +371,15 @@ function SetCard({ set, onDelete, onOpen, onPause, editMode }) {
           )}
         </button>
       )}
-      {editMode && set.source !== 'personal' && (
-        <button className="set-delete" onClick={e => { e.stopPropagation(); onDelete() }} title="Удалить набор">✕</button>
+      {editMode && set.source !== 'personal' && !confirmDelete && (
+        <button className="set-delete" onClick={e => { e.stopPropagation(); setConfirmDelete(true) }} title="Удалить набор">✕</button>
+      )}
+      {confirmDelete && (
+        <div className="set-delete-confirm" onClick={e => e.stopPropagation()}>
+          <span className="set-delete-confirm-text">Удалить?</span>
+          <button className="set-delete-confirm-yes" onClick={e => { e.stopPropagation(); onDelete() }}>Да</button>
+          <button className="set-delete-confirm-no" onClick={e => { e.stopPropagation(); setConfirmDelete(false) }}>Нет</button>
+        </div>
       )}
     </div>
   )
@@ -423,6 +431,43 @@ function BudgetGroup({ group }) {
   )
 }
 
+function PersonalSheet({ catName, items, onClose }) {
+  return createPortal(
+    <div className="personal-sheet-overlay" onClick={onClose}>
+      <div className="personal-sheet" onClick={e => e.stopPropagation()}>
+        <div className="personal-sheet-header">
+          <div className="personal-sheet-titles">
+            <div className="personal-sheet-title">Личное</div>
+            <div className="personal-sheet-sub">{catName} · позиции без набора</div>
+          </div>
+          <button className="personal-sheet-close" onClick={onClose}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div className="personal-sheet-list">
+          {items.map((item, i) => {
+            const monthly = calcItemMonthly(item)
+            return (
+              <div key={item.id || i} className="personal-sheet-item">
+                <div className="personal-sheet-item-name">{item.name}</div>
+                <div className="personal-sheet-item-right">
+                  <span className="personal-sheet-item-type">
+                    {item.type === 'consumable' ? 'расходник' : 'амортизация'}
+                  </span>
+                  <span className="personal-sheet-item-cost">₽{monthly.toLocaleString('ru')}<span className="personal-sheet-item-per">/мес</span></span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>,
+    document.body
+  )
+}
+
 // Прогноз накоплений: капитал растёт на BASE_RETURN + свободный остаток (кредит освобождается после погашения)
 // EmoSpend НЕ вычитается из капитала — он считается отдельно как потенциал трат
 function calcSavings(monthlyFree, emoRate, startCapital, creditPayment = 0, remainingCreditMonths = 0) {
@@ -468,6 +513,7 @@ export default function Profile() {
   const navigate = useNavigate()
   const [emoRate, setEmoRate] = useState(0.04)
   const [bsOpen, setBsOpen] = useState(false)
+  const [personalSheet, setPersonalSheet] = useState(null)
   const [envelopes, setEnvelopes] = useState(loadEnvelopes)
   const [editMode, setEditMode] = useState(false)
   const [finOpen, setFinOpen] = useState(false)
@@ -605,13 +651,6 @@ export default function Profile() {
     .filter(cat => {
       const sets = envelopes[cat.id] || []
       return sets.length > 0 || (personalByCat[cat.id] || []).length > 0 || editMode
-    })
-    .sort((a, b) => {
-      const totalA = (envelopes[a.id] || []).filter(x => !x.paused).reduce((s, x) => s + x.amount, 0)
-        + (personalByCat[a.id] || []).reduce((s, i) => s + calcItemMonthly(i), 0)
-      const totalB = (envelopes[b.id] || []).filter(x => !x.paused).reduce((s, x) => s + x.amount, 0)
-        + (personalByCat[b.id] || []).reduce((s, i) => s + calcItemMonthly(i), 0)
-      return totalB - totalA
     })
 
   return (
@@ -971,6 +1010,7 @@ export default function Profile() {
                 id: null,
                 source: 'personal',
                 name: 'Личное',
+                desc: `${personalItems.length} ${personalItems.length === 1 ? 'позиция' : personalItems.length < 5 ? 'позиции' : 'позиций'} без набора`,
                 items: personalItems.length,
                 amount: personalMonthly,
                 type: personalItems.every(i => i.type === 'consumable') ? 'consumable'
@@ -985,7 +1025,7 @@ export default function Profile() {
                       <div className="env-name">{cat.name}</div>
                     </div>
                     <div className="env-right">
-                      <div className="env-total">{total > 0 ? total.toLocaleString('ru') + ' ₽' : '—'}</div>
+                      <div className="env-total">{total > 0 ? '₽' + total.toLocaleString('ru') : '—'}</div>
                       {total > 0 && <div className="env-total-sub">/ месяц</div>}
                     </div>
                   </div>
@@ -1006,7 +1046,7 @@ export default function Profile() {
                         <SetCard
                           set={personalSet}
                           editMode={editMode}
-                          onOpen={() => navigate('/inventory')}
+                          onOpen={() => setPersonalSheet({ catName: cat.name, items: personalItems })}
                         />
                       )}
                       {editMode && (
@@ -1070,6 +1110,7 @@ export default function Profile() {
         onClose={() => setFinOpen(false)}
       />
       {showSpotlight && <SpotlightTour steps={SPOTLIGHT_STEPS} onClose={() => setShowSpotlight(false)} />}
+      {personalSheet && <PersonalSheet catName={personalSheet.catName} items={personalSheet.items} onClose={() => setPersonalSheet(null)} />}
     </Layout>
   )
 }
