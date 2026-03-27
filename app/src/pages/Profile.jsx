@@ -844,7 +844,7 @@ export default function Profile() {
             return (
               <div className="env-budget-summary">
                 <div className={`env-bs-details${bsOpen ? ' env-bs-details--open' : ''}`}>
-                  <div className="env-bs-details-inner" onClick={e => e.stopPropagation()}>
+                  <div className="env-bs-details-inner" onClick={() => setBsOpen(false)}>
                     <div className="env-bs-row">
                       <div className="env-bs-left">
                         <span className="env-bs-label">Минимальные расходы</span>
