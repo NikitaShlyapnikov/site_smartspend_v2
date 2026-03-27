@@ -662,6 +662,7 @@ export default function Profile() {
   const { username, dark } = useApp()
   const navigate = useNavigate()
   const [emoRate, setEmoRate] = useState(0.04)
+  const [bsOpen, setBsOpen] = useState(false)
   const [envelopes, setEnvelopes] = useState(loadEnvelopes)
   const [editMode, setEditMode] = useState(false)
   const [finOpen, setFinOpen] = useState(false)
@@ -880,6 +881,22 @@ export default function Profile() {
               {updatedAt && <span style={{fontSize:10,color:'var(--text-3)',letterSpacing:'0.01em'}}>{updatedAt}</span>}
             </div>
           </div>
+          {income === 0 && (
+            <button className="zero-state-banner" onClick={() => setFinOpen(true)}>
+              <div className="zero-state-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+                </svg>
+              </div>
+              <div className="zero-state-text">
+                <span className="zero-state-title">Укажите доход и расходы</span>
+                <span className="zero-state-sub">Все расчёты будут нулевыми, пока не заполнены данные</span>
+              </div>
+              <svg className="zero-state-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+            </button>
+          )}
           <div className="profile-card">
             <div className="bl-row income">
               <span className="bl-label">Доход</span>
@@ -957,8 +974,8 @@ export default function Profile() {
 
                   {(() => {
                     const pts = calcSavings(savings, emoRate, capital, credit, creditMonths)
-                    const INDICES = [0, 1, 2, 3, 5, 9]
-                    const YEAR_OFFSETS = [1, 2, 3, 4, 6, 10]
+                    const INDICES = [0, 1, 2, 4, 6, 9]
+                    const YEAR_OFFSETS = [1, 2, 3, 5, 7, 10]
                     const rows = INDICES.map(i => pts[i]).filter(Boolean)
                     const maxAbs = rows.length ? Math.max(...rows.map(r => Math.abs(r.cap)), 1) : 1
                     const curYear = new Date().getFullYear()
@@ -1070,36 +1087,50 @@ export default function Profile() {
             const over = diff < 0
             return (
               <div className="env-budget-summary">
-                <div className="env-bs-row">
-                  <div className="env-bs-left">
-                    <span className="env-bs-label">Минимальные расходы</span>
-                    <span className="env-bs-hint">75% федерального прожиточного минимума</span>
+                <div className={`env-bs-details${bsOpen ? ' env-bs-details--open' : ''}`}>
+                  <div className="env-bs-row">
+                    <div className="env-bs-left">
+                      <span className="env-bs-label">Минимальные расходы</span>
+                      <span className="env-bs-hint">75% федерального прожиточного минимума · ₽{SMART_SPEND_BASE.toLocaleString('ru')}</span>
+                    </div>
+                    <span className="env-bs-val">₽{SMART_SPEND_BASE.toLocaleString('ru')}</span>
                   </div>
-                  <span className="env-bs-val">₽{SMART_SPEND_BASE.toLocaleString('ru')}</span>
-                </div>
-                <div className="env-bs-row">
-                  <div className="env-bs-left">
-                    <span className="env-bs-label">Доход от капитала</span>
-                    <span className="env-bs-hint">{Math.round(emoRate * 100)}% годовых · {capital.toLocaleString('ru')} ₽</span>
+                  <div className="env-bs-row">
+                    <div className="env-bs-left">
+                      <span className="env-bs-label">Доход от капитала</span>
+                      <span className="env-bs-hint">{Math.round(emoRate * 100)}% годовых · капитал {capital.toLocaleString('ru')} ₽</span>
+                    </div>
+                    <span className="env-bs-val env-bs-val--income">+ ₽{emoMonthly.toLocaleString('ru')}</span>
                   </div>
-                  <span className="env-bs-val env-bs-val--income">+ ₽{emoMonthly.toLocaleString('ru')}</span>
-                </div>
-                <div className="env-bs-row">
-                  <div className="env-bs-left">
-                    <span className="env-bs-label">План расходов по наборам</span>
-                    <span className="env-bs-hint">сумма активных конвертов</span>
+                  <div className="env-bs-row">
+                    <div className="env-bs-left">
+                      <span className="env-bs-label">План расходов по наборам</span>
+                      <span className="env-bs-hint">сумма активных конвертов</span>
+                    </div>
+                    <span className="env-bs-val env-bs-val--minus">− ₽{grandTotal.toLocaleString('ru')}</span>
                   </div>
-                  <span className="env-bs-val env-bs-val--minus">− ₽{grandTotal.toLocaleString('ru')}</span>
                 </div>
-                <div className={`env-bs-row env-bs-row--total${over ? ' env-bs-row--over' : ''}`}>
+                <button
+                  className={`env-bs-row env-bs-row--total${over ? ' env-bs-row--over' : ''}`}
+                  onClick={() => setBsOpen(o => !o)}
+                >
                   <div className="env-bs-left">
                     <span className="env-bs-label">{over ? 'Превышение бюджета' : 'Свободный остаток'}</span>
-                    <span className="env-bs-hint">{over ? `расходы больше бюджета на ₽${Math.abs(diff).toLocaleString('ru')}` : 'доступно сверх плана'}</span>
+                    <span className="env-bs-hint">{over ? 'нажмите чтобы увидеть разбивку' : 'нажмите чтобы увидеть разбивку'}</span>
                   </div>
-                  <span className="env-bs-val env-bs-val--total">
-                    {over ? '−' : '+'}₽{Math.abs(diff).toLocaleString('ru')}
-                  </span>
-                </div>
+                  <div className="env-bs-total-right">
+                    <span className="env-bs-val env-bs-val--total">
+                      {over ? '−' : '+'}₽{Math.abs(diff).toLocaleString('ru')}
+                    </span>
+                    <svg
+                      className={`env-bs-chevron${bsOpen ? ' env-bs-chevron--open' : ''}`}
+                      width="14" height="14" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                    >
+                      <polyline points="18 15 12 9 6 15"/>
+                    </svg>
+                  </div>
+                </button>
               </div>
             )
           })()}
