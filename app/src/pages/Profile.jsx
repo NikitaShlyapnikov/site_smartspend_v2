@@ -440,14 +440,14 @@ function forecastKey(fin) {
 
 // Прогноз накоплений: капитал растёт на BASE_RETURN + свободный остаток (кредит освобождается после погашения)
 // EmoSpend НЕ вычитается из капитала — он считается отдельно как потенциал трат
-function calcSavings(monthlyFree, startCapital, creditPayment = 0, remainingCreditMonths = 0) {
+function calcSavings(monthlyFree, emoRate, startCapital, creditPayment = 0, remainingCreditMonths = 0) {
   const points = []
   let cap = startCapital
   for (let m = 1; m <= 120; m++) {
     const freed = creditPayment > 0 && remainingCreditMonths > 0 && m > remainingCreditMonths ? creditPayment : 0
-    cap = cap + cap * BASE_RETURN / 12 + monthlyFree + freed
+    cap = cap + cap * (BASE_RETURN - emoRate) / 12 + monthlyFree + freed
     if (m % 12 === 0) {
-      points.push({ year: m / 12, cap: Math.round(cap) })
+      points.push({ year: m / 12, cap: Math.round(cap), emo: Math.round(cap * emoRate / 12) })
     }
   }
   return points
@@ -939,7 +939,7 @@ export default function Profile() {
                   </div>
 
                   {(() => {
-                    const pts = calcSavings(savings, capital, credit, creditMonths)
+                    const pts = calcSavings(savings, emoRate, capital, credit, creditMonths)
                     const INDICES = [0, 1, 2, 3, 5, 9]
                     const YEAR_OFFSETS = [1, 2, 3, 4, 6, 10]
                     const rows = INDICES.map(i => pts[i]).filter(Boolean)
@@ -965,7 +965,7 @@ export default function Profile() {
                             </div>
                             <span className={`forecast-val${r.cap < 0 ? ' forecast-val--neg' : ''}`}>{fmtM(r.cap)}</span>
                             <span className="forecast-emo">
-                              {r.cap > 0 ? fmtM(Math.round(r.cap * emoRate / 12)) : '—'}
+                              {r.cap > 0 ? fmtM(r.emo) : '—'}
                             </span>
                           </div>
                         ))}
