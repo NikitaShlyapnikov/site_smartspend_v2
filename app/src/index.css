@@ -4281,35 +4281,36 @@ body.dark .budget-pm-warn svg { color: #C8A850; }
 .set-card-amount.muted { color: var(--text-3); }
 .set-card-period { font-size: 10px; color: var(--text-3); white-space: nowrap; }
 
-/* Pause button — нормальный режим: слева, появляется при hover */
+/* Pause button — edit mode: top-left inside card */
 .set-pause-btn {
-  position: absolute; top: -10px; left: -10px;
-  width: 26px; height: 26px; border-radius: 50%;
-  background: var(--surface); border: 1.5px solid var(--border);
-  color: var(--text-3); cursor: pointer;
+  position: absolute; top: 6px; left: 6px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: rgba(91,143,212,0.12); border: 1.5px solid rgba(91,143,212,0.4);
+  color: #5B8FD4; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   transition: all 0.15s; opacity: 0;
 }
 .set-card:hover .set-pause-btn { opacity: 1; }
-.set-pause-btn:hover { color: var(--text); border-color: var(--text-3); }
+.set-pause-btn:hover { background: rgba(91,143,212,0.22); border-color: #5B8FD4; }
 .set-pause-btn.playing {
-  opacity: 1; color: #5B8FD4; border-color: #5B8FD4;
-  background: rgba(91,143,212,0.1);
+  opacity: 1; color: #5B8FD4; border-color: rgba(91,143,212,0.5);
+  background: rgba(91,143,212,0.12);
 }
-.set-pause-btn.playing:hover { background: rgba(91,143,212,0.18); }
+.set-pause-btn.playing:hover { background: rgba(91,143,212,0.22); }
 /* В режиме редактирования — пауза слева, всегда видна */
 .set-pause-btn.always-show { opacity: 1; }
 
-/* Delete button (edit mode) — справа */
+/* Delete button (edit mode) — top-right inside card */
 .set-delete {
-  display: flex; position: absolute; top: -10px; right: -10px;
-  width: 26px; height: 26px; border-radius: 50%;
-  background: #E05252; color: #fff; border: 2px solid var(--surface);
+  display: flex; position: absolute; top: 6px; right: 6px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: rgba(224,82,82,0.12); color: #E05252;
+  border: 1.5px solid rgba(224,82,82,0.4);
   align-items: center; justify-content: center;
-  cursor: pointer; font-size: 12px; line-height: 1;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.15); transition: background 0.15s; z-index: 2;
+  cursor: pointer; font-size: 11px; line-height: 1;
+  transition: all 0.15s; z-index: 2;
 }
-.set-delete:hover { background: #C03A3A; }
+.set-delete:hover { background: rgba(224,82,82,0.22); border-color: #E05252; }
 
 .set-delete-confirm {
   position: absolute; inset: 0; border-radius: inherit;
@@ -4426,7 +4427,6 @@ body.dark .env-edit-done-btn { box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
 .et-value { font-family: var(--mono); font-size: 15px; font-weight: 500; color: #4E8268; }
 .et-sub { font-size: 11px; color: #7AAF96; font-family: var(--sans); font-weight: 400; }
 
-body.dark .set-delete { border-color: var(--surface-2); }
 body.dark .set-card-add:hover { background: rgba(110,175,140,0.08); }
 
 /* ── Profile tool row ── */

@@ -347,7 +347,7 @@ function TypeTag({ type, period }) {
 
 function SetCard({ set, onDelete, onOpen, onPause, editMode }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
-  const isClickable = !editMode && (set.id || set.source === 'personal')
+  const isClickable = !editMode && !!set.id && set.source !== 'personal'
   const isPaused = !!set.paused
   return (
     <div className={`set-card${isPaused ? ' paused' : ''}`} onClick={isClickable ? onOpen : undefined} style={isClickable ? { cursor: 'pointer' } : {}}>
@@ -431,43 +431,6 @@ function BudgetGroup({ group }) {
   )
 }
 
-function PersonalSheet({ catName, items, onClose }) {
-  return createPortal(
-    <div className="personal-sheet-overlay" onClick={onClose}>
-      <div className="personal-sheet" onClick={e => e.stopPropagation()}>
-        <div className="personal-sheet-header">
-          <div className="personal-sheet-titles">
-            <div className="personal-sheet-title">Личное</div>
-            <div className="personal-sheet-sub">{catName} · позиции без набора</div>
-          </div>
-          <button className="personal-sheet-close" onClick={onClose}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 6L6 18M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
-        <div className="personal-sheet-list">
-          {items.map((item, i) => {
-            const monthly = calcItemMonthly(item)
-            return (
-              <div key={item.id || i} className="personal-sheet-item">
-                <div className="personal-sheet-item-name">{item.name}</div>
-                <div className="personal-sheet-item-right">
-                  <span className="personal-sheet-item-type">
-                    {item.type === 'consumable' ? 'расходник' : 'амортизация'}
-                  </span>
-                  <span className="personal-sheet-item-cost">₽{monthly.toLocaleString('ru')}<span className="personal-sheet-item-per">/мес</span></span>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </div>,
-    document.body
-  )
-}
-
 // Прогноз накоплений: капитал растёт на BASE_RETURN + свободный остаток (кредит освобождается после погашения)
 // EmoSpend НЕ вычитается из капитала — он считается отдельно как потенциал трат
 function calcSavings(monthlyFree, emoRate, startCapital, creditPayment = 0, remainingCreditMonths = 0) {
@@ -513,7 +476,6 @@ export default function Profile() {
   const navigate = useNavigate()
   const [emoRate, setEmoRate] = useState(0.04)
   const [bsOpen, setBsOpen] = useState(false)
-  const [personalSheet, setPersonalSheet] = useState(null)
   const [envelopes, setEnvelopes] = useState(loadEnvelopes)
   const [editMode, setEditMode] = useState(false)
   const [finOpen, setFinOpen] = useState(false)
@@ -1046,7 +1008,6 @@ export default function Profile() {
                         <SetCard
                           set={personalSet}
                           editMode={editMode}
-                          onOpen={() => setPersonalSheet({ catName: cat.name, items: personalItems })}
                         />
                       )}
                       {editMode && (
@@ -1110,7 +1071,6 @@ export default function Profile() {
         onClose={() => setFinOpen(false)}
       />
       {showSpotlight && <SpotlightTour steps={SPOTLIGHT_STEPS} onClose={() => setShowSpotlight(false)} />}
-      {personalSheet && <PersonalSheet catName={personalSheet.catName} items={personalSheet.items} onClose={() => setPersonalSheet(null)} />}
     </Layout>
   )
 }
