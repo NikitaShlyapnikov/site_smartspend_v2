@@ -453,6 +453,23 @@ function calcSavings(monthlyFree, emoRate, startCapital, creditPayment = 0, rema
   return points
 }
 
+// Предел накоплений: первый год когда годовой прирост капитала падает ниже 5%
+function findSavingsCeiling(monthlyFree, emoRate, startCapital, creditPayment = 0, remainingCreditMonths = 0) {
+  let cap = startCapital
+  let prevYearCap = startCapital
+  for (let m = 1; m <= 600; m++) {
+    const freed = creditPayment > 0 && remainingCreditMonths > 0 && m > remainingCreditMonths ? creditPayment : 0
+    cap = cap + cap * (BASE_RETURN - emoRate) / 12 + monthlyFree + freed
+    if (cap <= 0) return { year: Math.ceil(m / 12), cap: 0, depleted: true }
+    if (m % 12 === 0) {
+      const yoy = prevYearCap > 0 ? (cap - prevYearCap) / prevYearCap : 1
+      if (yoy < 0.05 && cap > startCapital) return { year: m / 12, cap: Math.round(cap), depleted: false }
+      prevYearCap = cap
+    }
+  }
+  return null
+}
+
 function calcTrajectory(emoRate, monthlyInvest, capital, creditPayment = 0, creditMonths = 0) {
   const points = []
   let cap = capital
@@ -969,6 +986,29 @@ export default function Profile() {
                             </span>
                           </div>
                         ))}
+                      </div>
+                    )
+                  })()}
+
+                  {/* Предел накоплений */}
+                  {(() => {
+                    const ceiling = findSavingsCeiling(savings, emoRate, capital, credit, creditMonths)
+                    if (!ceiling) return (
+                      <div className="savings-ceiling">
+                        Предел накоплений — не достигается в ближайшие 50 лет
+                      </div>
+                    )
+                    if (ceiling.depleted) return (
+                      <div className="savings-ceiling savings-ceiling--warn">
+                        Капитал исчерпается через {ceiling.year} {ceiling.year === 1 ? 'год' : ceiling.year < 5 ? 'года' : 'лет'}
+                      </div>
+                    )
+                    const capStr = ceiling.cap >= 1_000_000
+                      ? `₽${(ceiling.cap / 1_000_000).toFixed(1)}М`
+                      : `₽${Math.round(ceiling.cap / 1000)}K`
+                    return (
+                      <div className="savings-ceiling">
+                        Предел накоплений — через {ceiling.year} {ceiling.year === 1 ? 'год' : ceiling.year < 5 ? 'года' : 'лет'} · {capStr}
                       </div>
                     )
                   })()}

@@ -3967,6 +3967,11 @@ body.dark .budget-pm-warn svg { color: #C8A850; }
 .forecast-bar-fill { height: 100%; background: var(--accent-green); border-radius: 3px; transition: width 0.3s ease; max-width: 100%; }
 .forecast-bar-fill--neg { background: #B85555; }
 .forecast-val--neg { color: #B85555; }
+.savings-ceiling {
+  margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border);
+  font-size: 11px; font-weight: 400; color: var(--text-3); font-family: var(--mono);
+}
+.savings-ceiling--warn { color: #B85555; }
 .forecast-val {
   font-size: 11px; font-weight: 400; color: var(--text-3); font-family: var(--mono);
   width: 50px; text-align: right; flex-shrink: 0;
