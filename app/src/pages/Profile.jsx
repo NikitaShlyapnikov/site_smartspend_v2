@@ -902,7 +902,7 @@ export default function Profile() {
               </div>
               <div className="emo-stat">
                 <div className="emo-stat-num">{Math.round(emoRate * 100)}%</div>
-                <div className="emo-stat-label">ставка SmartSpend</div>
+                <div className="emo-stat-label">ставка EmoSpend</div>
               </div>
               <div className="emo-stat">
                 <div className="emo-stat-num">
@@ -1019,6 +1019,37 @@ export default function Profile() {
               )}
             </button>
           </div>
+
+          {(() => {
+            const available = SMART_SPEND_BASE + emoMonthly
+            const diff = available - grandTotal
+            const over = diff < 0
+            return (
+              <div className="env-budget-summary">
+                <div className="env-bs-row">
+                  <span className="env-bs-label">Базовые расходы</span>
+                  <span className="env-bs-hint">75% от прожиточного минимума</span>
+                  <span className="env-bs-val">₽{SMART_SPEND_BASE.toLocaleString('ru')}</span>
+                </div>
+                <div className="env-bs-row">
+                  <span className="env-bs-label">EmoSpend</span>
+                  <span className="env-bs-hint">{Math.round(emoRate * 100)}% от капитала в месяц</span>
+                  <span className="env-bs-val">+ ₽{emoMonthly.toLocaleString('ru')}</span>
+                </div>
+                <div className="env-bs-row">
+                  <span className="env-bs-label">Траты по конвертам</span>
+                  <span className="env-bs-hint">план расходов по категориям</span>
+                  <span className="env-bs-val env-bs-val--minus">− ₽{grandTotal.toLocaleString('ru')}</span>
+                </div>
+                <div className={`env-bs-row env-bs-row--total${over ? ' env-bs-row--over' : ''}`}>
+                  <span className="env-bs-label">{over ? 'Превышение расходов' : 'Ещё можно потратить'}</span>
+                  <span className="env-bs-val env-bs-val--total">
+                    {over ? '−' : ''}₽{Math.abs(diff).toLocaleString('ru')}
+                  </span>
+                </div>
+              </div>
+            )
+          })()}
 
           <div className="envelopes-list">
             {visibleCats.length === 0 && (
