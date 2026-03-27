@@ -350,7 +350,7 @@ function SetCard({ set, onDelete, onOpen, onPause, editMode }) {
   const isClickable = !editMode && !!set.id && set.source !== 'personal'
   const isPaused = !!set.paused
   return (
-    <div className={`set-card${isPaused ? ' paused' : ''}`} onClick={isClickable ? onOpen : undefined} style={isClickable ? { cursor: 'pointer' } : {}}>
+    <div className={`set-card${isPaused ? ' paused' : ''}${editMode && set.source !== 'personal' ? ' editing' : ''}`} onClick={isClickable ? onOpen : undefined} style={isClickable ? { cursor: 'pointer' } : {}}>
       <div className="set-card-name">{set.name}</div>
       {set.desc && !isPaused && <div className="set-card-desc">{set.desc}</div>}
       {isPaused && <div className="set-card-paused-label">На паузе</div>}
@@ -381,7 +381,7 @@ function SetCard({ set, onDelete, onOpen, onPause, editMode }) {
       {confirmDelete && (
         <div className="set-delete-confirm" onClick={e => e.stopPropagation()}>
           <span className="set-delete-confirm-text">Удалить?</span>
-          <button className="set-delete-confirm-yes" onClick={e => { e.stopPropagation(); onDelete() }}>Да</button>
+          <button className="set-delete-confirm-yes" onClick={e => { e.stopPropagation(); setConfirmDelete(false); onDelete() }}>Да</button>
           <button className="set-delete-confirm-no" onClick={e => { e.stopPropagation(); setConfirmDelete(false) }}>Нет</button>
         </div>
       )}
