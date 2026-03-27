@@ -410,6 +410,7 @@ export default function SetDetail() {
       id: set.id,
       source: SRC_TO_ENV[set.source] || 'custom',
       name: setTitle,
+      desc: set.desc || '',
       items: activeItems.length,
       amount: totalMonthly != null ? Math.round(totalMonthly) : (set.amount || 0),
       type: 'depreciation',

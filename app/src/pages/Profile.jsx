@@ -351,6 +351,7 @@ function SetCard({ set, onDelete, onOpen, onPause, editMode }) {
   return (
     <div className={`set-card${isPaused ? ' paused' : ''}`} onClick={isClickable ? onOpen : undefined} style={isClickable ? { cursor: 'pointer' } : {}}>
       <div className="set-card-name">{set.name}</div>
+      {set.desc && !isPaused && <div className="set-card-desc">{set.desc}</div>}
       {isPaused && <div className="set-card-paused-label">На паузе</div>}
       <div className="set-card-bottom">
         <span className={`set-card-amount${isPaused ? ' muted' : ''}`}>{set.amount ? set.amount.toLocaleString('ru') + ' ₽' : '—'}</span>
