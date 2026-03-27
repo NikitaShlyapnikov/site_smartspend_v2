@@ -629,7 +629,7 @@ function ForecastChart({ emoRate, dark, monthlyInvest, capital, creditPayment, c
 export default function Profile() {
   const { username, dark } = useApp()
   const navigate = useNavigate()
-  const [emoRate, setEmoRate] = useState(0.05)
+  const [emoRate, setEmoRate] = useState(0.04)
   const [envelopes, setEnvelopes] = useState(loadEnvelopes)
   const [editMode, setEditMode] = useState(false)
   const [finOpen, setFinOpen] = useState(false)
@@ -878,92 +878,84 @@ export default function Profile() {
               <div className="section-subtitle">Сумма, которую можно тратить не затрагивая накопления</div>
             </div>
           </div>
-          <div className="profile-card">
-            <div className="combined-top">
-              <div>
-                <div className="cap-label">Размер капитала</div>
-                <div className="cap-value">{capital.toLocaleString('ru')} ₽</div>
-              </div>
-            </div>
+          <div className="emo-inner">
+            {/* Slider + forecast card */}
+            <div className="emo-card">
+              <div className="emo-card-body">
+                <div className="emo-card-left">
+                  <div className="emo-card-header">
+                    <div className="emo-card-label">EmoSpend</div>
+                    <div className="emo-card-sub">от ежемесячного дохода</div>
+                  </div>
 
-            <div className="combined-bottom">
-              <div className="budget-block">
-                <div className="budget-rows">
-                  {useBasePM ? (
-                    <div className="budget-row">
-                      <span className="budget-row-label">Базовый минимум</span>
-                      <span className="budget-row-hint">ПМ РФ 2026</span>
-                      <span className="budget-row-value">{SMART_SPEND_BASE.toLocaleString('ru')} ₽</span>
+                  <div className="emo-slider-wrap">
+                    <div className="emo-slider-labels">
+                      <span>0%</span><span>25%</span><span>50%</span>
                     </div>
-                  ) : (
-                    <div className="budget-row">
-                      <span className="budget-row-label">Чистый доход</span>
-                      <span className="budget-row-hint">доход − жильё − кредиты</span>
-                      <span className="budget-row-value">{netIncome.toLocaleString('ru')} ₽</span>
+                    <div className="emo-slider-track">
+                      <div className="emo-slider-fill" style={{ width: `${emoRate * 200}%` }}/>
+                      <div className="emo-slider-thumb" style={{ left: `${emoRate * 200}%` }}/>
+                      <input
+                        type="range" min={0} max={50} step={1}
+                        value={Math.round(emoRate * 100)}
+                        onChange={e => setEmoRate(Number(e.target.value) / 100)}
+                        className="emo-slider-input"
+                      />
                     </div>
-                  )}
-                  <div className="budget-row">
-                    <span className="budget-row-label">EmoSpend от капитала</span>
-                    <span className="budget-row-hint">{capital > 0 ? `${capital.toLocaleString('ru')} ₽ × ` : ''}{Math.round(emoRate * 100)}% годовых ÷ 12 месяцев</span>
-                    <span className="budget-row-value">+ {emoMonthly.toLocaleString('ru')} ₽</span>
                   </div>
-                  {grandTotal > 0 && (
-                    <div className="budget-row">
-                      <span className="budget-row-label">Конверты</span>
-                      <span className="budget-row-hint">план расходов по категориям</span>
-                      <span className="budget-row-value budget-row-value--minus">− {grandTotal.toLocaleString('ru')} ₽</span>
-                    </div>
-                  )}
-                  <div className={`budget-row budget-row--total${envelopeDiff > 0 ? ' budget-row--over' : ''}`}>
-                    <span className="budget-row-label">Свободный остаток</span>
-                    {grandTotal === 0 && <span className="budget-row-hint">заполните конверты для точного расчёта</span>}
-                    <span className="budget-row-value">
-                      {envelopeDiff > 0 ? '−' : ''}{Math.abs(grandTotal > 0 ? sustainableBudget - grandTotal : sustainableBudget).toLocaleString('ru')} ₽
-                      {income > 0 && grandTotal > 0 && <> <span className={`bl-tag${envelopeDiff > 0 ? ' bl-tag--over' : ''}`}>{envelopeDiff > 0 ? 'превышение' : Math.round((sustainableBudget - grandTotal) / sustainableBudget * 100) + '%'}</span></>}
-                    </span>
-                  </div>
-                </div>
 
-                {envelopeDiff > 0 && neededCapital > 0 && (
-                  <div className="budget-pm-warn">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-                    Превышение на <strong>{envelopeDiff.toLocaleString('ru')} ₽/мес</strong>. Для устойчивости нужен капитал ~<strong>{neededCapital.toLocaleString('ru')} ₽</strong>
-                  </div>
-                )}
-
-                <div className="emo-rate-row">
-                  <div className="emo-rate-left">
-                    <span className="emo-rate-label">Уровень EmoSpend</span>
-                    <span className="emo-rate-preview">
-                      {Math.round(capital * emoRate / 12).toLocaleString('ru')} ₽/мес · {Math.round(emoRate * 100)}% от капитала
-                    </span>
-                  </div>
-                  <div id="sp-btn-emo" className="rate-selector">
-                    {EMO_RATES.map(r => (
-                      <button
-                        key={r.rate}
-                        className={`rate-btn rate-${r.level}${emoRate === r.rate ? ' active' : ''}`}
-                        onClick={() => setEmoRate(r.rate)}
-                      >
-                        <span className="rate-name">{r.label}</span>
-                        <span className="rate-pct">{r.pct}</span>
-                      </button>
-                    ))}
-                  </div>
+                  {(() => {
+                    const pts = calcTrajectory(emoRate, monthlyInvest, capital, credit, creditMonths)
+                    const INDICES = [0, 1, 2, 3, 5, 9]
+                    const YEAR_OFFSETS = [1, 2, 3, 4, 6, 10]
+                    const rows = INDICES.map(i => pts[i]).filter(Boolean)
+                    const maxCap = rows.length ? Math.max(...rows.map(r => r.cap)) : 1
+                    const curYear = new Date().getFullYear()
+                    return (
+                      <div className="emo-forecast">
+                        {rows.map((r, i) => (
+                          <div key={i} className="forecast-row">
+                            <span className="forecast-year">{curYear + YEAR_OFFSETS[i]}</span>
+                            <div className="forecast-bar-track">
+                              <div className="forecast-bar-fill" style={{ width: `${Math.round(r.cap / maxCap * 100)}%` }}/>
+                            </div>
+                            <span className="forecast-val">
+                              {r.cap >= 1_000_000
+                                ? `₽${(r.cap / 1_000_000).toFixed(1)}М`
+                                : `₽${Math.round(r.cap / 1000)}K`}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })()}
                 </div>
               </div>
             </div>
 
-            <ForecastCollapsible
-              open={chartOpen}
-              onToggle={toggleChart}
-              emoRate={emoRate}
-              dark={dark}
-              monthlyInvest={monthlyInvest}
-              capital={capital}
-              credit={credit}
-              creditMonths={creditMonths}
-            />
+            {/* Stats card */}
+            <div className="emo-stats-card">
+              <div className="emo-stat">
+                <div className="emo-stat-num">
+                  {capital >= 1_000_000
+                    ? `₽${(capital / 1_000_000).toFixed(1)}М`
+                    : `₽${Math.round(capital / 1000)}K`}
+                </div>
+                <div className="emo-stat-label">текущий капитал</div>
+              </div>
+              <div className="emo-stat">
+                <div className="emo-stat-num">{Math.round(emoRate * 100)}%</div>
+                <div className="emo-stat-label">ставка SmartSpend</div>
+              </div>
+              <div className="emo-stat">
+                <div className="emo-stat-num">
+                  {emoMonthly >= 1000
+                    ? `₽${(emoMonthly / 1000).toFixed(0)}K`
+                    : `₽${emoMonthly.toLocaleString('ru')}`}
+                </div>
+                <div className="emo-stat-label">можно тратить в месяц</div>
+              </div>
+            </div>
           </div>
 
           <button id="sp-deposits" className="profile-tool-row" onClick={() => navigate('/deposits')}>
