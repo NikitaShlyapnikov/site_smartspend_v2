@@ -1071,24 +1071,33 @@ export default function Profile() {
             return (
               <div className="env-budget-summary">
                 <div className="env-bs-row">
-                  <span className="env-bs-label">Базовые расходы</span>
-                  <span className="env-bs-hint">75% от прожиточного минимума</span>
+                  <div className="env-bs-left">
+                    <span className="env-bs-label">Минимальные расходы</span>
+                    <span className="env-bs-hint">75% федерального прожиточного минимума</span>
+                  </div>
                   <span className="env-bs-val">₽{SMART_SPEND_BASE.toLocaleString('ru')}</span>
                 </div>
                 <div className="env-bs-row">
-                  <span className="env-bs-label">EmoSpend</span>
-                  <span className="env-bs-hint">{Math.round(emoRate * 100)}% от капитала в месяц</span>
-                  <span className="env-bs-val">+ ₽{emoMonthly.toLocaleString('ru')}</span>
+                  <div className="env-bs-left">
+                    <span className="env-bs-label">Доход от капитала</span>
+                    <span className="env-bs-hint">{Math.round(emoRate * 100)}% годовых · {capital.toLocaleString('ru')} ₽</span>
+                  </div>
+                  <span className="env-bs-val env-bs-val--income">+ ₽{emoMonthly.toLocaleString('ru')}</span>
                 </div>
                 <div className="env-bs-row">
-                  <span className="env-bs-label">Траты по конвертам</span>
-                  <span className="env-bs-hint">план расходов по категориям</span>
+                  <div className="env-bs-left">
+                    <span className="env-bs-label">План расходов по наборам</span>
+                    <span className="env-bs-hint">сумма активных конвертов</span>
+                  </div>
                   <span className="env-bs-val env-bs-val--minus">− ₽{grandTotal.toLocaleString('ru')}</span>
                 </div>
                 <div className={`env-bs-row env-bs-row--total${over ? ' env-bs-row--over' : ''}`}>
-                  <span className="env-bs-label">{over ? 'Превышение расходов' : 'Ещё можно потратить'}</span>
+                  <div className="env-bs-left">
+                    <span className="env-bs-label">{over ? 'Превышение бюджета' : 'Свободный остаток'}</span>
+                    <span className="env-bs-hint">{over ? `расходы больше бюджета на ₽${Math.abs(diff).toLocaleString('ru')}` : 'доступно сверх плана'}</span>
+                  </div>
                   <span className="env-bs-val env-bs-val--total">
-                    {over ? '−' : ''}₽{Math.abs(diff).toLocaleString('ru')}
+                    {over ? '−' : '+'}₽{Math.abs(diff).toLocaleString('ru')}
                   </span>
                 </div>
               </div>
