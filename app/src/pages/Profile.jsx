@@ -438,6 +438,21 @@ function forecastKey(fin) {
   return `${fin.income}|${fin.housing}|${fin.credit}|${fin.creditMonths}|${fin.capital}`
 }
 
+// Прогноз накоплений: капитал растёт на BASE_RETURN + свободный остаток (кредит освобождается после погашения)
+// EmoSpend НЕ вычитается из капитала — он считается отдельно как потенциал трат
+function calcSavings(monthlyFree, startCapital, creditPayment = 0, remainingCreditMonths = 0) {
+  const points = []
+  let cap = startCapital
+  for (let m = 1; m <= 120; m++) {
+    const freed = creditPayment > 0 && remainingCreditMonths > 0 && m > remainingCreditMonths ? creditPayment : 0
+    cap = cap + cap * BASE_RETURN / 12 + monthlyFree + freed
+    if (m % 12 === 0) {
+      points.push({ year: m / 12, cap: Math.round(cap) })
+    }
+  }
+  return points
+}
+
 function calcTrajectory(emoRate, monthlyInvest, capital, creditPayment = 0, creditMonths = 0) {
   const points = []
   let cap = capital
@@ -879,6 +894,31 @@ export default function Profile() {
             </div>
           </div>
           <div className="emo-inner">
+            {/* Stats card */}
+            <div className="emo-stats-card">
+              <div className="emo-stat">
+                <div className="emo-stat-num">
+                  {capital >= 1_000_000
+                    ? `₽${(capital / 1_000_000).toFixed(1)}М`
+                    : `₽${Math.round(capital / 1000)}K`}
+                </div>
+                <div className="emo-stat-label">текущий капитал</div>
+              </div>
+              <div className="emo-stat">
+                <div className="emo-stat-num">{Math.round(emoRate * 100)}%</div>
+                <div className="emo-stat-label">ставка SmartSpend</div>
+              </div>
+              <div className="emo-stat">
+                <div className="emo-stat-num">
+                  {emoMonthly >= 1000
+                    ? `₽${(emoMonthly / 1000).toFixed(0)}K`
+                    : `₽${emoMonthly.toLocaleString('ru')}`}
+                  <span className="emo-stat-per">/мес</span>
+                </div>
+                <div className="emo-stat-label">можно тратить</div>
+              </div>
+            </div>
+
             {/* Slider + forecast card */}
             <div className="emo-card">
               <div className="emo-card-body">
@@ -905,7 +945,7 @@ export default function Profile() {
                   </div>
 
                   {(() => {
-                    const pts = calcTrajectory(emoRate, monthlyInvest, capital, credit, creditMonths)
+                    const pts = calcSavings(monthlyInvest, capital, credit, creditMonths)
                     const INDICES = [0, 1, 2, 3, 5, 9]
                     const YEAR_OFFSETS = [1, 2, 3, 4, 6, 10]
                     const rows = INDICES.map(i => pts[i]).filter(Boolean)
@@ -923,37 +963,13 @@ export default function Profile() {
                               <div className="forecast-bar-fill" style={{ width: `${Math.round(r.cap / maxCap * 100)}%` }}/>
                             </div>
                             <span className="forecast-val">{fmtM(r.cap)}</span>
-                            <span className="forecast-emo">{fmtM(r.emo)}/мес</span>
+                            <span className="forecast-emo">{fmtM(Math.round(r.cap * emoRate / 12))}</span>
                           </div>
                         ))}
                       </div>
                     )
                   })()}
                 </div>
-              </div>
-            </div>
-
-            {/* Stats card */}
-            <div className="emo-stats-card">
-              <div className="emo-stat">
-                <div className="emo-stat-num">
-                  {capital >= 1_000_000
-                    ? `₽${(capital / 1_000_000).toFixed(1)}М`
-                    : `₽${Math.round(capital / 1000)}K`}
-                </div>
-                <div className="emo-stat-label">текущий капитал</div>
-              </div>
-              <div className="emo-stat">
-                <div className="emo-stat-num">{Math.round(emoRate * 100)}%</div>
-                <div className="emo-stat-label">ставка SmartSpend</div>
-              </div>
-              <div className="emo-stat">
-                <div className="emo-stat-num">
-                  {emoMonthly >= 1000
-                    ? `₽${(emoMonthly / 1000).toFixed(0)}K`
-                    : `₽${emoMonthly.toLocaleString('ru')}`}
-                </div>
-                <div className="emo-stat-label">можно тратить в месяц</div>
               </div>
             </div>
           </div>
