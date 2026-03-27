@@ -3730,7 +3730,10 @@ body.dark .section-link.editing { background: #1A2A20; border-color: #2A5040; co
 .zero-state-banner--warn {
   background: color-mix(in srgb, #B08840 8%, var(--surface));
   border-color: color-mix(in srgb, #B08840 25%, transparent);
-  cursor: default;
+}
+.zero-state-banner--warn:hover {
+  background: color-mix(in srgb, #B08840 13%, var(--surface));
+  border-color: color-mix(in srgb, #B08840 40%, transparent);
 }
 .zero-state-banner--warn .zero-state-icon {
   background: color-mix(in srgb, #B08840 15%, transparent);
