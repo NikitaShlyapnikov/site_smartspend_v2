@@ -59,12 +59,12 @@ body.app-body #root {
 }
 
 /* Content column: scrollable, fills full height */
-body.app-body #root > main {
+body.app-body .app-content {
   overflow-y: auto;
   height: 100vh;
   scrollbar-width: none;
 }
-body.app-body #root > main::-webkit-scrollbar { display: none; }
+body.app-body .app-content::-webkit-scrollbar { display: none; }
 
 /* ── DARK MODE ── */
 body.dark {
@@ -3729,6 +3729,16 @@ body.dark .section-link.editing { background: #1A2A20; border-color: #2A5040; co
   background: color-mix(in srgb, var(--accent-green) 13%, var(--surface));
   border-color: color-mix(in srgb, var(--accent-green) 40%, transparent);
 }
+.zero-state-banner--warn {
+  background: color-mix(in srgb, #B08840 8%, var(--surface));
+  border-color: color-mix(in srgb, #B08840 25%, transparent);
+  cursor: default;
+}
+.zero-state-banner--warn .zero-state-icon {
+  background: color-mix(in srgb, #B08840 15%, transparent);
+  color: #B08840;
+}
+.zero-state-banner--warn .zero-state-title { color: #B08840; }
 .zero-state-icon {
   width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
   background: color-mix(in srgb, var(--accent-green) 15%, transparent);
@@ -5712,8 +5722,8 @@ body.dark .editor-html-warnings-list { color: #D4804A; }
     overflow: visible !important;
   }
 
-  body.app-body #root > main,
-  body.sidebar-collapsed.app-body #root > main {
+  body.app-body .app-content,
+  body.sidebar-collapsed.app-body .app-content {
     grid-column: 1 / -1;
     grid-row: 1;
     height: 100svh;
@@ -5820,7 +5830,7 @@ body.dark .editor-html-warnings-list { color: #D4804A; }
     padding-right: 16px;
   }
 
-  /* Reset page-main heights: scrolling handled by #root > main */
+  /* Reset page-main heights: scrolling handled by .app-content */
   .feed-main,
   .catalog-main,
   .notif-main {
@@ -9665,9 +9675,9 @@ button:disabled,
     height: auto !important;
     overflow: visible !important;
   }
-  /* main always spans the single column, regardless of fixed siblings */
-  body.app-body #root > main,
-  body.sidebar-collapsed.app-body #root > main {
+  /* app-content always spans the single column, regardless of fixed siblings */
+  body.app-body .app-content,
+  body.sidebar-collapsed.app-body .app-content {
     grid-column: 1 / -1;
     grid-row: 1;
     width: 100%;

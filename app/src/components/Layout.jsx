@@ -42,7 +42,7 @@ export default function Layout({ children }) {
     <>
       <Sidebar />
       <MobileNav />
-      {children}
+      <div className="app-content">{children}</div>
     </>
   )
 }

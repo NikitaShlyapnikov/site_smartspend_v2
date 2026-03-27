@@ -451,6 +451,14 @@ function findSavingsCeiling(monthlyFree, emoRate, startCapital, creditPayment = 
       prevYearCap = cap
     }
   }
+  // Капитал не достиг 0 за 50 лет, но убывает — экстраполируем когда исчерпается
+  if (cap < startCapital && cap > 0) {
+    const monthlyDecline = (prevYearCap - cap) / 12
+    if (monthlyDecline > 0) {
+      const extraMonths = cap / monthlyDecline
+      return { year: Math.round(50 + extraMonths / 12), cap: 0, depleted: true }
+    }
+  }
   return null
 }
 
@@ -633,6 +641,22 @@ export default function Profile() {
               {updatedAt && <span style={{fontSize:10,color:'var(--text-3)',letterSpacing:'0.01em'}}>{updatedAt}</span>}
             </div>
           </div>
+          {income > 0 && grandTotal === 0 && (
+            <div className="zero-state-banner zero-state-banner--warn">
+              <div className="zero-state-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+                </svg>
+              </div>
+              <div className="zero-state-text">
+                <span className="zero-state-title">Конверты не заполнены</span>
+                <span className="zero-state-sub">Расходы по категориям не учтены — свободный остаток завышен</span>
+              </div>
+              <svg className="zero-state-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+            </div>
+          )}
           {income === 0 && (
             <button className="zero-state-banner" onClick={() => setFinOpen(true)}>
               <div className="zero-state-icon">
@@ -797,8 +821,9 @@ export default function Profile() {
           <button id="sp-deposits" className="profile-tool-row" onClick={() => navigate('/deposits')}>
             <div className="profile-tool-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="2" width="18" height="20" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>
-                <path d="M9 16l2 2 4-4"/>
+                <path d="M9 3h6l1.5 3H7.5L9 3z"/>
+                <path d="M7.5 6C4.5 6 3 8 3 11c0 5 3 9 9 9s9-4 9-9c0-3-1.5-5-4.5-5H7.5z"/>
+                <path d="M11 12h2m-1-2v5m0-5c.8 0 1.5.3 1.5 1s-.7 1-1.5 1"/>
               </svg>
             </div>
             <div className="profile-tool-text">
