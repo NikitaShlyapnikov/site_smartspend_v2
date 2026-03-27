@@ -4281,9 +4281,21 @@ body.dark .budget-pm-warn svg { color: #C8A850; }
 .set-card-amount.muted { color: var(--text-3); }
 .set-card-period { font-size: 10px; color: var(--text-3); white-space: nowrap; }
 
-/* Pause button — edit mode: top-left inside card */
+/* Delete button (edit mode) — top-right inside card */
+.set-delete {
+  display: flex; position: absolute; top: 6px; right: 6px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: rgba(224,82,82,0.12); color: #E05252;
+  border: 1.5px solid rgba(224,82,82,0.4);
+  align-items: center; justify-content: center;
+  cursor: pointer; padding: 0;
+  transition: all 0.15s; z-index: 2;
+}
+.set-delete:hover { background: rgba(224,82,82,0.22); border-color: #E05252; }
+
+/* Pause button — edit mode: below delete, right side */
 .set-pause-btn {
-  position: absolute; top: 6px; left: 6px;
+  position: absolute; top: 36px; right: 6px;
   width: 24px; height: 24px; border-radius: 50%;
   background: rgba(91,143,212,0.12); border: 1.5px solid rgba(91,143,212,0.4);
   color: #5B8FD4; cursor: pointer;
@@ -4297,20 +4309,8 @@ body.dark .budget-pm-warn svg { color: #C8A850; }
   background: rgba(91,143,212,0.12);
 }
 .set-pause-btn.playing:hover { background: rgba(91,143,212,0.22); }
-/* В режиме редактирования — пауза слева, всегда видна */
+/* В режиме редактирования — пауза всегда видна */
 .set-pause-btn.always-show { opacity: 1; }
-
-/* Delete button (edit mode) — top-right inside card */
-.set-delete {
-  display: flex; position: absolute; top: 6px; right: 6px;
-  width: 24px; height: 24px; border-radius: 50%;
-  background: rgba(224,82,82,0.12); color: #E05252;
-  border: 1.5px solid rgba(224,82,82,0.4);
-  align-items: center; justify-content: center;
-  cursor: pointer; font-size: 11px; line-height: 1;
-  transition: all 0.15s; z-index: 2;
-}
-.set-delete:hover { background: rgba(224,82,82,0.22); border-color: #E05252; }
 
 .set-delete-confirm {
   position: absolute; inset: 0; border-radius: inherit;
@@ -4400,11 +4400,13 @@ body.dark .budget-pm-warn svg { color: #C8A850; }
 .personal-sheet-item-per { font-size: 10px; font-weight: 400; color: var(--text-3); margin-left: 1px; }
 
 .env-edit-toolbar {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  position: fixed; bottom: 0; left: 240px; right: 0; z-index: 200;
   display: flex; justify-content: center; padding: 12px 16px 20px;
   background: linear-gradient(to top, var(--bg) 60%, transparent);
   pointer-events: none;
 }
+body.sidebar-collapsed .env-edit-toolbar { left: 56px; }
+@media (max-width: 768px) { .env-edit-toolbar { left: 0; } }
 .env-edit-done-btn {
   pointer-events: auto;
   display: flex; align-items: center; gap: 7px;

@@ -372,7 +372,11 @@ function SetCard({ set, onDelete, onOpen, onPause, editMode }) {
         </button>
       )}
       {editMode && set.source !== 'personal' && !confirmDelete && (
-        <button className="set-delete" onClick={e => { e.stopPropagation(); setConfirmDelete(true) }} title="Удалить набор">✕</button>
+        <button className="set-delete" onClick={e => { e.stopPropagation(); setConfirmDelete(true) }} title="Удалить набор">
+          <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+            <line x1="2" y1="2" x2="8" y2="8"/><line x1="8" y1="2" x2="2" y2="8"/>
+          </svg>
+        </button>
       )}
       {confirmDelete && (
         <div className="set-delete-confirm" onClick={e => e.stopPropagation()}>
