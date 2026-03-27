@@ -403,11 +403,9 @@ export default function Landing() {
 
   const LogoMark = () => (
     <div className="landing-logo-mark">
-      <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
-        <rect x="2" y="2" width="5" height="5" rx="1.5" fill="white" opacity="0.9"/>
-        <rect x="9" y="2" width="5" height="5" rx="1.5" fill="white" opacity="0.5"/>
-        <rect x="2" y="9" width="5" height="5" rx="1.5" fill="white" opacity="0.5"/>
-        <rect x="9" y="9" width="5" height="5" rx="1.5" fill="white" opacity="0.9"/>
+      <svg viewBox="0 0 80 80" fill="none" width="28" height="28">
+        <rect width="80" height="80" rx="18" fill="var(--logo-bg)"/>
+        <rect x="14" y="14" width="52" height="52" rx="10" fill="var(--logo-fg)"/>
       </svg>
     </div>
   )

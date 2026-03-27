@@ -27,6 +27,9 @@
   --text-muted: var(--text-3);
   /* Page layout */
   --page-max: 900px;
+  /* Logo */
+  --logo-bg: #0E0E0C;
+  --logo-fg: #EEEDE9;
 }
 
 html, body {
@@ -84,6 +87,8 @@ body.dark {
   --accent: var(--accent-green);
   --text-1: var(--text);
   --text-muted: var(--text-3);
+  --logo-bg: #EEEDE9;
+  --logo-fg: #0E0E0C;
 }
 body.dark .entry-tile.highlight .entry-tile-value { color: #7AAF96; }
 body.dark .bl-row.remainder:not(.remainder--deficit):not(.remainder--good) .bl-value { color: var(--text); }
@@ -138,11 +143,9 @@ aside {
 }
 .sidebar-toggle:hover { color: var(--text); background: var(--surface-2); }
 .logo-mark {
-  width: 30px; height: 30px; border-radius: 8px;
-  background: var(--text); display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
+  width: 30px; height: 30px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
 }
-.logo-mark svg { width: 16px; height: 16px; }
+.logo-mark svg { width: 30px; height: 30px; }
 nav { padding: 8px 12px; flex: 1; display: flex; flex-direction: column; gap: 1px; }
 .nav-item {
   display: flex; align-items: center; gap: 10px;
@@ -181,7 +184,6 @@ nav { padding: 8px 12px; flex: 1; display: flex; flex-direction: column; gap: 1p
 .theme-toggle:hover { background: var(--surface-2); color: var(--text); }
 .theme-label { white-space: nowrap; overflow: hidden; }
 
-body.dark .logo-mark { background: var(--surface-3); }
 
 /* ── COMMON ── */
 a { text-decoration: none; color: inherit; }
@@ -2180,7 +2182,7 @@ body.landing-body { display: block; }
 body.dark .landing-nav { background: rgba(20,20,18,0.88); }
 .landing-nav-container { max-width: 1100px; margin: 0 auto; padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .landing-logo { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.landing-logo-mark { width: 28px; height: 28px; border-radius: 7px; background: var(--text); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.landing-logo-mark { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .landing-nav-links { display: flex; gap: 2px; }
 .landing-nav-link { color: var(--text-2); text-decoration: none; font-size: 13px; font-weight: 500; padding: 6px 14px; border-radius: var(--r-sm); transition: all 0.15s; letter-spacing: -0.01em; }
 .landing-nav-link:hover { color: var(--text); background: var(--surface-2); }
@@ -2324,8 +2326,7 @@ body.dark .landing-nav { background: rgba(20,20,18,0.88); }
   letter-spacing: -0.02em; padding: 0; flex-shrink: 0;
 }
 .guest-logo-mark {
-  width: 26px; height: 26px; background: var(--accent); border-radius: 7px;
-  display: flex; align-items: center; justify-content: center; color: white;
+  width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
 }
 .guest-nav-brand { font-size: 15px; font-weight: 600; }
 .guest-nav-links { display: flex; gap: 4px; flex: 1; }
@@ -2434,10 +2435,7 @@ body.dark .auth-modal { box-shadow: 0 24px 64px rgba(0,0,0,0.5); }
   margin-bottom: 20px;
 }
 .auth-logo-mark {
-  width: 28px; height: 28px; border-radius: 8px;
-  background: var(--accent);
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .auth-logo-text { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
 
@@ -5752,10 +5750,7 @@ body.dark .editor-html-warnings-list { color: #D4804A; }
     display: flex; align-items: center; gap: 8px;
   }
   .mobile-logo-mark {
-    width: 28px; height: 28px; border-radius: 7px;
-    background: #1A1916;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
+    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
   .mobile-logo-text {
     font-size: 16px; font-weight: 700; letter-spacing: -0.02em;
