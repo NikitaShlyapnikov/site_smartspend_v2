@@ -1088,26 +1088,28 @@ export default function Profile() {
             return (
               <div className="env-budget-summary">
                 <div className={`env-bs-details${bsOpen ? ' env-bs-details--open' : ''}`}>
-                  <div className="env-bs-row">
-                    <div className="env-bs-left">
-                      <span className="env-bs-label">Минимальные расходы</span>
-                      <span className="env-bs-hint">75% федерального прожиточного минимума · ₽{SMART_SPEND_BASE.toLocaleString('ru')}</span>
+                  <div className="env-bs-details-inner">
+                    <div className="env-bs-row">
+                      <div className="env-bs-left">
+                        <span className="env-bs-label">Минимальные расходы</span>
+                        <span className="env-bs-hint">75% федерального прожиточного минимума · ₽{SMART_SPEND_BASE.toLocaleString('ru')}</span>
+                      </div>
+                      <span className="env-bs-val">₽{SMART_SPEND_BASE.toLocaleString('ru')}</span>
                     </div>
-                    <span className="env-bs-val">₽{SMART_SPEND_BASE.toLocaleString('ru')}</span>
-                  </div>
-                  <div className="env-bs-row">
-                    <div className="env-bs-left">
-                      <span className="env-bs-label">Доход от капитала</span>
-                      <span className="env-bs-hint">{Math.round(emoRate * 100)}% годовых · капитал {capital.toLocaleString('ru')} ₽</span>
+                    <div className="env-bs-row">
+                      <div className="env-bs-left">
+                        <span className="env-bs-label">Доход от капитала</span>
+                        <span className="env-bs-hint">{Math.round(emoRate * 100)}% годовых · капитал {capital.toLocaleString('ru')} ₽</span>
+                      </div>
+                      <span className="env-bs-val env-bs-val--income">+ ₽{emoMonthly.toLocaleString('ru')}</span>
                     </div>
-                    <span className="env-bs-val env-bs-val--income">+ ₽{emoMonthly.toLocaleString('ru')}</span>
-                  </div>
-                  <div className="env-bs-row">
-                    <div className="env-bs-left">
-                      <span className="env-bs-label">План расходов по наборам</span>
-                      <span className="env-bs-hint">сумма активных конвертов</span>
+                    <div className="env-bs-row">
+                      <div className="env-bs-left">
+                        <span className="env-bs-label">План расходов по наборам</span>
+                        <span className="env-bs-hint">сумма активных конвертов</span>
+                      </div>
+                      <span className="env-bs-val env-bs-val--minus">− ₽{grandTotal.toLocaleString('ru')}</span>
                     </div>
-                    <span className="env-bs-val env-bs-val--minus">− ₽{grandTotal.toLocaleString('ru')}</span>
                   </div>
                 </div>
                 <button

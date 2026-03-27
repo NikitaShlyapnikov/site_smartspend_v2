@@ -4084,8 +4084,8 @@ body.dark .budget-pm-warn svg { color: #C8A850; }
   display: grid; grid-template-rows: 0fr;
   transition: grid-template-rows 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.env-bs-details > .env-bs-row { overflow: hidden; }
 .env-bs-details--open { grid-template-rows: 1fr; }
+.env-bs-details-inner { overflow: hidden; min-height: 0; }
 
 .env-bs-row {
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
