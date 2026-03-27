@@ -675,7 +675,7 @@ export default function Profile() {
         <div id="sp-emo">
           <div className="section-heading">
             <div>
-              <span className="section-title">Сколько можно тратить</span>
+              <span className="section-title">Пассивный доход</span>
               <div className="section-subtitle">Сумма, которую можно тратить не затрагивая накопления</div>
             </div>
           </div>
