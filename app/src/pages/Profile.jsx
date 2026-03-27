@@ -939,25 +939,34 @@ export default function Profile() {
                   </div>
 
                   {(() => {
-                    const pts = calcSavings(monthlyInvest, capital, credit, creditMonths)
+                    const pts = calcSavings(savings, capital, credit, creditMonths)
                     const INDICES = [0, 1, 2, 3, 5, 9]
                     const YEAR_OFFSETS = [1, 2, 3, 4, 6, 10]
                     const rows = INDICES.map(i => pts[i]).filter(Boolean)
-                    const maxCap = rows.length ? Math.max(...rows.map(r => r.cap)) : 1
+                    const maxAbs = rows.length ? Math.max(...rows.map(r => Math.abs(r.cap)), 1) : 1
                     const curYear = new Date().getFullYear()
-                    const fmtM = v => v >= 1_000_000
-                      ? `₽${(v / 1_000_000).toFixed(1)}М`
-                      : `₽${Math.round(v / 1000)}K`
+                    const fmtM = v => {
+                      const abs = Math.abs(v)
+                      const str = abs >= 1_000_000
+                        ? `₽${(abs / 1_000_000).toFixed(1)}М`
+                        : `₽${Math.round(abs / 1000)}K`
+                      return v < 0 ? `−${str}` : str
+                    }
                     return (
                       <div className="emo-forecast">
                         {rows.map((r, i) => (
                           <div key={i} className="forecast-row">
                             <span className="forecast-year">{curYear + YEAR_OFFSETS[i]}</span>
                             <div className="forecast-bar-track">
-                              <div className="forecast-bar-fill" style={{ width: `${Math.round(r.cap / maxCap * 100)}%` }}/>
+                              <div
+                                className={`forecast-bar-fill${r.cap < 0 ? ' forecast-bar-fill--neg' : ''}`}
+                                style={{ width: `${Math.round(Math.abs(r.cap) / maxAbs * 100)}%` }}
+                              />
                             </div>
-                            <span className="forecast-val">{fmtM(r.cap)}</span>
-                            <span className="forecast-emo">{fmtM(Math.round(r.cap * emoRate / 12))}</span>
+                            <span className={`forecast-val${r.cap < 0 ? ' forecast-val--neg' : ''}`}>{fmtM(r.cap)}</span>
+                            <span className="forecast-emo">
+                              {r.cap > 0 ? fmtM(Math.round(r.cap * emoRate / 12)) : '—'}
+                            </span>
                           </div>
                         ))}
                       </div>

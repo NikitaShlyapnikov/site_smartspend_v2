@@ -3965,6 +3965,8 @@ body.dark .budget-pm-warn svg { color: #C8A850; }
 .forecast-year { font-size: 11px; color: var(--text-3); font-family: var(--mono); width: 34px; flex-shrink: 0; }
 .forecast-bar-track { flex: 1; height: 5px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
 .forecast-bar-fill { height: 100%; background: var(--accent-green); border-radius: 3px; transition: width 0.3s ease; max-width: 100%; }
+.forecast-bar-fill--neg { background: #B85555; }
+.forecast-val--neg { color: #B85555; }
 .forecast-val {
   font-size: 11px; font-weight: 400; color: var(--text-3); font-family: var(--mono);
   width: 50px; text-align: right; flex-shrink: 0;
