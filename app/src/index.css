@@ -3928,7 +3928,7 @@ body.dark .budget-pm-warn svg { color: #C8A850; }
 .rate-btn.active .rate-pct { opacity: 1; }
 
 /* ── EmoSpend new layout ── */
-.emo-inner { display: grid; grid-template-columns: 35% 65%; gap: 12px; align-items: stretch; }
+.emo-inner { display: grid; grid-template-columns: 35fr 65fr; gap: 12px; align-items: stretch; }
 .emo-card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--r); padding: 20px;
@@ -3961,17 +3961,17 @@ body.dark .budget-pm-warn svg { color: #C8A850; }
 }
 
 .emo-forecast { display: flex; flex-direction: column; gap: 7px; }
-.forecast-row { display: flex; align-items: center; gap: 8px; }
+.forecast-row { display: flex; align-items: center; gap: 6px; }
 .forecast-year { font-size: 11px; color: var(--text-3); font-family: var(--mono); width: 34px; flex-shrink: 0; }
 .forecast-bar-track { flex: 1; height: 5px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
 .forecast-bar-fill { height: 100%; background: var(--accent-green); border-radius: 3px; transition: width 0.3s ease; max-width: 100%; }
 .forecast-val {
   font-size: 11px; font-weight: 400; color: var(--text-3); font-family: var(--mono);
-  width: 54px; text-align: right; flex-shrink: 0;
+  width: 50px; text-align: right; flex-shrink: 0;
 }
 .forecast-emo {
   font-size: 11px; font-weight: 500; color: var(--accent-green); font-family: var(--mono);
-  width: 72px; text-align: right; flex-shrink: 0;
+  width: 50px; text-align: right; flex-shrink: 0; margin-left: 0;
 }
 
 .emo-stats-card {

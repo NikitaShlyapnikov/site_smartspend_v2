@@ -897,11 +897,7 @@ export default function Profile() {
             {/* Stats card */}
             <div className="emo-stats-card">
               <div className="emo-stat">
-                <div className="emo-stat-num">
-                  {capital >= 1_000_000
-                    ? `₽${(capital / 1_000_000).toFixed(1)}М`
-                    : `₽${Math.round(capital / 1000)}K`}
-                </div>
+                <div className="emo-stat-num">₽{capital.toLocaleString('ru')}</div>
                 <div className="emo-stat-label">текущий капитал</div>
               </div>
               <div className="emo-stat">
@@ -910,9 +906,7 @@ export default function Profile() {
               </div>
               <div className="emo-stat">
                 <div className="emo-stat-num">
-                  {emoMonthly >= 1000
-                    ? `₽${(emoMonthly / 1000).toFixed(0)}K`
-                    : `₽${emoMonthly.toLocaleString('ru')}`}
+                  ₽{emoMonthly.toLocaleString('ru')}
                   <span className="emo-stat-per">/мес</span>
                 </div>
                 <div className="emo-stat-label">можно тратить</div>
