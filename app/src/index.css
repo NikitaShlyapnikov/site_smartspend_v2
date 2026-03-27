@@ -8518,6 +8518,10 @@ body.dark .promo-type-tab.active { background: var(--accent-green); color: #fff;
   background: var(--accent-green-bg);
 }
 body.dark .whisper-add-cta:hover { background: rgba(106,175,142,.08); }
+.whisper-add-cta--active {
+  border-color: var(--accent-green); color: var(--accent-green);
+  background: color-mix(in srgb, var(--accent-green) 6%, transparent);
+}
 
 /* ── WHISPER CARD ── */
 .whisper-card {

@@ -845,23 +845,6 @@ export default function Profile() {
               <span className="section-title">Конверты и наборы</span>
               <div className="section-subtitle">Распределяйте бюджет по конвертам раз в месяц</div>
             </div>
-            <button
-              id="sp-btn-envelopes"
-              className={`section-link${editMode ? ' editing' : ''}`}
-              onClick={() => setEditMode(e => !e)}
-            >
-              {editMode ? (
-                <>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  Готово
-                </>
-              ) : (
-                <>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                  Редактировать
-                </>
-              )}
-            </button>
           </div>
 
           {(() => {
@@ -919,6 +902,24 @@ export default function Profile() {
               </div>
             )
           })()}
+
+          <button
+            id="sp-btn-envelopes"
+            className={`whisper-add-cta${editMode ? ' whisper-add-cta--active' : ''}`}
+            onClick={() => setEditMode(e => !e)}
+          >
+            {editMode ? (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Готово
+              </>
+            ) : (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Редактировать наборы
+              </>
+            )}
+          </button>
 
           <div className="envelopes-list">
             {visibleCats.length === 0 && (
