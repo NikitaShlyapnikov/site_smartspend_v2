@@ -1117,7 +1117,7 @@ export default function Profile() {
                   onClick={() => setBsOpen(o => !o)}
                 >
                   <div className="env-bs-left">
-                    <span className="env-bs-label">{over ? 'Превышение бюджета' : 'Свободный остаток'}</span>
+                    <span className="env-bs-label">{over ? 'Превышен расход' : 'Ещё можно потратить'}</span>
                     <span className="env-bs-hint">{over ? 'нажмите чтобы увидеть разбивку' : 'нажмите чтобы увидеть разбивку'}</span>
                   </div>
                   <div className="env-bs-total-right">
