@@ -1003,12 +1003,16 @@ export default function Profile() {
                         Капитал исчерпается через {ceiling.year} {ceiling.year === 1 ? 'год' : ceiling.year < 5 ? 'года' : 'лет'}
                       </div>
                     )
-                    const capStr = ceiling.cap >= 1_000_000
-                      ? `₽${(ceiling.cap / 1_000_000).toFixed(1)}М`
-                      : `₽${Math.round(ceiling.cap / 1000)}K`
+                    const fmt = v => v >= 1_000_000
+                      ? `₽${(v / 1_000_000).toFixed(1)}М`
+                      : `₽${Math.round(v / 1000)}K`
+                    const capStr = fmt(ceiling.cap)
+                    const emoStr = fmt(Math.round(ceiling.cap * emoRate / 12))
+                    const yrs = ceiling.year
+                    const yrsLabel = yrs === 1 ? 'год' : yrs < 5 ? 'года' : 'лет'
                     return (
                       <div className="savings-ceiling">
-                        Предел накоплений — через {ceiling.year} {ceiling.year === 1 ? 'год' : ceiling.year < 5 ? 'года' : 'лет'} · {capStr}
+                        Предел накоплений — через {yrs} {yrsLabel} · {capStr} · {emoStr}/мес
                       </div>
                     )
                   })()}
