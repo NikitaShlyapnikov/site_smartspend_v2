@@ -890,13 +890,13 @@ export default function Profile() {
 
                   <div className="emo-slider-wrap">
                     <div className="emo-slider-labels">
-                      <span>0%</span><span>25%</span><span>50%</span>
+                      <span>0%</span><span>10%</span><span>25%</span>
                     </div>
                     <div className="emo-slider-track">
-                      <div className="emo-slider-fill" style={{ width: `${emoRate * 200}%` }}/>
-                      <div className="emo-slider-thumb" style={{ left: `${emoRate * 200}%` }}/>
+                      <div className="emo-slider-fill" style={{ width: `${emoRate * 400}%` }}/>
+                      <div className="emo-slider-thumb" style={{ left: `${emoRate * 400}%` }}/>
                       <input
-                        type="range" min={0} max={50} step={1}
+                        type="range" min={0} max={25} step={1}
                         value={Math.round(emoRate * 100)}
                         onChange={e => setEmoRate(Number(e.target.value) / 100)}
                         className="emo-slider-input"
@@ -911,6 +911,9 @@ export default function Profile() {
                     const rows = INDICES.map(i => pts[i]).filter(Boolean)
                     const maxCap = rows.length ? Math.max(...rows.map(r => r.cap)) : 1
                     const curYear = new Date().getFullYear()
+                    const fmtM = v => v >= 1_000_000
+                      ? `₽${(v / 1_000_000).toFixed(1)}М`
+                      : `₽${Math.round(v / 1000)}K`
                     return (
                       <div className="emo-forecast">
                         {rows.map((r, i) => (
@@ -919,11 +922,8 @@ export default function Profile() {
                             <div className="forecast-bar-track">
                               <div className="forecast-bar-fill" style={{ width: `${Math.round(r.cap / maxCap * 100)}%` }}/>
                             </div>
-                            <span className="forecast-val">
-                              {r.cap >= 1_000_000
-                                ? `₽${(r.cap / 1_000_000).toFixed(1)}М`
-                                : `₽${Math.round(r.cap / 1000)}K`}
-                            </span>
+                            <span className="forecast-val">{fmtM(r.cap)}</span>
+                            <span className="forecast-emo">{fmtM(r.emo)}/мес</span>
                           </div>
                         ))}
                       </div>

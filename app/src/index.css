@@ -3928,7 +3928,7 @@ body.dark .budget-pm-warn svg { color: #C8A850; }
 .rate-btn.active .rate-pct { opacity: 1; }
 
 /* ── EmoSpend new layout ── */
-.emo-inner { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start; }
+.emo-inner { display: grid; grid-template-columns: 65% 35%; gap: 12px; align-items: start; }
 .emo-card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--r); padding: 20px;
@@ -3967,13 +3967,17 @@ body.dark .budget-pm-warn svg { color: #C8A850; }
 .forecast-bar-fill { height: 100%; background: var(--accent-green); border-radius: 3px; transition: width 0.3s ease; max-width: 100%; }
 .forecast-val {
   font-size: 11px; font-weight: 600; color: var(--text-2); font-family: var(--mono);
-  width: 58px; text-align: right; flex-shrink: 0;
+  width: 54px; text-align: right; flex-shrink: 0;
+}
+.forecast-emo {
+  font-size: 11px; font-weight: 500; color: var(--accent-green); font-family: var(--mono);
+  width: 72px; text-align: right; flex-shrink: 0;
 }
 
 .emo-stats-card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--r); padding: 16px 20px;
-  display: flex; flex-direction: column; gap: 16px; min-width: 140px;
+  display: flex; flex-direction: column; gap: 16px;
 }
 .emo-stat { display: flex; flex-direction: column; gap: 3px; }
 .emo-stat-num { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text); }
