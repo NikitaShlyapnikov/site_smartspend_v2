@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
@@ -238,13 +238,6 @@ function FinancialModal({ open, initialData, onSave, onClose }) {
 const FEDERAL_PM_2026 = 20644  // Прожиточный минимум РФ 2026, ₽/мес
 const SMART_SPEND_BASE = Math.round(FEDERAL_PM_2026 * 0.75) // 75% — конверты (без жилья ~25%)
 
-const EMO_RATES = [
-  { rate: 0.04, label: 'FIRE', pct: '4%', level: 'low' },
-  { rate: 0.05, label: 'SMART', pct: '5%', level: 'medium' },
-  { rate: 0.07, label: 'RICH', pct: '7%', level: 'high' },
-  { rate: 0.10, label: 'EXTRA', pct: '10%', level: 'extra' },
-]
-
 // ── Категории конвертов ──
 const CATEGORIES = [
   { id: 'other',      name: 'Прочие расходы',        color: '#B0A898' },
@@ -429,15 +422,6 @@ function BudgetGroup({ group }) {
   )
 }
 
-function fmt(n) {
-  if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.', ',') + ' млн'
-  return Math.round(n / 1000) + ' тыс'
-}
-
-function forecastKey(fin) {
-  return `${fin.income}|${fin.housing}|${fin.credit}|${fin.creditMonths}|${fin.capital}`
-}
-
 // Прогноз накоплений: капитал растёт на BASE_RETURN + свободный остаток (кредит освобождается после погашения)
 // EmoSpend НЕ вычитается из капитала — он считается отдельно как потенциал трат
 function calcSavings(monthlyFree, emoRate, startCapital, creditPayment = 0, remainingCreditMonths = 0) {
@@ -470,194 +454,6 @@ function findSavingsCeiling(monthlyFree, emoRate, startCapital, creditPayment = 
   return null
 }
 
-function calcTrajectory(emoRate, monthlyInvest, capital, creditPayment = 0, creditMonths = 0) {
-  const points = []
-  let cap = capital
-  for (let m = 1; m <= 120; m++) {
-    // After credit is paid off, the freed payment is added to monthly investment
-    const freed = creditPayment > 0 && creditMonths > 0 && m > creditMonths ? creditPayment : 0
-    const invest = monthlyInvest + freed
-    const growth = cap * BASE_RETURN / 12
-    const spending = cap * emoRate / 12
-    cap = cap + growth - spending + invest
-    if (m % 12 === 0) {
-      points.push({ year: m / 12, cap: Math.round(cap), emo: Math.round(cap * emoRate / 12) })
-    }
-  }
-  return points
-}
-
-function ForecastCollapsible({ open, onToggle, emoRate, dark, monthlyInvest, capital, credit, creditMonths }) {
-  // Считаем сводку через ту же функцию — всегда актуально
-  const pts = calcTrajectory(emoRate, monthlyInvest, capital, credit, creditMonths)
-  const last = pts[pts.length - 1] || { cap: capital, emo: 0 }
-  const capFmt = last.cap >= 1_000_000
-    ? (last.cap / 1_000_000).toFixed(1).replace('.', ',') + '\u00a0млн ₽'
-    : last.cap.toLocaleString('ru') + '\u00a0₽'
-  const emoFmt = last.emo.toLocaleString('ru') + '\u00a0₽'
-
-  return (
-    <div className="forecast-collapsible">
-      <button className="forecast-toggle-row" onClick={onToggle}>
-        <div className="forecast-toggle-left">
-          <span className="forecast-toggle-title">Прогноз накоплений · 10 лет · чистая доходность 4% годовых</span>
-          {!open && (
-            <div className="forecast-toggle-pills">
-              <span className="ftpill ftpill-cap">{capFmt}</span>
-              <span className="ftpill ftpill-sep">·</span>
-              <span className="ftpill ftpill-emo">EmoSpend {emoFmt}/мес</span>
-            </div>
-          )}
-        </div>
-        <svg
-          className={`forecast-toggle-chevron${open ? ' open' : ''}`}
-          width="14" height="14" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" strokeWidth="2.5"
-          strokeLinecap="round" strokeLinejoin="round">
-          <path d="M19 9l-7 7-7-7"/>
-        </svg>
-      </button>
-      {open && (
-        <ForecastChart
-          emoRate={emoRate} dark={dark}
-          monthlyInvest={monthlyInvest} capital={capital}
-          creditPayment={credit} creditMonths={creditMonths}
-        />
-      )}
-    </div>
-  )
-}
-
-function ForecastChart({ emoRate, dark, monthlyInvest, capital, creditPayment, creditMonths }) {
-  const canvasRef = useRef(null)
-
-  const draw = useCallback(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    const W = canvas.parentElement.clientWidth
-    const H = 220
-    canvas.width = W * window.devicePixelRatio
-    canvas.height = H * window.devicePixelRatio
-    canvas.style.width = W + 'px'
-    canvas.style.height = H + 'px'
-    ctx.scale(window.devicePixelRatio, window.devicePixelRatio)
-    ctx.clearRect(0, 0, W, H)
-
-    const data = calcTrajectory(emoRate, monthlyInvest, capital, creditPayment, creditMonths)
-    const dataBase = calcTrajectory(BASE_RETURN, monthlyInvest, capital, creditPayment, creditMonths)
-
-    const padL = 68, padR = 16, padT = 20, padB = 28
-    const chartW = W - padL - padR
-    const chartH = H - padT - padB
-
-    const maxCap = Math.max(...dataBase.map(d => d.cap))
-    const maxEmo = Math.max(...data.map(d => d.emo))
-
-    ctx.strokeStyle = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
-    ctx.lineWidth = 1
-    for (let i = 0; i <= 4; i++) {
-      const y = padT + chartH - (i / 4) * chartH
-      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + chartW, y); ctx.stroke()
-      ctx.fillStyle = dark ? '#5A5854' : '#AAAAAA'
-      ctx.font = `10px 'Geist Mono', monospace`
-      ctx.textAlign = 'right'
-      ctx.fillText(fmt(maxCap * i / 4), padL - 8, y + 3.5)
-    }
-
-    const n = data.length
-    const groupW = chartW / n
-    const barPad = groupW * 0.14
-    const barW = Math.max(4, (groupW - barPad * 2) / 2 - 2)
-
-    const drawBar = (x, h, color) => {
-      const r = 3
-      const by = padT + chartH - h
-      ctx.fillStyle = color
-      ctx.beginPath()
-      ctx.moveTo(x + r, by); ctx.lineTo(x + barW - r, by)
-      ctx.quadraticCurveTo(x + barW, by, x + barW, by + r)
-      ctx.lineTo(x + barW, padT + chartH); ctx.lineTo(x, padT + chartH)
-      ctx.lineTo(x, by + r); ctx.quadraticCurveTo(x, by, x + r, by)
-      ctx.closePath(); ctx.fill()
-    }
-
-    data.forEach((d, i) => {
-      const gx = padL + i * groupW + barPad
-      drawBar(gx, (d.cap / maxCap) * chartH, '#8DBFA8')
-      const emoMaxH = chartH * 0.4
-      drawBar(gx + barW + 2, (d.emo / maxEmo) * emoMaxH, '#D4C9B8')
-      ctx.fillStyle = dark ? '#5A5854' : '#AAAAAA'
-      ctx.font = `10px 'Geist', sans-serif`
-      ctx.textAlign = 'center'
-      ctx.fillText(d.year + ' л', padL + i * groupW + groupW / 2, H - 8)
-    })
-
-    if (barW > 14) {
-      data.forEach((d, i) => {
-        const gx = padL + i * groupW + barPad
-        const capH = (d.cap / maxCap) * chartH
-        ctx.fillStyle = dark ? '#7AAF96' : '#5A8A70'
-        ctx.font = `9px 'Geist Mono', monospace`
-        ctx.textAlign = 'left'
-        ctx.fillText(fmt(d.cap), gx, padT + chartH - capH - 4)
-        const emoMaxH = chartH * 0.4
-        const emoH = (d.emo / maxEmo) * emoMaxH
-        ctx.fillStyle = dark ? '#A09880' : '#94A3B8'
-        ctx.fillText(fmt(d.emo), gx + barW + 2, padT + chartH - emoH - 4)
-      })
-    }
-  }, [emoRate, dark, monthlyInvest, capital, creditPayment, creditMonths])
-
-  useEffect(() => {
-    draw()
-    window.addEventListener('resize', draw)
-    return () => window.removeEventListener('resize', draw)
-  }, [draw])
-
-  const data = calcTrajectory(emoRate, monthlyInvest, capital, creditPayment, creditMonths)
-  const dataBase = calcTrajectory(BASE_RETURN, monthlyInvest, capital, creditPayment, creditMonths)
-  const last = data[data.length - 1]
-  const lastBase = dataBase[dataBase.length - 1]
-  const diff = last.cap - lastBase.cap
-  const showBase = emoRate > BASE_RETURN
-  const diffStr = diff < 0
-    ? `−${Math.abs(diff).toLocaleString('ru')} ₽`
-    : `+${diff.toLocaleString('ru')} ₽`
-
-  return (
-    <div className="forecast-inner">
-      <div className="forecast-legend">
-        <span className="fc-legend-item"><span className="fc-dot capital" />Капитал</span>
-        <span className="fc-legend-item"><span className="fc-dot emo" />EmoSpend / мес</span>
-      </div>
-      <div className="forecast-chart-wrap">
-        <canvas ref={canvasRef} height="220" />
-      </div>
-      <div className="forecast-summary">
-        <div className="fc-sum-item">
-          <span className="fc-sum-label">Капитал через 10 лет</span>
-          <span className="fc-sum-value cap">{last.cap.toLocaleString('ru')} ₽</span>
-          {showBase && <span className="fc-sum-delta">{diffStr} от базовой</span>}
-        </div>
-        <div className="fc-sum-item">
-          <span className="fc-sum-label">EmoSpend / мес через 10 лет</span>
-          <span className="fc-sum-value emo">{last.emo.toLocaleString('ru')} ₽</span>
-        </div>
-        <div className="fc-sum-item">
-          <span className="fc-sum-label">Пополнение за 10 лет</span>
-          <span className="fc-sum-value">+{(monthlyInvest * 120).toLocaleString('ru')} ₽</span>
-          {creditPayment > 0 && creditMonths > 0 && creditMonths <= 120 && (
-            <span className="fc-sum-delta fc-credit-hint">
-              +{creditPayment.toLocaleString('ru')} ₽/мес после закрытия кредита через {creditMonths} мес.
-            </span>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function Profile() {
   const { username, dark } = useApp()
   const navigate = useNavigate()
@@ -668,18 +464,6 @@ export default function Profile() {
   const [finOpen, setFinOpen] = useState(false)
   const [finance, setFinance] = useState(loadFinance)
   const [showSpotlight, setShowSpotlight] = useState(false)
-  const [chartOpen, setChartOpen] = useState(() => {
-    const current = forecastKey(loadFinance())
-    return localStorage.getItem('ss_forecast_seen') !== current
-  })
-
-  function toggleChart() {
-    if (chartOpen) {
-      // пользователь сворачивает — фиксируем как просмотренное
-      localStorage.setItem('ss_forecast_seen', forecastKey(finance))
-    }
-    setChartOpen(o => !o)
-  }
 
   const { income, housing, credit, creditMonths = 0, capital, updatedAt } = finance
 
@@ -710,7 +494,6 @@ export default function Profile() {
   // Динамический перерасчёт
   const totalExpenses = housing + credit + grandTotal
   const savings = income - totalExpenses
-  const monthlyInvest = Math.max(0, savings)
 
   // Строим группы финансовой картины из актуальных данных
   const housingPct = income > 0 ? Math.round(housing / income * 100) : null
@@ -736,19 +519,10 @@ export default function Profile() {
     },
   ]
 
-  const emoAnnual = Math.round(capital * emoRate)
-  const emoMonthly = Math.round(emoAnnual / 12)
+  const emoMonthly = Math.round(capital * emoRate / 12)
 
   // Чистый доход = доход − жильё − кредиты (до конвертов)
   const netIncome = income > 0 ? Math.max(0, income - housing - credit) : 0
-  // Если чистый доход >= ПМ — используем ПМ как потолок; иначе берём чистый доход
-  const useBasePM = income > 0 && netIncome >= SMART_SPEND_BASE
-  const budgetBase = income > 0 ? Math.min(netIncome, SMART_SPEND_BASE) : SMART_SPEND_BASE
-  const sustainableBudget = budgetBase + emoMonthly
-  const envelopeDiff = grandTotal - sustainableBudget
-  const neededCapital = envelopeDiff > 0
-    ? Math.round(envelopeDiff * 12 / emoRate)
-    : 0
   // Предупреждение: чистый доход ниже прожиточного минимума конвертов
   const showPmWarn = income > 0 && netIncome < SMART_SPEND_BASE
 
@@ -774,28 +548,6 @@ export default function Profile() {
   ]
 
   const savingsPct = income > 0 ? Math.round((savings / income) * 100) : 0
-  const greetingSubtitle = (() => {
-    if (!income || income <= 0) {
-      return <>Укажи доход в разделе «Финансовая картина» — и система покажет, сколько ты откладываешь каждый месяц.</>
-    }
-    if (savings < 0) {
-      const deficit = Math.abs(savings).toLocaleString('ru')
-      return <>Расходы превышают доход на <strong>{deficit} ₽</strong> — самое время пересмотреть конверты и найти, где можно сократить.</>
-    }
-    if (savingsPct < 5) {
-      return <>Откладывается совсем немного — <strong>{savingsPct}% дохода</strong>. Попробуй найти статью расходов, которую можно сократить хотя бы на пару тысяч.</>
-    }
-    if (savingsPct < 15) {
-      return <>В этом месяце откладываешь <strong>{savingsPct}% дохода</strong> — есть куда расти. Постепенно стремись к 20%, и капитал начнёт работать заметнее.</>
-    }
-    if (savingsPct < 25) {
-      return <>В этом месяце откладываешь <strong>{savingsPct}% дохода</strong> — хороший темп накопления. Держи курс.</>
-    }
-    if (savingsPct < 40) {
-      return <>Откладываешь <strong>{savingsPct}% дохода</strong> — отличный результат. Такой темп позволяет капиталу расти быстрее инфляции.</>
-    }
-    return <>Откладываешь <strong>{savingsPct}% дохода</strong> — впечатляющая дисциплина. При таком темпе финансовая независимость ближе, чем кажется.</>
-  })()
 
   function deleteSet(catId, idx) {
     setEnvelopes(prev => {
@@ -907,7 +659,7 @@ export default function Profile() {
               .map(g => <BudgetGroup key={g.id} group={g} />)}
             <div className="bl-row total-expenses">
               <span className="bl-label">Итого расходов</span>
-              <span className="bl-value">−{totalExpenses.toLocaleString('ru')} ₽ {income > 0 && <span className="bl-tag-neutral">{Math.round((totalExpenses / income) * 100)}% дохода</span>}</span>
+              <span className="bl-value">−{totalExpenses.toLocaleString('ru')} ₽ {income > 0 && <span className="bl-tag-neutral">{Math.round((totalExpenses / income) * 100)}%</span>}</span>
             </div>
             <div className={`bl-row remainder${savings < 0 ? ' remainder--deficit' : savingsPct >= 20 ? ' remainder--good' : ''}`}>
               <span className="bl-label">Свободный остаток</span>
@@ -953,7 +705,7 @@ export default function Profile() {
                 <div className="emo-card-left">
                   <div className="emo-card-header">
                     <div className="emo-card-label">EmoSpend</div>
-                    <div className="emo-card-sub">от ежемесячного дохода</div>
+                    <div className="emo-card-sub">от накопленного капитала</div>
                   </div>
 
                   <div className="emo-slider-wrap">
@@ -981,13 +733,17 @@ export default function Profile() {
                     const curYear = new Date().getFullYear()
                     const fmtM = v => {
                       const abs = Math.abs(v)
-                      const str = abs >= 1_000_000
-                        ? `₽${(abs / 1_000_000).toFixed(1)}М`
-                        : `₽${Math.round(abs / 1000)}K`
+                      const str = `₽${abs.toLocaleString('ru')}`
                       return v < 0 ? `−${str}` : str
                     }
                     return (
                       <div className="emo-forecast">
+                        <div className="forecast-row forecast-row--header">
+                          <span className="forecast-year" />
+                          <div className="forecast-bar-track" style={{visibility:'hidden'}} />
+                          <span className="forecast-val forecast-header-label">Капитал</span>
+                          <span className="forecast-emo forecast-header-label">EmoSpend</span>
+                        </div>
                         {rows.map((r, i) => (
                           <div key={i} className="forecast-row">
                             <span className="forecast-year">{curYear + YEAR_OFFSETS[i]}</span>
@@ -1088,7 +844,7 @@ export default function Profile() {
             return (
               <div className="env-budget-summary">
                 <div className={`env-bs-details${bsOpen ? ' env-bs-details--open' : ''}`}>
-                  <div className="env-bs-details-inner">
+                  <div className="env-bs-details-inner" onClick={e => e.stopPropagation()}>
                     <div className="env-bs-row">
                       <div className="env-bs-left">
                         <span className="env-bs-label">Минимальные расходы</span>
