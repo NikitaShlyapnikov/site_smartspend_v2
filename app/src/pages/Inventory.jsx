@@ -189,7 +189,8 @@ function ItemRow({ item, info, override, costPeriod = 'week', selected, editMode
     }
   }
 
-  const remainPct = paused ? 50 : (status === 'overexploit' ? 0 : Math.max(0, Math.min(100, 100 - pct)))
+  const noPurchaseDate = item.type !== 'consumable' && !(override !== null ? override : item.purchaseDate)
+  const remainPct = paused ? 50 : noPurchaseDate ? 0 : (status === 'overexploit' ? 0 : Math.max(0, Math.min(100, 100 - pct)))
   const barStatus = paused ? 'paused' : status
 
   return (
@@ -819,7 +820,6 @@ function ShoppingList({ items, infoMap, groups, overrides, categoryFilter, setFi
               return (
                 <div key={item.id} className="inv-shopping-row">
                   <span className="inv-shopping-item-name">{item.name}</span>
-                  <span className="inv-shopping-item-qty">{action?.qty || '—'}</span>
                   <span className="inv-shopping-item-cost">~₽{(action?.cost || 0).toLocaleString('ru')}</span>
                 </div>
               )
@@ -971,6 +971,7 @@ export default function Inventory() {
   const [linkToSetItem, setLinkToSetItem] = useState(null)
   const [showAddForm, setShowAddForm] = useState(false)
   const [addFormGroupId, setAddFormGroupId] = useState(null)
+  const [showAddPanel, setShowAddPanel] = useState(false)
   const nextIdRef = useRef(1000)
 
   const [itemGroups, setItemGroups] = useState(() => {
@@ -1391,6 +1392,17 @@ export default function Inventory() {
               </div>
             )}
 
+            {/* Add item button */}
+            <button
+              className={`whisper-add-cta${showAddPanel ? ' whisper-add-cta--active' : ''}`}
+              onClick={() => { setShowAddPanel(p => !p); setSelectedItemId(null); setAddFormGroupId(null) }}
+            >
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Добавить позицию
+            </button>
+
             {/* Value summary */}
             {items.length > 0 && (
               <div className="inv-value-card">
@@ -1414,7 +1426,53 @@ export default function Inventory() {
 
           {/* Right: detail panel — always rendered */}
           <div className="inv-panel-col">
-            {selectedItem ? (
+            {showAddPanel ? (
+              <div className="inv-add-panel">
+                <div className="inv-add-panel-header">
+                  <span className="inv-add-panel-title">Новая позиция</span>
+                  <button className="ipanel-close-btn" onClick={() => { setShowAddPanel(false); setAddFormGroupId(null) }}>
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                </div>
+                {!addFormGroupId ? (
+                  <div className="inv-add-group-chooser">
+                    <div className="inv-add-group-chooser-title">Выберите категорию</div>
+                    <div className="inv-add-group-list">
+                      {ALL_GROUPS.map(g => (
+                        <button key={g.id} className="inv-add-group-btn" onClick={() => setAddFormGroupId(g.id)}>
+                          <span className="inv-add-group-dot" style={{ background: g.color }} />
+                          {g.name}
+                          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 'auto', color: 'var(--text-3)' }}>
+                            <path d="M9 18l6-6-6-6" />
+                          </svg>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="inv-add-group-back">
+                      <button className="inv-add-group-back-btn" onClick={() => setAddFormGroupId(null)}>
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M15 18l-6-6 6-6" />
+                        </svg>
+                        Категория: {ALL_GROUPS.find(g => g.id === addFormGroupId)?.name}
+                      </button>
+                    </div>
+                    <AddItemForm
+                      groupId={addFormGroupId}
+                      groupSetCategories={ALL_GROUPS.find(g => g.id === addFormGroupId)?.setCategories}
+                      groupPersonalSets={personalSets}
+                      onAdd={(gid, form) => { doAddItem(gid, form); setShowAddPanel(false); setAddFormGroupId(null) }}
+                      onCancel={() => { setShowAddPanel(false); setAddFormGroupId(null) }}
+                    />
+                  </div>
+                )}
+              </div>
+            ) : selectedItem ? (
               <ItemDetail
                 key={selectedItem.id}
                 item={selectedItem}

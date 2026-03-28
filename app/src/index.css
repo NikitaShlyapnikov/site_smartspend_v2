@@ -10219,6 +10219,10 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 }
 .inv-panel-empty span { font-size: 13px; }
 
+.inv-add-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; }
+.inv-add-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.inv-add-panel-title { font-size: 14px; font-weight: 600; color: var(--text); }
+
 .inv-status-group { margin-bottom: 4px; }
 .inv-status-group-header {
   display: flex; align-items: center; gap: 8px;
