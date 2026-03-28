@@ -687,11 +687,6 @@ function ItemDetail({ item, info, group, override, costPeriod, onCostPeriodChang
                     <option value="years">лет</option>
                   </select>
                 </div>
-                <div className="inv-add-form-field">
-                  <div className="inv-add-form-lbl">Дата покупки</div>
-                  <input className="inv-add-form-input" type="date" value={paramForm.purchaseDate || ''}
-                    onChange={e => setPF('purchaseDate')(e.target.value)} max={new Date().toISOString().slice(0, 10)} />
-                </div>
               </>
             )}
           </div>
@@ -1194,11 +1189,33 @@ export default function Inventory() {
 
 
   function doUnlink(id) {
+    const item = items.find(i => i.id === id)
+    if (!item) { setUnlinkConfirm(null); return }
+    const placeholderId = 'i' + nextIdRef.current++
+    const placeholder = {
+      id: placeholderId,
+      name: item.name,
+      type: item.type,
+      groupId: item.groupId,
+      set: item.set,
+      setId: item.setId,
+      price: 0,
+      isExtra: true,
+      paused: true,
+      ...(item.type === 'consumable'
+        ? { qty: item.qty || 100, dailyUse: item.dailyUse || 1, unit: item.unit || 'г', lastBought: new Date().toISOString().slice(0, 10) }
+        : { wearLifeWeeks: item.wearLifeWeeks || 52, purchaseDate: null }
+      ),
+    }
     setItems(prev => {
-      const next = prev.map(i => i.id === id ? { ...i, set: null, setId: null } : i)
+      const next = [...prev.map(i => i.id === id ? { ...i, set: null, setId: null } : i), placeholder]
       syncExtra(next)
       return next
     })
+    setOverrides(p => ({
+      ...p,
+      [placeholderId]: item.type === 'consumable' ? (item.qty || 100) : null,
+    }))
     setUnlinkConfirm(null)
   }
 
@@ -1573,9 +1590,8 @@ export default function Inventory() {
           <div className="inv-modal" onClick={e => e.stopPropagation()}>
             <div className="inv-modal-title">Отвязать от набора?</div>
             <div className="inv-modal-body">
-              Отвязка <strong>«{unlinkConfirm.name}»</strong> от набора
-              <strong> «{unlinkConfirm.set}»</strong> приведёт к созданию новой версии набора без этого ингредиента.
-              Позиция перейдёт в раздел <strong>«Личное»</strong>.
+              Позиция <strong>«{unlinkConfirm.name}»</strong> перейдёт в раздел <strong>«Личное»</strong>.
+              В наборе <strong>«{unlinkConfirm.set}»</strong> останется пустая позиция на её месте.
             </div>
             <div className="inv-modal-actions">
               <button className="inv-modal-btn" onClick={() => setUnlinkConfirm(null)}>Отмена</button>
