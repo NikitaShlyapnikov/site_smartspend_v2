@@ -218,23 +218,15 @@ function ItemRow({ item, info, override, selected, editMode, onSelect, onDelete 
       className={`irow${selected ? ' irow--selected' : ''}${paused ? ' irow--paused' : ''}`}
       onClick={onSelect}
     >
-      <div className="irow-main">
-        <div className="irow-name-row">
-          <span className="irow-name">{item.name}</span>
+      <span className="irow-name">{item.name}</span>
+      <div className="irow-bar-wrap">
+        <div className="irow-bar">
+          <div className={`irow-bar-fill irow-bar-fill--${barStatus}`} style={{ width: `${barPct}%` }} />
         </div>
-        <div className="irow-meta">
-          <div className="irow-bar-wrap">
-            <div className="irow-bar">
-              <div className={`irow-bar-fill irow-bar-fill--${barStatus}`} style={{ width: `${barPct}%` }} />
-            </div>
-            <span className="irow-pct">{paused ? '—' : `${pct}%`}</span>
-          </div>
-        </div>
+        <span className="irow-pct">{paused ? '—' : `${pct}%`}</span>
       </div>
-      <div className="irow-stats">
-        {residualText && <span className="irow-residual">{residualText}</span>}
-        {timeText && <span className={`irow-time irow-time--${barStatus}`}>{timeText}</span>}
-      </div>
+      <span className={`irow-time irow-time--${barStatus}`}>{timeText || '—'}</span>
+      <span className="irow-residual">{residualText || '—'}</span>
       {editMode && (
         <button className="irow-delete" onClick={e => { e.stopPropagation(); onDelete() }} title="Удалить">
           <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
