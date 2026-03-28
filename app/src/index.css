@@ -10357,6 +10357,34 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .ipanel-status-badge--overexploit{ color: #7B5EA7; border-color: rgba(123,94,167,0.35); background: rgba(123,94,167,0.08); }
 .ipanel-status-badge--paused     { color: #5B8FD4; border-color: rgba(91,143,212,0.35); background: rgba(91,143,212,0.08); }
 .ipanel-set-badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; background: var(--surface-2); color: var(--text-3); border: 1px solid var(--border); }
+/* Three-dot menu */
+.ipanel-menu-wrap { position: relative; flex-shrink: 0; }
+.ipanel-menu-btn {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: none; background: transparent; color: var(--text-3);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background 0.13s, color 0.13s;
+}
+.ipanel-menu-btn:hover { background: var(--surface-3); color: var(--text); }
+.ipanel-menu-dropdown {
+  position: absolute; top: calc(100% + 4px); right: 0; z-index: 200;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 4px;
+  min-width: 190px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+}
+.ipanel-menu-item {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 8px 10px; border-radius: 7px;
+  border: none; background: transparent;
+  font-size: 13px; color: var(--text-2); text-align: left;
+  cursor: pointer; transition: background 0.12s;
+}
+.ipanel-menu-item:hover { background: var(--surface-2); color: var(--text); }
+.ipanel-menu-item--danger { color: var(--status-urgent); }
+.ipanel-menu-item--danger:hover { background: rgba(184,85,85,0.08); color: var(--status-urgent); }
+.ipanel-menu-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
 .ipanel-close {
   flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
   border: 1px solid var(--border); background: var(--surface-2); color: var(--text-3); cursor: pointer;
@@ -10418,10 +10446,11 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .ipanel-stepper-input {
   width: 52px; text-align: center;
   font-family: var(--mono); font-size: 12px; font-weight: 400; color: var(--text);
-  border: none; border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+  border: none; border-left: 1px solid var(--border);
   background: none; outline: none; padding: 0 4px; height: 100%;
   -moz-appearance: textfield;
 }
+.ipanel-stepper-input:focus-visible { outline: none; }
 .ipanel-stepper-input::-webkit-inner-spin-button,
 .ipanel-stepper-input::-webkit-outer-spin-button { display: none; }
 .ipanel-stepper-unit { font-size: 11px; color: var(--text-3); padding: 0 8px 0 0; white-space: nowrap; }

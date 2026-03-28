@@ -173,17 +173,23 @@ function ItemRow({ item, info, override, costPeriod = 'week', selected, editMode
       if (pd) {
         const wu = Math.floor(daysSince(pd) / 7)
         const weeksLeft = Math.max(0, item.wearLifeWeeks - wu)
+        const daysLeft = Math.max(0, item.wearLifeWeeks * 7 - Math.floor(daysSince(pd)))
         if (status === 'overexploit') timeContent = `+${wu - item.wearLifeWeeks} нед.`
         else if (weeksLeft === 0) timeContent = <EmptyIcon />
-        else if (weeksLeft < 52) timeContent = `${weeksLeft} нед.`
-        else timeContent = `${Math.floor(weeksLeft / 52)} лет`
+        else if (daysLeft <= 7) timeContent = `${daysLeft} дн.`
+        else if (weeksLeft <= 4) timeContent = `${weeksLeft} нед.`
+        else if (weeksLeft < 52) timeContent = `${Math.round(daysLeft / 30)} мес.`
+        else timeContent = `${Math.floor(weeksLeft / 52)} г.`
       } else {
-        timeContent = `${item.wearLifeWeeks} нед.`
+        const wl = item.wearLifeWeeks || 0
+        if (wl < 5) timeContent = `${wl} нед.`
+        else if (wl < 52) timeContent = `${Math.round(wl / 4.33)} мес.`
+        else timeContent = `${Math.floor(wl / 52)} г.`
       }
     }
   }
 
-  const barPct = paused ? 50 : (status === 'overexploit' ? 100 : Math.min(100, pct))
+  const remainPct = paused ? 50 : (status === 'overexploit' ? 0 : Math.max(0, 100 - pct))
   const barStatus = paused ? 'paused' : status
 
   return (
@@ -194,9 +200,9 @@ function ItemRow({ item, info, override, costPeriod = 'week', selected, editMode
       <span className="irow-name">{item.name}</span>
       <div className="irow-bar-wrap">
         <div className="irow-bar">
-          <div className={`irow-bar-fill irow-bar-fill--${barStatus}`} style={{ width: `${barPct}%` }} />
+          <div className={`irow-bar-fill irow-bar-fill--${barStatus}`} style={{ width: `${remainPct}%` }} />
         </div>
-        <span className="irow-pct">{paused ? '—' : `${pct}%`}</span>
+        <span className="irow-pct">{paused ? '—' : `${remainPct}%`}</span>
       </div>
       <span className={`irow-time irow-time--${barStatus}`}>{timeContent || '—'}</span>
       {costContent}
@@ -236,6 +242,17 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
   const [paramForm, setParamForm] = useState(null)
   const [confirmDeletePhoto, setConfirmDeletePhoto] = useState(null)
   const [previewPhotoIdx, setPreviewPhotoIdx] = useState(0)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
+
+  useEffect(() => {
+    if (!menuOpen) return
+    function handleOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [menuOpen])
 
   useEffect(() => {
     if (confirmDeletePhoto === null) return
@@ -266,7 +283,7 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
   }
 
   function startEditParams(e) {
-    e.stopPropagation()
+    e?.stopPropagation()
     const today = new Date().toISOString().slice(0, 10)
     setParamForm({
       name: item.name,
@@ -406,9 +423,55 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
         </div>
       )}
 
-      {/* Header: title + close */}
+      {/* Header: title + menu + close */}
       <div className="ipanel-header">
         <div className="ipanel-title">{item.name}</div>
+        <div className="ipanel-menu-wrap" ref={menuRef}>
+          <button className="ipanel-menu-btn" onClick={() => setMenuOpen(o => !o)} title="Действия">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+            </svg>
+          </button>
+          {menuOpen && (
+            <div className="ipanel-menu-dropdown">
+              {!hasSet && (
+                <button className="ipanel-menu-item" onClick={() => { setMenuOpen(false); startEditParams() }}>
+                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                  Редактировать параметры
+                </button>
+              )}
+              {hasSet ? (
+                <button className="ipanel-menu-item" onClick={() => { setMenuOpen(false); onUnlink() }}>
+                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+                    <line x1="2" y1="2" x2="22" y2="22"/>
+                  </svg>
+                  Открепить от набора
+                </button>
+              ) : (
+                <button className="ipanel-menu-item" onClick={() => { setMenuOpen(false); onLinkSet() }}>
+                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+                  </svg>
+                  Прикрепить к набору
+                </button>
+              )}
+              <div className="ipanel-menu-divider" />
+              <button className="ipanel-menu-item ipanel-menu-item--danger" onClick={() => { setMenuOpen(false); onDelete() }}>
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                  <path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+                </svg>
+                Удалить позицию
+              </button>
+            </div>
+          )}
+        </div>
         <button className="ipanel-close" onClick={onClose} title="Закрыть">
           <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -418,11 +481,6 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
 
       {/* Meta: status + category + set */}
       <div className="ipanel-meta">
-        {(status !== 'ok' || paused) && (
-          <span className={`ipanel-status-badge ipanel-status-badge--${paused ? 'paused' : status}`}>
-            {statusLabel}
-          </span>
-        )}
         {group && (
           <button className="ipanel-cat-badge ipanel-filter-btn" onClick={() => onFilterByCategory?.(item.groupId)}>
             {group.name}
@@ -437,18 +495,6 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
           </button>
         ) : (
           <span className="inv-personal-badge">Личное</span>
-        )}
-        {editMode && hasSet && (
-          <button className="inv-unlink-btn" onClick={onUnlink}>Отвязать</button>
-        )}
-        {editMode && !hasSet && (
-          <button className="inv-link-btn" onClick={onLinkSet}>
-            <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
-              <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
-            </svg>
-            Привязать
-          </button>
         )}
       </div>
 
@@ -527,9 +573,6 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
                 onMouseLeave={stopStep} onTouchStart={() => startStep(1)} onTouchEnd={stopStep}>+</button>
             </div>
           </div>
-          <div className={`ipanel-days-hint ipanel-days-hint--${paused ? 'paused' : status}`}>
-            {consumableVals.daysLeft > 0 ? `хватит на ${consumableVals.daysLeft}\u00a0дн.` : 'запас закончился'}
-          </div>
           <div className="ipanel-wear-rows">
             <div className="ipanel-wear-row">
               <span className="ipanel-wear-row-lbl">Потребность/мес.</span>
@@ -549,17 +592,6 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
 
 
       {/* Edit params button / form */}
-      {editMode && !hasSet && !isEditingParams && (
-        <div style={{ padding: '4px 0 8px' }}>
-          <button className="inv-edit-params-btn" onClick={startEditParams}>
-            <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-            </svg>
-            Редактировать параметры
-          </button>
-        </div>
-      )}
 
       {isEditingParams && paramForm && (
         <div className="inv-add-form" style={{ margin: '0 0 12px' }}>
@@ -678,18 +710,6 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
         <input ref={notePhotoInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handlePhotoAdd} />
       </div>
 
-      {/* Edit mode delete button */}
-      {editMode && (
-        <div style={{ padding: '4px 0 8px' }}>
-          <button className="inv-item-delete-full" onClick={onDelete}>
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-              <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
-            </svg>
-            Удалить позицию
-          </button>
-        </div>
-      )}
 
       {/* Lightbox */}
       {lightboxIdx !== null && lbTotal > 0 && (
