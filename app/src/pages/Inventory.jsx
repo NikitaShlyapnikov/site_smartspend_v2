@@ -193,10 +193,7 @@ function ItemRow({ item, info, override, costPeriod = 'week', selected, onSelect
         else if (weeksLeft < 52) timeContent = `${Math.round(daysLeft / 30)} мес.`
         else timeContent = `${Math.floor(weeksLeft / 52)} г.`
       } else {
-        const wl = item.wearLifeWeeks || 0
-        if (wl < 5) timeContent = `${wl} нед.`
-        else if (wl < 52) timeContent = `${Math.round(wl / 4.33)} мес.`
-        else timeContent = `${Math.floor(wl / 52)} г.`
+        timeContent = <EmptyIcon />
       }
     }
   }
@@ -246,6 +243,7 @@ function ItemDetail({ item, info, group, override, costPeriod, onCostPeriodChang
   const [lightboxIdx, setLightboxIdx] = useState(null)
   const [isEditingParams, setIsEditingParams] = useState(false)
   const [paramForm, setParamForm] = useState(null)
+  const [paramPriceDisplay, setParamPriceDisplay] = useState('')
   const [confirmDeletePhoto, setConfirmDeletePhoto] = useState(null)
   const [previewPhotoIdx, setPreviewPhotoIdx] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -292,22 +290,56 @@ function ItemDetail({ item, info, group, override, costPeriod, onCostPeriodChang
   function startEditParams(e) {
     e?.stopPropagation()
     const today = new Date().toISOString().slice(0, 10)
+    const price = item.price || 0
+    setParamPriceDisplay(price ? price.toLocaleString('ru') : '')
     setParamForm({
       name: item.name,
-      price: String(item.price || ''),
+      price: String(price),
       qty: String(item.qty || ''),
       dailyUse: String(item.dailyUse || ''),
+      dailyUseUnit: 'day',
       unit: item.unit || 'г',
-      wearLifeWeeks: String(item.wearLifeWeeks || ''),
+      lifeAmount: String(item.wearLifeWeeks || ''),
+      lifeUnit: 'weeks',
       purchaseDate: item.purchaseDate || today,
     })
     setIsEditingParams(true)
   }
 
+  function handleParamPriceChange(raw) {
+    const digits = raw.replace(/\D/g, '')
+    const clamped = Math.min(99999999, Number(digits) || 0)
+    setParamPriceDisplay(digits ? clamped.toLocaleString('ru') : '')
+    setPF('price')(String(clamped || ''))
+  }
+
+  function toWeeksParam(amount, unit) {
+    const n = parseFloat(amount) || 0
+    if (unit === 'days') return n / 7
+    if (unit === 'weeks') return n
+    if (unit === 'months') return n * 4.33
+    if (unit === 'years') return n * 52
+    return n
+  }
+
+  function toDailyParam(amount, unit) {
+    const n = parseFloat(amount) || 0
+    if (unit === 'day') return n
+    if (unit === 'week') return n / 7
+    if (unit === 'month') return n / 30
+    return n
+  }
+
   function saveParams(e) {
     e.stopPropagation()
     if (!paramForm.name.trim() || !paramForm.price) return
-    onUpdateItem(paramForm)
+    const data = { ...paramForm }
+    if (item.type === 'wear') {
+      data.wearLifeWeeks = Math.round(toWeeksParam(paramForm.lifeAmount, paramForm.lifeUnit)) || 52
+    } else {
+      data.dailyUse = toDailyParam(paramForm.dailyUse, paramForm.dailyUseUnit)
+    }
+    onUpdateItem(data)
     setIsEditingParams(false)
   }
 
@@ -604,8 +636,8 @@ function ItemDetail({ item, info, group, override, costPeriod, onCostPeriodChang
             </div>
             <div className="inv-add-form-field">
               <div className="inv-add-form-lbl">Цена, руб.</div>
-              <input className="inv-add-form-input" type="number" value={paramForm.price}
-                onChange={e => setPF('price')(e.target.value)} placeholder="0" />
+              <input className="inv-add-form-input" value={paramPriceDisplay}
+                onChange={e => handleParamPriceChange(e.target.value)} placeholder="0" inputMode="numeric" />
             </div>
 
             {item.type === 'consumable' ? (
@@ -613,7 +645,7 @@ function ItemDetail({ item, info, group, override, costPeriod, onCostPeriodChang
                 <div className="inv-add-form-field">
                   <div className="inv-add-form-lbl">Объём / масса</div>
                   <input className="inv-add-form-input" type="number" value={paramForm.qty}
-                    onChange={e => setPF('qty')(e.target.value)} placeholder="500" />
+                    onChange={e => setPF('qty')(Math.min(999999, Number(e.target.value) || 0) || '')} placeholder="500" max="999999" />
                 </div>
                 <div className="inv-add-form-field">
                   <div className="inv-add-form-lbl">Единица</div>
@@ -626,17 +658,34 @@ function ItemDetail({ item, info, group, override, costPeriod, onCostPeriodChang
                   </select>
                 </div>
                 <div className="inv-add-form-field">
-                  <div className="inv-add-form-lbl">Расход в день</div>
+                  <div className="inv-add-form-lbl">Расход</div>
                   <input className="inv-add-form-input" type="number" value={paramForm.dailyUse}
-                    onChange={e => setPF('dailyUse')(e.target.value)} placeholder="10" step="0.1" />
+                    onChange={e => setPF('dailyUse')(Math.min(999999, Number(e.target.value) || 0) || '')} placeholder="10" step="0.1" max="999999" />
+                </div>
+                <div className="inv-add-form-field">
+                  <div className="inv-add-form-lbl">Период расхода</div>
+                  <select className="inv-add-form-select" value={paramForm.dailyUseUnit} onChange={e => setPF('dailyUseUnit')(e.target.value)}>
+                    <option value="day">в день</option>
+                    <option value="week">в неделю</option>
+                    <option value="month">в месяц</option>
+                  </select>
                 </div>
               </>
             ) : (
               <>
                 <div className="inv-add-form-field">
-                  <div className="inv-add-form-lbl">Срок службы, нед.</div>
-                  <input className="inv-add-form-input" type="number" value={paramForm.wearLifeWeeks}
-                    onChange={e => setPF('wearLifeWeeks')(e.target.value)} placeholder="52" />
+                  <div className="inv-add-form-lbl">Срок службы</div>
+                  <input className="inv-add-form-input" type="number" value={paramForm.lifeAmount}
+                    onChange={e => setPF('lifeAmount')(Math.min(999999, Number(e.target.value) || 0) || '')} placeholder="1" max="999999" />
+                </div>
+                <div className="inv-add-form-field">
+                  <div className="inv-add-form-lbl">Единица срока</div>
+                  <select className="inv-add-form-select" value={paramForm.lifeUnit} onChange={e => setPF('lifeUnit')(e.target.value)}>
+                    <option value="days">дней</option>
+                    <option value="weeks">недель</option>
+                    <option value="months">месяцев</option>
+                    <option value="years">лет</option>
+                  </select>
                 </div>
                 <div className="inv-add-form-field">
                   <div className="inv-add-form-lbl">Дата покупки</div>
