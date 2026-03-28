@@ -157,17 +157,14 @@ function StatusDot({ status, paused }) {
 
 // ── ITEM ROW ──────────────────────────────────────────────────────────────────
 
-function ItemRow({ item, info, group, override, selected, editMode, onSelect, onDelete }) {
+function ItemRow({ item, info, override, selected, editMode, onSelect, onDelete }) {
   const paused = !!item.paused
-  const { pct, status, remainderText } = info
+  const { pct, status } = info
 
-  let dailyCost = null
   let residualText = null
   let timeText = null
 
   if (item.type === 'consumable') {
-    const unit = item.unit || 'г'
-    dailyCost = Math.round(item.dailyUse * item.price / item.qty)
     const ov = override !== null ? Math.max(0, override) : Math.max(0, item.qty - daysSince(item.lastBought) * item.dailyUse)
     const pricePerUnit = item.qty > 0 ? item.price / item.qty : 0
     residualText = `${Math.round(ov * pricePerUnit).toLocaleString('ru')} ₽`
@@ -179,7 +176,6 @@ function ItemRow({ item, info, group, override, selected, editMode, onSelect, on
   } else {
     if (Array.isArray(item.purchases)) {
       const total = item.purchases.length
-      dailyCost = Math.round(item.price * total / (item.wearLifeWeeks * 7))
       const boughtList = item.purchases.filter(p => p.bought && p.purchaseDate)
       if (boughtList.length > 0) {
         const oldestDate = boughtList.map(p => p.purchaseDate).sort()[0]
@@ -197,7 +193,6 @@ function ItemRow({ item, info, group, override, selected, editMode, onSelect, on
         timeText = `${total} шт`
       }
     } else {
-      dailyCost = Math.round(item.price / (item.wearLifeWeeks * 7))
       const pd = override !== null ? override : item.purchaseDate
       if (pd) {
         const wu = Math.floor(daysSince(pd) / 7)
@@ -215,7 +210,6 @@ function ItemRow({ item, info, group, override, selected, editMode, onSelect, on
     }
   }
 
-  const groupName = group ? group.name : ''
   const barPct = paused ? 50 : (status === 'overexploit' ? 100 : Math.min(100, pct))
   const barStatus = paused ? 'paused' : status
 
@@ -224,14 +218,11 @@ function ItemRow({ item, info, group, override, selected, editMode, onSelect, on
       className={`irow${selected ? ' irow--selected' : ''}${paused ? ' irow--paused' : ''}`}
       onClick={onSelect}
     >
-      <StatusDot status={status} paused={paused} />
       <div className="irow-main">
         <div className="irow-name-row">
           <span className="irow-name">{item.name}</span>
-          {item.set && <span className="irow-set-tag">{item.set}</span>}
         </div>
         <div className="irow-meta">
-          <span className="irow-cat">{groupName}</span>
           <div className="irow-bar-wrap">
             <div className="irow-bar">
               <div className={`irow-bar-fill irow-bar-fill--${barStatus}`} style={{ width: `${barPct}%` }} />
@@ -242,7 +233,6 @@ function ItemRow({ item, info, group, override, selected, editMode, onSelect, on
       </div>
       <div className="irow-stats">
         {residualText && <span className="irow-residual">{residualText}</span>}
-        {dailyCost !== null && <span className="irow-daily">{dailyCost} ₽/д</span>}
         {timeText && <span className={`irow-time irow-time--${barStatus}`}>{timeText}</span>}
       </div>
       {editMode && (
@@ -258,7 +248,7 @@ function ItemRow({ item, info, group, override, selected, editMode, onSelect, on
 
 // ── ITEM DETAIL ────────────────────────────────────────────────────────────────
 
-function ItemDetail({ item, info, override, editMode, onOverrideChange, onStepStop, onDelete, onUnlink, onLinkSet, onLaunch, notes, onNotesChange, onUpdateItem, onClose }) {
+function ItemDetail({ item, info, group, override, editMode, onOverrideChange, onStepStop, onDelete, onUnlink, onLinkSet, onLaunch, notes, onNotesChange, onUpdateItem, onClose }) {
   const paused = !!item.paused
   const { pct, status, remainderText, monthlyBlock } = info
   const unit = item.type === 'consumable' ? (item.unit || 'г') : 'нед'
@@ -523,6 +513,14 @@ function ItemDetail({ item, info, override, editMode, onOverrideChange, onStepSt
 
   return (
     <div className="ipanel">
+      {/* Photo first */}
+      {photos.length > 0 && (
+        <div className="ipanel-photo-top" onClick={e => openLightbox(0, e)}>
+          <img src={photos[0].url} alt={photos[0].name} className="ipanel-photo-top-img" />
+          {photos.length > 1 && <span className="ipanel-photo-top-count">+{photos.length - 1}</span>}
+        </div>
+      )}
+
       {/* Header */}
       <div className="ipanel-header">
         <div className="ipanel-header-info">
@@ -531,6 +529,7 @@ function ItemDetail({ item, info, override, editMode, onOverrideChange, onStepSt
             <span className={`ipanel-status-badge ipanel-status-badge--${paused ? 'paused' : status}`}>
               {statusLabel}
             </span>
+            {group && <span className="ipanel-cat-badge">{group.name}</span>}
             {item.set && <span className="ipanel-set-badge">{item.set}</span>}
           </div>
         </div>
@@ -1181,6 +1180,21 @@ export default function Inventory() {
   const [addFormGroupId, setAddFormGroupId] = useState(null)
   const nextIdRef = useRef(1000)
 
+  const [itemGroups, setItemGroups] = useState(() => {
+    const map = {}
+    const base = inventoryGroups.flatMap(g => g.items.map(i => ({ ...i, groupId: g.id })))
+    const extra = loadExtraItems().map(i => ({ ...i, isExtra: true }))
+    ;[...base, ...extra].forEach(item => {
+      if (item.paused) { map[item.id] = 'paused'; return }
+      const ov = item.type === 'consumable'
+        ? Math.max(0, Math.round(item.qty - daysSince(item.lastBought) * item.dailyUse))
+        : item.purchaseDate
+      const info = getItemInfo(item, ov)
+      map[item.id] = info.filterStatus
+    })
+    return map
+  })
+
   const [overrides, setOverrides] = useState(() => {
     const map = {}
     inventoryGroups.forEach(g => g.items.forEach(item => {
@@ -1273,10 +1287,10 @@ export default function Inventory() {
   }
 
   const STATUS_GROUPS = [
-    { key: 'urgent',     label: 'Критично',  items: applyFilters(urgentItems) },
-    { key: 'soon',       label: 'Следи',     items: applyFilters(soonItems) },
-    { key: 'ok',         label: 'Норма',     items: applyFilters(okItems) },
-    { key: 'paused',     label: 'На паузе',  items: applyFilters(pausedItems) },
+    { key: 'urgent',  label: 'Критично', items: applyFilters(items.filter(i => itemGroups[i.id] === 'urgent')) },
+    { key: 'soon',    label: 'Следи',    items: applyFilters(items.filter(i => itemGroups[i.id] === 'soon')) },
+    { key: 'ok',      label: 'Норма',    items: applyFilters(items.filter(i => itemGroups[i.id] === 'ok')) },
+    { key: 'paused',  label: 'На паузе', items: applyFilters(items.filter(i => itemGroups[i.id] === 'paused')) },
   ].filter(sg => {
     if (statusFilter && sg.key !== statusFilter) return false
     if (editMode) return true
@@ -1284,6 +1298,7 @@ export default function Inventory() {
   })
 
   const selectedItem = selectedItemId ? items.find(i => i.id === selectedItemId) : null
+  const selectedGroup = selectedItem ? ALL_GROUPS.find(g => g.id === selectedItem.groupId) : null
 
   // Handlers
   function doDelete(id) {
@@ -1292,6 +1307,7 @@ export default function Inventory() {
       syncExtra(next)
       return next
     })
+    setItemGroups(prev => { const next = { ...prev }; delete next[id]; return next })
     if (selectedItemId === id) setSelectedItemId(null)
     setDeleteConfirm(null)
   }
@@ -1311,6 +1327,12 @@ export default function Inventory() {
       syncExtra(next)
       return next
     })
+    const launchedItem = items.find(i => i.id === id)
+    if (launchedItem) {
+      const ov = overrides[id] ?? null
+      const info = getItemInfo({ ...launchedItem, paused: false }, ov)
+      setItemGroups(prev => ({ ...prev, [id]: info.filterStatus }))
+    }
   }
 
   function doLinkSet(itemId, pickedSet) {
@@ -1357,6 +1379,11 @@ export default function Inventory() {
       syncExtra(next)
       return next
     })
+    const newOv = base.type === 'consumable'
+      ? (Number(form.qty) || 100)
+      : (Array.isArray(form.purchases) ? null : (base.purchaseDate || null))
+    const newInfo = getItemInfo(base, newOv)
+    setItemGroups(prev => ({ ...prev, [id]: newInfo.filterStatus }))
     setShowAddForm(false)
     setAddFormGroupId(null)
   }
@@ -1680,6 +1707,7 @@ export default function Inventory() {
                 key={selectedItem.id}
                 item={selectedItem}
                 info={infoMap[selectedItem.id]}
+                group={selectedGroup}
                 override={overrides[selectedItem.id] ?? null}
                 editMode={editMode}
                 onOverrideChange={v => {
