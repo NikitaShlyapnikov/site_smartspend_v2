@@ -14,7 +14,6 @@ function loadPersonalSets() {
 }
 
 const INV_SPOTLIGHT = [
-  { targetId: 'sp-inv-summary', btnId: null,          title: 'Сводка статусов',  desc: 'Карточки показывают сколько позиций требует внимания. Нажми на карточку — лента отфильтруется по статусу.' },
   { targetId: 'sp-inv-groups',  btnId: 'sp-inv-edit', title: 'Список инвентаря', desc: 'Позиции сгруппированы по статусу. Нажми на строку — откроется панель деталей справа. Кнопка «Редактировать» позволяет добавлять новые позиции.' },
 ]
 
@@ -102,7 +101,12 @@ function getItemInfo(item, override = null) {
           monthlyBlock = { type: 'overexploit', weeksOver, bonusIncome }
           status = 'overexploit'
         } else {
-          remainderText = weeksLeft > 0 ? `осталось ${weeksLeft}\u00a0нед. до замены` : 'требует замены'
+          const daysLeft = Math.max(0, item.wearLifeWeeks * 7 - Math.floor(daysSince(oldestDate)))
+          if (daysLeft === 0) remainderText = 'требует замены'
+          else if (daysLeft <= 7) remainderText = `осталось ${daysLeft}\u00a0дн. до замены`
+          else if (weeksLeft <= 4) remainderText = `осталось ${weeksLeft}\u00a0нед. до замены`
+          else if (weeksLeft < 52) remainderText = `осталось ${Math.round(daysLeft / 30)}\u00a0мес. до замены`
+          else remainderText = `осталось ${Math.floor(weeksLeft / 52)}\u00a0г. до замены`
           if (weeksLeft === 0) { ringNum = '0'; ringUnit = 'нед' }
           else if (weeksLeft < 52) { ringNum = String(weeksLeft); ringUnit = 'нед' }
           else { ringNum = String(Math.floor(weeksLeft / 52)); ringUnit = 'лет' }
@@ -126,7 +130,12 @@ function getItemInfo(item, override = null) {
         monthlyBlock = { type: 'overexploit', weeksOver, bonusIncome }
         status = 'overexploit'
       } else {
-        remainderText = weeksLeft > 0 ? `осталось ${weeksLeft}\u00a0нед. до замены` : 'требует замены'
+        const daysLeft = Math.max(0, item.wearLifeWeeks * 7 - Math.floor(daysSince(purchaseDate)))
+        if (daysLeft === 0) remainderText = 'требует замены'
+        else if (daysLeft <= 7) remainderText = `осталось ${daysLeft}\u00a0дн. до замены`
+        else if (weeksLeft <= 4) remainderText = `осталось ${weeksLeft}\u00a0нед. до замены`
+        else if (weeksLeft < 52) remainderText = `осталось ${Math.round(daysLeft / 30)}\u00a0мес. до замены`
+        else remainderText = `осталось ${Math.floor(weeksLeft / 52)}\u00a0г. до замены`
         if (weeksLeft === 0) { ringNum = '0'; ringUnit = 'нед' }
         else if (weeksLeft < 52) { ringNum = String(weeksLeft); ringUnit = 'нед' }
         else { ringNum = String(Math.floor(weeksLeft / 52)); ringUnit = 'лет' }
@@ -265,6 +274,7 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
   const [isEditingParams, setIsEditingParams] = useState(false)
   const [paramForm, setParamForm] = useState(null)
   const [confirmDeletePhoto, setConfirmDeletePhoto] = useState(null)
+  const [previewPhotoIdx, setPreviewPhotoIdx] = useState(0)
 
   function startEditParams(e) {
     e.stopPropagation()
@@ -376,15 +386,16 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
     const lifeYears = (item.wearLifeWeeks / 52).toFixed(1).replace('.0', '')
 
     let residualVal = 0
+    let residualPct = 0
     if (boughtList.length > 0) {
       const oldestDate = boughtList.map(p => p.purchaseDate).sort()[0]
       const weeksUsed = Math.floor(daysSince(oldestDate) / 7)
       const pctUsed = Math.min(1, weeksUsed / item.wearLifeWeeks)
       residualVal = boughtList.length * Math.max(0, Math.round(item.price * (1 - pctUsed)))
+      residualPct = Math.max(0, Math.round((1 - pctUsed) * 100))
     }
 
     const monthlyAmort = Math.round((totalPrice / item.wearLifeWeeks) * 4.33)
-    const dailyCost = Math.round(totalPrice / (item.wearLifeWeeks * 7))
 
     details = (
       <>
@@ -397,12 +408,12 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
           <div className="inv-detail-val mono">₽{totalPrice.toLocaleString('ru')}</div>
         </div>
         <div className="inv-detail">
-          <div className="inv-detail-lbl">Срок эксплуатации</div>
-          <div className="inv-detail-val">{item.wearLifeWeeks}&thinsp;нед. ({lifeYears}&thinsp;г.)</div>
+          <div className="inv-detail-lbl">Остаточная стоимость</div>
+          <div className="inv-detail-val mono">₽{residualVal.toLocaleString('ru')} <span className="inv-detail-pct">{residualPct}%</span></div>
         </div>
         <div className="inv-detail">
-          <div className="inv-detail-lbl">Остаточная стоимость</div>
-          <div className="inv-detail-val mono">₽{residualVal.toLocaleString('ru')}</div>
+          <div className="inv-detail-lbl">Срок использования</div>
+          <div className="inv-detail-val">{item.wearLifeWeeks}&thinsp;нед. ({lifeYears}&thinsp;г.)</div>
         </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Стоимость/мес.</div>
@@ -414,8 +425,8 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
     const purchaseDate = override !== null ? override : item.purchaseDate
     const weeksUsed = purchaseDate ? Math.floor(daysSince(purchaseDate) / 7) : 0
     const residualVal = Math.max(0, Math.round(item.price * (1 - weeksUsed / item.wearLifeWeeks)))
+    const residualPct = Math.max(0, Math.round((1 - weeksUsed / item.wearLifeWeeks) * 100))
     const monthlyAmort = Math.round((item.price / item.wearLifeWeeks) * 4.33)
-    const dailyCost = Math.round(item.price / (item.wearLifeWeeks * 7))
     const lifeYears = (item.wearLifeWeeks / 52).toFixed(1).replace('.0', '')
     details = (
       <>
@@ -424,12 +435,12 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
           <div className="inv-detail-val mono">₽{(item.price || 0).toLocaleString('ru')}</div>
         </div>
         <div className="inv-detail">
-          <div className="inv-detail-lbl">Срок эксплуатации</div>
-          <div className="inv-detail-val">{item.wearLifeWeeks}&thinsp;нед. ({lifeYears}&thinsp;г.)</div>
+          <div className="inv-detail-lbl">Остаточная стоимость</div>
+          <div className="inv-detail-val mono">₽{residualVal.toLocaleString('ru')} <span className="inv-detail-pct">{residualPct}%</span></div>
         </div>
         <div className="inv-detail">
-          <div className="inv-detail-lbl">Остаточная стоимость</div>
-          <div className="inv-detail-val mono">₽{residualVal.toLocaleString('ru')}</div>
+          <div className="inv-detail-lbl">Срок использования</div>
+          <div className="inv-detail-val">{item.wearLifeWeeks}&thinsp;нед. ({lifeYears}&thinsp;г.)</div>
         </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Стоимость/мес.</div>
@@ -449,9 +460,19 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
     <div className="ipanel">
       {/* Photo */}
       {photos.length > 0 && (
-        <div className="ipanel-photo-top" onClick={e => openLightbox(0, e)}>
-          <img src={photos[0].url} alt={photos[0].name} className="ipanel-photo-top-img" />
-          {photos.length > 1 && <span className="ipanel-photo-top-count">+{photos.length - 1}</span>}
+        <div className="ipanel-photo-top" onClick={e => openLightbox(previewPhotoIdx, e)}>
+          <img src={photos[Math.min(previewPhotoIdx, photos.length - 1)].url} alt="" className="ipanel-photo-top-img" />
+          {photos.length > 1 && (
+            <div className="ipanel-photo-dots" onClick={e => e.stopPropagation()}>
+              {photos.map((_, i) => (
+                <button
+                  key={i}
+                  className={`ipanel-photo-dot${i === previewPhotoIdx ? ' active' : ''}`}
+                  onClick={e => { e.stopPropagation(); setPreviewPhotoIdx(i) }}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -501,20 +522,7 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
         )}
       </div>
 
-      {/* Remainder text */}
-      <div className={`ipanel-remainder ipanel-remainder--${paused ? 'paused' : status}`}>
-        {paused ? 'на паузе' : remainderText}
-        {paused && (
-          <button className="inv-launch-btn" style={{ marginLeft: 8 }} onClick={onLaunch}>
-            <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-            Запустить
-          </button>
-        )}
-      </div>
-
-      {/* Date picker for wear items — shown at top */}
+      {/* Date picker for wear items — shown first */}
       {item.type !== 'consumable' && !Array.isArray(item.purchases) && (
         <div className="ipanel-adjust">
           <span className="ipanel-adjust-lbl">Дата покупки</span>
@@ -528,20 +536,21 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
         </div>
       )}
 
-      {/* Divider */}
-      <div className="ipanel-divider" />
+      {/* Remainder text */}
+      <div className={`ipanel-remainder ipanel-remainder--${paused ? 'paused' : status}`}>
+        {paused ? 'на паузе' : remainderText}
+        {paused && (
+          <button className="inv-launch-btn" style={{ marginLeft: 8 }} onClick={onLaunch}>
+            <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            Запустить
+          </button>
+        )}
+      </div>
 
       {/* Metrics section */}
       <div className="ipanel-section">
-        <div className="ipanel-section-header">
-          <span className="ipanel-section-label">Метрики</span>
-          {item.type === 'consumable' && (
-            <div className="ipanel-cost-toggle">
-              <button className={`ipanel-cost-btn${(costPeriod ?? 'week') === 'week' ? ' active' : ''}`} onClick={() => onCostPeriodChange?.('week')}>Нед.</button>
-              <button className={`ipanel-cost-btn${costPeriod === 'month' ? ' active' : ''}`} onClick={() => onCostPeriodChange?.('month')}>Мес.</button>
-            </div>
-          )}
-        </div>
         {monthlyBlock && (
           <div className={`ipanel-monthly-row ipanel-monthly-row--${monthlyBlock.type}`}>
             {monthlyBlock.type === 'deficit' && (
@@ -566,9 +575,6 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
         )}
         <div className="inv-detail-row">{details}</div>
       </div>
-
-      {/* Divider */}
-      <div className="ipanel-divider" />
 
       {/* Остаток для расходников */}
       {item.type === 'consumable' && (
@@ -1116,12 +1122,13 @@ export default function Inventory() {
     return s + i.price
   }, 0)
 
-  const consumableVal = items.filter(i => i.type === 'consumable').reduce((s, item) => {
+  const valueItems = categoryFilter ? items.filter(i => i.groupId === categoryFilter) : items
+  const consumableVal = valueItems.filter(i => i.type === 'consumable').reduce((s, item) => {
     const ov = overrides[item.id]
     const rem = ov !== null ? Math.max(0, ov) : Math.max(0, item.qty - daysSince(item.lastBought) * item.dailyUse)
     return s + (item.qty > 0 ? (rem / item.qty) * item.price : 0)
   }, 0)
-  const wearVal = items.filter(i => i.type === 'wear').reduce((s, item) => {
+  const wearVal = valueItems.filter(i => i.type === 'wear').reduce((s, item) => {
     if (Array.isArray(item.purchases)) {
       const boughtList = item.purchases.filter(p => p.bought && p.purchaseDate)
       if (boughtList.length === 0) return s
@@ -1156,10 +1163,10 @@ export default function Inventory() {
   }
 
   const STATUS_GROUPS = [
-    { key: 'urgent',  label: 'Критично', items: applyFilters(items.filter(i => itemGroups[i.id] === 'urgent')) },
-    { key: 'soon',    label: 'Следи',    items: applyFilters(items.filter(i => itemGroups[i.id] === 'soon')) },
-    { key: 'ok',      label: 'Норма',    items: applyFilters(items.filter(i => itemGroups[i.id] === 'ok')) },
-    { key: 'paused',  label: 'На паузе', items: applyFilters(items.filter(i => itemGroups[i.id] === 'paused')) },
+    { key: 'urgent',  label: 'Ожидает покупки',     items: applyFilters(items.filter(i => itemGroups[i.id] === 'urgent')) },
+    { key: 'soon',    label: 'Скоро потребуется',   items: applyFilters(items.filter(i => itemGroups[i.id] === 'soon')) },
+    { key: 'ok',      label: 'Норма',               items: applyFilters(items.filter(i => itemGroups[i.id] === 'ok')) },
+    { key: 'paused',  label: 'Ожидает активации',   items: applyFilters(items.filter(i => itemGroups[i.id] === 'paused')) },
   ].filter(sg => {
     if (statusFilter && sg.key !== statusFilter) return false
     if (editMode) return true
@@ -1338,39 +1345,6 @@ export default function Inventory() {
               )}
             </button>
           </div>
-        </div>
-
-        {/* Summary chips */}
-        <div id="sp-inv-summary" className="inv-chips-row">
-          {[
-            { key: 'urgent', label: 'срочно',   count: urgentItems.length, sub: urgentCost > 0 ? `~₽${urgentCost.toLocaleString('ru')}` : null },
-            { key: 'soon',   label: 'скоро',    count: soonItems.length,   sub: null },
-            { key: 'ok',     label: 'в норме',  count: okItems.length,     sub: null },
-            { key: 'paused', label: 'на паузе', count: pausedItems.length, sub: null },
-          ].map(({ key, label, count, sub }) => (
-            <button
-              key={key}
-              className={`inv-chip inv-chip--${key}${statusFilter === key ? ' active' : ''}${count === 0 ? ' empty' : ''}`}
-              onClick={() => setStatusFilter(f => f === key ? null : key)}
-            >
-              <span className="inv-chip-count">{count}</span>
-              <span className="inv-chip-label">{label}</span>
-              {sub && <span className="inv-chip-sub">{sub}</span>}
-              {statusFilter === key && (
-                <svg className="inv-chip-close" width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3" strokeLinecap="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              )}
-            </button>
-          ))}
-          {(statusFilter || categoryFilter || setFilter) && (
-            <button className="inv-chip-reset" onClick={() => { setStatusFilter(null); setCategoryFilter(null); setSetFilter(null) }}>
-              <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3" strokeLinecap="round">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-              Сбросить
-            </button>
-          )}
         </div>
 
         {/* Category + Set filters */}
