@@ -481,9 +481,6 @@ function ItemDetail({ item, info, group, override, costPeriod, onCostPeriodChang
         {hasSet ? (
           <button className="ipanel-set-badge-link ipanel-filter-btn" onClick={() => { onFilterByCategory?.(item.groupId); onFilterBySet?.(item.set) }}>
             {item.set}
-            <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 6h18M3 12h18M3 18h18" />
-            </svg>
           </button>
         ) : (
           <span className="inv-personal-badge">Личное</span>

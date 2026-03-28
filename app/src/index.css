@@ -10433,7 +10433,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 /* Adjust block (stepper / date) */
 .ipanel-adjust { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
 .ipanel-adjust-lbl { font-size: 11px; color: var(--text-3); flex-shrink: 0; }
-.ipanel-stepper-block { display: flex; flex-direction: column; gap: 6px; }
+.ipanel-stepper-block { display: flex; flex-direction: column; gap: 6px; align-self: flex-start; }
 .ipanel-stepper {
   display: flex; align-items: center;
   border: 1px solid var(--border); border-radius: 8px;
