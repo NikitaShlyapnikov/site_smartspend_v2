@@ -3228,9 +3228,8 @@ body.dark .inv-gallery-card-set { color: #7AABDF; background: #1A2535; border-co
   background: rgba(0,0,0,0.55); border: none;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; color: #fff; padding: 0;
-  opacity: 0; transition: opacity 0.13s;
+  opacity: 1;
 }
-.inv-notes-thumb-wrap:hover .inv-notes-thumb-remove { opacity: 1; }
 .inv-notes-thumb-wrap { cursor: pointer; }
 .inv-notes-placeholder {
   font-size: 12px; color: var(--text-3);
@@ -10376,6 +10375,56 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .ipanel-timeline-now-line { width: 2px; height: 26px; background: var(--text-3); border-radius: 1px; }
 .ipanel-timeline-now-label { font-size: 9px; color: var(--text-3); white-space: nowrap; margin-top: 2px; font-family: var(--sans); }
 .ipanel-timeline-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-3); font-family: var(--mono); }
+
+/* Filter badges */
+.ipanel-filter-btn { cursor: pointer; transition: opacity 0.12s; }
+.ipanel-filter-btn:hover { opacity: 0.7; }
+
+/* Adjust block (stepper / date) */
+.ipanel-adjust { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+.ipanel-adjust-lbl { font-size: 11px; color: var(--text-3); flex-shrink: 0; }
+.ipanel-stepper {
+  display: flex; align-items: center;
+  border: 1px solid var(--border); border-radius: 8px;
+  overflow: hidden; background: var(--surface); height: 30px;
+}
+.ipanel-stepper-btn {
+  width: 30px; height: 30px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: none; background: var(--surface-2); cursor: pointer;
+  color: var(--text-2); font-size: 16px; transition: background 0.12s;
+  user-select: none; -webkit-user-select: none;
+}
+.ipanel-stepper-btn:hover { background: var(--surface-3); }
+.ipanel-stepper-btn:active { opacity: 0.6; }
+.ipanel-stepper-input {
+  width: 52px; text-align: center;
+  font-family: var(--mono); font-size: 12px; font-weight: 400; color: var(--text);
+  border: none; border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+  background: none; outline: none; padding: 0 4px; height: 100%;
+  -moz-appearance: textfield;
+}
+.ipanel-stepper-input::-webkit-inner-spin-button,
+.ipanel-stepper-input::-webkit-outer-spin-button { display: none; }
+.ipanel-stepper-unit { font-size: 11px; color: var(--text-3); padding: 0 8px 0 0; white-space: nowrap; }
+.ipanel-date-input {
+  padding: 5px 8px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface);
+  font-family: var(--sans); font-size: 12px; color: var(--text);
+  outline: none; transition: border-color 0.14s; cursor: pointer;
+}
+.ipanel-date-input:focus { border-color: var(--accent-green-border); }
+
+/* Notes photos row with add tile */
+.inv-notes-photos-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+.inv-notes-photo-add-tile {
+  position: relative; width: 56px; height: 56px; border-radius: 8px;
+  border: 1.5px dashed var(--border); background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; transition: border-color 0.13s;
+}
+.inv-notes-photo-add-tile:hover { border-color: var(--accent-green-border); background: var(--accent-green-light); }
+.inv-notes-empty { font-size: 11px; color: var(--text-3); }
 
 .inv-item-delete-full {
   display: flex; align-items: center; gap: 7px; width: 100%;
