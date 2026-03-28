@@ -3167,6 +3167,9 @@ body.dark .inv-gallery-card-set { color: #7AABDF; background: #1A2535; border-co
   display: flex; align-items: center; gap: 5px;
   font-size: 11px; font-weight: 400; color: var(--text-3);
 }
+.inv-notes-entry { display: flex; flex-direction: column; gap: 3px; }
+.inv-notes-entry-date { font-size: 10px; color: var(--text-3); letter-spacing: 0.02em; }
+.inv-notes-entry-text { font-size: 13px; color: var(--text-2); line-height: 1.55; white-space: pre-wrap; }
 .inv-notes-edit-btn, .inv-notes-done-btn {
   display: inline-flex; align-items: center; gap: 4px;
   margin-left: auto; padding: 3px 8px; border-radius: 6px;
@@ -3228,7 +3231,7 @@ body.dark .inv-gallery-card-set { color: #7AABDF; background: #1A2535; border-co
   width: 18px; height: 18px; border-radius: 50%;
   background: rgba(184,85,85,0.85); border: none;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: #fff; padding: 0;
+  cursor: pointer; color: #fff; padding: 0; line-height: 0;
 }
 .inv-notes-thumb-wrap { cursor: pointer; }
 .inv-notes-placeholder {
@@ -10297,8 +10300,17 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   border-radius: var(--r); padding: 18px 16px;
   display: flex; flex-direction: column; gap: 10px;
 }
-.ipanel-photo-top { position: relative; cursor: pointer; border-radius: calc(var(--r) - 4px); overflow: hidden; flex-shrink: 0; }
-.ipanel-photo-top-img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
+.ipanel-photo-top { position: relative; cursor: default; border-radius: calc(var(--r) - 4px); overflow: hidden; flex-shrink: 0; }
+.ipanel-photo-top-img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; user-select: none; }
+.ipanel-photo-expand {
+  position: absolute; top: 8px; right: 8px;
+  width: 26px; height: 26px; border-radius: 6px; border: none;
+  background: rgba(0,0,0,0.35); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; padding: 0; backdrop-filter: blur(4px);
+  opacity: 0; transition: opacity 0.15s;
+}
+.ipanel-photo-top:hover .ipanel-photo-expand { opacity: 1; }
 .ipanel-photo-dots {
   position: absolute; bottom: 8px; left: 0; right: 0;
   display: flex; justify-content: center; gap: 5px; pointer-events: all;

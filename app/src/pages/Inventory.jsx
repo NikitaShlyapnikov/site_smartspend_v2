@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
@@ -77,72 +77,32 @@ function getItemInfo(item, override = null) {
     else status = 'ok'
 
   } else {
-    if (Array.isArray(item.purchases)) {
-      const boughtList = item.purchases.filter(p => p.bought && p.purchaseDate)
-      const total = item.purchases.length
+    const purchaseDate = override !== null ? override : item.purchaseDate
+    const weeksUsed = Math.floor(daysSince(purchaseDate) / 7)
+    const overExploit = weeksUsed > item.wearLifeWeeks
+    const weeksLeft = Math.max(0, item.wearLifeWeeks - weeksUsed)
+    const weeksOver = weeksUsed - item.wearLifeWeeks
+    pct = Math.min(100, Math.round((weeksUsed / item.wearLifeWeeks) * 100))
 
-      if (boughtList.length === 0) {
-        pct = 0; status = 'ok'
-        remainderText = `${total} шт — ни одна не куплена`
-        ringNum = '—'; ringUnit = ''
-        monthlyBlock = null
-      } else {
-        const oldestDate = boughtList.map(p => p.purchaseDate).sort()[0]
-        const weeksUsed = Math.floor(daysSince(oldestDate) / 7)
-        const overExploit = weeksUsed > item.wearLifeWeeks
-        const weeksLeft = Math.max(0, item.wearLifeWeeks - weeksUsed)
-        const weeksOver = weeksUsed - item.wearLifeWeeks
-        pct = Math.min(100, Math.round((weeksUsed / item.wearLifeWeeks) * 100))
-
-        if (overExploit) {
-          remainderText = `+${weeksOver}\u00a0нед. сверх нормы`
-          ringNum = '+' + weeksOver; ringUnit = 'нед'
-          const bonusIncome = Math.round((item.price / item.wearLifeWeeks) * weeksOver)
-          monthlyBlock = { type: 'overexploit', weeksOver, bonusIncome }
-          status = 'overexploit'
-        } else {
-          const daysLeft = Math.max(0, item.wearLifeWeeks * 7 - Math.floor(daysSince(oldestDate)))
-          if (daysLeft === 0) remainderText = 'требует замены'
-          else if (daysLeft <= 7) remainderText = `осталось ${daysLeft}\u00a0дн. до замены`
-          else if (weeksLeft <= 4) remainderText = `осталось ${weeksLeft}\u00a0нед. до замены`
-          else if (weeksLeft < 52) remainderText = `осталось ${Math.round(daysLeft / 30)}\u00a0мес. до замены`
-          else remainderText = `осталось ${Math.floor(weeksLeft / 52)}\u00a0г. до замены`
-          if (weeksLeft === 0) { ringNum = '0'; ringUnit = 'нед' }
-          else if (weeksLeft < 52) { ringNum = String(weeksLeft); ringUnit = 'нед' }
-          else { ringNum = String(Math.floor(weeksLeft / 52)); ringUnit = 'лет' }
-          if (pct >= 85) status = 'urgent'
-          else if (pct >= 60) status = 'soon'
-          else status = 'ok'
-        }
-      }
+    if (overExploit) {
+      remainderText = `+${weeksOver}\u00a0нед. сверх нормы`
+      ringNum = '+' + weeksOver; ringUnit = 'нед'
+      const bonusIncome = Math.round((item.price / item.wearLifeWeeks) * weeksOver)
+      monthlyBlock = { type: 'overexploit', weeksOver, bonusIncome }
+      status = 'overexploit'
     } else {
-      const purchaseDate = override !== null ? override : item.purchaseDate
-      const weeksUsed = Math.floor(daysSince(purchaseDate) / 7)
-      const overExploit = weeksUsed > item.wearLifeWeeks
-      const weeksLeft = Math.max(0, item.wearLifeWeeks - weeksUsed)
-      const weeksOver = weeksUsed - item.wearLifeWeeks
-      pct = Math.min(100, Math.round((weeksUsed / item.wearLifeWeeks) * 100))
-
-      if (overExploit) {
-        remainderText = `+${weeksOver}\u00a0нед. сверх нормы`
-        ringNum = '+' + weeksOver; ringUnit = 'нед'
-        const bonusIncome = Math.round((item.price / item.wearLifeWeeks) * weeksOver)
-        monthlyBlock = { type: 'overexploit', weeksOver, bonusIncome }
-        status = 'overexploit'
-      } else {
-        const daysLeft = Math.max(0, item.wearLifeWeeks * 7 - Math.floor(daysSince(purchaseDate)))
-        if (daysLeft === 0) remainderText = 'требует замены'
-        else if (daysLeft <= 7) remainderText = `осталось ${daysLeft}\u00a0дн. до замены`
-        else if (weeksLeft <= 4) remainderText = `осталось ${weeksLeft}\u00a0нед. до замены`
-        else if (weeksLeft < 52) remainderText = `осталось ${Math.round(daysLeft / 30)}\u00a0мес. до замены`
-        else remainderText = `осталось ${Math.floor(weeksLeft / 52)}\u00a0г. до замены`
-        if (weeksLeft === 0) { ringNum = '0'; ringUnit = 'нед' }
-        else if (weeksLeft < 52) { ringNum = String(weeksLeft); ringUnit = 'нед' }
-        else { ringNum = String(Math.floor(weeksLeft / 52)); ringUnit = 'лет' }
-        if (pct >= 90) status = 'urgent'
-        else if (pct >= 75) status = 'soon'
-        else status = 'ok'
-      }
+      const daysLeft = Math.max(0, item.wearLifeWeeks * 7 - Math.floor(daysSince(purchaseDate)))
+      if (daysLeft === 0) remainderText = 'требует замены'
+      else if (daysLeft <= 7) remainderText = `осталось ${daysLeft}\u00a0дн. до замены`
+      else if (weeksLeft <= 4) remainderText = `осталось ${weeksLeft}\u00a0нед. до замены`
+      else if (weeksLeft < 52) remainderText = `осталось ${Math.round(daysLeft / 30)}\u00a0мес. до замены`
+      else remainderText = `осталось ${Math.floor(weeksLeft / 52)}\u00a0г. до замены`
+      if (weeksLeft === 0) { ringNum = '0'; ringUnit = 'нед' }
+      else if (weeksLeft < 52) { ringNum = String(weeksLeft); ringUnit = 'нед' }
+      else { ringNum = String(Math.floor(weeksLeft / 52)); ringUnit = 'лет' }
+      if (pct >= 90) status = 'urgent'
+      else if (pct >= 75) status = 'soon'
+      else status = 'ok'
     }
   }
 
@@ -202,21 +162,7 @@ function ItemRow({ item, info, override, costPeriod = 'week', selected, editMode
     const priceText = `₽${(item.price || 0).toLocaleString('ru')}`
     costContent = <span className="irow-price">{priceText}</span>
 
-    if (Array.isArray(item.purchases)) {
-      const total = item.purchases.length
-      const boughtList = item.purchases.filter(p => p.bought && p.purchaseDate)
-      if (boughtList.length > 0) {
-        const oldestDate = boughtList.map(p => p.purchaseDate).sort()[0]
-        const wu = Math.floor(daysSince(oldestDate) / 7)
-        const weeksLeft = Math.max(0, item.wearLifeWeeks - wu)
-        if (status === 'overexploit') timeContent = `+${wu - item.wearLifeWeeks} нед.`
-        else if (weeksLeft === 0) timeContent = <EmptyIcon />
-        else if (weeksLeft < 52) timeContent = `${weeksLeft} нед.`
-        else timeContent = `${Math.floor(weeksLeft / 52)} лет`
-      } else {
-        timeContent = `${total} шт`
-      }
-    } else {
+    {
       const pd = override !== null ? override : item.purchaseDate
       if (pd) {
         const wu = Math.floor(daysSince(pd) / 7)
@@ -259,6 +205,15 @@ function ItemRow({ item, info, override, costPeriod = 'week', selected, editMode
   )
 }
 
+function formatNoteDate(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00')
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const yStr = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+  if (dateStr === todayStr) return 'сегодня'
+  if (dateStr === yStr) return 'вчера'
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })
+}
+
 // ── ITEM DETAIL ────────────────────────────────────────────────────────────────
 
 function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostPeriodChange, onOverrideChange, onStepStop, onDelete, onUnlink, onLinkSet, onLaunch, notes, onNotesChange, onUpdateItem, onClose, onFilterByCategory, onFilterBySet }) {
@@ -276,6 +231,34 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
   const [confirmDeletePhoto, setConfirmDeletePhoto] = useState(null)
   const [previewPhotoIdx, setPreviewPhotoIdx] = useState(0)
 
+  useEffect(() => {
+    if (confirmDeletePhoto === null) return
+    function dismiss() { setConfirmDeletePhoto(null) }
+    document.addEventListener('click', dismiss)
+    return () => document.removeEventListener('click', dismiss)
+  }, [confirmDeletePhoto])
+
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const noteEntries = notes.entries || []
+  const [todayNoteText, setTodayNoteText] = useState(() => {
+    const e = (notes.entries || []).find(e => e.date === todayStr)
+    return e ? e.text : ''
+  })
+
+  useEffect(() => {
+    const e = (notes.entries || []).find(e => e.date === todayStr)
+    setTodayNoteText(e ? e.text : '')
+  }, [item.id]) // eslint-disable-line
+
+  function handleTodayNoteChange(text) {
+    setTodayNoteText(text)
+    const other = (notes.entries || []).filter(e => e.date !== todayStr)
+    const updated = text.trim()
+      ? [...other, { date: todayStr, text }].sort((a, b) => a.date.localeCompare(b.date))
+      : other
+    onNotesChange({ ...notes, entries: updated })
+  }
+
   function startEditParams(e) {
     e.stopPropagation()
     const today = new Date().toISOString().slice(0, 10)
@@ -286,7 +269,7 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
       dailyUse: String(item.dailyUse || ''),
       unit: item.unit || 'г',
       wearLifeWeeks: String(item.wearLifeWeeks || ''),
-      purchaseDate: Array.isArray(item.purchases) ? null : (item.purchaseDate || today),
+      purchaseDate: item.purchaseDate || today,
     })
     setIsEditingParams(true)
   }
@@ -379,48 +362,6 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
         </div>
       </>
     )
-  } else if (Array.isArray(item.purchases)) {
-    const total = item.purchases.length
-    const boughtList = item.purchases.filter(p => p.bought && p.purchaseDate)
-    const totalPrice = item.price * total
-    const lifeYears = (item.wearLifeWeeks / 52).toFixed(1).replace('.0', '')
-
-    let residualVal = 0
-    let residualPct = 0
-    if (boughtList.length > 0) {
-      const oldestDate = boughtList.map(p => p.purchaseDate).sort()[0]
-      const weeksUsed = Math.floor(daysSince(oldestDate) / 7)
-      const pctUsed = Math.min(1, weeksUsed / item.wearLifeWeeks)
-      residualVal = boughtList.length * Math.max(0, Math.round(item.price * (1 - pctUsed)))
-      residualPct = Math.max(0, Math.round((1 - pctUsed) * 100))
-    }
-
-    const monthlyAmort = Math.round((totalPrice / item.wearLifeWeeks) * 4.33)
-
-    details = (
-      <>
-        <div className="inv-detail">
-          <div className="inv-detail-lbl">Цена за шт.</div>
-          <div className="inv-detail-val mono">₽{item.price.toLocaleString('ru')}</div>
-        </div>
-        <div className="inv-detail">
-          <div className="inv-detail-lbl">Итого ({total}&thinsp;шт.)</div>
-          <div className="inv-detail-val mono">₽{totalPrice.toLocaleString('ru')}</div>
-        </div>
-        <div className="inv-detail">
-          <div className="inv-detail-lbl">Остаточная стоимость</div>
-          <div className="inv-detail-val mono">₽{residualVal.toLocaleString('ru')} <span className="inv-detail-pct">{residualPct}%</span></div>
-        </div>
-        <div className="inv-detail">
-          <div className="inv-detail-lbl">Срок использования</div>
-          <div className="inv-detail-val">{item.wearLifeWeeks}&thinsp;нед. ({lifeYears}&thinsp;г.)</div>
-        </div>
-        <div className="inv-detail">
-          <div className="inv-detail-lbl">Стоимость/мес.</div>
-          <div className="inv-detail-val mono">₽{monthlyAmort.toLocaleString('ru')}</div>
-        </div>
-      </>
-    )
   } else {
     const purchaseDate = override !== null ? override : item.purchaseDate
     const weeksUsed = purchaseDate ? Math.floor(daysSince(purchaseDate) / 7) : 0
@@ -435,8 +376,8 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
           <div className="inv-detail-val mono">₽{(item.price || 0).toLocaleString('ru')}</div>
         </div>
         <div className="inv-detail">
-          <div className="inv-detail-lbl">Остаточная стоимость</div>
-          <div className="inv-detail-val mono">₽{residualVal.toLocaleString('ru')} <span className="inv-detail-pct">{residualPct}%</span></div>
+          <div className="inv-detail-lbl">Остаточная стоимость <span className="inv-detail-pct">{residualPct}%</span></div>
+          <div className="inv-detail-val mono">₽{residualVal.toLocaleString('ru')}</div>
         </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Срок использования</div>
@@ -460,8 +401,23 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
     <div className="ipanel">
       {/* Photo */}
       {photos.length > 0 && (
-        <div className="ipanel-photo-top" onClick={e => openLightbox(previewPhotoIdx, e)}>
+        <div className="ipanel-photo-top" onClick={e => {
+          if (photos.length <= 1) return
+          const rect = e.currentTarget.getBoundingClientRect()
+          const x = e.clientX - rect.left
+          if (x < rect.width / 2) {
+            setPreviewPhotoIdx(i => (i - 1 + photos.length) % photos.length)
+          } else {
+            setPreviewPhotoIdx(i => (i + 1) % photos.length)
+          }
+        }}>
           <img src={photos[Math.min(previewPhotoIdx, photos.length - 1)].url} alt="" className="ipanel-photo-top-img" />
+          <button className="ipanel-photo-expand" onClick={e => openLightbox(previewPhotoIdx, e)} title="Развернуть">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+              <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+            </svg>
+          </button>
           {photos.length > 1 && (
             <div className="ipanel-photo-dots" onClick={e => e.stopPropagation()}>
               {photos.map((_, i) => (
@@ -523,7 +479,7 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
       </div>
 
       {/* Date picker for wear items — shown first */}
-      {item.type !== 'consumable' && !Array.isArray(item.purchases) && (
+      {item.type !== 'consumable' && (
         <div className="ipanel-adjust">
           <span className="ipanel-adjust-lbl">Дата покупки</span>
           <input
@@ -597,66 +553,6 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
         </div>
       )}
 
-      {/* Multi-purchase list */}
-      {Array.isArray(item.purchases) && (() => {
-        const today = new Date().toISOString().slice(0, 10)
-        const needsReplace = (p) => p.bought && p.purchaseDate &&
-          Math.floor(daysSince(p.purchaseDate) / 7) >= item.wearLifeWeeks
-        const weeksLeftFor = (p) => p.bought && p.purchaseDate
-          ? Math.max(0, item.wearLifeWeeks - Math.floor(daysSince(p.purchaseDate) / 7))
-          : null
-
-        function handlePurchaseToggle(i, checked) {
-          const next = item.purchases.map((p, idx) => idx !== i ? p : {
-            ...p, bought: checked, purchaseDate: checked ? (p.purchaseDate || today) : null
-          })
-          onUpdateItem({ ...item, purchases: next })
-        }
-        function handlePurchaseDate(i, date) {
-          const next = item.purchases.map((p, idx) => idx !== i ? p : { ...p, purchaseDate: date })
-          onUpdateItem({ ...item, purchases: next })
-        }
-
-        return (
-          <div className="inv-purchases-wrap">
-            <div className="inv-purchases-label">
-              <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-              Даты покупок ({item.purchases.filter(p => p.bought).length} / {item.purchases.length} куплено)
-            </div>
-            <div className="inv-purchases-list">
-              {item.purchases.map((p, i) => {
-                const wl = weeksLeftFor(p)
-                const expired = needsReplace(p)
-                return (
-                  <div key={i} className={`inv-purchase-row${expired ? ' expired' : (p.bought && wl !== null && wl <= Math.ceil(item.wearLifeWeeks * 0.1) ? ' soon' : '')}`}>
-                    <span className="inv-purchase-num">{i + 1}</span>
-                    <label className="inv-purchase-check">
-                      <input type="checkbox" checked={!!p.bought}
-                        onChange={e => handlePurchaseToggle(i, e.target.checked)} />
-                      <span>{p.bought ? 'Куплено' : 'Не куплено'}</span>
-                    </label>
-                    <input
-                      type="date"
-                      className={`inv-purchase-date${!p.bought ? ' disabled' : ''}`}
-                      disabled={!p.bought}
-                      value={p.purchaseDate || ''}
-                      max={today}
-                      onChange={e => handlePurchaseDate(i, e.target.value)}
-                    />
-                    {p.bought && wl !== null && (
-                      <span className={`inv-purchase-hint${expired ? ' expired' : ''}`}>
-                        {expired ? `+${Math.abs(wl)} нед` : `${wl} нед`}
-                      </span>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )
-      })()}
 
       {/* Edit params button / form */}
       {editMode && !hasSet && !isEditingParams && (
@@ -716,13 +612,11 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
                   <input className="inv-add-form-input" type="number" value={paramForm.wearLifeWeeks}
                     onChange={e => setPF('wearLifeWeeks')(e.target.value)} placeholder="52" />
                 </div>
-                {!Array.isArray(item.purchases) && (
-                  <div className="inv-add-form-field">
-                    <div className="inv-add-form-lbl">Дата покупки</div>
-                    <input className="inv-add-form-input" type="date" value={paramForm.purchaseDate || ''}
-                      onChange={e => setPF('purchaseDate')(e.target.value)} max={new Date().toISOString().slice(0, 10)} />
-                  </div>
-                )}
+                <div className="inv-add-form-field">
+                  <div className="inv-add-form-lbl">Дата покупки</div>
+                  <input className="inv-add-form-input" type="date" value={paramForm.purchaseDate || ''}
+                    onChange={e => setPF('purchaseDate')(e.target.value)} max={new Date().toISOString().slice(0, 10)} />
+                </div>
               </>
             )}
           </div>
@@ -740,11 +634,20 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
       {/* Notes section — always visible */}
       <div className="inv-notes-section">
         <div className="inv-notes-label">Заметки</div>
+        {noteEntries.filter(e => e.date !== todayStr).map((entry, i) => (
+          <div key={i} className="inv-notes-entry">
+            <div className="inv-notes-entry-date">{formatNoteDate(entry.date)}</div>
+            <div className="inv-notes-entry-text">{entry.text}</div>
+          </div>
+        ))}
+        {todayNoteText && (
+          <div className="inv-notes-entry-date">{formatNoteDate(todayStr)}</div>
+        )}
         <textarea
           className="inv-notes-textarea"
           placeholder="Добавьте заметку..."
-          value={notes.text || ''}
-          onChange={e => onNotesChange({ ...notes, text: e.target.value })}
+          value={todayNoteText}
+          onChange={e => handleTodayNoteChange(e.target.value)}
         />
         <div className="inv-notes-photos-row">
           <button
@@ -1129,14 +1032,6 @@ export default function Inventory() {
     return s + (item.qty > 0 ? (rem / item.qty) * item.price : 0)
   }, 0)
   const wearVal = valueItems.filter(i => i.type === 'wear').reduce((s, item) => {
-    if (Array.isArray(item.purchases)) {
-      const boughtList = item.purchases.filter(p => p.bought && p.purchaseDate)
-      if (boughtList.length === 0) return s
-      const oldestDate = boughtList.map(p => p.purchaseDate).sort()[0]
-      const wu = Math.floor(daysSince(oldestDate) / 7)
-      const pctUsed = Math.min(1, wu / item.wearLifeWeeks)
-      return s + boughtList.length * Math.max(0, Math.round(item.price * (1 - pctUsed)))
-    }
     const pd = overrides[item.id] ?? item.purchaseDate
     if (!pd) return s
     const wu = Math.floor(daysSince(pd) / 7)
@@ -1236,19 +1131,11 @@ export default function Inventory() {
       })
       setOverrides(p => ({ ...p, [id]: Number(form.qty) || 100 }))
     } else {
-      if (Array.isArray(form.purchases)) {
-        Object.assign(base, {
-          wearLifeWeeks: Number(form.wearLifeWeeks) || 52,
-          purchases: form.purchases,
-          qty: form.purchases.length,
-        })
-      } else {
-        Object.assign(base, {
-          wearLifeWeeks: Number(form.wearLifeWeeks) || 52,
-          purchaseDate: form.purchaseDate || new Date().toISOString().slice(0, 10),
-        })
-        setOverrides(p => ({ ...p, [id]: base.purchaseDate }))
-      }
+      Object.assign(base, {
+        wearLifeWeeks: Number(form.wearLifeWeeks) || 52,
+        purchaseDate: form.purchaseDate || new Date().toISOString().slice(0, 10),
+      })
+      setOverrides(p => ({ ...p, [id]: base.purchaseDate }))
     }
     setItems(prev => {
       const next = [...prev, base]
@@ -1257,7 +1144,7 @@ export default function Inventory() {
     })
     const newOv = base.type === 'consumable'
       ? (Number(form.qty) || 100)
-      : (Array.isArray(form.purchases) ? null : (base.purchaseDate || null))
+      : (base.purchaseDate || null)
     const newInfo = getItemInfo(base, newOv)
     setItemGroups(prev => ({ ...prev, [id]: newInfo.filterStatus }))
     setShowAddForm(false)
@@ -1276,27 +1163,19 @@ export default function Inventory() {
     setItems(prev => {
       const next = prev.map(i => {
         if (i.id !== id) return i
-        if (form.purchases !== undefined) {
-          const updated = { ...i, ...form }
-          if (updated.isExtra) syncExtra([...prev.filter(x => x.id !== id), updated])
-          return updated
-        }
         const updated = { ...i, name: form.name?.trim() || i.name, price: Number(form.price) || 0 }
         if (i.type === 'consumable') {
           return { ...updated, qty: Number(form.qty) || 100, dailyUse: Number(form.dailyUse) || 1, unit: form.unit || 'г' }
         } else {
           const base = { ...updated, wearLifeWeeks: Number(form.wearLifeWeeks) || 52 }
-          if (!Array.isArray(i.purchases) && form.purchaseDate) {
-            return { ...base, purchaseDate: form.purchaseDate }
-          }
-          return base
+          return form.purchaseDate ? { ...base, purchaseDate: form.purchaseDate } : base
         }
       })
       syncExtra(next)
       return next
     })
     const currentItem = items.find(i => i.id === id)
-    if (currentItem?.type === 'wear' && !Array.isArray(currentItem.purchases) && form.purchaseDate) {
+    if (currentItem?.type === 'wear' && form.purchaseDate) {
       setOverrides(p => ({ ...p, [id]: form.purchaseDate }))
     }
   }
