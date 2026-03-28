@@ -157,55 +157,72 @@ function StatusDot({ status, paused }) {
 
 // ── ITEM ROW ──────────────────────────────────────────────────────────────────
 
+const EmptyIcon = () => (
+  <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+  </svg>
+)
+
 function ItemRow({ item, info, override, selected, editMode, onSelect, onDelete }) {
   const paused = !!item.paused
   const { pct, status } = info
 
-  let residualText = null
-  let timeText = null
+  let timeContent = null
+  let costContent = null
 
   if (item.type === 'consumable') {
     const ov = override !== null ? Math.max(0, override) : Math.max(0, item.qty - daysSince(item.lastBought) * item.dailyUse)
-    const pricePerUnit = item.qty > 0 ? item.price / item.qty : 0
-    residualText = `${Math.round(ov * pricePerUnit).toLocaleString('ru')} ₽`
+    const dailyCost = item.qty > 0 ? item.dailyUse * item.price / item.qty : 0
+    const weekCost = Math.round(dailyCost * 7)
+    const monthCost = Math.round(dailyCost * 30)
     const daysLeft = item.dailyUse > 0 ? Math.round(ov / item.dailyUse) : 0
-    if (daysLeft <= 0) timeText = 'закончилось'
-    else if (daysLeft < 7) timeText = `${daysLeft} дн.`
-    else if (daysLeft < 30) timeText = `${Math.floor(daysLeft / 7)} нед.`
-    else timeText = `${Math.floor(daysLeft / 30)} мес.`
+
+    if (daysLeft <= 0) {
+      timeContent = <EmptyIcon />
+    } else if (daysLeft < 7) {
+      timeContent = `${daysLeft} дн.`
+    } else if (daysLeft < 30) {
+      timeContent = `${Math.floor(daysLeft / 7)} нед.`
+    } else {
+      timeContent = `${Math.floor(daysLeft / 30)} мес.`
+    }
+
+    costContent = (
+      <div className="irow-costs">
+        <span className="irow-cost-week">{weekCost.toLocaleString('ru')}&thinsp;₽/нед</span>
+        <span className="irow-cost-month">{monthCost.toLocaleString('ru')}&thinsp;₽/мес</span>
+      </div>
+    )
   } else {
+    const priceText = `${(item.price || 0).toLocaleString('ru')} ₽`
+    costContent = <span className="irow-price">{priceText}</span>
+
     if (Array.isArray(item.purchases)) {
       const total = item.purchases.length
       const boughtList = item.purchases.filter(p => p.bought && p.purchaseDate)
       if (boughtList.length > 0) {
         const oldestDate = boughtList.map(p => p.purchaseDate).sort()[0]
         const wu = Math.floor(daysSince(oldestDate) / 7)
-        const pctUsed = Math.min(1, wu / item.wearLifeWeeks)
-        const rv = boughtList.length * Math.max(0, Math.round(item.price * (1 - pctUsed)))
-        residualText = `${rv.toLocaleString('ru')} ₽`
         const weeksLeft = Math.max(0, item.wearLifeWeeks - wu)
-        if (status === 'overexploit') timeText = `+${wu - item.wearLifeWeeks} нед.`
-        else if (weeksLeft === 0) timeText = 'замена'
-        else if (weeksLeft < 52) timeText = `${weeksLeft} нед.`
-        else timeText = `${Math.floor(weeksLeft / 52)} лет`
+        if (status === 'overexploit') timeContent = `+${wu - item.wearLifeWeeks} нед.`
+        else if (weeksLeft === 0) timeContent = <EmptyIcon />
+        else if (weeksLeft < 52) timeContent = `${weeksLeft} нед.`
+        else timeContent = `${Math.floor(weeksLeft / 52)} лет`
       } else {
-        residualText = '—'
-        timeText = `${total} шт`
+        timeContent = `${total} шт`
       }
     } else {
       const pd = override !== null ? override : item.purchaseDate
       if (pd) {
         const wu = Math.floor(daysSince(pd) / 7)
-        const rv = Math.max(0, Math.round(item.price * (1 - wu / item.wearLifeWeeks)))
-        residualText = `${rv.toLocaleString('ru')} ₽`
         const weeksLeft = Math.max(0, item.wearLifeWeeks - wu)
-        if (status === 'overexploit') timeText = `+${wu - item.wearLifeWeeks} нед.`
-        else if (weeksLeft === 0) timeText = 'замена'
-        else if (weeksLeft < 52) timeText = `${weeksLeft} нед.`
-        else timeText = `${Math.floor(weeksLeft / 52)} лет`
+        if (status === 'overexploit') timeContent = `+${wu - item.wearLifeWeeks} нед.`
+        else if (weeksLeft === 0) timeContent = <EmptyIcon />
+        else if (weeksLeft < 52) timeContent = `${weeksLeft} нед.`
+        else timeContent = `${Math.floor(weeksLeft / 52)} лет`
       } else {
-        residualText = `${item.price.toLocaleString('ru')} ₽`
-        timeText = `${item.wearLifeWeeks} нед.`
+        timeContent = `${item.wearLifeWeeks} нед.`
       }
     }
   }
@@ -225,8 +242,8 @@ function ItemRow({ item, info, override, selected, editMode, onSelect, onDelete 
         </div>
         <span className="irow-pct">{paused ? '—' : `${pct}%`}</span>
       </div>
-      <span className={`irow-time irow-time--${barStatus}`}>{timeText || '—'}</span>
-      <span className="irow-residual">{residualText || '—'}</span>
+      <span className={`irow-time irow-time--${barStatus}`}>{timeContent || '—'}</span>
+      {costContent}
       {editMode && (
         <button className="irow-delete" onClick={e => { e.stopPropagation(); onDelete() }} title="Удалить">
           <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
