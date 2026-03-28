@@ -362,33 +362,18 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
         </div>
       </>
     )
-  } else {
-    const purchaseDate = override !== null ? override : item.purchaseDate
-    const weeksUsed = purchaseDate ? Math.floor(daysSince(purchaseDate) / 7) : 0
+  }
+
+  // Wear item display values
+  let wearVals = null
+  if (item.type !== 'consumable') {
+    const pd = override !== null ? override : item.purchaseDate
+    const weeksUsed = pd ? Math.floor(daysSince(pd) / 7) : 0
     const residualVal = Math.max(0, Math.round(item.price * (1 - weeksUsed / item.wearLifeWeeks)))
     const residualPct = Math.max(0, Math.round((1 - weeksUsed / item.wearLifeWeeks) * 100))
     const monthlyAmort = Math.round((item.price / item.wearLifeWeeks) * 4.33)
     const lifeYears = (item.wearLifeWeeks / 52).toFixed(1).replace('.0', '')
-    details = (
-      <>
-        <div className="inv-detail">
-          <div className="inv-detail-lbl">Стоимость</div>
-          <div className="inv-detail-val mono">₽{(item.price || 0).toLocaleString('ru')}</div>
-        </div>
-        <div className="inv-detail">
-          <div className="inv-detail-lbl">Остаточная стоимость <span className="inv-detail-pct">{residualPct}%</span></div>
-          <div className="inv-detail-val mono">₽{residualVal.toLocaleString('ru')}</div>
-        </div>
-        <div className="inv-detail">
-          <div className="inv-detail-lbl">Срок использования</div>
-          <div className="inv-detail-val">{item.wearLifeWeeks}&thinsp;нед. ({lifeYears}&thinsp;г.)</div>
-        </div>
-        <div className="inv-detail">
-          <div className="inv-detail-lbl">Стоимость/мес.</div>
-          <div className="inv-detail-val mono">₽{monthlyAmort.toLocaleString('ru')}</div>
-        </div>
-      </>
-    )
+    wearVals = { residualVal, residualPct, monthlyAmort, lifeYears }
   }
 
   const statusLabel = paused ? 'На паузе'
@@ -478,20 +463,6 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
         )}
       </div>
 
-      {/* Date picker for wear items — shown first */}
-      {item.type !== 'consumable' && (
-        <div className="ipanel-adjust">
-          <span className="ipanel-adjust-lbl">Дата покупки</span>
-          <input
-            className="ipanel-date-input" type="date"
-            value={typeof stepperVal === 'string' ? stepperVal : item.purchaseDate}
-            max={new Date().toISOString().slice(0, 10)}
-            onChange={e => onOverrideChange(e.target.value)}
-            onBlur={() => onStepStop?.()}
-          />
-        </div>
-      )}
-
       {/* Remainder text */}
       <div className={`ipanel-remainder ipanel-remainder--${paused ? 'paused' : status}`}>
         {paused ? 'на паузе' : remainderText}
@@ -505,32 +476,76 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
         )}
       </div>
 
-      {/* Metrics section */}
-      <div className="ipanel-section">
-        {monthlyBlock && (
-          <div className={`ipanel-monthly-row ipanel-monthly-row--${monthlyBlock.type}`}>
-            {monthlyBlock.type === 'deficit' && (
-              <>
-                <span className="ipanel-monthly-val">₽{monthlyBlock.deficitRub.toLocaleString('ru')}</span>
-                <span className="ipanel-monthly-sub">нужно пополнить на {monthlyBlock.deficitAmt}</span>
-              </>
-            )}
-            {monthlyBlock.type === 'surplus' && (
-              <>
-                <span className="ipanel-monthly-val">₽{monthlyBlock.surplusRub.toLocaleString('ru')}</span>
-                <span className="ipanel-monthly-sub">хватит ещё +{monthlyBlock.surplusDays}&thinsp;дн.</span>
-              </>
-            )}
-            {monthlyBlock.type === 'overexploit' && (
-              <>
-                <span className="ipanel-monthly-val">+₽{monthlyBlock.bonusIncome.toLocaleString('ru')}</span>
-                <span className="ipanel-monthly-sub">{monthlyBlock.weeksOver}&thinsp;нед. сверх нормы</span>
-              </>
-            )}
+      {/* Wear items layout */}
+      {item.type !== 'consumable' && wearVals && (
+        <div className="ipanel-wear-section">
+          <div className="ipanel-wear-top-row">
+            <div className="ipanel-wear-date-cell">
+              <div className="ipanel-cell-lbl">Дата покупки</div>
+              <input
+                className="ipanel-date-input" type="date"
+                value={typeof stepperVal === 'string' ? stepperVal : item.purchaseDate}
+                max={new Date().toISOString().slice(0, 10)}
+                onChange={e => onOverrideChange(e.target.value)}
+                onBlur={() => onStepStop?.()}
+              />
+            </div>
+            <div className="ipanel-wear-life-cell">
+              <div className="ipanel-cell-lbl">Срок использования</div>
+              <div className="ipanel-cell-val">{item.wearLifeWeeks}&thinsp;нед. ({wearVals.lifeYears}&thinsp;г.)</div>
+            </div>
           </div>
-        )}
-        <div className="inv-detail-row">{details}</div>
-      </div>
+          {monthlyBlock?.type === 'overexploit' && (
+            <div className="ipanel-monthly-row ipanel-monthly-row--overexploit">
+              <span className="ipanel-monthly-val">+₽{monthlyBlock.bonusIncome.toLocaleString('ru')}</span>
+              <span className="ipanel-monthly-sub">{monthlyBlock.weeksOver}&thinsp;нед. сверх нормы</span>
+            </div>
+          )}
+          <div className="ipanel-wear-rows">
+            <div className="ipanel-wear-row">
+              <span className="ipanel-wear-row-lbl">Стоимость</span>
+              <span className="ipanel-wear-row-val mono">₽{(item.price || 0).toLocaleString('ru')}</span>
+            </div>
+            <div className="ipanel-wear-row">
+              <span className="ipanel-wear-row-lbl">Остаточная стоимость <span className="inv-detail-pct">{wearVals.residualPct}%</span></span>
+              <span className="ipanel-wear-row-val mono">₽{wearVals.residualVal.toLocaleString('ru')}</span>
+            </div>
+            <div className="ipanel-wear-row">
+              <span className="ipanel-wear-row-lbl">Стоимость/мес.</span>
+              <span className="ipanel-wear-row-val mono">₽{wearVals.monthlyAmort.toLocaleString('ru')}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Consumable metrics section */}
+      {item.type === 'consumable' && (
+        <div className="ipanel-section">
+          {monthlyBlock && (
+            <div className={`ipanel-monthly-row ipanel-monthly-row--${monthlyBlock.type}`}>
+              {monthlyBlock.type === 'deficit' && (
+                <>
+                  <span className="ipanel-monthly-val">₽{monthlyBlock.deficitRub.toLocaleString('ru')}</span>
+                  <span className="ipanel-monthly-sub">нужно пополнить на {monthlyBlock.deficitAmt}</span>
+                </>
+              )}
+              {monthlyBlock.type === 'surplus' && (
+                <>
+                  <span className="ipanel-monthly-val">₽{monthlyBlock.surplusRub.toLocaleString('ru')}</span>
+                  <span className="ipanel-monthly-sub">хватит ещё +{monthlyBlock.surplusDays}&thinsp;дн.</span>
+                </>
+              )}
+              {monthlyBlock.type === 'overexploit' && (
+                <>
+                  <span className="ipanel-monthly-val">+₽{monthlyBlock.bonusIncome.toLocaleString('ru')}</span>
+                  <span className="ipanel-monthly-sub">{monthlyBlock.weeksOver}&thinsp;нед. сверх нормы</span>
+                </>
+              )}
+            </div>
+          )}
+          <div className="inv-detail-row">{details}</div>
+        </div>
+      )}
 
       {/* Остаток для расходников */}
       {item.type === 'consumable' && (
