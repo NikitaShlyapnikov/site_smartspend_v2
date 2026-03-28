@@ -78,31 +78,37 @@ function getItemInfo(item, override = null) {
 
   } else {
     const purchaseDate = override !== null ? override : item.purchaseDate
-    const weeksUsed = Math.floor(daysSince(purchaseDate) / 7)
-    const overExploit = weeksUsed > item.wearLifeWeeks
-    const weeksLeft = Math.max(0, item.wearLifeWeeks - weeksUsed)
-    const weeksOver = weeksUsed - item.wearLifeWeeks
-    pct = Math.min(100, Math.round((weeksUsed / item.wearLifeWeeks) * 100))
-
-    if (overExploit) {
-      remainderText = `+${weeksOver}\u00a0нед. сверх нормы`
-      ringNum = '+' + weeksOver; ringUnit = 'нед'
-      const bonusIncome = Math.round((item.price / item.wearLifeWeeks) * weeksOver)
-      monthlyBlock = { type: 'overexploit', weeksOver, bonusIncome }
-      status = 'overexploit'
+    if (!purchaseDate) {
+      pct = 0; status = 'ok'
+      remainderText = 'дата не указана'
+      ringNum = '—'; ringUnit = ''
     } else {
-      const daysLeft = Math.max(0, item.wearLifeWeeks * 7 - Math.floor(daysSince(purchaseDate)))
-      if (daysLeft === 0) remainderText = 'требует замены'
-      else if (daysLeft <= 7) remainderText = `осталось ${daysLeft}\u00a0дн. до замены`
-      else if (weeksLeft <= 4) remainderText = `осталось ${weeksLeft}\u00a0нед. до замены`
-      else if (weeksLeft < 52) remainderText = `осталось ${Math.round(daysLeft / 30)}\u00a0мес. до замены`
-      else remainderText = `осталось ${Math.floor(weeksLeft / 52)}\u00a0г. до замены`
-      if (weeksLeft === 0) { ringNum = '0'; ringUnit = 'нед' }
-      else if (weeksLeft < 52) { ringNum = String(weeksLeft); ringUnit = 'нед' }
-      else { ringNum = String(Math.floor(weeksLeft / 52)); ringUnit = 'лет' }
-      if (pct >= 90) status = 'urgent'
-      else if (pct >= 75) status = 'soon'
-      else status = 'ok'
+      const weeksUsed = Math.floor(daysSince(purchaseDate) / 7)
+      const overExploit = weeksUsed > item.wearLifeWeeks
+      const weeksLeft = Math.max(0, item.wearLifeWeeks - weeksUsed)
+      const weeksOver = weeksUsed - item.wearLifeWeeks
+      pct = Math.min(100, Math.round((weeksUsed / item.wearLifeWeeks) * 100))
+
+      if (overExploit) {
+        remainderText = `+${weeksOver}\u00a0нед. сверх нормы`
+        ringNum = '+' + weeksOver; ringUnit = 'нед'
+        const bonusIncome = Math.round((item.price / item.wearLifeWeeks) * weeksOver)
+        monthlyBlock = { type: 'overexploit', weeksOver, bonusIncome }
+        status = 'overexploit'
+      } else {
+        const daysLeft = Math.max(0, item.wearLifeWeeks * 7 - Math.floor(daysSince(purchaseDate)))
+        if (daysLeft === 0) remainderText = 'требует замены'
+        else if (daysLeft <= 7) remainderText = `осталось ${daysLeft}\u00a0дн. до замены`
+        else if (weeksLeft <= 4) remainderText = `осталось ${weeksLeft}\u00a0нед. до замены`
+        else if (weeksLeft < 52) remainderText = `осталось ${Math.round(daysLeft / 30)}\u00a0мес. до замены`
+        else remainderText = `осталось ${Math.floor(weeksLeft / 52)}\u00a0г. до замены`
+        if (weeksLeft === 0) { ringNum = '0'; ringUnit = 'нед' }
+        else if (weeksLeft < 52) { ringNum = String(weeksLeft); ringUnit = 'нед' }
+        else { ringNum = String(Math.floor(weeksLeft / 52)); ringUnit = 'лет' }
+        if (pct >= 90) status = 'urgent'
+        else if (pct >= 75) status = 'soon'
+        else status = 'ok'
+      }
     }
   }
 
@@ -336,40 +342,23 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
 
   const hasSet = item.set && item.setId
 
-  // Details grid
-  let details = null
+  // Consumable display values
+  let consumableVals = null
   if (item.type === 'consumable') {
-    const monthlyQty = Math.round(item.dailyUse * 30)
-    const monthlyBudget = Math.round((item.price / item.qty) * monthlyQty)
-    const pricePerUnit = (item.price / item.qty).toFixed(2)
-    details = (
-      <>
-        <div className="inv-detail">
-          <div className="inv-detail-lbl">Расход/день</div>
-          <div className="inv-detail-val mono">{(unit === 'г' || unit === 'мл') ? Math.round(item.dailyUse || 0) : parseFloat((item.dailyUse || 0).toFixed(2))}&thinsp;{unit}</div>
-        </div>
-        <div className="inv-detail">
-          <div className="inv-detail-lbl">Потребность/мес.</div>
-          <div className="inv-detail-val mono">{monthlyQty}&thinsp;{unit}</div>
-        </div>
-        <div className="inv-detail">
-          <div className="inv-detail-lbl">Стоимость/мес.</div>
-          <div className="inv-detail-val mono">₽{monthlyBudget.toLocaleString('ru')}</div>
-        </div>
-        <div className="inv-detail">
-          <div className="inv-detail-lbl">Цена за {unit}</div>
-          <div className="inv-detail-val mono">₽{pricePerUnit}</div>
-        </div>
-      </>
-    )
+    const monthlyQty = Math.round((item.dailyUse || 0) * 30)
+    const monthlyBudget = item.qty > 0 ? Math.round((item.price / item.qty) * monthlyQty) : 0
+    const pricePerUnit = item.qty > 0 ? (item.price / item.qty).toFixed(2) : '0.00'
+    const currentQty = typeof stepperVal === 'number' ? stepperVal : (item.qty || 0)
+    const daysLeft = (item.dailyUse || 0) > 0 ? Math.round(currentQty / item.dailyUse) : 0
+    consumableVals = { monthlyQty, monthlyBudget, pricePerUnit, daysLeft }
   }
 
   // Wear item display values
   let wearVals = null
   if (item.type !== 'consumable') {
     const pd = override !== null ? override : item.purchaseDate
-    const weeksUsed = pd ? Math.floor(daysSince(pd) / 7) : 0
-    const residualVal = Math.max(0, Math.round(item.price * (1 - weeksUsed / item.wearLifeWeeks)))
+    const weeksUsed = (pd && item.wearLifeWeeks) ? Math.floor(daysSince(pd) / 7) : 0
+    const residualVal = Math.max(0, Math.round(item.price * (1 - weeksUsed / (item.wearLifeWeeks || 1))))
     const residualPct = Math.max(0, Math.round((1 - weeksUsed / item.wearLifeWeeks) * 100))
     const monthlyAmort = Math.round((item.price / item.wearLifeWeeks) * 4.33)
     const lifeYears = (item.wearLifeWeeks / 52).toFixed(1).replace('.0', '')
@@ -518,52 +507,42 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
         </div>
       )}
 
-      {/* Consumable metrics section */}
-      {item.type === 'consumable' && (
-        <div className="ipanel-section">
-          {monthlyBlock && (
-            <div className={`ipanel-monthly-row ipanel-monthly-row--${monthlyBlock.type}`}>
-              {monthlyBlock.type === 'deficit' && (
-                <>
-                  <span className="ipanel-monthly-val">₽{monthlyBlock.deficitRub.toLocaleString('ru')}</span>
-                  <span className="ipanel-monthly-sub">нужно пополнить на {monthlyBlock.deficitAmt}</span>
-                </>
-              )}
-              {monthlyBlock.type === 'surplus' && (
-                <>
-                  <span className="ipanel-monthly-val">₽{monthlyBlock.surplusRub.toLocaleString('ru')}</span>
-                  <span className="ipanel-monthly-sub">хватит ещё +{monthlyBlock.surplusDays}&thinsp;дн.</span>
-                </>
-              )}
-              {monthlyBlock.type === 'overexploit' && (
-                <>
-                  <span className="ipanel-monthly-val">+₽{monthlyBlock.bonusIncome.toLocaleString('ru')}</span>
-                  <span className="ipanel-monthly-sub">{monthlyBlock.weeksOver}&thinsp;нед. сверх нормы</span>
-                </>
-              )}
+      {/* Consumable section */}
+      {item.type === 'consumable' && consumableVals && (
+        <div className="ipanel-consumable-section">
+          <div className="ipanel-adjust">
+            <span className="ipanel-adjust-lbl">Остаток, {unit}</span>
+            <div className="ipanel-stepper">
+              <button className="ipanel-stepper-btn"
+                onMouseDown={() => startStep(-1)} onMouseUp={stopStep}
+                onMouseLeave={stopStep} onTouchStart={() => startStep(-1)} onTouchEnd={stopStep}>−</button>
+              <input
+                className="ipanel-stepper-input" type="number" value={stepperVal}
+                onChange={e => onOverrideChange(Math.max(0, parseInt(e.target.value) || 0))}
+                onBlur={() => onStepStop?.()}
+              />
+              <span className="ipanel-stepper-unit">{unit}</span>
+              <button className="ipanel-stepper-btn"
+                onMouseDown={() => startStep(1)} onMouseUp={stopStep}
+                onMouseLeave={stopStep} onTouchStart={() => startStep(1)} onTouchEnd={stopStep}>+</button>
             </div>
-          )}
-          <div className="inv-detail-row">{details}</div>
-        </div>
-      )}
-
-      {/* Остаток для расходников */}
-      {item.type === 'consumable' && (
-        <div className="ipanel-adjust">
-          <span className="ipanel-adjust-lbl">Остаток, {unit}</span>
-          <div className="ipanel-stepper">
-            <button className="ipanel-stepper-btn"
-              onMouseDown={() => startStep(-1)} onMouseUp={stopStep}
-              onMouseLeave={stopStep} onTouchStart={() => startStep(-1)} onTouchEnd={stopStep}>−</button>
-            <input
-              className="ipanel-stepper-input" type="number" value={stepperVal}
-              onChange={e => onOverrideChange(Math.max(0, parseInt(e.target.value) || 0))}
-              onBlur={() => onStepStop?.()}
-            />
-            <span className="ipanel-stepper-unit">{unit}</span>
-            <button className="ipanel-stepper-btn"
-              onMouseDown={() => startStep(1)} onMouseUp={stopStep}
-              onMouseLeave={stopStep} onTouchStart={() => startStep(1)} onTouchEnd={stopStep}>+</button>
+          </div>
+          <div className={`ipanel-days-hint ipanel-days-hint--${paused ? 'paused' : status}`}>
+            {consumableVals.daysLeft > 0 ? `хватит на ${consumableVals.daysLeft}\u00a0дн.` : 'запас закончился'}
+          </div>
+          <div className="ipanel-wear-rows">
+            <div className="ipanel-wear-row">
+              <span className="ipanel-wear-row-lbl">Потребность/мес.</span>
+              <span className="ipanel-wear-row-val mono">{consumableVals.monthlyQty}&thinsp;{unit}</span>
+            </div>
+            <div className="ipanel-wear-row">
+              <span className="ipanel-wear-row-lbl">Стоимость/мес.</span>
+              <span className="ipanel-wear-row-val mono">₽{consumableVals.monthlyBudget.toLocaleString('ru')}</span>
+            </div>
+            <div className="ipanel-wear-row">
+              <span className="ipanel-wear-row-lbl">Цена за {unit}</span>
+              <span className="ipanel-wear-row-val mono">₽{consumableVals.pricePerUnit}</span>
+            </div>
           </div>
         </div>
       )}
