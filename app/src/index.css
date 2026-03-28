@@ -3161,22 +3161,18 @@ body.dark .inv-gallery-card-set { color: #7AABDF; background: #1A2535; border-co
 
 /* Notes section */
 .inv-notes-section {
-  padding: 12px 16px 14px;
-  border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 8px;
 }
 .inv-notes-label {
   display: flex; align-items: center; gap: 5px;
-  font-size: 10px; font-weight: 600; text-transform: uppercase;
-  letter-spacing: 0.06em; color: var(--text-3);
-  margin-bottom: 8px;
+  font-size: 11px; font-weight: 400; color: var(--text-3);
 }
 .inv-notes-edit-btn, .inv-notes-done-btn {
   display: inline-flex; align-items: center; gap: 4px;
   margin-left: auto; padding: 3px 8px; border-radius: 6px;
   border: 1px solid var(--border); background: var(--surface);
-  font-family: var(--sans); font-size: 10px; font-weight: 600;
+  font-family: var(--sans); font-size: 10px; font-weight: 400;
   color: var(--text-2); cursor: pointer; transition: all 0.13s;
-  text-transform: none; letter-spacing: 0;
 }
 .inv-notes-edit-btn:hover { border-color: var(--accent-green-border); color: var(--accent-green); }
 .inv-notes-done-btn { border-color: var(--accent-green-border); color: var(--accent-green); background: var(--accent-green-light); }
@@ -3237,9 +3233,7 @@ body.dark .inv-gallery-card-set { color: #7AABDF; background: #1A2535; border-co
 .inv-notes-thumb-wrap:hover .inv-notes-thumb-remove { opacity: 1; }
 .inv-notes-thumb-wrap { cursor: pointer; }
 .inv-notes-placeholder {
-  padding: 10px 16px 12px;
-  border-top: 1px solid var(--border);
-  font-size: 13px; color: var(--text-3);
+  font-size: 12px; color: var(--text-3);
   cursor: pointer; transition: color 0.13s;
   display: flex; align-items: center; gap: 6px;
 }
@@ -3347,12 +3341,11 @@ body.dark .inv-gallery-card-set { color: #7AABDF; background: #1A2535; border-co
 /* Body: details + stepper side-by-side */
 .inv-body { display: flex; align-items: flex-start; }
 .inv-detail-row {
-  flex: 1; display: flex; gap: 20px; padding: 14px 16px; flex-wrap: wrap;
-  border-right: 1px solid var(--border);
+  display: flex; gap: 16px 24px; flex-wrap: wrap;
 }
 .inv-detail { display: flex; flex-direction: column; gap: 2px; }
 .inv-detail-lbl { font-size: 10px; color: var(--text-3); letter-spacing: 0.03em; text-transform: uppercase; }
-.inv-detail-val { font-size: 13px; font-weight: 500; letter-spacing: -0.01em; }
+.inv-detail-val { font-size: 12px; font-weight: 400; letter-spacing: -0.01em; }
 .inv-detail-val.mono { font-family: var(--mono); font-size: 12px; }
 .inv-field-lbl { font-size: 11px; color: var(--text-3); letter-spacing: -0.01em; }
 .inv-date-input {
@@ -10306,7 +10299,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .ipanel {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--r); padding: 18px 16px;
-  display: flex; flex-direction: column; gap: 14px;
+  display: flex; flex-direction: column; gap: 10px;
 }
 .ipanel-photo-top { position: relative; cursor: pointer; border-radius: calc(var(--r) - 4px); overflow: hidden; flex-shrink: 0; }
 .ipanel-photo-top-img { width: 100%; height: 160px; object-fit: cover; display: block; }
@@ -10314,10 +10307,27 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 
 .ipanel-header { display: flex; align-items: flex-start; gap: 10px; }
 .ipanel-header-info { flex: 1; min-width: 0; }
-.ipanel-title { font-size: 14px; font-weight: 400; letter-spacing: -0.01em; color: var(--text); line-height: 1.3; margin-bottom: 6px; }
+.ipanel-title { font-size: 14px; font-weight: 400; letter-spacing: -0.01em; color: var(--text); line-height: 1.3; flex: 1; min-width: 0; }
+.ipanel-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .ipanel-header-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .ipanel-status-badge { font-size: 11px; font-weight: 400; padding: 2px 8px; border-radius: 20px; border: 1px solid; }
 .ipanel-cat-badge { font-size: 11px; font-weight: 400; padding: 2px 8px; border-radius: 20px; background: var(--surface-2); color: var(--text-3); border: 1px solid var(--border); }
+.ipanel-set-badge-link { font-size: 11px; font-weight: 400; padding: 2px 8px; border-radius: 20px; background: var(--surface-2); color: var(--text-3); border: 1px solid var(--border); text-decoration: none; display: inline-flex; align-items: center; gap: 3px; transition: background 0.1s; }
+.ipanel-set-badge-link:hover { background: var(--surface-3); color: var(--text-2); }
+.ipanel-status-block { display: flex; flex-direction: column; gap: 5px; }
+.ipanel-divider { height: 1px; background: var(--border); flex-shrink: 0; }
+.ipanel-section { display: flex; flex-direction: column; gap: 8px; }
+.ipanel-section-header { display: flex; align-items: center; justify-content: space-between; }
+.ipanel-section-label { font-size: 11px; color: var(--text-3); font-weight: 400; }
+.ipanel-monthly-row { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: var(--r-sm); }
+.ipanel-monthly-row--deficit { background: rgba(184,85,85,0.07); }
+.ipanel-monthly-row--surplus { background: rgba(94,148,120,0.07); }
+.ipanel-monthly-row--overexploit { background: rgba(123,94,167,0.07); }
+.ipanel-monthly-val { font-size: 13px; font-weight: 400; font-family: var(--mono); flex-shrink: 0; }
+.ipanel-monthly-row--deficit .ipanel-monthly-val { color: #B85555; }
+.ipanel-monthly-row--surplus .ipanel-monthly-val { color: #5E9478; }
+.ipanel-monthly-row--overexploit .ipanel-monthly-val { color: #7B5EA7; }
+.ipanel-monthly-sub { font-size: 11px; color: var(--text-2); }
 
 .ipanel-cost-toggle { display: flex; align-items: center; gap: 6px; }
 .ipanel-cost-toggle-lbl { font-size: 11px; color: var(--text-3); flex: 1; }

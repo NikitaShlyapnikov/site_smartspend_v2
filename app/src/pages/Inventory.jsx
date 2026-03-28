@@ -517,7 +517,7 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
 
   return (
     <div className="ipanel">
-      {/* Photo first */}
+      {/* Photo */}
       {photos.length > 0 && (
         <div className="ipanel-photo-top" onClick={e => openLightbox(0, e)}>
           <img src={photos[0].url} alt={photos[0].name} className="ipanel-photo-top-img" />
@@ -525,18 +525,9 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
         </div>
       )}
 
-      {/* Header */}
+      {/* Header: title + close */}
       <div className="ipanel-header">
-        <div className="ipanel-header-info">
-          <div className="ipanel-title">{item.name}</div>
-          <div className="ipanel-header-meta">
-            <span className={`ipanel-status-badge ipanel-status-badge--${paused ? 'paused' : status}`}>
-              {statusLabel}
-            </span>
-            {group && <span className="ipanel-cat-badge">{group.name}</span>}
-            {item.set && <span className="ipanel-set-badge">{item.set}</span>}
-          </div>
-        </div>
+        <div className="ipanel-title">{item.name}</div>
         <button className="ipanel-close" onClick={onClose} title="Закрыть">
           <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -544,68 +535,101 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
         </button>
       </div>
 
-      {/* Progress bar */}
-      <div className="ipanel-progress-wrap">
-        <div className="ipanel-progress-bar">
-          <div className={`ipanel-progress-fill ipanel-progress-fill--${barStatus}`} style={{ width: `${barPct}%` }} />
-        </div>
-        <span className="ipanel-progress-pct">{paused ? '—' : `${pct}%`}</span>
-      </div>
-
-      {/* Remainder text */}
-      <div className={`ipanel-remainder ipanel-remainder--${paused ? 'paused' : status}`}>
-        {paused ? 'на паузе' : remainderText}
-        {paused && (
-          <button className="inv-launch-btn" style={{ marginLeft: 8 }} onClick={onLaunch}>
-            <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z"/>
+      {/* Meta: status + category + set */}
+      <div className="ipanel-meta">
+        <span className={`ipanel-status-badge ipanel-status-badge--${paused ? 'paused' : status}`}>
+          {statusLabel}
+        </span>
+        {group && <span className="ipanel-cat-badge">{group.name}</span>}
+        {hasSet ? (
+          <Link to={`/set/${item.setId}`} state={{ fromProfile: true }} className="ipanel-set-badge-link">
+            {item.set}
+            <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M7 17L17 7M17 7H7M17 7v10" />
             </svg>
-            Запустить
+          </Link>
+        ) : (
+          <span className="inv-personal-badge">Личное</span>
+        )}
+        {editMode && hasSet && (
+          <button className="inv-unlink-btn" onClick={onUnlink}>Отвязать</button>
+        )}
+        {editMode && !hasSet && (
+          <button className="inv-link-btn" onClick={onLinkSet}>
+            <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+              <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+            </svg>
+            Привязать
           </button>
         )}
+      </div>
+
+      {/* Status block: progress + remainder */}
+      <div className="ipanel-status-block">
+        <div className="ipanel-progress-wrap">
+          <div className="ipanel-progress-bar">
+            <div className={`ipanel-progress-fill ipanel-progress-fill--${barStatus}`} style={{ width: `${barPct}%` }} />
+          </div>
+          <span className="ipanel-progress-pct">{paused ? '—' : `${pct}%`}</span>
+        </div>
+        <div className={`ipanel-remainder ipanel-remainder--${paused ? 'paused' : status}`}>
+          {paused ? 'на паузе' : remainderText}
+          {paused && (
+            <button className="inv-launch-btn" style={{ marginLeft: 8 }} onClick={onLaunch}>
+              <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+              Запустить
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Timeline */}
       {timeline}
 
-      {/* Monthly block */}
-      {monthlyBlock && (
-        <div className="inv-monthly">
-          <div className="inv-monthly-header">
-            {monthlyBlock.type === 'overexploit' ? 'Переэксплуатация' : 'Этот месяц'}
+      {/* Divider */}
+      <div className="ipanel-divider" />
+
+      {/* Metrics section */}
+      <div className="ipanel-section">
+        <div className="ipanel-section-header">
+          <span className="ipanel-section-label">Метрики</span>
+          {item.type === 'consumable' && (
+            <div className="ipanel-cost-toggle">
+              <button className={`ipanel-cost-btn${(costPeriod ?? 'week') === 'week' ? ' active' : ''}`} onClick={() => onCostPeriodChange?.('week')}>Нед.</button>
+              <button className={`ipanel-cost-btn${costPeriod === 'month' ? ' active' : ''}`} onClick={() => onCostPeriodChange?.('month')}>Мес.</button>
+            </div>
+          )}
+        </div>
+        {monthlyBlock && (
+          <div className={`ipanel-monthly-row ipanel-monthly-row--${monthlyBlock.type}`}>
+            {monthlyBlock.type === 'deficit' && (
+              <>
+                <span className="ipanel-monthly-val">₽{monthlyBlock.deficitRub.toLocaleString('ru')}</span>
+                <span className="ipanel-monthly-sub">нужно пополнить на {monthlyBlock.deficitAmt}</span>
+              </>
+            )}
+            {monthlyBlock.type === 'surplus' && (
+              <>
+                <span className="ipanel-monthly-val">₽{monthlyBlock.surplusRub.toLocaleString('ru')}</span>
+                <span className="ipanel-monthly-sub">хватит ещё +{monthlyBlock.surplusDays}&thinsp;дн.</span>
+              </>
+            )}
+            {monthlyBlock.type === 'overexploit' && (
+              <>
+                <span className="ipanel-monthly-val">+₽{monthlyBlock.bonusIncome.toLocaleString('ru')}</span>
+                <span className="ipanel-monthly-sub">{monthlyBlock.weeksOver}&thinsp;нед. сверх нормы</span>
+              </>
+            )}
           </div>
-          {monthlyBlock.type === 'deficit' && (
-            <div className="inv-monthly-body deficit">
-              <span className="inv-monthly-val deficit">₽{monthlyBlock.deficitRub.toLocaleString('ru')}</span>
-              <span className="inv-monthly-sub">нужно пополнить на <strong>{monthlyBlock.deficitAmt}</strong></span>
-            </div>
-          )}
-          {monthlyBlock.type === 'surplus' && (
-            <div className="inv-monthly-body surplus">
-              <span className="inv-monthly-val surplus">₽{monthlyBlock.surplusRub.toLocaleString('ru')}</span>
-              <span className="inv-monthly-sub">хватит ещё на <strong>+{monthlyBlock.surplusDays}&thinsp;дн.</strong> после конца месяца</span>
-            </div>
-          )}
-          {monthlyBlock.type === 'overexploit' && (
-            <div className="inv-monthly-body overexploit">
-              <span className="inv-monthly-val overexploit">+₽{monthlyBlock.bonusIncome.toLocaleString('ru')}</span>
-              <span className="inv-monthly-sub">бонусный доход за <strong>{monthlyBlock.weeksOver}&thinsp;нед. сверх нормы</strong></span>
-            </div>
-          )}
-        </div>
-      )}
+        )}
+        <div className="inv-detail-row">{details}</div>
+      </div>
 
-      {/* Cost period toggle (consumable only) */}
-      {item.type === 'consumable' && (
-        <div className="ipanel-cost-toggle">
-          <span className="ipanel-cost-toggle-lbl">Расход в строке:</span>
-          <button className={`ipanel-cost-btn${(costPeriod ?? 'week') === 'week' ? ' active' : ''}`} onClick={() => onCostPeriodChange?.('week')}>Нед.</button>
-          <button className={`ipanel-cost-btn${costPeriod === 'month' ? ' active' : ''}`} onClick={() => onCostPeriodChange?.('month')}>Мес.</button>
-        </div>
-      )}
-
-      {/* Details grid */}
-      <div className="inv-detail-row">{details}</div>
+      {/* Divider */}
+      <div className="ipanel-divider" />
 
       {/* Stepper / Date picker */}
       {!Array.isArray(item.purchases) && (
@@ -780,6 +804,9 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
         </div>
       )}
 
+      {/* Divider before notes */}
+      <div className="ipanel-divider" />
+
       {/* Notes section */}
       {!editMode && !localNoteEdit && !notes.text && !(notes.photos && notes.photos.length > 0) ? (
         <div className="inv-notes-placeholder" onClick={() => setLocalNoteEdit(true)}>
@@ -882,43 +909,6 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
           )}
         </div>
       )}
-
-      {/* Set row */}
-      <div className="inv-set-row">
-        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-          strokeWidth="2" style={{ opacity: 0.4, flexShrink: 0 }}>
-          <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-        </svg>
-        {hasSet ? (
-          <>
-            <span style={{ color: 'var(--text-3)' }}>Набор:</span>
-            <Link to={`/set/${item.setId}`} state={{ fromProfile: true }} className="inv-set-link">
-              {item.set}
-              <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M7 17L17 7M17 7H7M17 7v10" />
-              </svg>
-            </Link>
-            {editMode && (
-              <button className="inv-unlink-btn" onClick={onUnlink}>
-                Отвязать
-              </button>
-            )}
-          </>
-        ) : (
-          <>
-            <span className="inv-personal-badge">Личное</span>
-            <button className="inv-link-btn" onClick={onLinkSet}>
-              <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"
-                strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
-                <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
-              </svg>
-              Привязать к набору
-            </button>
-          </>
-        )}
-      </div>
 
       {/* Edit mode delete button */}
       {editMode && (
