@@ -79,7 +79,7 @@ function getItemInfo(item, override = null) {
   } else {
     const purchaseDate = override !== null ? override : item.purchaseDate
     if (!purchaseDate) {
-      pct = 0; status = 'soon'
+      pct = 0; status = 'urgent'
       remainderText = 'дата не указана'
       ringNum = '—'; ringUnit = ''
     } else {
@@ -817,7 +817,10 @@ function ShoppingList({ items, infoMap, groups, overrides, categoryFilter, setFi
               return (
                 <div key={item.id} className="inv-shopping-row">
                   <span className="inv-shopping-item-name">{item.name}</span>
-                  <span className="inv-shopping-item-cost">~₽{(action?.cost || 0).toLocaleString('ru')}</span>
+                  <span className="inv-shopping-item-cost">
+                    {action?.qty && <span className="inv-shopping-item-qty">{action.qty}</span>}
+                    ~₽{(action?.cost || 0).toLocaleString('ru')}
+                  </span>
                 </div>
               )
             })}
@@ -830,24 +833,53 @@ function ShoppingList({ items, infoMap, groups, overrides, categoryFilter, setFi
 
 // ── ADD ITEM FORM ──────────────────────────────────────────────────────────────
 
+function formatPrice(raw) {
+  const digits = raw.replace(/\D/g, '')
+  if (!digits) return ''
+  return Number(digits).toLocaleString('ru')
+}
+
 function AddItemForm({ groupId, groupSetCategories, groupPersonalSets, onAdd, onCancel }) {
   const today = new Date().toISOString().slice(0, 10)
   const [form, setForm] = useState({
-    name: '', type: 'consumable', price: '', qty: '', dailyUse: '', unit: 'г',
-    wearLifeWeeks: '', purchaseDate: today, setId: '', wearQty: '1',
+    name: '', type: 'consumable', price: '', qty: '', dailyUse: '', dailyUseUnit: 'day',
+    unit: 'г', lifeAmount: '', lifeUnit: 'weeks', purchaseDate: today, setId: '',
   })
+  const [priceDisplay, setPriceDisplay] = useState('')
   const set = k => v => setForm(p => ({ ...p, [k]: v }))
   const groupSets = (groupPersonalSets || []).filter(s => groupSetCategories?.includes(s.catId))
 
+  function handlePriceChange(raw) {
+    const digits = raw.replace(/\D/g, '')
+    const clamped = Math.min(99999999, Number(digits) || 0)
+    setPriceDisplay(digits ? clamped.toLocaleString('ru') : '')
+    set('price')(String(clamped || ''))
+  }
+
+  function toWeeks(amount, unit) {
+    const n = parseFloat(amount) || 0
+    if (unit === 'days') return n / 7
+    if (unit === 'weeks') return n
+    if (unit === 'months') return n * 4.33
+    if (unit === 'years') return n * 52
+    return n
+  }
+
+  function toDailyUse(amount, unit) {
+    const n = parseFloat(amount) || 0
+    if (unit === 'day') return n
+    if (unit === 'week') return n / 7
+    if (unit === 'month') return n / 30
+    return n
+  }
+
   function handleSubmit() {
     if (!form.name.trim() || !form.price) return
-    const data = { ...form }
+    const data = { ...form, price: form.price }
     if (form.type === 'wear') {
-      const count = Math.max(1, parseInt(form.wearQty) || 1)
-      if (count > 1) {
-        data.purchases = Array.from({ length: count }, () => ({ bought: false, purchaseDate: null }))
-        data.purchaseDate = null
-      }
+      data.wearLifeWeeks = Math.round(toWeeks(form.lifeAmount, form.lifeUnit)) || 52
+    } else {
+      data.dailyUse = toDailyUse(form.dailyUse, form.dailyUseUnit)
     }
     onAdd(groupId, data)
   }
@@ -870,8 +902,8 @@ function AddItemForm({ groupId, groupSetCategories, groupPersonalSets, onAdd, on
         </div>
         <div className="inv-add-form-field">
           <div className="inv-add-form-lbl">Цена, руб.</div>
-          <input className="inv-add-form-input" type="number" value={form.price}
-            onChange={e => set('price')(e.target.value)} placeholder="0" />
+          <input className="inv-add-form-input" value={priceDisplay}
+            onChange={e => handlePriceChange(e.target.value)} placeholder="0" inputMode="numeric" />
         </div>
 
         {form.type === 'consumable' ? (
@@ -879,7 +911,7 @@ function AddItemForm({ groupId, groupSetCategories, groupPersonalSets, onAdd, on
             <div className="inv-add-form-field">
               <div className="inv-add-form-lbl">Объём / масса</div>
               <input className="inv-add-form-input" type="number" value={form.qty}
-                onChange={e => set('qty')(e.target.value)} placeholder="500" />
+                onChange={e => set('qty')(Math.min(999999, Number(e.target.value) || 0) || '')} placeholder="500" max="999999" />
             </div>
             <div className="inv-add-form-field">
               <div className="inv-add-form-lbl">Единица</div>
@@ -892,27 +924,39 @@ function AddItemForm({ groupId, groupSetCategories, groupPersonalSets, onAdd, on
               </select>
             </div>
             <div className="inv-add-form-field">
-              <div className="inv-add-form-lbl">Расход в день</div>
+              <div className="inv-add-form-lbl">Расход</div>
               <input className="inv-add-form-input" type="number" value={form.dailyUse}
-                onChange={e => set('dailyUse')(e.target.value)} placeholder="10" step="0.1" />
+                onChange={e => set('dailyUse')(Math.min(999999, Number(e.target.value) || 0) || '')} placeholder="10" step="0.1" max="999999" />
+            </div>
+            <div className="inv-add-form-field">
+              <div className="inv-add-form-lbl">Период расхода</div>
+              <select className="inv-add-form-select" value={form.dailyUseUnit} onChange={e => set('dailyUseUnit')(e.target.value)}>
+                <option value="day">в день</option>
+                <option value="week">в неделю</option>
+                <option value="month">в месяц</option>
+              </select>
             </div>
           </>
         ) : (
           <>
             <div className="inv-add-form-field">
-              <div className="inv-add-form-lbl">Срок службы, нед.</div>
-              <input className="inv-add-form-input" type="number" value={form.wearLifeWeeks}
-                onChange={e => set('wearLifeWeeks')(e.target.value)} placeholder="52" />
+              <div className="inv-add-form-lbl">Срок службы</div>
+              <input className="inv-add-form-input" type="number" value={form.lifeAmount}
+                onChange={e => set('lifeAmount')(Math.min(999999, Number(e.target.value) || 0) || '')} placeholder="1" max="999999" />
+            </div>
+            <div className="inv-add-form-field">
+              <div className="inv-add-form-lbl">Единица срока</div>
+              <select className="inv-add-form-select" value={form.lifeUnit} onChange={e => set('lifeUnit')(e.target.value)}>
+                <option value="days">дней</option>
+                <option value="weeks">недель</option>
+                <option value="months">месяцев</option>
+                <option value="years">лет</option>
+              </select>
             </div>
             <div className="inv-add-form-field">
               <div className="inv-add-form-lbl">Дата покупки</div>
               <input className="inv-add-form-input" type="date" value={form.purchaseDate}
                 onChange={e => set('purchaseDate')(e.target.value)} max={today} />
-            </div>
-            <div className="inv-add-form-field">
-              <div className="inv-add-form-lbl">Количество, шт.</div>
-              <input className="inv-add-form-input" type="number" value={form.wearQty}
-                onChange={e => set('wearQty')(e.target.value)} placeholder="1" min="1" />
             </div>
           </>
         )}
@@ -967,7 +1011,9 @@ export default function Inventory() {
   const [linkToSetItem, setLinkToSetItem] = useState(null)
   const [addFormGroupId, setAddFormGroupId] = useState(null)
   const [showAddPanel, setShowAddPanel] = useState(false)
-  const nextIdRef = useRef(1000)
+  const nextIdRef = useRef(
+    Math.max(1000, ...loadExtraItems().map(i => parseInt(i.id?.slice(1) || '0') + 1))
+  )
 
   const [overrides, setOverrides] = useState(() => {
     const map = {}
@@ -1336,7 +1382,7 @@ export default function Inventory() {
               <div className="inv-add-panel">
                 <div className="inv-add-panel-header">
                   <span className="inv-add-panel-title">Новая позиция</span>
-                  <button className="ipanel-close-btn" onClick={() => { setShowAddPanel(false); setAddFormGroupId(null) }}>
+                  <button className="ipanel-close" onClick={() => { setShowAddPanel(false); setAddFormGroupId(null) }}>
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>
