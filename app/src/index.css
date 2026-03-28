@@ -10213,13 +10213,16 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 }
 
 /* ── INVENTORY REDESIGN — split-pane list + detail panel ── */
-.inv-split { display: flex; gap: 16px; align-items: flex-start; padding: 0 0 40px; }
-.inv-list-col { flex: 1; min-width: 0; }
+.inv-split { display: flex; gap: 0; align-items: flex-start; padding: 0 0 40px; }
+.inv-list-col { flex: 1; min-width: 0; padding-right: calc(360px + 24px); }
 .inv-panel-col {
   width: 360px; flex-shrink: 0;
-  position: sticky; top: 16px;
-  max-height: calc(100vh - 32px); overflow-y: auto; scrollbar-width: none;
+  position: fixed;
+  top: 32px; right: 36px;
+  height: calc(100vh - 64px);
+  overflow-y: auto; scrollbar-width: none;
   border-radius: var(--r);
+  z-index: 10;
 }
 .inv-panel-col::-webkit-scrollbar { display: none; }
 .inv-panel-empty {
@@ -10275,26 +10278,22 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   font-family: var(--sans); letter-spacing: -0.01em;
 }
-.irow-bar-wrap { display: flex; align-items: center; gap: 6px; width: 140px; flex-shrink: 0; }
-.irow-bar { flex: 1; height: 5px; border-radius: 3px; background: var(--surface-3); overflow: hidden; }
-.irow-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
+.irow-bar-wrap { display: flex; align-items: center; gap: 5px; width: 100px; flex-shrink: 0; }
+.irow-bar { flex: 1; height: 3px; border-radius: 2px; background: var(--surface-3); overflow: hidden; }
+.irow-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s ease; }
 .irow-bar-fill--urgent     { background: #B85555; }
 .irow-bar-fill--soon       { background: #B08840; }
 .irow-bar-fill--ok         { background: #5E9478; }
 .irow-bar-fill--overexploit{ background: #7B5EA7; }
 .irow-bar-fill--paused     { background: #5B8FD4; }
 .irow-pct { font-size: 10px; color: var(--text-3); font-family: var(--mono); flex-shrink: 0; width: 26px; text-align: right; }
-.irow-time { font-size: 11px; font-weight: 400; font-family: var(--mono); white-space: nowrap; flex-shrink: 0; width: 46px; text-align: right; display: flex; align-items: center; justify-content: flex-end; }
+.irow-time { font-size: 11px; font-weight: 400; font-family: var(--mono); white-space: nowrap; flex-shrink: 0; width: 44px; text-align: right; display: flex; align-items: center; justify-content: flex-end; }
 .irow-time--urgent     { color: #B85555; }
 .irow-time--soon       { color: #B08840; }
 .irow-time--ok         { color: #5E9478; }
 .irow-time--overexploit{ color: #7B5EA7; }
 .irow-time--paused     { color: #5B8FD4; }
-.irow-costs { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
-.irow-cost-week  { font-size: 11px; font-weight: 400; font-family: var(--mono); color: var(--text); letter-spacing: -0.01em; white-space: nowrap; }
-.irow-cost-sep   { font-size: 10px; color: var(--text-3); }
-.irow-cost-month { font-size: 11px; font-weight: 400; font-family: var(--mono); color: var(--text-3); letter-spacing: -0.01em; white-space: nowrap; }
-.irow-price { font-size: 11px; font-weight: 400; font-family: var(--mono); color: var(--text); flex-shrink: 0; text-align: right; letter-spacing: -0.01em; white-space: nowrap; }
+.irow-price { font-size: 11px; font-weight: 400; font-family: var(--mono); color: var(--text); flex-shrink: 0; width: 72px; text-align: right; letter-spacing: -0.01em; white-space: nowrap; }
 .irow-time--urgent     { color: #B85555; }
 .irow-time--soon       { color: #B08840; }
 .irow-time--ok         { color: #5E9478; }
@@ -10325,6 +10324,12 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .ipanel-header-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .ipanel-status-badge { font-size: 11px; font-weight: 400; padding: 2px 8px; border-radius: 20px; border: 1px solid; }
 .ipanel-cat-badge { font-size: 11px; font-weight: 400; padding: 2px 8px; border-radius: 20px; background: var(--surface-2); color: var(--text-3); border: 1px solid var(--border); }
+
+.ipanel-cost-toggle { display: flex; align-items: center; gap: 6px; }
+.ipanel-cost-toggle-lbl { font-size: 11px; color: var(--text-3); flex: 1; }
+.ipanel-cost-btn { font-size: 11px; font-family: var(--sans); padding: 3px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-3); cursor: pointer; transition: all 0.12s; }
+.ipanel-cost-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+.ipanel-cost-btn:hover:not(.active) { background: var(--surface-3); }
 .ipanel-status-badge--urgent     { color: #B85555; border-color: rgba(184,85,85,0.35); background: rgba(184,85,85,0.08); }
 .ipanel-status-badge--soon       { color: #B08840; border-color: rgba(176,136,64,0.35); background: rgba(176,136,64,0.08); }
 .ipanel-status-badge--ok         { color: #5E9478; border-color: rgba(94,148,120,0.35); background: rgba(94,148,120,0.08); }
@@ -10435,5 +10440,6 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 
 @media (max-width: 768px) {
   .inv-split { flex-direction: column; padding-bottom: 0; }
-  .inv-panel-col { position: fixed; bottom: 0; left: 0; right: 0; width: auto; max-height: 80vh; border-radius: var(--r) var(--r) 0 0; z-index: 200; box-shadow: 0 -8px 32px rgba(0,0,0,0.18); top: auto; }
+  .inv-list-col { padding-right: 0; }
+  .inv-panel-col { position: fixed; bottom: 0; left: 0; right: 0; top: auto; width: auto; height: auto; max-height: 80vh; border-radius: var(--r) var(--r) 0 0; z-index: 200; box-shadow: 0 -8px 32px rgba(0,0,0,0.18); }
 }

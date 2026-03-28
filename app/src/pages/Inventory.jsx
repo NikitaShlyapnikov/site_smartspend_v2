@@ -164,7 +164,7 @@ const EmptyIcon = () => (
   </svg>
 )
 
-function ItemRow({ item, info, override, selected, editMode, onSelect, onDelete }) {
+function ItemRow({ item, info, override, costPeriod = 'week', selected, editMode, onSelect, onDelete }) {
   const paused = !!item.paused
   const { pct, status } = info
 
@@ -174,8 +174,8 @@ function ItemRow({ item, info, override, selected, editMode, onSelect, onDelete 
   if (item.type === 'consumable') {
     const ov = override !== null ? Math.max(0, override) : Math.max(0, item.qty - daysSince(item.lastBought) * item.dailyUse)
     const dailyCost = item.qty > 0 ? item.dailyUse * item.price / item.qty : 0
-    const weekCost = Math.round(dailyCost * 7)
-    const monthCost = Math.round(dailyCost * 30)
+    const cost = Math.round(dailyCost * (costPeriod === 'month' ? 30 : 7))
+    const periodLabel = costPeriod === 'month' ? '/мес' : '/нед'
     const daysLeft = item.dailyUse > 0 ? Math.round(ov / item.dailyUse) : 0
 
     if (daysLeft <= 0) {
@@ -188,15 +188,9 @@ function ItemRow({ item, info, override, selected, editMode, onSelect, onDelete 
       timeContent = `${Math.floor(daysLeft / 30)} мес.`
     }
 
-    costContent = (
-      <div className="irow-costs">
-        <span className="irow-cost-week">₽{weekCost.toLocaleString('ru')}/нед</span>
-        <span className="irow-cost-sep">·</span>
-        <span className="irow-cost-month">₽{monthCost.toLocaleString('ru')}/мес</span>
-      </div>
-    )
+    costContent = <span className="irow-price">₽{cost.toLocaleString('ru')}{periodLabel}</span>
   } else {
-    const priceText = `${(item.price || 0).toLocaleString('ru')} ₽`
+    const priceText = `₽${(item.price || 0).toLocaleString('ru')}`
     costContent = <span className="irow-price">{priceText}</span>
 
     if (Array.isArray(item.purchases)) {
@@ -258,7 +252,7 @@ function ItemRow({ item, info, override, selected, editMode, onSelect, onDelete 
 
 // ── ITEM DETAIL ────────────────────────────────────────────────────────────────
 
-function ItemDetail({ item, info, group, override, editMode, onOverrideChange, onStepStop, onDelete, onUnlink, onLinkSet, onLaunch, notes, onNotesChange, onUpdateItem, onClose }) {
+function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostPeriodChange, onOverrideChange, onStepStop, onDelete, onUnlink, onLinkSet, onLaunch, notes, onNotesChange, onUpdateItem, onClose }) {
   const paused = !!item.paused
   const { pct, status, remainderText, monthlyBlock } = info
   const unit = item.type === 'consumable' ? (item.unit || 'г') : 'нед'
@@ -421,7 +415,7 @@ function ItemDetail({ item, info, group, override, editMode, onOverrideChange, o
         </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Стоимость/день</div>
-          <div className="inv-detail-val mono">{dailyCost}&thinsp;руб.</div>
+          <div className="inv-detail-val mono">₽{dailyCost}</div>
         </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Потребность/мес.</div>
@@ -429,11 +423,11 @@ function ItemDetail({ item, info, group, override, editMode, onOverrideChange, o
         </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Бюджет/мес.</div>
-          <div className="inv-detail-val mono">{monthlyBudget.toLocaleString('ru')}&thinsp;руб.</div>
+          <div className="inv-detail-val mono">₽{monthlyBudget.toLocaleString('ru')}</div>
         </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Цена за {unit}</div>
-          <div className="inv-detail-val mono">{pricePerUnit}&thinsp;руб.</div>
+          <div className="inv-detail-val mono">₽{pricePerUnit}</div>
         </div>
       </>
     )
@@ -458,15 +452,15 @@ function ItemDetail({ item, info, group, override, editMode, onOverrideChange, o
       <>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Цена за шт.</div>
-          <div className="inv-detail-val mono">{item.price.toLocaleString('ru')}&thinsp;руб.</div>
+          <div className="inv-detail-val mono">₽{item.price.toLocaleString('ru')}</div>
         </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Итого ({total}&thinsp;шт.)</div>
-          <div className="inv-detail-val mono">{totalPrice.toLocaleString('ru')}&thinsp;руб.</div>
+          <div className="inv-detail-val mono">₽{totalPrice.toLocaleString('ru')}</div>
         </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Стоимость/день</div>
-          <div className="inv-detail-val mono">{dailyCost}&thinsp;руб.</div>
+          <div className="inv-detail-val mono">₽{dailyCost}</div>
         </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Срок эксплуатации</div>
@@ -474,11 +468,11 @@ function ItemDetail({ item, info, group, override, editMode, onOverrideChange, o
         </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Остаточная стоимость</div>
-          <div className="inv-detail-val mono">{residualVal.toLocaleString('ru')}&thinsp;руб.</div>
+          <div className="inv-detail-val mono">₽{residualVal.toLocaleString('ru')}</div>
         </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Бюджет/мес.</div>
-          <div className="inv-detail-val mono">{monthlyAmort.toLocaleString('ru')}&thinsp;руб.</div>
+          <div className="inv-detail-val mono">₽{monthlyAmort.toLocaleString('ru')}</div>
         </div>
       </>
     )
@@ -493,11 +487,11 @@ function ItemDetail({ item, info, group, override, editMode, onOverrideChange, o
       <>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Стоимость</div>
-          <div className="inv-detail-val mono">{(item.price || 0).toLocaleString('ru')}&thinsp;руб.</div>
+          <div className="inv-detail-val mono">₽{(item.price || 0).toLocaleString('ru')}</div>
         </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Стоимость/день</div>
-          <div className="inv-detail-val mono">{dailyCost}&thinsp;руб.</div>
+          <div className="inv-detail-val mono">₽{dailyCost}</div>
         </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Срок эксплуатации</div>
@@ -505,11 +499,11 @@ function ItemDetail({ item, info, group, override, editMode, onOverrideChange, o
         </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Остаточная стоимость</div>
-          <div className="inv-detail-val mono">{residualVal.toLocaleString('ru')}&thinsp;руб.</div>
+          <div className="inv-detail-val mono">₽{residualVal.toLocaleString('ru')}</div>
         </div>
         <div className="inv-detail">
           <div className="inv-detail-lbl">Бюджет/мес.</div>
-          <div className="inv-detail-val mono">{monthlyAmort.toLocaleString('ru')}&thinsp;руб.</div>
+          <div className="inv-detail-val mono">₽{monthlyAmort.toLocaleString('ru')}</div>
         </div>
       </>
     )
@@ -582,22 +576,31 @@ function ItemDetail({ item, info, group, override, editMode, onOverrideChange, o
           </div>
           {monthlyBlock.type === 'deficit' && (
             <div className="inv-monthly-body deficit">
-              <span className="inv-monthly-val deficit">{monthlyBlock.deficitRub.toLocaleString('ru')}&thinsp;руб.</span>
+              <span className="inv-monthly-val deficit">₽{monthlyBlock.deficitRub.toLocaleString('ru')}</span>
               <span className="inv-monthly-sub">нужно пополнить на <strong>{monthlyBlock.deficitAmt}</strong></span>
             </div>
           )}
           {monthlyBlock.type === 'surplus' && (
             <div className="inv-monthly-body surplus">
-              <span className="inv-monthly-val surplus">{monthlyBlock.surplusRub.toLocaleString('ru')}&thinsp;руб.</span>
+              <span className="inv-monthly-val surplus">₽{monthlyBlock.surplusRub.toLocaleString('ru')}</span>
               <span className="inv-monthly-sub">хватит ещё на <strong>+{monthlyBlock.surplusDays}&thinsp;дн.</strong> после конца месяца</span>
             </div>
           )}
           {monthlyBlock.type === 'overexploit' && (
             <div className="inv-monthly-body overexploit">
-              <span className="inv-monthly-val overexploit">+{monthlyBlock.bonusIncome.toLocaleString('ru')}&thinsp;руб.</span>
+              <span className="inv-monthly-val overexploit">+₽{monthlyBlock.bonusIncome.toLocaleString('ru')}</span>
               <span className="inv-monthly-sub">бонусный доход за <strong>{monthlyBlock.weeksOver}&thinsp;нед. сверх нормы</strong></span>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Cost period toggle (consumable only) */}
+      {item.type === 'consumable' && (
+        <div className="ipanel-cost-toggle">
+          <span className="ipanel-cost-toggle-lbl">Расход в строке:</span>
+          <button className={`ipanel-cost-btn${(costPeriod ?? 'week') === 'week' ? ' active' : ''}`} onClick={() => onCostPeriodChange?.('week')}>Нед.</button>
+          <button className={`ipanel-cost-btn${costPeriod === 'month' ? ' active' : ''}`} onClick={() => onCostPeriodChange?.('month')}>Мес.</button>
         </div>
       )}
 
@@ -1017,7 +1020,7 @@ function ShoppingList({ items, infoMap, groups, overrides, categoryFilter, setFi
           <button className={`inv-shopping-period-btn${period === 'week' ? ' active' : ''}`} onClick={() => setPeriod('week')}>Неделя</button>
           <button className={`inv-shopping-period-btn${period === 'month' ? ' active' : ''}`} onClick={() => setPeriod('month')}>Месяц</button>
         </div>
-        <span className="inv-shopping-total">~{grandTotal.toLocaleString('ru')}&thinsp;₽</span>
+        <span className="inv-shopping-total">~₽{grandTotal.toLocaleString('ru')}</span>
       </div>
       {grouped.length === 0 ? (
         <div className="inv-shopping-empty">
@@ -1029,7 +1032,7 @@ function ShoppingList({ items, infoMap, groups, overrides, categoryFilter, setFi
           <div key={g.id} className="inv-shopping-group">
             <div className="inv-shopping-group-header">
               <span className="inv-shopping-group-name">{g.name}</span>
-              <span className="inv-shopping-group-total">~{groupTotal.toLocaleString('ru')}&thinsp;₽</span>
+              <span className="inv-shopping-group-total">~₽{groupTotal.toLocaleString('ru')}</span>
             </div>
             {g.rows.map(item => {
               const action = getAction(item)
@@ -1037,7 +1040,7 @@ function ShoppingList({ items, infoMap, groups, overrides, categoryFilter, setFi
                 <div key={item.id} className="inv-shopping-row">
                   <span className="inv-shopping-item-name">{item.name}</span>
                   <span className="inv-shopping-item-qty">{action?.qty || '—'}</span>
-                  <span className="inv-shopping-item-cost">~{(action?.cost || 0).toLocaleString('ru')}&thinsp;₽</span>
+                  <span className="inv-shopping-item-cost">~₽{(action?.cost || 0).toLocaleString('ru')}</span>
                 </div>
               )
             })}
@@ -1234,6 +1237,7 @@ export default function Inventory() {
     })
     return map
   })
+  const [costPeriods, setCostPeriods] = useState({})
   const overridesRef = useRef(overrides)
   overridesRef.current = overrides
   const filterDebounceRef = useRef(null)
@@ -1484,7 +1488,7 @@ export default function Inventory() {
         {/* Summary chips */}
         <div id="sp-inv-summary" className="inv-chips-row">
           {[
-            { key: 'urgent', label: 'срочно',   count: urgentItems.length, sub: urgentCost > 0 ? `~${urgentCost.toLocaleString('ru')} ₽` : null },
+            { key: 'urgent', label: 'срочно',   count: urgentItems.length, sub: urgentCost > 0 ? `~₽${urgentCost.toLocaleString('ru')}` : null },
             { key: 'soon',   label: 'скоро',    count: soonItems.length,   sub: null },
             { key: 'ok',     label: 'в норме',  count: okItems.length,     sub: null },
             { key: 'paused', label: 'на паузе', count: pausedItems.length, sub: null },
@@ -1639,8 +1643,8 @@ export default function Inventory() {
                         key={item.id}
                         item={item}
                         info={infoMap[item.id]}
-                        group={group}
                         override={overrides[item.id] ?? null}
+                        costPeriod={costPeriods[item.id] ?? 'week'}
                         selected={selectedItemId === item.id}
                         editMode={editMode}
                         onSelect={() => setSelectedItemId(id => id === item.id ? null : item.id)}
@@ -1690,19 +1694,19 @@ export default function Inventory() {
             )}
 
             {/* Value summary */}
-            {items.length > 0 && (
+            ₽{items.length > 0 && (
               <div className="inv-value-card">
                 <div className="inv-value-main">
                   <div className="inv-value-lbl">стоимость инвентаря</div>
-                  <div className="inv-value-val">{totalValue.toLocaleString('ru')}&thinsp;₽</div>
+                  <div className="inv-value-val">₽{totalValue.toLocaleString('ru')}</div>
                 </div>
                 <div className="inv-value-breakdown">
                   <div className="inv-value-item">
-                    <span className="inv-value-item-val">{Math.round(consumableVal).toLocaleString('ru')}&thinsp;₽</span>
+                    <span className="inv-value-item-val">₽{Math.round(consumableVal).toLocaleString('ru')}</span>
                     <span className="inv-value-item-lbl">расходники</span>
                   </div>
                   <div className="inv-value-item">
-                    <span className="inv-value-item-val">{wearVal.toLocaleString('ru')}&thinsp;₽</span>
+                    <span className="inv-value-item-val">₽{wearVal.toLocaleString('ru')}</span>
                     <span className="inv-value-item-lbl">вещи</span>
                   </div>
                 </div>
@@ -1741,6 +1745,8 @@ export default function Inventory() {
                 notes={selectedItem.notes || { text: '', photos: [] }}
                 onNotesChange={n => doNotesChange(selectedItem.id, n)}
                 onUpdateItem={form => doUpdateItem(selectedItem.id, form)}
+                costPeriod={costPeriods[selectedItem.id] ?? 'week'}
+                onCostPeriodChange={p => setCostPeriods(prev => ({ ...prev, [selectedItem.id]: p }))}
                 onClose={() => setSelectedItemId(null)}
               />
             ) : (

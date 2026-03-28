@@ -5,7 +5,9 @@
       "Bash(grep -o \"className=\"\"[^\"\"]*\" app/src/pages/*.jsx app/src/components/*.jsx)",
       "Bash(grep -h \"className=\" app/src/pages/*.jsx)",
       "Bash(node --input-type=module --eval \"import\\(''''./src/pages/Profile.jsx''''\\)\")",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "Bash(where python:*)",
+      "Bash(where node:*)"
     ]
   }
 }
