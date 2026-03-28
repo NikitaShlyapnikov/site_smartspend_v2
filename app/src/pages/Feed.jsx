@@ -422,23 +422,16 @@ function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeTo
   return (
     <article className={`feed-article${isRead ? ' read' : ''}`} onClick={() => onClick(item)}>
 
-      <div className="fa-author-row">
-        <AuthorChip author={author} authorId={item.authorId} navigate={navigate} />
-        {catLabel && catLabel !== 'Все' && (
-          <>
-            <span className="fa-sep">·</span>
-            <button
-              className="fa-category"
-              onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}
-            >{catLabel}</button>
-          </>
-        )}
-      </div>
-
       <h2 className="fa-title">{item.title}</h2>
       <p className="fa-preview">{item.preview}</p>
 
-      {/* Bottom row: actions + time */}
+      {/* Author + date */}
+      <div className="fa-author-row">
+        <AuthorChip author={author} authorId={item.authorId} navigate={navigate} />
+        {item.time && <span className="fa-date">{item.time}</span>}
+      </div>
+
+      {/* Actions row */}
       <div className="fa-bottom" onClick={e => e.stopPropagation()}>
         <LikeBtn liked={isLiked} count={item.likes + (isLiked ? 1 : 0)} onToggle={() => onLikeToggle(item.id)} />
         {item.comments != null && (
@@ -465,9 +458,17 @@ function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeTo
             ))}
           </>
         )}
-        <div className="f-spacer" />
-        <span className="fa-time">{item.time}</span>
       </div>
+
+      {/* Category */}
+      {catLabel && catLabel !== 'Все' && (
+        <div className="fa-category-row">
+          <button
+            className="fa-category"
+            onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}
+          >{catLabel}</button>
+        </div>
+      )}
 
     </article>
   )

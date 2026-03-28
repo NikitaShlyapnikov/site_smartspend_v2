@@ -603,10 +603,12 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
 
 .fa-author-row {
   display: flex; align-items: center; gap: 6px;
-  margin-bottom: 13px; flex-wrap: wrap;
+  margin-bottom: 10px; flex-wrap: wrap;
 }
 .fa-author-row .author-avatar-sm { width: 28px; height: 28px; font-size: 10px; }
 .fa-author-row .author-name-inline { font-size: 13px; font-weight: 500; }
+.fa-date { font-size: 11px; color: var(--text-3); font-family: var(--mono); margin-left: auto; }
+.fa-category-row { margin-top: 10px; }
 .fa-sep { font-size: 11px; color: var(--text-3); user-select: none; }
 .fa-category {
   font-size: 12px; color: var(--text-3); letter-spacing: -0.01em;
@@ -623,15 +625,15 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
 }
 .fa-preview {
   font-size: 14px; color: var(--text-2); line-height: 1.6;
-  margin: 0;
+  margin: 0 0 12px;
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
   overflow: hidden; word-break: break-word;
 }
 
-/* Bottom row: time + actions */
+/* Bottom row: actions */
 .fa-bottom {
   display: flex; align-items: center; gap: 4px;
-  margin-top: 14px;
+  margin-top: 10px;
   border-top: 1px solid var(--border);
   padding-top: 10px;
 }
@@ -3221,6 +3223,16 @@ body.dark .inv-gallery-card-set { color: #7AABDF; background: #1A2535; border-co
 .inv-notes-thumb-wrap {
   position: relative; width: 56px; height: 56px; border-radius: 8px;
   overflow: hidden; border: 1px solid var(--border); flex-shrink: 0;
+}
+@keyframes inv-photo-shimmer {
+  0% { background-position: -112px 0; }
+  100% { background-position: 112px 0; }
+}
+.inv-notes-thumb-loading {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+  background-size: 224px 100%;
+  animation: inv-photo-shimmer 1.2s infinite linear;
+  cursor: default;
 }
 .inv-notes-thumb {
   width: 100%; height: 100%; object-fit: cover; display: block;

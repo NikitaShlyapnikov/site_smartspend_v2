@@ -92,7 +92,7 @@ function getItemInfo(item, override = null) {
     const purchaseDate = override !== null ? override : item.purchaseDate
     if (!purchaseDate) {
       pct = 0; status = 'urgent'
-      remainderText = 'дата не указана'
+      remainderText = 'ожидается покупка'
       ringNum = '—'; ringUnit = ''
     } else {
       const weeksUsed = Math.floor(daysSince(purchaseDate) / 7)
@@ -248,6 +248,7 @@ function ItemDetail({ item, info, group, override, costPeriod, onCostPeriodChang
   const [previewPhotoIdx, setPreviewPhotoIdx] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef(null)
+  const [loadingPhotos, setLoadingPhotos] = useState(0)
 
   useEffect(() => {
     if (!menuOpen) return
@@ -361,10 +362,12 @@ function ItemDetail({ item, info, group, override, costPeriod, onCostPeriodChang
   function handlePhotoAdd(e) {
     const files = Array.from(e.target.files)
     if (!files.length) return
+    setLoadingPhotos(n => n + files.length)
     files.forEach(file => {
       const reader = new FileReader()
       reader.onload = ev => {
         onNotesChange({ ...notes, photos: [...(notes.photos || []), { url: ev.target.result, name: file.name }] })
+        setLoadingPhotos(n => n - 1)
       }
       reader.readAsDataURL(file)
     })
@@ -729,6 +732,9 @@ function ItemDetail({ item, info, group, override, costPeriod, onCostPeriodChang
               <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
             </svg>
           </button>
+          {Array.from({ length: loadingPhotos }).map((_, i) => (
+            <div key={`loading-${i}`} className="inv-notes-thumb-wrap inv-notes-thumb-loading" />
+          ))}
           {(notes.photos || []).map((p, i) => (
             <div
               key={i}
@@ -930,12 +936,12 @@ function AddItemForm({ groupId, groupSetCategories, groupPersonalSets, onAdd, on
 
   return (
     <div className="inv-add-form">
-      <div className="inv-add-form-title">Новая позиция</div>
       <div className="inv-add-form-grid">
         <div className="inv-add-form-field" style={{ gridColumn: '1/-1' }}>
           <div className="inv-add-form-lbl">Название</div>
           <input className="inv-add-form-input" value={form.name}
-            onChange={e => set('name')(e.target.value)} placeholder="Например: Оливковое масло" />
+            onChange={e => set('name')(e.target.value)}
+            placeholder={form.type === 'wear' ? 'Например: Зимние ботинки' : 'Например: Оливковое масло'} />
         </div>
         <div className="inv-add-form-field">
           <div className="inv-add-form-lbl">Тип</div>
@@ -1178,11 +1184,31 @@ export default function Inventory() {
 
   // Handlers
   function doDelete(id) {
+    const item = items.find(i => i.id === id)
+    const placeholder = (item?.set && item?.setId) ? {
+      id: 'i' + nextIdRef.current++,
+      name: item.name,
+      type: item.type,
+      groupId: item.groupId,
+      set: item.set,
+      setId: item.setId,
+      price: 0,
+      isExtra: true,
+      paused: true,
+      ...(item.type === 'consumable'
+        ? { qty: item.qty || 100, dailyUse: item.dailyUse || 1, unit: item.unit || 'г', lastBought: new Date().toISOString().slice(0, 10) }
+        : { wearLifeWeeks: item.wearLifeWeeks || 52, purchaseDate: null }
+      ),
+    } : null
     setItems(prev => {
       const next = prev.filter(i => i.id !== id)
-      syncExtra(next)
-      return next
+      const result = placeholder ? [...next, placeholder] : next
+      syncExtra(result)
+      return result
     })
+    if (placeholder) {
+      setOverrides(p => ({ ...p, [placeholder.id]: item.type === 'consumable' ? (item.qty || 100) : null }))
+    }
     if (selectedItemId === id) setSelectedItemId(null)
     setDeleteConfirm(null)
   }
@@ -1479,7 +1505,6 @@ export default function Inventory() {
                     <div className="inv-add-group-list">
                       {ALL_GROUPS.map(g => (
                         <button key={g.id} className="inv-add-group-btn" onClick={() => setAddFormGroupId(g.id)}>
-                          <span className="inv-add-group-dot" style={{ background: g.color }} />
                           {g.name}
                           <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 'auto', color: 'var(--text-3)' }}>
@@ -1530,7 +1555,10 @@ export default function Inventory() {
                     setFilterOverrides({ ...overridesRef.current })
                   }, 3000)
                 }}
-                onDelete={() => setDeleteConfirm({ id: selectedItem.id, name: selectedItem.name, set: selectedItem.set })}
+                onDelete={() => selectedItem.set
+                  ? setDeleteConfirm({ id: selectedItem.id, name: selectedItem.name, set: selectedItem.set })
+                  : doDelete(selectedItem.id)
+                }
                 onUnlink={() => setUnlinkConfirm({ id: selectedItem.id, name: selectedItem.name, set: selectedItem.set })}
                 onLinkSet={() => setLinkToSetItem(selectedItem.id)}
                 onLaunch={() => doLaunch(selectedItem.id)}
@@ -1572,9 +1600,10 @@ export default function Inventory() {
           <div className="inv-modal" onClick={e => e.stopPropagation()}>
             <div className="inv-modal-title">Удалить позицию?</div>
             <div className="inv-modal-body">
-              Удаление <strong>«{deleteConfirm.name}»</strong> приведёт к созданию новой версии набора
-              {deleteConfirm.set && <> <strong>«{deleteConfirm.set}»</strong></>} без этого ингредиента.
-              Все параметры будут пересчитаны.
+              Позиция <strong>«{deleteConfirm.name}»</strong> будет удалена.
+              {deleteConfirm.set
+                ? <> В наборе <strong>«{deleteConfirm.set}»</strong> останется пустая позиция — отредактируйте набор, если она не нужна.</>
+                : null}
             </div>
             <div className="inv-modal-actions">
               <button className="inv-modal-btn" onClick={() => setDeleteConfirm(null)}>Отмена</button>
