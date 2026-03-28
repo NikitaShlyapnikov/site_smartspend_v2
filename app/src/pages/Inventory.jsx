@@ -14,7 +14,7 @@ function loadPersonalSets() {
 }
 
 const INV_SPOTLIGHT = [
-  { targetId: 'sp-inv-groups',  btnId: 'sp-inv-edit', title: 'Список инвентаря', desc: 'Позиции сгруппированы по статусу. Нажми на строку — откроется панель деталей справа. Кнопка «Редактировать» позволяет добавлять новые позиции.' },
+  { targetId: 'sp-inv-groups', title: 'Список инвентаря', desc: 'Позиции сгруппированы по статусу. Нажми на строку — откроется панель деталей справа.' },
 ]
 
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
@@ -79,7 +79,7 @@ function getItemInfo(item, override = null) {
   } else {
     const purchaseDate = override !== null ? override : item.purchaseDate
     if (!purchaseDate) {
-      pct = 0; status = 'ok'
+      pct = 0; status = 'soon'
       remainderText = 'дата не указана'
       ringNum = '—'; ringUnit = ''
     } else {
@@ -139,7 +139,7 @@ const EmptyIcon = () => (
   </svg>
 )
 
-function ItemRow({ item, info, override, costPeriod = 'week', selected, editMode, onSelect, onDelete }) {
+function ItemRow({ item, info, override, costPeriod = 'week', selected, onSelect }) {
   const paused = !!item.paused
   const { pct, status } = info
 
@@ -207,13 +207,6 @@ function ItemRow({ item, info, override, costPeriod = 'week', selected, editMode
       </div>
       <span className={`irow-time irow-time--${barStatus}`}>{timeContent || '—'}</span>
       {costContent}
-      {editMode && (
-        <button className="irow-delete" onClick={e => { e.stopPropagation(); onDelete() }} title="Удалить">
-          <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-      )}
     </div>
   )
 }
@@ -229,7 +222,7 @@ function formatNoteDate(dateStr) {
 
 // ── ITEM DETAIL ────────────────────────────────────────────────────────────────
 
-function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostPeriodChange, onOverrideChange, onStepStop, onDelete, onUnlink, onLinkSet, onLaunch, notes, onNotesChange, onUpdateItem, onClose, onFilterByCategory, onFilterBySet }) {
+function ItemDetail({ item, info, group, override, costPeriod, onCostPeriodChange, onOverrideChange, onStepStop, onDelete, onUnlink, onLinkSet, onLaunch, notes, onNotesChange, onUpdateItem, onClose, onFilterByCategory, onFilterBySet }) {
   const paused = !!item.paused
   const { pct, status, remainderText, monthlyBlock } = info
   const unit = item.type === 'consumable' ? (item.unit || 'г') : 'нед'
@@ -272,6 +265,7 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
   useEffect(() => {
     const e = (notes.entries || []).find(e => e.date === todayStr)
     setTodayNoteText(e ? e.text : '')
+    setPreviewPhotoIdx(0)
   }, [item.id]) // eslint-disable-line
 
   function handleTodayNoteChange(text) {
@@ -382,15 +376,9 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
     const residualVal = Math.max(0, Math.round(item.price * (1 - weeksUsed / (item.wearLifeWeeks || 1))))
     const residualPct = Math.max(0, Math.round((1 - weeksUsed / item.wearLifeWeeks) * 100))
     const monthlyAmort = Math.round((item.price / item.wearLifeWeeks) * 4.33)
-    const lifeYears = (item.wearLifeWeeks / 52).toFixed(1).replace('.0', '')
+    const lifeYears = item.wearLifeWeeks ? (item.wearLifeWeeks / 52).toFixed(1).replace('.0', '') : '0'
     wearVals = { residualVal, residualPct, monthlyAmort, lifeYears }
   }
-
-  const statusLabel = paused ? 'На паузе'
-    : status === 'urgent' ? 'Срочно'
-    : status === 'soon' ? 'Скоро'
-    : status === 'overexploit' ? 'Переэксплуатация'
-    : 'Норма'
 
   return (
     <div className="ipanel">
@@ -572,6 +560,18 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
             </div>
           </div>
           <div className="ipanel-wear-rows">
+            <div className="ipanel-wear-row">
+              <span className="ipanel-wear-row-lbl">Хватит на</span>
+              <span className="ipanel-wear-row-val mono">
+                {consumableVals.daysLeft > 0
+                  ? consumableVals.daysLeft < 7
+                    ? `${consumableVals.daysLeft}\u00a0дн.`
+                    : consumableVals.daysLeft < 30
+                      ? `${Math.floor(consumableVals.daysLeft / 7)}\u00a0нед.`
+                      : `${Math.floor(consumableVals.daysLeft / 30)}\u00a0мес.`
+                  : 'закончилось'}
+              </span>
+            </div>
             <div className="ipanel-wear-row">
               <span className="ipanel-wear-row-lbl">Потребность/мес.</span>
               <span className="ipanel-wear-row-val mono">{consumableVals.monthlyQty}&thinsp;{unit}</span>
@@ -964,30 +964,13 @@ export default function Inventory() {
   const [statusFilter, setStatusFilter] = useState(null)
   const [categoryFilter, setCategoryFilter] = useState(null)
   const [setFilter, setSetFilter] = useState(null)
-  const [editMode, setEditMode] = useState(false)
   const [showSpotlight, setShowSpotlight] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [unlinkConfirm, setUnlinkConfirm] = useState(null)
   const [linkToSetItem, setLinkToSetItem] = useState(null)
-  const [showAddForm, setShowAddForm] = useState(false)
   const [addFormGroupId, setAddFormGroupId] = useState(null)
   const [showAddPanel, setShowAddPanel] = useState(false)
   const nextIdRef = useRef(1000)
-
-  const [itemGroups, setItemGroups] = useState(() => {
-    const map = {}
-    const base = inventoryGroups.flatMap(g => g.items.map(i => ({ ...i, groupId: g.id })))
-    const extra = loadExtraItems().map(i => ({ ...i, isExtra: true }))
-    ;[...base, ...extra].forEach(item => {
-      if (item.paused) { map[item.id] = 'paused'; return }
-      const ov = item.type === 'consumable'
-        ? Math.max(0, Math.round(item.qty - daysSince(item.lastBought) * item.dailyUse))
-        : item.purchaseDate
-      const info = getItemInfo(item, ov)
-      map[item.id] = info.filterStatus
-    })
-    return map
-  })
 
   const [overrides, setOverrides] = useState(() => {
     const map = {}
@@ -1081,7 +1064,6 @@ export default function Inventory() {
     { key: 'paused',  label: 'Ожидает активации',   items: applyFilters(items.filter(i => i.paused)) },
   ].filter(sg => {
     if (statusFilter && sg.key !== statusFilter) return false
-    if (editMode) return true
     return sg.items.length > 0
   })
 
@@ -1095,10 +1077,10 @@ export default function Inventory() {
       syncExtra(next)
       return next
     })
-    setItemGroups(prev => { const next = { ...prev }; delete next[id]; return next })
     if (selectedItemId === id) setSelectedItemId(null)
     setDeleteConfirm(null)
   }
+
 
   function doUnlink(id) {
     setItems(prev => {
@@ -1116,11 +1098,6 @@ export default function Inventory() {
       return next
     })
     const launchedItem = items.find(i => i.id === id)
-    if (launchedItem) {
-      const ov = overrides[id] ?? null
-      const info = getItemInfo({ ...launchedItem, paused: false }, ov)
-      setItemGroups(prev => ({ ...prev, [id]: info.filterStatus }))
-    }
   }
 
   function doLinkSet(itemId, pickedSet) {
@@ -1162,9 +1139,6 @@ export default function Inventory() {
     const newOv = base.type === 'consumable'
       ? (Number(form.qty) || 100)
       : (base.purchaseDate || null)
-    const newInfo = getItemInfo(base, newOv)
-    setItemGroups(prev => ({ ...prev, [id]: newInfo.filterStatus }))
-    setShowAddForm(false)
     setAddFormGroupId(null)
   }
 
@@ -1197,15 +1171,6 @@ export default function Inventory() {
     }
   }
 
-  function toggleEditMode() {
-    setEditMode(m => !m)
-    if (editMode) {
-      setShowAddForm(false)
-      setAddFormGroupId(null)
-    }
-  }
-
-  const addFormGroup = addFormGroupId ? ALL_GROUPS.find(g => g.id === addFormGroupId) : null
 
   return (
     <Layout>
@@ -1269,60 +1234,6 @@ export default function Inventory() {
         </div>
 
 
-        {/* Add form in edit mode */}
-        {editMode && (
-          <div className="inv-add-section">
-            {!showAddForm ? (
-              <button className="inv-add-toggle" onClick={() => setShowAddForm(true)}>
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                  strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                Добавить позицию
-              </button>
-            ) : (
-              <div className="inv-add-inline">
-                {!addFormGroupId ? (
-                  <div className="inv-add-group-chooser">
-                    <div className="inv-add-group-chooser-title">Выберите категорию</div>
-                    <div className="inv-add-group-list">
-                      {ALL_GROUPS.map(g => (
-                        <button key={g.id} className="inv-add-group-btn" onClick={() => setAddFormGroupId(g.id)}>
-                          <span className="inv-add-group-dot" style={{ background: g.color }} />
-                          {g.name}
-                          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 'auto', color: 'var(--text-3)' }}>
-                            <path d="M9 18l6-6-6-6" />
-                          </svg>
-                        </button>
-                      ))}
-                    </div>
-                    <button className="inv-add-cancel" onClick={() => { setShowAddForm(false); setAddFormGroupId(null) }}>Отмена</button>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="inv-add-group-back">
-                      <button className="inv-add-group-back-btn" onClick={() => setAddFormGroupId(null)}>
-                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M15 18l-6-6 6-6" />
-                        </svg>
-                        Категория: {addFormGroup?.name}
-                      </button>
-                    </div>
-                    <AddItemForm
-                      groupId={addFormGroupId}
-                      groupSetCategories={addFormGroup?.setCategories}
-                      groupPersonalSets={personalSets}
-                      onAdd={doAddItem}
-                      onCancel={() => { setShowAddForm(false); setAddFormGroupId(null) }}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Split layout */}
         <div id="sp-inv-groups" className="inv-split">
           {/* Left: flat list */}
@@ -1345,9 +1256,7 @@ export default function Inventory() {
                         override={overrides[item.id] ?? null}
                         costPeriod={costPeriods[item.id] ?? 'week'}
                         selected={selectedItemId === item.id}
-                        editMode={editMode}
                         onSelect={() => setSelectedItemId(id => id === item.id ? null : item.id)}
-                        onDelete={() => setDeleteConfirm({ id: item.id, name: item.name, set: item.set })}
                       />
                     )
                   })}
@@ -1358,7 +1267,7 @@ export default function Inventory() {
               </div>
             ))}
 
-            {STATUS_GROUPS.length === 0 && !editMode && (
+            {STATUS_GROUPS.length === 0 && (
               <div className="inv-empty-state">
                 <div className="inv-empty-icon">
                   <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
@@ -1371,7 +1280,7 @@ export default function Inventory() {
               </div>
             )}
 
-            {!editMode && items.length === 0 && (
+            {items.length === 0 && (
               <div className="inv-cold-start">
                 <div className="inv-cold-icon">
                   <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
@@ -1387,7 +1296,7 @@ export default function Inventory() {
                 <div className="inv-cold-desc">Добавьте готовый набор из каталога или внесите позиции вручную</div>
                 <div className="inv-cold-actions">
                   <Link to="/catalog" className="inv-cold-btn-primary">Найти набор в каталоге</Link>
-                  <button className="inv-cold-btn-secondary" onClick={() => setEditMode(true)}>Добавить вручную</button>
+                  <button className="inv-cold-btn-secondary" onClick={() => { setShowAddPanel(true) }}>Добавить вручную</button>
                 </div>
               </div>
             )}
@@ -1479,7 +1388,6 @@ export default function Inventory() {
                 info={infoMap[selectedItem.id]}
                 group={selectedGroup}
                 override={overrides[selectedItem.id] ?? null}
-                editMode={editMode}
                 onOverrideChange={v => {
                   const iid = selectedItem.id
                   setOverrides(prev => ({ ...prev, [iid]: v }))
