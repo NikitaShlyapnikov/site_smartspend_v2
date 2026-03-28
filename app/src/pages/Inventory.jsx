@@ -46,7 +46,7 @@ function getItemInfo(item, override = null) {
       : Math.max(0, item.qty - daysSince(item.lastBought) * item.dailyUse)
 
     const daysLeft = item.dailyUse > 0 ? Math.round(remaining / item.dailyUse) : 0
-    pct = Math.min(100, Math.round((1 - remaining / item.qty) * 100))
+    pct = Math.max(0, Math.min(100, Math.round((1 - remaining / item.qty) * 100)))
 
     const daysHint = daysLeft > 0 ? ` (~\u00a0${daysLeft}\u00a0дн.)` : ''
     const r = (unit === 'г' || unit === 'мл') ? Math.round(remaining) : parseFloat(remaining.toFixed(1))
@@ -189,7 +189,7 @@ function ItemRow({ item, info, override, costPeriod = 'week', selected, editMode
     }
   }
 
-  const remainPct = paused ? 50 : (status === 'overexploit' ? 0 : Math.max(0, 100 - pct))
+  const remainPct = paused ? 50 : (status === 'overexploit' ? 0 : Math.max(0, Math.min(100, 100 - pct)))
   const barStatus = paused ? 'paused' : status
 
   return (
@@ -364,10 +364,13 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
   if (item.type === 'consumable') {
     const monthlyQty = Math.round((item.dailyUse || 0) * 30)
     const monthlyBudget = item.qty > 0 ? Math.round((item.price / item.qty) * monthlyQty) : 0
-    const pricePerUnit = item.qty > 0 ? (item.price / item.qty).toFixed(2) : '0.00'
+    const rawPPU = item.qty > 0 ? item.price / item.qty : 0
+    const pricePerUnit = rawPPU.toFixed(2)
+    const bulkUnit = unit === 'г' ? 'кг' : unit === 'мл' ? 'л' : null
+    const pricePerBulk = bulkUnit ? (rawPPU * 1000).toLocaleString('ru', { maximumFractionDigits: 0 }) : null
     const currentQty = typeof stepperVal === 'number' ? stepperVal : (item.qty || 0)
     const daysLeft = (item.dailyUse || 0) > 0 ? Math.round(currentQty / item.dailyUse) : 0
-    consumableVals = { monthlyQty, monthlyBudget, pricePerUnit, daysLeft }
+    consumableVals = { monthlyQty, monthlyBudget, pricePerUnit, pricePerBulk, bulkUnit, daysLeft }
   }
 
   // Wear item display values
@@ -530,12 +533,6 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
               <div className="ipanel-cell-val">{item.wearLifeWeeks}&thinsp;нед. ({wearVals.lifeYears}&thinsp;г.)</div>
             </div>
           </div>
-          {monthlyBlock?.type === 'overexploit' && (
-            <div className="ipanel-monthly-row ipanel-monthly-row--overexploit">
-              <span className="ipanel-monthly-val">+₽{monthlyBlock.bonusIncome.toLocaleString('ru')}</span>
-              <span className="ipanel-monthly-sub">{monthlyBlock.weeksOver}&thinsp;нед. сверх нормы</span>
-            </div>
-          )}
           <div className="ipanel-wear-rows">
             <div className="ipanel-wear-row">
               <span className="ipanel-wear-row-lbl">Стоимость</span>
@@ -556,8 +553,8 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
       {/* Consumable section */}
       {item.type === 'consumable' && consumableVals && (
         <div className="ipanel-consumable-section">
-          <div className="ipanel-adjust">
-            <span className="ipanel-adjust-lbl">Остаток, {unit}</span>
+          <div className="ipanel-stepper-block">
+            <div className="ipanel-cell-lbl">ОСТАТОК, {{ 'г': 'грамм', 'мл': 'миллилитр', 'шт': 'штук', 'кап': 'капель', 'рул': 'рулон' }[unit] || unit}</div>
             <div className="ipanel-stepper">
               <button className="ipanel-stepper-btn"
                 onMouseDown={() => startStep(-1)} onMouseUp={stopStep}
@@ -584,7 +581,12 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
             </div>
             <div className="ipanel-wear-row">
               <span className="ipanel-wear-row-lbl">Цена за {unit}</span>
-              <span className="ipanel-wear-row-val mono">₽{consumableVals.pricePerUnit}</span>
+              <span className="ipanel-wear-row-val mono">
+                ₽{consumableVals.pricePerUnit}
+                {consumableVals.pricePerBulk && (
+                  <span className="ipanel-wear-row-sub">₽{consumableVals.pricePerBulk}/{consumableVals.bulkUnit}</span>
+                )}
+              </span>
             </div>
           </div>
         </div>
@@ -1072,10 +1074,10 @@ export default function Inventory() {
   }
 
   const STATUS_GROUPS = [
-    { key: 'urgent',  label: 'Ожидает покупки',     items: applyFilters(items.filter(i => itemGroups[i.id] === 'urgent')) },
-    { key: 'soon',    label: 'Скоро потребуется',   items: applyFilters(items.filter(i => itemGroups[i.id] === 'soon')) },
-    { key: 'ok',      label: 'Норма',               items: applyFilters(items.filter(i => itemGroups[i.id] === 'ok')) },
-    { key: 'paused',  label: 'Ожидает активации',   items: applyFilters(items.filter(i => itemGroups[i.id] === 'paused')) },
+    { key: 'urgent',  label: 'Ожидает покупки',     items: applyFilters(items.filter(i => !i.paused && infoMap[i.id]?.filterStatus === 'urgent')) },
+    { key: 'soon',    label: 'Скоро потребуется',   items: applyFilters(items.filter(i => !i.paused && infoMap[i.id]?.filterStatus === 'soon')) },
+    { key: 'ok',      label: 'Норма',               items: applyFilters(items.filter(i => !i.paused && infoMap[i.id]?.filterStatus === 'ok')) },
+    { key: 'paused',  label: 'Ожидает активации',   items: applyFilters(items.filter(i => i.paused)) },
   ].filter(sg => {
     if (statusFilter && sg.key !== statusFilter) return false
     if (editMode) return true
@@ -1215,28 +1217,6 @@ export default function Inventory() {
               <HelpButton seenKey="ss_spl_inv" onOpen={() => setShowSpotlight(true)} />
             </div>
             <div className="page-subtitle">{items.length} позиций</div>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button id="sp-inv-edit" className={`btn-edit-mode${editMode ? ' active' : ''}`} onClick={toggleEditMode}>
-              {editMode ? (
-                <>
-                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"
-                    strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 6L9 17l-5-5" />
-                  </svg>
-                  Готово
-                </>
-              ) : (
-                <>
-                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"
-                    strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                  Редактировать
-                </>
-              )}
-            </button>
           </div>
         </div>
 

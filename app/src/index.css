@@ -10429,6 +10429,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 /* Adjust block (stepper / date) */
 .ipanel-adjust { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
 .ipanel-adjust-lbl { font-size: 11px; color: var(--text-3); flex-shrink: 0; }
+.ipanel-stepper-block { display: flex; flex-direction: column; gap: 6px; }
 .ipanel-stepper {
   display: flex; align-items: center;
   border: 1px solid var(--border); border-radius: 8px;
@@ -10476,7 +10477,8 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 }
 .ipanel-wear-row:last-child { border-bottom: none; }
 .ipanel-wear-row-lbl { font-size: 12px; color: var(--text-2); }
-.ipanel-wear-row-val { font-size: 13px; color: var(--text); font-family: var(--mono); }
+.ipanel-wear-row-val { font-size: 13px; color: var(--text); font-family: var(--mono); display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+.ipanel-wear-row-sub { font-size: 10px; color: var(--text-3); font-family: var(--mono); }
 
 /* Consumable section */
 .ipanel-consumable-section { display: flex; flex-direction: column; gap: 12px; }
