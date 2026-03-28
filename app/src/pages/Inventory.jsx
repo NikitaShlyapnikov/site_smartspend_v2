@@ -264,7 +264,7 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
   const [lightboxIdx, setLightboxIdx] = useState(null)
   const [isEditingParams, setIsEditingParams] = useState(false)
   const [paramForm, setParamForm] = useState(null)
-  const [localNoteEdit, setLocalNoteEdit] = useState(false)
+  const [confirmDeletePhoto, setConfirmDeletePhoto] = useState(null)
 
   function startEditParams(e) {
     e.stopPropagation()
@@ -342,62 +342,6 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
   }
 
   const hasSet = item.set && item.setId
-  const barPct = paused ? 50 : (status === 'overexploit' ? 100 : Math.min(100, pct))
-  const barStatus = paused ? 'paused' : status
-
-  // Timeline for wear items
-  let timeline = null
-  if (item.type !== 'consumable' && !paused) {
-    let purchaseDateForTimeline = null
-    if (Array.isArray(item.purchases)) {
-      const boughtList = item.purchases.filter(p => p.bought && p.purchaseDate)
-      if (boughtList.length > 0) {
-        purchaseDateForTimeline = boughtList.map(p => p.purchaseDate).sort()[0]
-      }
-    } else {
-      purchaseDateForTimeline = override !== null ? override : item.purchaseDate
-    }
-
-    if (purchaseDateForTimeline && item.wearLifeWeeks) {
-      const purchaseMs = new Date(purchaseDateForTimeline).getTime()
-      const totalMs = item.wearLifeWeeks * 7 * 86400000
-      const nowMs = Date.now()
-      const elapsed = nowMs - purchaseMs
-      const fillPct = Math.min(100, Math.max(0, (elapsed / totalMs) * 100))
-      const nowPct = Math.min(100, (elapsed / totalMs) * 100)
-
-      const replaceDateMs = purchaseMs + totalMs
-      const replaceDate = new Date(replaceDateMs)
-      const purchaseDateObj = new Date(purchaseDateForTimeline)
-
-      const fmtDate = d => {
-        const dd = String(d.getDate()).padStart(2, '0')
-        const mm = String(d.getMonth() + 1).padStart(2, '0')
-        const yy = String(d.getFullYear()).slice(-2)
-        return `${dd}.${mm}.${yy}`
-      }
-
-      timeline = (
-        <div className="ipanel-timeline">
-          <div className="ipanel-timeline-bar-wrap">
-            <div className="ipanel-timeline-track">
-              <div className={`ipanel-timeline-fill ipanel-timeline-fill--${status}`} style={{ width: `${fillPct}%` }} />
-              {nowPct < 100 && (
-                <div className="ipanel-timeline-now" style={{ left: `${nowPct}%` }}>
-                  <div className="ipanel-timeline-now-line" />
-                  <div className="ipanel-timeline-now-label">сейчас</div>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="ipanel-timeline-labels">
-            <span className="ipanel-timeline-label">{fmtDate(purchaseDateObj)}</span>
-            <span className="ipanel-timeline-label">{fmtDate(replaceDate)}</span>
-          </div>
-        </div>
-      )
-    }
-  }
 
   // Details grid
   let details = null
@@ -405,7 +349,6 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
     const monthlyQty = Math.round(item.dailyUse * 30)
     const monthlyBudget = Math.round((item.price / item.qty) * monthlyQty)
     const pricePerUnit = (item.price / item.qty).toFixed(2)
-    const dailyCost = Math.round(item.dailyUse * item.price / item.qty)
     details = (
       <>
         <div className="inv-detail">
@@ -571,8 +514,19 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
         )}
       </div>
 
-      {/* Timeline */}
-      {timeline}
+      {/* Date picker for wear items — shown at top */}
+      {item.type !== 'consumable' && !Array.isArray(item.purchases) && (
+        <div className="ipanel-adjust">
+          <span className="ipanel-adjust-lbl">Дата покупки</span>
+          <input
+            className="ipanel-date-input" type="date"
+            value={typeof stepperVal === 'string' ? stepperVal : item.purchaseDate}
+            max={new Date().toISOString().slice(0, 10)}
+            onChange={e => onOverrideChange(e.target.value)}
+            onBlur={() => onStepStop?.()}
+          />
+        </div>
+      )}
 
       {/* Divider */}
       <div className="ipanel-divider" />
@@ -616,36 +570,24 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
       {/* Divider */}
       <div className="ipanel-divider" />
 
-      {/* Adjust: stepper or date */}
-      {!Array.isArray(item.purchases) && (
+      {/* Остаток для расходников */}
+      {item.type === 'consumable' && (
         <div className="ipanel-adjust">
-          <span className="ipanel-adjust-lbl">
-            {item.type === 'consumable' ? `Остаток, ${unit}` : 'Дата покупки'}
-          </span>
-          {item.type === 'consumable' ? (
-            <div className="ipanel-stepper">
-              <button className="ipanel-stepper-btn"
-                onMouseDown={() => startStep(-1)} onMouseUp={stopStep}
-                onMouseLeave={stopStep} onTouchStart={() => startStep(-1)} onTouchEnd={stopStep}>−</button>
-              <input
-                className="ipanel-stepper-input" type="number" value={stepperVal}
-                onChange={e => onOverrideChange(Math.max(0, parseInt(e.target.value) || 0))}
-                onBlur={() => onStepStop?.()}
-              />
-              <span className="ipanel-stepper-unit">{unit}</span>
-              <button className="ipanel-stepper-btn"
-                onMouseDown={() => startStep(1)} onMouseUp={stopStep}
-                onMouseLeave={stopStep} onTouchStart={() => startStep(1)} onTouchEnd={stopStep}>+</button>
-            </div>
-          ) : (
+          <span className="ipanel-adjust-lbl">Остаток, {unit}</span>
+          <div className="ipanel-stepper">
+            <button className="ipanel-stepper-btn"
+              onMouseDown={() => startStep(-1)} onMouseUp={stopStep}
+              onMouseLeave={stopStep} onTouchStart={() => startStep(-1)} onTouchEnd={stopStep}>−</button>
             <input
-              className="ipanel-date-input" type="date"
-              value={typeof stepperVal === 'string' ? stepperVal : item.purchaseDate}
-              max={new Date().toISOString().slice(0, 10)}
-              onChange={e => onOverrideChange(e.target.value)}
+              className="ipanel-stepper-input" type="number" value={stepperVal}
+              onChange={e => onOverrideChange(Math.max(0, parseInt(e.target.value) || 0))}
               onBlur={() => onStepStop?.()}
             />
-          )}
+            <span className="ipanel-stepper-unit">{unit}</span>
+            <button className="ipanel-stepper-btn"
+              onMouseDown={() => startStep(1)} onMouseUp={stopStep}
+              onMouseLeave={stopStep} onTouchStart={() => startStep(1)} onTouchEnd={stopStep}>+</button>
+          </div>
         </div>
       )}
 
@@ -791,75 +733,46 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
 
       {/* Notes section — always visible */}
       <div className="inv-notes-section">
-        <div className="inv-notes-label">
-          Заметки
-          {!editMode && !localNoteEdit && (
-            <button className="inv-notes-edit-btn" onClick={e => { e.stopPropagation(); setLocalNoteEdit(true) }}>
-              <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
-              Редактировать
-            </button>
-          )}
-          {localNoteEdit && !editMode && (
-            <button className="inv-notes-done-btn" onClick={e => { e.stopPropagation(); setLocalNoteEdit(false) }}>
-              <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 6L9 17l-5-5"/>
-              </svg>
-              Готово
-            </button>
-          )}
-        </div>
-        {(editMode || localNoteEdit) ? (
-          <>
-            <textarea
-              className="inv-notes-textarea"
-              placeholder="Добавьте заметку..."
-              value={notes.text || ''}
-              onChange={e => onNotesChange({ ...notes, text: e.target.value })}
-            />
-            <div className="inv-notes-photos-row">
-              <button
-                className="inv-notes-photo-add-tile"
-                onClick={e => { e.stopPropagation(); notePhotoInputRef.current?.click() }}
-                title="Добавить фото"
-              >
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.4 }}>
-                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
-                </svg>
-                <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3" strokeLinecap="round" style={{ position: 'absolute', bottom: 4, right: 4 }}>
-                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-              </button>
-              {(notes.photos || []).map((p, i) => (
-                <div key={i} className="inv-notes-thumb-wrap" onClick={e => openLightbox(i, e)}>
-                  <img src={p.url} alt={p.name} className="inv-notes-thumb" />
-                  <button className="inv-notes-thumb-remove" onClick={e => { e.stopPropagation(); onNotesChange({ ...notes, photos: notes.photos.filter((_, j) => j !== i) }) }}>
-                    <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                  </button>
-                </div>
-              ))}
+        <div className="inv-notes-label">Заметки</div>
+        <textarea
+          className="inv-notes-textarea"
+          placeholder="Добавьте заметку..."
+          value={notes.text || ''}
+          onChange={e => onNotesChange({ ...notes, text: e.target.value })}
+        />
+        <div className="inv-notes-photos-row">
+          <button
+            className="inv-notes-photo-add-tile"
+            onClick={e => { e.stopPropagation(); notePhotoInputRef.current?.click() }}
+            title="Добавить фото"
+          >
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.4 }}>
+              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </button>
+          {(notes.photos || []).map((p, i) => (
+            <div
+              key={i}
+              className={`inv-notes-thumb-wrap${confirmDeletePhoto === i ? ' pending-delete' : ''}`}
+              onClick={e => {
+                e.stopPropagation()
+                if (confirmDeletePhoto === i) {
+                  setConfirmDeletePhoto(null)
+                } else {
+                  setConfirmDeletePhoto(i)
+                }
+              }}
+            >
+              <img src={p.url} alt={p.name} className="inv-notes-thumb" />
+              {confirmDeletePhoto === i && (
+                <button className="inv-notes-thumb-remove" onClick={e => { e.stopPropagation(); onNotesChange({ ...notes, photos: notes.photos.filter((_, j) => j !== i) }); setConfirmDeletePhoto(null) }}>
+                  <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              )}
             </div>
-            <input ref={notePhotoInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handlePhotoAdd} />
-          </>
-        ) : (
-          <>
-            {notes.text
-              ? <div className="inv-notes-text">{notes.text}</div>
-              : <div className="inv-notes-empty">Нет заметок</div>
-            }
-            {notes.photos && notes.photos.length > 0 && (
-              <div className="inv-notes-photos-row">
-                {notes.photos.map((p, i) => (
-                  <div key={i} className="inv-notes-thumb-wrap" onClick={e => openLightbox(i, e)}>
-                    <img src={p.url} alt={p.name} className="inv-notes-thumb" />
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
+          ))}
+        </div>
+        <input ref={notePhotoInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handlePhotoAdd} />
       </div>
 
       {/* Edit mode delete button */}
@@ -1632,7 +1545,7 @@ export default function Inventory() {
             )}
 
             {/* Value summary */}
-            ₽{items.length > 0 && (
+            {items.length > 0 && (
               <div className="inv-value-card">
                 <div className="inv-value-main">
                   <div className="inv-value-lbl">стоимость инвентаря</div>
