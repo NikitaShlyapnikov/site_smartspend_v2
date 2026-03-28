@@ -634,7 +634,7 @@ function ItemDetail({ item, info, group, override, costPeriod, onCostPeriodChang
               <input className="inv-add-form-input" value={paramForm.name}
                 onChange={e => setPF('name')(e.target.value)} placeholder="Название" />
             </div>
-            <div className="inv-add-form-field">
+            <div className="inv-add-form-field" style={{ gridColumn: '1/-1' }}>
               <div className="inv-add-form-lbl">Цена, руб.</div>
               <input className="inv-add-form-input" value={paramPriceDisplay}
                 onChange={e => handleParamPriceChange(e.target.value)} placeholder="0" inputMode="numeric" />
