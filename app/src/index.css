@@ -10219,9 +10219,16 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   width: 360px; flex-shrink: 0;
   position: sticky; top: 16px;
   max-height: calc(100vh - 32px); overflow-y: auto; scrollbar-width: none;
-  border-radius: var(--r); box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  border-radius: var(--r);
 }
 .inv-panel-col::-webkit-scrollbar { display: none; }
+.inv-panel-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; height: 180px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); color: var(--text-3);
+}
+.inv-panel-empty span { font-size: 13px; }
 
 .inv-status-group { margin-bottom: 4px; }
 .inv-status-group-header {
@@ -10283,10 +10290,11 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .irow-time--ok         { color: #5E9478; }
 .irow-time--overexploit{ color: #7B5EA7; }
 .irow-time--paused     { color: #5B8FD4; }
-.irow-costs { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; flex-shrink: 0; width: 70px; }
+.irow-costs { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
 .irow-cost-week  { font-size: 11px; font-weight: 400; font-family: var(--mono); color: var(--text); letter-spacing: -0.01em; white-space: nowrap; }
-.irow-cost-month { font-size: 10px; font-weight: 400; font-family: var(--mono); color: var(--text-3); letter-spacing: -0.01em; white-space: nowrap; }
-.irow-price { font-size: 11px; font-weight: 400; font-family: var(--mono); color: var(--text); flex-shrink: 0; width: 70px; text-align: right; letter-spacing: -0.01em; }
+.irow-cost-sep   { font-size: 10px; color: var(--text-3); }
+.irow-cost-month { font-size: 11px; font-weight: 400; font-family: var(--mono); color: var(--text-3); letter-spacing: -0.01em; white-space: nowrap; }
+.irow-price { font-size: 11px; font-weight: 400; font-family: var(--mono); color: var(--text); flex-shrink: 0; text-align: right; letter-spacing: -0.01em; white-space: nowrap; }
 .irow-time--urgent     { color: #B85555; }
 .irow-time--soon       { color: #B08840; }
 .irow-time--ok         { color: #5E9478; }
@@ -10427,6 +10435,5 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 
 @media (max-width: 768px) {
   .inv-split { flex-direction: column; padding-bottom: 0; }
-  .inv-panel-col { position: fixed; bottom: 0; left: 0; right: 0; width: auto; max-height: 80vh; border-radius: var(--r) var(--r) 0 0; z-index: 200; box-shadow: 0 -8px 32px rgba(0,0,0,0.18); }
-  .inv-split--has-panel .inv-list-col { padding-bottom: 80px; }
+  .inv-panel-col { position: fixed; bottom: 0; left: 0; right: 0; width: auto; max-height: 80vh; border-radius: var(--r) var(--r) 0 0; z-index: 200; box-shadow: 0 -8px 32px rgba(0,0,0,0.18); top: auto; }
 }

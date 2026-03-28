@@ -190,8 +190,9 @@ function ItemRow({ item, info, override, selected, editMode, onSelect, onDelete 
 
     costContent = (
       <div className="irow-costs">
-        <span className="irow-cost-week">{weekCost.toLocaleString('ru')}&thinsp;₽/нед</span>
-        <span className="irow-cost-month">{monthCost.toLocaleString('ru')}&thinsp;₽/мес</span>
+        <span className="irow-cost-week">₽{weekCost.toLocaleString('ru')}/нед</span>
+        <span className="irow-cost-sep">·</span>
+        <span className="irow-cost-month">₽{monthCost.toLocaleString('ru')}/мес</span>
       </div>
     )
   } else {
@@ -1620,7 +1621,7 @@ export default function Inventory() {
         )}
 
         {/* Split layout */}
-        <div id="sp-inv-groups" className={`inv-split${selectedItem ? ' inv-split--has-panel' : ''}`}>
+        <div id="sp-inv-groups" className="inv-split">
           {/* Left: flat list */}
           <div className="inv-list-col">
             {STATUS_GROUPS.map(sg => (
@@ -1709,9 +1710,9 @@ export default function Inventory() {
             )}
           </div>
 
-          {/* Right: detail panel */}
-          {selectedItem && (
-            <div className="inv-panel-col">
+          {/* Right: detail panel — always rendered */}
+          <div className="inv-panel-col">
+            {selectedItem ? (
               <ItemDetail
                 key={selectedItem.id}
                 item={selectedItem}
@@ -1742,8 +1743,16 @@ export default function Inventory() {
                 onUpdateItem={form => doUpdateItem(selectedItem.id, form)}
                 onClose={() => setSelectedItemId(null)}
               />
-            </div>
-          )}
+            ) : (
+              <div className="inv-panel-empty">
+                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                  <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+                <span>Выберите позицию</span>
+              </div>
+            )}
+          </div>
         </div>
       </main>
 
