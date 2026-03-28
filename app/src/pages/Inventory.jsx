@@ -969,7 +969,7 @@ function ItemDetail({ item, info, group, override, editMode, costPeriod, onCostP
 
 // ── SHOPPING LIST ──────────────────────────────────────────────────────────────
 
-function ShoppingList({ items, infoMap, groups, overrides, categoryFilter, setFilter, onClose }) {
+function ShoppingList({ items, infoMap, groups, overrides, categoryFilter, setFilter, onClose, emptySlot }) {
   const [period, setPeriod] = useState('month')
 
   const baseItems = items.filter(i => {
@@ -1010,7 +1010,7 @@ function ShoppingList({ items, infoMap, groups, overrides, categoryFilter, setFi
 
   const grandTotal = grouped.reduce((s, g) => s + g.rows.reduce((ss, i) => ss + (getAction(i)?.cost || 0), 0), 0)
 
-  if (items.filter(i => !i.paused && infoMap[i.id]?.filterStatus === 'urgent').length === 0) return null
+  if (items.filter(i => !i.paused && infoMap[i.id]?.filterStatus === 'urgent').length === 0) return emptySlot ?? null
 
   return (
     <div className="inv-shopping-list">
@@ -1565,10 +1565,6 @@ export default function Inventory() {
           )}
         </div>
 
-        {/* Shopping list */}
-        {statusFilter === 'urgent' && (
-          <ShoppingList items={items} infoMap={infoMap} groups={ALL_GROUPS} overrides={overrides} categoryFilter={categoryFilter} setFilter={setFilter} onClose={() => setStatusFilter(null)} />
-        )}
 
         {/* Add form in edit mode */}
         {editMode && (
@@ -1750,13 +1746,23 @@ export default function Inventory() {
                 onClose={() => setSelectedItemId(null)}
               />
             ) : (
-              <div className="inv-panel-empty">
-                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-                  <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-                </svg>
-                <span>Выберите позицию</span>
-              </div>
+              <ShoppingList
+                items={items}
+                infoMap={infoMap}
+                groups={ALL_GROUPS}
+                overrides={overrides}
+                categoryFilter={categoryFilter}
+                setFilter={setFilter}
+                onClose={() => setStatusFilter(null)}
+                emptySlot={(
+                  <div className="inv-panel-empty">
+                    <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
+                    </svg>
+                    <span>Список покупок пуст</span>
+                  </div>
+                )}
+              />
             )}
           </div>
         </div>
