@@ -14,8 +14,8 @@ function loadPersonalSets() {
 }
 
 const INV_SPOTLIGHT = [
-  { targetId: 'sp-inv-summary', btnId: null,            title: 'Сводка статусов',       desc: 'Карточки показывают сколько позиций требует внимания. Нажми на карточку — лента отфильтруется по статусу.' },
-  { targetId: 'sp-inv-groups',  btnId: 'sp-inv-edit',   title: 'Группы инвентаря',      desc: 'Позиции сгруппированы по категориям. Нажми на позицию — откроются детали, стоимость и дата покупки. Кнопка «Редактировать» позволяет добавлять новые позиции.' },
+  { targetId: 'sp-inv-summary', btnId: null,          title: 'Сводка статусов',  desc: 'Карточки показывают сколько позиций требует внимания. Нажми на карточку — лента отфильтруется по статусу.' },
+  { targetId: 'sp-inv-groups',  btnId: 'sp-inv-edit', title: 'Список инвентаря', desc: 'Позиции сгруппированы по статусу. Нажми на строку — откроется панель деталей справа. Кнопка «Редактировать» позволяет добавлять новые позиции.' },
 ]
 
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
@@ -79,7 +79,6 @@ function getItemInfo(item, override = null) {
 
   } else {
     if (Array.isArray(item.purchases)) {
-      // New multi-purchase format
       const boughtList = item.purchases.filter(p => p.bought && p.purchaseDate)
       const total = item.purchases.length
 
@@ -113,7 +112,6 @@ function getItemInfo(item, override = null) {
         }
       }
     } else {
-      // Legacy single-purchaseDate format
       const purchaseDate = override !== null ? override : item.purchaseDate
       const weeksUsed = Math.floor(daysSince(purchaseDate) / 7)
       const overExploit = weeksUsed > item.wearLifeWeeks
@@ -143,31 +141,6 @@ function getItemInfo(item, override = null) {
   return { pct, status, filterStatus, remainderText, ringNum, ringUnit, monthlyBlock }
 }
 
-// ── COMPONENTS ────────────────────────────────────────────────────────────────
-
-function Ring({ pct, ringNum, ringUnit, status, paused }) {
-  const r = 17
-  const circ = 2 * Math.PI * r
-  const dash = (pct / 100) * circ
-  const cls = paused ? 'ring-paused'
-    : status === 'urgent' ? 'ring-urgent'
-    : status === 'soon' ? 'ring-soon'
-    : status === 'overexploit' ? 'ring-overexploit'
-    : 'ring-ok'
-  return (
-    <div className={`ring-wrap ${cls}`}>
-      <svg viewBox="0 0 44 44" width="46" height="46" style={{ transform: 'rotate(-90deg)' }}>
-        <circle className="ring-bg" cx="22" cy="22" r={r} />
-        <circle className="ring-fg" cx="22" cy="22" r={r} strokeDasharray={`${dash} ${circ}`} strokeDashoffset="0" />
-      </svg>
-      <div className="ring-label">
-        <span className="ring-num">{ringNum}</span>
-        <span className="ring-unit">{ringUnit}</span>
-      </div>
-    </div>
-  )
-}
-
 function getStepSize(elapsed) {
   if (elapsed < 800) return 1
   if (elapsed < 1800) return 10
@@ -175,12 +148,120 @@ function getStepSize(elapsed) {
   return 1000
 }
 
-function InventoryItem({ item, open, onToggle, override, onOverrideChange, onStepStop, editMode, onDelete, onUnlink, onLinkSet, onLaunch, notes, onNotesChange, onUpdateItem }) {
+// ── STATUS DOT ────────────────────────────────────────────────────────────────
+
+function StatusDot({ status, paused }) {
+  const s = paused ? 'paused' : status
+  return <span className={`irow-dot irow-dot--${s}`} />
+}
+
+// ── ITEM ROW ──────────────────────────────────────────────────────────────────
+
+function ItemRow({ item, info, group, override, selected, editMode, onSelect, onDelete }) {
   const paused = !!item.paused
-  const info = getItemInfo(item, override)
-  const { pct, status, remainderText, ringNum, ringUnit, monthlyBlock } = info
+  const { pct, status, remainderText } = info
+
+  let dailyCost = null
+  let residualText = null
+  let timeText = null
+
+  if (item.type === 'consumable') {
+    const unit = item.unit || 'г'
+    dailyCost = Math.round(item.dailyUse * item.price / item.qty)
+    const ov = override !== null ? Math.max(0, override) : Math.max(0, item.qty - daysSince(item.lastBought) * item.dailyUse)
+    const pricePerUnit = item.qty > 0 ? item.price / item.qty : 0
+    residualText = `${Math.round(ov * pricePerUnit).toLocaleString('ru')} ₽`
+    const daysLeft = item.dailyUse > 0 ? Math.round(ov / item.dailyUse) : 0
+    if (daysLeft <= 0) timeText = 'закончилось'
+    else if (daysLeft < 7) timeText = `${daysLeft} дн.`
+    else if (daysLeft < 30) timeText = `${Math.floor(daysLeft / 7)} нед.`
+    else timeText = `${Math.floor(daysLeft / 30)} мес.`
+  } else {
+    if (Array.isArray(item.purchases)) {
+      const total = item.purchases.length
+      dailyCost = Math.round(item.price * total / (item.wearLifeWeeks * 7))
+      const boughtList = item.purchases.filter(p => p.bought && p.purchaseDate)
+      if (boughtList.length > 0) {
+        const oldestDate = boughtList.map(p => p.purchaseDate).sort()[0]
+        const wu = Math.floor(daysSince(oldestDate) / 7)
+        const pctUsed = Math.min(1, wu / item.wearLifeWeeks)
+        const rv = boughtList.length * Math.max(0, Math.round(item.price * (1 - pctUsed)))
+        residualText = `${rv.toLocaleString('ru')} ₽`
+        const weeksLeft = Math.max(0, item.wearLifeWeeks - wu)
+        if (status === 'overexploit') timeText = `+${wu - item.wearLifeWeeks} нед.`
+        else if (weeksLeft === 0) timeText = 'замена'
+        else if (weeksLeft < 52) timeText = `${weeksLeft} нед.`
+        else timeText = `${Math.floor(weeksLeft / 52)} лет`
+      } else {
+        residualText = '—'
+        timeText = `${total} шт`
+      }
+    } else {
+      dailyCost = Math.round(item.price / (item.wearLifeWeeks * 7))
+      const pd = override !== null ? override : item.purchaseDate
+      if (pd) {
+        const wu = Math.floor(daysSince(pd) / 7)
+        const rv = Math.max(0, Math.round(item.price * (1 - wu / item.wearLifeWeeks)))
+        residualText = `${rv.toLocaleString('ru')} ₽`
+        const weeksLeft = Math.max(0, item.wearLifeWeeks - wu)
+        if (status === 'overexploit') timeText = `+${wu - item.wearLifeWeeks} нед.`
+        else if (weeksLeft === 0) timeText = 'замена'
+        else if (weeksLeft < 52) timeText = `${weeksLeft} нед.`
+        else timeText = `${Math.floor(weeksLeft / 52)} лет`
+      } else {
+        residualText = `${item.price.toLocaleString('ru')} ₽`
+        timeText = `${item.wearLifeWeeks} нед.`
+      }
+    }
+  }
+
+  const groupName = group ? group.name : ''
+  const barPct = paused ? 50 : (status === 'overexploit' ? 100 : Math.min(100, pct))
+  const barStatus = paused ? 'paused' : status
+
+  return (
+    <div
+      className={`irow${selected ? ' irow--selected' : ''}${paused ? ' irow--paused' : ''}`}
+      onClick={onSelect}
+    >
+      <StatusDot status={status} paused={paused} />
+      <div className="irow-main">
+        <div className="irow-name-row">
+          <span className="irow-name">{item.name}</span>
+          {item.set && <span className="irow-set-tag">{item.set}</span>}
+        </div>
+        <div className="irow-meta">
+          <span className="irow-cat">{groupName}</span>
+          <div className="irow-bar-wrap">
+            <div className="irow-bar">
+              <div className={`irow-bar-fill irow-bar-fill--${barStatus}`} style={{ width: `${barPct}%` }} />
+            </div>
+            <span className="irow-pct">{paused ? '—' : `${pct}%`}</span>
+          </div>
+        </div>
+      </div>
+      <div className="irow-stats">
+        {residualText && <span className="irow-residual">{residualText}</span>}
+        {dailyCost !== null && <span className="irow-daily">{dailyCost} ₽/д</span>}
+        {timeText && <span className={`irow-time irow-time--${barStatus}`}>{timeText}</span>}
+      </div>
+      {editMode && (
+        <button className="irow-delete" onClick={e => { e.stopPropagation(); onDelete() }} title="Удалить">
+          <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      )}
+    </div>
+  )
+}
+
+// ── ITEM DETAIL ────────────────────────────────────────────────────────────────
+
+function ItemDetail({ item, info, override, editMode, onOverrideChange, onStepStop, onDelete, onUnlink, onLinkSet, onLaunch, notes, onNotesChange, onUpdateItem, onClose }) {
+  const paused = !!item.paused
+  const { pct, status, remainderText, monthlyBlock } = info
   const unit = item.type === 'consumable' ? (item.unit || 'г') : 'нед'
-  const remCls = paused ? '' : (status !== 'ok' ? ` ${status}` : '')
 
   const stepTimerRef = useRef(null)
   const stepHoldRef = useRef(0)
@@ -224,22 +305,10 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
   const photos = notes.photos || []
   const lbTotal = photos.length
 
-  function openLightbox(i, e) {
-    e.stopPropagation()
-    setLightboxIdx(i)
-  }
-  function closeLightbox(e) {
-    e?.stopPropagation()
-    setLightboxIdx(null)
-  }
-  function lbPrev(e) {
-    e.stopPropagation()
-    setLightboxIdx(i => (i - 1 + lbTotal) % lbTotal)
-  }
-  function lbNext(e) {
-    e.stopPropagation()
-    setLightboxIdx(i => (i + 1) % lbTotal)
-  }
+  function openLightbox(i, e) { e.stopPropagation(); setLightboxIdx(i) }
+  function closeLightbox(e) { e?.stopPropagation(); setLightboxIdx(null) }
+  function lbPrev(e) { e.stopPropagation(); setLightboxIdx(i => (i - 1 + lbTotal) % lbTotal) }
+  function lbNext(e) { e.stopPropagation(); setLightboxIdx(i => (i + 1) % lbTotal) }
 
   function handlePhotoAdd(e) {
     const files = Array.from(e.target.files)
@@ -279,7 +348,65 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
     tick()
   }
 
-  // Type-specific details
+  const hasSet = item.set && item.setId
+  const barPct = paused ? 50 : (status === 'overexploit' ? 100 : Math.min(100, pct))
+  const barStatus = paused ? 'paused' : status
+
+  // Timeline for wear items
+  let timeline = null
+  if (item.type !== 'consumable' && !paused) {
+    let purchaseDateForTimeline = null
+    if (Array.isArray(item.purchases)) {
+      const boughtList = item.purchases.filter(p => p.bought && p.purchaseDate)
+      if (boughtList.length > 0) {
+        purchaseDateForTimeline = boughtList.map(p => p.purchaseDate).sort()[0]
+      }
+    } else {
+      purchaseDateForTimeline = override !== null ? override : item.purchaseDate
+    }
+
+    if (purchaseDateForTimeline && item.wearLifeWeeks) {
+      const purchaseMs = new Date(purchaseDateForTimeline).getTime()
+      const totalMs = item.wearLifeWeeks * 7 * 86400000
+      const nowMs = Date.now()
+      const elapsed = nowMs - purchaseMs
+      const fillPct = Math.min(100, Math.max(0, (elapsed / totalMs) * 100))
+      const nowPct = Math.min(100, (elapsed / totalMs) * 100)
+
+      const replaceDateMs = purchaseMs + totalMs
+      const replaceDate = new Date(replaceDateMs)
+      const purchaseDateObj = new Date(purchaseDateForTimeline)
+
+      const fmtDate = d => {
+        const dd = String(d.getDate()).padStart(2, '0')
+        const mm = String(d.getMonth() + 1).padStart(2, '0')
+        const yy = String(d.getFullYear()).slice(-2)
+        return `${dd}.${mm}.${yy}`
+      }
+
+      timeline = (
+        <div className="ipanel-timeline">
+          <div className="ipanel-timeline-bar-wrap">
+            <div className="ipanel-timeline-track">
+              <div className={`ipanel-timeline-fill ipanel-timeline-fill--${status}`} style={{ width: `${fillPct}%` }} />
+              {nowPct < 100 && (
+                <div className="ipanel-timeline-now" style={{ left: `${nowPct}%` }}>
+                  <div className="ipanel-timeline-now-line" />
+                  <div className="ipanel-timeline-now-label">сейчас</div>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="ipanel-timeline-labels">
+            <span className="ipanel-timeline-label">{fmtDate(purchaseDateObj)}</span>
+            <span className="ipanel-timeline-label">{fmtDate(replaceDate)}</span>
+          </div>
+        </div>
+      )
+    }
+  }
+
+  // Details grid
   let details = null
   if (item.type === 'consumable') {
     const monthlyQty = Math.round(item.dailyUse * 30)
@@ -311,16 +438,13 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
       </>
     )
   } else if (Array.isArray(item.purchases)) {
-    // Multi-purchase wear items
     const total = item.purchases.length
     const boughtList = item.purchases.filter(p => p.bought && p.purchaseDate)
     const totalPrice = item.price * total
     const lifeYears = (item.wearLifeWeeks / 52).toFixed(1).replace('.0', '')
 
-    let residualVal
-    if (boughtList.length === 0) {
-      residualVal = 0
-    } else {
+    let residualVal = 0
+    if (boughtList.length > 0) {
       const oldestDate = boughtList.map(p => p.purchaseDate).sort()[0]
       const weeksUsed = Math.floor(daysSince(oldestDate) / 7)
       const pctUsed = Math.min(1, weeksUsed / item.wearLifeWeeks)
@@ -359,7 +483,6 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
       </>
     )
   } else {
-    // Legacy single-purchaseDate format
     const purchaseDate = override !== null ? override : item.purchaseDate
     const weeksUsed = purchaseDate ? Math.floor(daysSince(purchaseDate) / 7) : 0
     const residualVal = Math.max(0, Math.round(item.price * (1 - weeksUsed / item.wearLifeWeeks)))
@@ -392,408 +515,411 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
     )
   }
 
-  const hasSet = item.set && item.setId
+  const statusLabel = paused ? 'На паузе'
+    : status === 'urgent' ? 'Срочно'
+    : status === 'soon' ? 'Скоро'
+    : status === 'overexploit' ? 'Переэксплуатация'
+    : 'Норма'
 
   return (
-    <div className={`inv-item status-${paused ? 'ok' : status}${open ? ' open' : ''}`}>
-      <div className="inv-item-main" onClick={onToggle}>
-        <Ring pct={paused ? 50 : pct} ringNum={paused ? '⏸' : ringNum} ringUnit={paused ? '' : ringUnit} status={status} paused={paused} />
-        <div className="inv-info">
-          <div className="inv-name">
-            {item.name}
-            {item.set && <span className="inv-set-tag">{item.set}</span>}
+    <div className="ipanel">
+      {/* Header */}
+      <div className="ipanel-header">
+        <div className="ipanel-header-info">
+          <div className="ipanel-title">{item.name}</div>
+          <div className="ipanel-header-meta">
+            <span className={`ipanel-status-badge ipanel-status-badge--${paused ? 'paused' : status}`}>
+              {statusLabel}
+            </span>
+            {item.set && <span className="ipanel-set-badge">{item.set}</span>}
           </div>
-          {paused ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span className="inv-remainder" style={{ color: '#5B8FD4' }}>на паузе</span>
-              <button className="inv-launch-btn" onClick={e => { e.stopPropagation(); onLaunch() }}>
-                <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-                Запустить
-              </button>
+        </div>
+        <button className="ipanel-close" onClick={onClose} title="Закрыть">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Progress bar */}
+      <div className="ipanel-progress-wrap">
+        <div className="ipanel-progress-bar">
+          <div className={`ipanel-progress-fill ipanel-progress-fill--${barStatus}`} style={{ width: `${barPct}%` }} />
+        </div>
+        <span className="ipanel-progress-pct">{paused ? '—' : `${pct}%`}</span>
+      </div>
+
+      {/* Remainder text */}
+      <div className={`ipanel-remainder ipanel-remainder--${paused ? 'paused' : status}`}>
+        {paused ? 'на паузе' : remainderText}
+        {paused && (
+          <button className="inv-launch-btn" style={{ marginLeft: 8 }} onClick={onLaunch}>
+            <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            Запустить
+          </button>
+        )}
+      </div>
+
+      {/* Timeline */}
+      {timeline}
+
+      {/* Monthly block */}
+      {monthlyBlock && (
+        <div className="inv-monthly">
+          <div className="inv-monthly-header">
+            {monthlyBlock.type === 'overexploit' ? 'Переэксплуатация' : 'Этот месяц'}
+          </div>
+          {monthlyBlock.type === 'deficit' && (
+            <div className="inv-monthly-body deficit">
+              <span className="inv-monthly-val deficit">{monthlyBlock.deficitRub.toLocaleString('ru')}&thinsp;руб.</span>
+              <span className="inv-monthly-sub">нужно пополнить на <strong>{monthlyBlock.deficitAmt}</strong></span>
             </div>
+          )}
+          {monthlyBlock.type === 'surplus' && (
+            <div className="inv-monthly-body surplus">
+              <span className="inv-monthly-val surplus">{monthlyBlock.surplusRub.toLocaleString('ru')}&thinsp;руб.</span>
+              <span className="inv-monthly-sub">хватит ещё на <strong>+{monthlyBlock.surplusDays}&thinsp;дн.</strong> после конца месяца</span>
+            </div>
+          )}
+          {monthlyBlock.type === 'overexploit' && (
+            <div className="inv-monthly-body overexploit">
+              <span className="inv-monthly-val overexploit">+{monthlyBlock.bonusIncome.toLocaleString('ru')}&thinsp;руб.</span>
+              <span className="inv-monthly-sub">бонусный доход за <strong>{monthlyBlock.weeksOver}&thinsp;нед. сверх нормы</strong></span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Details grid */}
+      <div className="inv-detail-row">{details}</div>
+
+      {/* Stepper / Date picker */}
+      {!Array.isArray(item.purchases) && (
+        <div className="inv-stepper-wrap">
+          {item.type === 'consumable' ? (
+            <>
+              <div className="inv-field-lbl">Текущий остаток ({unit})</div>
+              <div className="inv-stepper">
+                <button className="stepper-btn"
+                  onMouseDown={() => startStep(-1)} onMouseUp={stopStep}
+                  onMouseLeave={stopStep} onTouchStart={() => startStep(-1)} onTouchEnd={stopStep}>−</button>
+                <input
+                  className="stepper-val" type="number" value={stepperVal}
+                  onChange={e => onOverrideChange(Math.max(0, parseInt(e.target.value) || 0))}
+                  onBlur={() => onStepStop?.()}
+                />
+                <span className="stepper-unit">{unit}</span>
+                <button className="stepper-btn"
+                  onMouseDown={() => startStep(1)} onMouseUp={stopStep}
+                  onMouseLeave={stopStep} onTouchStart={() => startStep(1)} onTouchEnd={stopStep}>+</button>
+              </div>
+            </>
           ) : (
             <>
-              <div className={`inv-remainder${remCls}`}>{remainderText}</div>
-              {(status === 'urgent' || status === 'soon') && monthlyBlock?.type === 'deficit' && (
-                <div className="inv-deficit-inline">
-                  купить {monthlyBlock.deficitAmt} · ~{monthlyBlock.deficitRub.toLocaleString('ru')}&thinsp;₽
+              <div className="inv-field-lbl">Дата покупки</div>
+              <input
+                className="inv-date-input" type="date"
+                value={typeof stepperVal === 'string' ? stepperVal : item.purchaseDate}
+                max={new Date().toISOString().slice(0, 10)}
+                onChange={e => onOverrideChange(e.target.value)}
+                onBlur={() => onStepStop?.()}
+              />
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Multi-purchase list */}
+      {Array.isArray(item.purchases) && (() => {
+        const today = new Date().toISOString().slice(0, 10)
+        const needsReplace = (p) => p.bought && p.purchaseDate &&
+          Math.floor(daysSince(p.purchaseDate) / 7) >= item.wearLifeWeeks
+        const weeksLeftFor = (p) => p.bought && p.purchaseDate
+          ? Math.max(0, item.wearLifeWeeks - Math.floor(daysSince(p.purchaseDate) / 7))
+          : null
+
+        function handlePurchaseToggle(i, checked) {
+          const next = item.purchases.map((p, idx) => idx !== i ? p : {
+            ...p, bought: checked, purchaseDate: checked ? (p.purchaseDate || today) : null
+          })
+          onUpdateItem({ ...item, purchases: next })
+        }
+        function handlePurchaseDate(i, date) {
+          const next = item.purchases.map((p, idx) => idx !== i ? p : { ...p, purchaseDate: date })
+          onUpdateItem({ ...item, purchases: next })
+        }
+
+        return (
+          <div className="inv-purchases-wrap">
+            <div className="inv-purchases-label">
+              <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              Даты покупок ({item.purchases.filter(p => p.bought).length} / {item.purchases.length} куплено)
+            </div>
+            <div className="inv-purchases-list">
+              {item.purchases.map((p, i) => {
+                const wl = weeksLeftFor(p)
+                const expired = needsReplace(p)
+                return (
+                  <div key={i} className={`inv-purchase-row${expired ? ' expired' : (p.bought && wl !== null && wl <= Math.ceil(item.wearLifeWeeks * 0.1) ? ' soon' : '')}`}>
+                    <span className="inv-purchase-num">{i + 1}</span>
+                    <label className="inv-purchase-check">
+                      <input type="checkbox" checked={!!p.bought}
+                        onChange={e => handlePurchaseToggle(i, e.target.checked)} />
+                      <span>{p.bought ? 'Куплено' : 'Не куплено'}</span>
+                    </label>
+                    <input
+                      type="date"
+                      className={`inv-purchase-date${!p.bought ? ' disabled' : ''}`}
+                      disabled={!p.bought}
+                      value={p.purchaseDate || ''}
+                      max={today}
+                      onChange={e => handlePurchaseDate(i, e.target.value)}
+                    />
+                    {p.bought && wl !== null && (
+                      <span className={`inv-purchase-hint${expired ? ' expired' : ''}`}>
+                        {expired ? `+${Math.abs(wl)} нед` : `${wl} нед`}
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* Edit params button / form */}
+      {editMode && !hasSet && !isEditingParams && (
+        <div style={{ padding: '4px 0 8px' }}>
+          <button className="inv-edit-params-btn" onClick={startEditParams}>
+            <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Редактировать параметры
+          </button>
+        </div>
+      )}
+
+      {isEditingParams && paramForm && (
+        <div className="inv-add-form" style={{ margin: '0 0 12px' }}>
+          <div className="inv-add-form-title">Редактировать параметры</div>
+          <div className="inv-add-form-grid">
+            <div className="inv-add-form-field" style={{ gridColumn: '1/-1' }}>
+              <div className="inv-add-form-lbl">Название</div>
+              <input className="inv-add-form-input" value={paramForm.name}
+                onChange={e => setPF('name')(e.target.value)} placeholder="Название" />
+            </div>
+            <div className="inv-add-form-field">
+              <div className="inv-add-form-lbl">Цена, руб.</div>
+              <input className="inv-add-form-input" type="number" value={paramForm.price}
+                onChange={e => setPF('price')(e.target.value)} placeholder="0" />
+            </div>
+
+            {item.type === 'consumable' ? (
+              <>
+                <div className="inv-add-form-field">
+                  <div className="inv-add-form-lbl">Объём / масса</div>
+                  <input className="inv-add-form-input" type="number" value={paramForm.qty}
+                    onChange={e => setPF('qty')(e.target.value)} placeholder="500" />
+                </div>
+                <div className="inv-add-form-field">
+                  <div className="inv-add-form-lbl">Единица</div>
+                  <select className="inv-add-form-select" value={paramForm.unit} onChange={e => setPF('unit')(e.target.value)}>
+                    <option value="г">г</option>
+                    <option value="мл">мл</option>
+                    <option value="шт">шт</option>
+                    <option value="кап">кап</option>
+                    <option value="рул">рул</option>
+                  </select>
+                </div>
+                <div className="inv-add-form-field">
+                  <div className="inv-add-form-lbl">Расход в день</div>
+                  <input className="inv-add-form-input" type="number" value={paramForm.dailyUse}
+                    onChange={e => setPF('dailyUse')(e.target.value)} placeholder="10" step="0.1" />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="inv-add-form-field">
+                  <div className="inv-add-form-lbl">Срок службы, нед.</div>
+                  <input className="inv-add-form-input" type="number" value={paramForm.wearLifeWeeks}
+                    onChange={e => setPF('wearLifeWeeks')(e.target.value)} placeholder="52" />
+                </div>
+                {!Array.isArray(item.purchases) && (
+                  <div className="inv-add-form-field">
+                    <div className="inv-add-form-lbl">Дата покупки</div>
+                    <input className="inv-add-form-input" type="date" value={paramForm.purchaseDate || ''}
+                      onChange={e => setPF('purchaseDate')(e.target.value)} max={new Date().toISOString().slice(0, 10)} />
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+          <div className="inv-add-form-actions">
+            <button className="inv-add-cancel" onClick={cancelEditParams}>Отмена</button>
+            <button className="inv-add-submit" onClick={saveParams}
+              disabled={!paramForm.name.trim() || !paramForm.price}>Сохранить</button>
+          </div>
+        </div>
+      )}
+
+      {/* Notes section */}
+      {!editMode && !localNoteEdit && !notes.text && !(notes.photos && notes.photos.length > 0) ? (
+        <div className="inv-notes-placeholder" onClick={() => setLocalNoteEdit(true)}>
+          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          </svg>
+          Добавить заметку...
+        </div>
+      ) : (
+        <div className="inv-notes-section">
+          <div className="inv-notes-label">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+            </svg>
+            Заметки
+            {!editMode && !localNoteEdit && (
+              <button className="inv-notes-edit-btn" onClick={e => { e.stopPropagation(); setLocalNoteEdit(true); setPhotoDeleteMode(false) }}>
+                <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Редактировать
+              </button>
+            )}
+            {localNoteEdit && !editMode && (
+              <button className="inv-notes-done-btn" onClick={e => { e.stopPropagation(); setLocalNoteEdit(false); setPhotoDeleteMode(false) }}>
+                <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6L9 17l-5-5"/>
+                </svg>
+                Готово
+              </button>
+            )}
+          </div>
+          {(editMode || localNoteEdit) ? (
+            <>
+              <textarea
+                className="inv-notes-textarea"
+                placeholder="Добавьте заметку..."
+                value={notes.text || ''}
+                onChange={e => onNotesChange({ ...notes, text: e.target.value })}
+              />
+              <div className="inv-notes-photo-actions">
+                <button className="inv-notes-add-photo-btn" onClick={e => { e.stopPropagation(); notePhotoInputRef.current?.click() }}>
+                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                  Добавить фото
+                </button>
+                {(notes.photos || []).length > 0 && (
+                  <button
+                    className={`inv-notes-delete-photo-btn${photoDeleteMode ? ' active' : ''}`}
+                    onClick={e => { e.stopPropagation(); setPhotoDeleteMode(m => !m) }}
+                  >
+                    {photoDeleteMode ? (
+                      <>
+                        <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                        Готово
+                      </>
+                    ) : (
+                      <>
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                          <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+                        </svg>
+                        Удалить фото
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+              {(notes.photos || []).length > 0 && (
+                <div className="inv-notes-photo-row">
+                  {(notes.photos || []).map((p, i) => (
+                    <div key={i} className="inv-notes-thumb-wrap" onClick={e => !photoDeleteMode && openLightbox(i, e)}>
+                      <img src={p.url} alt={p.name} className="inv-notes-thumb" style={{ opacity: photoDeleteMode ? 0.6 : 1 }} />
+                      {photoDeleteMode && (
+                        <button className="inv-notes-thumb-remove" onClick={e => { e.stopPropagation(); onNotesChange({ ...notes, photos: notes.photos.filter((_, j) => j !== i) }) }}>
+                          <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
-              {status === 'urgent' && item.type === 'wear' && !monthlyBlock && (
-                <div className="inv-deficit-inline">
-                  требует замены · ~{(item.price || 0).toLocaleString('ru')}&thinsp;₽
+              <input ref={notePhotoInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handlePhotoAdd} />
+            </>
+          ) : (
+            <>
+              {notes.text && <div className="inv-notes-text">{notes.text}</div>}
+              {notes.photos && notes.photos.length > 0 && (
+                <div className="inv-notes-photo-row">
+                  {notes.photos.map((p, i) => (
+                    <div key={i} className="inv-notes-thumb-wrap" onClick={e => openLightbox(i, e)}>
+                      <img src={p.url} alt={p.name} className="inv-notes-thumb" />
+                    </div>
+                  ))}
                 </div>
               )}
             </>
           )}
         </div>
-        {editMode && (
-          <button className="inv-item-delete" onClick={e => { e.stopPropagation(); onDelete() }} title="Удалить">
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"
-              strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        )}
-        <svg className="inv-chevron" width="14" height="14" fill="none" stroke="currentColor"
-          viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-          style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.22s' }}>
-          <path d="M19 9l-7 7-7-7" />
+      )}
+
+      {/* Set row */}
+      <div className="inv-set-row">
+        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          strokeWidth="2" style={{ opacity: 0.4, flexShrink: 0 }}>
+          <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
         </svg>
-      </div>
-
-      <div className={`inv-expanded${open ? ' open' : ''}`}>
-        {/* Monthly block */}
-        {open && monthlyBlock && (
-          <div className="inv-monthly">
-            <div className="inv-monthly-header">
-              {monthlyBlock.type === 'overexploit' ? 'Переэксплуатация' : 'Этот месяц'}
-            </div>
-            {monthlyBlock.type === 'deficit' && (
-              <div className="inv-monthly-body deficit">
-                <span className="inv-monthly-val deficit">{monthlyBlock.deficitRub.toLocaleString('ru')}&thinsp;руб.</span>
-                <span className="inv-monthly-sub">нужно пополнить на <strong>{monthlyBlock.deficitAmt}</strong></span>
-              </div>
+        {hasSet ? (
+          <>
+            <span style={{ color: 'var(--text-3)' }}>Набор:</span>
+            <Link to={`/set/${item.setId}`} state={{ fromProfile: true }} className="inv-set-link">
+              {item.set}
+              <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7 17L17 7M17 7H7M17 7v10" />
+              </svg>
+            </Link>
+            {editMode && (
+              <button className="inv-unlink-btn" onClick={onUnlink}>
+                Отвязать
+              </button>
             )}
-            {monthlyBlock.type === 'surplus' && (
-              <div className="inv-monthly-body surplus">
-                <span className="inv-monthly-val surplus">{monthlyBlock.surplusRub.toLocaleString('ru')}&thinsp;руб.</span>
-                <span className="inv-monthly-sub">хватит ещё на <strong>+{monthlyBlock.surplusDays}&thinsp;дн.</strong> после конца месяца</span>
-              </div>
-            )}
-            {monthlyBlock.type === 'overexploit' && (
-              <div className="inv-monthly-body overexploit">
-                <span className="inv-monthly-val overexploit">+{monthlyBlock.bonusIncome.toLocaleString('ru')}&thinsp;руб.</span>
-                <span className="inv-monthly-sub">бонусный доход за <strong>{monthlyBlock.weeksOver}&thinsp;нед. сверх нормы</strong></span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Body: details + stepper/date */}
-        {open && (
-          <div className="inv-body">
-            <div className="inv-detail-row">{details}</div>
-            {!Array.isArray(item.purchases) && <div className="inv-stepper-wrap">
-              {item.type === 'consumable' ? (
-                <>
-                  <div className="inv-field-lbl">Текущий остаток ({unit})</div>
-                  <div className="inv-stepper">
-                    <button className="stepper-btn"
-                      onMouseDown={() => startStep(-1)} onMouseUp={stopStep}
-                      onMouseLeave={stopStep} onTouchStart={() => startStep(-1)} onTouchEnd={stopStep}>−</button>
-                    <input
-                      className="stepper-val" type="number" value={stepperVal}
-                      onChange={e => onOverrideChange(Math.max(0, parseInt(e.target.value) || 0))}
-                      onBlur={() => onStepStop?.()}
-                    />
-                    <span className="stepper-unit">{unit}</span>
-                    <button className="stepper-btn"
-                      onMouseDown={() => startStep(1)} onMouseUp={stopStep}
-                      onMouseLeave={stopStep} onTouchStart={() => startStep(1)} onTouchEnd={stopStep}>+</button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="inv-field-lbl">Дата покупки</div>
-                  <input
-                    className="inv-date-input" type="date"
-                    value={typeof stepperVal === 'string' ? stepperVal : item.purchaseDate}
-                    max={new Date().toISOString().slice(0, 10)}
-                    onChange={e => onOverrideChange(e.target.value)}
-                    onBlur={() => onStepStop?.()}
-                  />
-                </>
-              )}
-            </div>}
-          </div>
-        )}
-
-        {/* Multi-purchase list for wear items */}
-        {open && Array.isArray(item.purchases) && (() => {
-          const today = new Date().toISOString().slice(0, 10)
-          const needsReplace = (p) => p.bought && p.purchaseDate &&
-            Math.floor(daysSince(p.purchaseDate) / 7) >= item.wearLifeWeeks
-          const weeksLeftFor = (p) => p.bought && p.purchaseDate
-            ? Math.max(0, item.wearLifeWeeks - Math.floor(daysSince(p.purchaseDate) / 7))
-            : null
-
-          function handlePurchaseToggle(i, checked) {
-            const next = item.purchases.map((p, idx) => idx !== i ? p : {
-              ...p, bought: checked, purchaseDate: checked ? (p.purchaseDate || today) : null
-            })
-            onUpdateItem({ ...item, purchases: next })
-          }
-          function handlePurchaseDate(i, date) {
-            const next = item.purchases.map((p, idx) => idx !== i ? p : { ...p, purchaseDate: date })
-            onUpdateItem({ ...item, purchases: next })
-          }
-
-          return (
-            <div className="inv-purchases-wrap" onClick={e => e.stopPropagation()}>
-              <div className="inv-purchases-label">
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-                Даты покупок ({item.purchases.filter(p=>p.bought).length} / {item.purchases.length} куплено)
-              </div>
-              <div className="inv-purchases-list">
-                {item.purchases.map((p, i) => {
-                  const wl = weeksLeftFor(p)
-                  const expired = needsReplace(p)
-                  return (
-                    <div key={i} className={`inv-purchase-row${expired ? ' expired' : (p.bought && wl !== null && wl <= Math.ceil(item.wearLifeWeeks * 0.1) ? ' soon' : '')}`}>
-                      <span className="inv-purchase-num">{i + 1}</span>
-                      <label className="inv-purchase-check" onClick={e => e.stopPropagation()}>
-                        <input type="checkbox" checked={!!p.bought}
-                          onChange={e => handlePurchaseToggle(i, e.target.checked)} />
-                        <span>{p.bought ? 'Куплено' : 'Не куплено'}</span>
-                      </label>
-                      <input
-                        type="date"
-                        className={`inv-purchase-date${!p.bought ? ' disabled' : ''}`}
-                        disabled={!p.bought}
-                        value={p.purchaseDate || ''}
-                        max={today}
-                        onChange={e => handlePurchaseDate(i, e.target.value)}
-                        onClick={e => e.stopPropagation()}
-                      />
-                      {p.bought && wl !== null && (
-                        <span className={`inv-purchase-hint${expired ? ' expired' : ''}`}>
-                          {expired ? `+${Math.abs(wl)} нед` : `${wl} нед`}
-                        </span>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )
-        })()}
-
-        {/* Inline param edit form for non-set items */}
-        {open && editMode && !hasSet && !isEditingParams && (
-          <div style={{ padding: '0 16px 8px' }}>
-            <button className="inv-edit-params-btn" onClick={startEditParams}>
-              <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"
+          </>
+        ) : (
+          <>
+            <span className="inv-personal-badge">Личное</span>
+            <button className="inv-link-btn" onClick={onLinkSet}>
+              <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"
                 strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
               </svg>
-              Редактировать параметры
+              Привязать к набору
             </button>
-          </div>
-        )}
-
-        {open && isEditingParams && paramForm && (
-          <div className="inv-add-form" style={{ margin: '0 16px 12px' }} onClick={e => e.stopPropagation()}>
-            <div className="inv-add-form-title">Редактировать параметры</div>
-            <div className="inv-add-form-grid">
-              <div className="inv-add-form-field" style={{ gridColumn: '1/-1' }}>
-                <div className="inv-add-form-lbl">Название</div>
-                <input className="inv-add-form-input" value={paramForm.name}
-                  onChange={e => setPF('name')(e.target.value)} placeholder="Название" />
-              </div>
-              <div className="inv-add-form-field">
-                <div className="inv-add-form-lbl">Цена, руб.</div>
-                <input className="inv-add-form-input" type="number" value={paramForm.price}
-                  onChange={e => setPF('price')(e.target.value)} placeholder="0" />
-              </div>
-
-              {item.type === 'consumable' ? (
-                <>
-                  <div className="inv-add-form-field">
-                    <div className="inv-add-form-lbl">Объём / масса</div>
-                    <input className="inv-add-form-input" type="number" value={paramForm.qty}
-                      onChange={e => setPF('qty')(e.target.value)} placeholder="500" />
-                  </div>
-                  <div className="inv-add-form-field">
-                    <div className="inv-add-form-lbl">Единица</div>
-                    <select className="inv-add-form-select" value={paramForm.unit} onChange={e => setPF('unit')(e.target.value)}>
-                      <option value="г">г</option>
-                      <option value="мл">мл</option>
-                      <option value="шт">шт</option>
-                      <option value="кап">кап</option>
-                      <option value="рул">рул</option>
-                    </select>
-                  </div>
-                  <div className="inv-add-form-field">
-                    <div className="inv-add-form-lbl">Расход в день</div>
-                    <input className="inv-add-form-input" type="number" value={paramForm.dailyUse}
-                      onChange={e => setPF('dailyUse')(e.target.value)} placeholder="10" step="0.1" />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="inv-add-form-field">
-                    <div className="inv-add-form-lbl">Срок службы, нед.</div>
-                    <input className="inv-add-form-input" type="number" value={paramForm.wearLifeWeeks}
-                      onChange={e => setPF('wearLifeWeeks')(e.target.value)} placeholder="52" />
-                  </div>
-                  {!Array.isArray(item.purchases) && (
-                    <div className="inv-add-form-field">
-                      <div className="inv-add-form-lbl">Дата покупки</div>
-                      <input className="inv-add-form-input" type="date" value={paramForm.purchaseDate || ''}
-                        onChange={e => setPF('purchaseDate')(e.target.value)} max={new Date().toISOString().slice(0, 10)} />
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-            <div className="inv-add-form-actions">
-              <button className="inv-add-cancel" onClick={cancelEditParams}>Отмена</button>
-              <button className="inv-add-submit" onClick={saveParams}
-                disabled={!paramForm.name.trim() || !paramForm.price}>Сохранить</button>
-            </div>
-          </div>
-        )}
-
-        {/* Notes section */}
-        {open && !editMode && !localNoteEdit && !notes.text && !(notes.photos && notes.photos.length > 0) && (
-          <div className="inv-notes-placeholder" onClick={e => { e.stopPropagation(); setLocalNoteEdit(true) }}>
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
-            </svg>
-            Добавить заметку...
-          </div>
-        )}
-        {open && (editMode || localNoteEdit || notes.text || (notes.photos && notes.photos.length > 0)) && (
-          <div className="inv-notes-section">
-            <div className="inv-notes-label">
-              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
-              </svg>
-              Заметки
-              {/* Кнопка редактировать прямо в заголовке заметок */}
-              {!editMode && !localNoteEdit && (
-                <button className="inv-notes-edit-btn" onClick={e => { e.stopPropagation(); setLocalNoteEdit(true); setPhotoDeleteMode(false) }}>
-                  <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
-                  Редактировать
-                </button>
-              )}
-              {localNoteEdit && !editMode && (
-                <button className="inv-notes-done-btn" onClick={e => { e.stopPropagation(); setLocalNoteEdit(false); setPhotoDeleteMode(false) }}>
-                  <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 6L9 17l-5-5"/>
-                  </svg>
-                  Готово
-                </button>
-              )}
-            </div>
-            {(editMode || localNoteEdit) ? (
-              <>
-                <textarea
-                  className="inv-notes-textarea"
-                  placeholder="Добавьте заметку..."
-                  value={notes.text || ''}
-                  onChange={e => onNotesChange({ ...notes, text: e.target.value })}
-                />
-                <div className="inv-notes-photo-actions">
-                  <button className="inv-notes-add-photo-btn" onClick={e => { e.stopPropagation(); notePhotoInputRef.current?.click() }}>
-                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
-                    </svg>
-                    Добавить фото
-                  </button>
-                  {(notes.photos || []).length > 0 && (
-                    <button
-                      className={`inv-notes-delete-photo-btn${photoDeleteMode ? ' active' : ''}`}
-                      onClick={e => { e.stopPropagation(); setPhotoDeleteMode(m => !m) }}
-                    >
-                      {photoDeleteMode ? (
-                        <>
-                          <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
-                          Готово
-                        </>
-                      ) : (
-                        <>
-                          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-                            <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
-                          </svg>
-                          Удалить фото
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
-                {(notes.photos || []).length > 0 && (
-                  <div className="inv-notes-photo-row">
-                    {(notes.photos || []).map((p, i) => (
-                      <div key={i} className="inv-notes-thumb-wrap" onClick={e => !photoDeleteMode && openLightbox(i, e)}>
-                        <img src={p.url} alt={p.name} className="inv-notes-thumb" style={{ opacity: photoDeleteMode ? 0.6 : 1 }} />
-                        {photoDeleteMode && (
-                          <button className="inv-notes-thumb-remove" onClick={e => { e.stopPropagation(); onNotesChange({ ...notes, photos: notes.photos.filter((_, j) => j !== i) }) }}>
-                            <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <input ref={notePhotoInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handlePhotoAdd} />
-              </>
-            ) : (
-              <>
-                {notes.text && <div className="inv-notes-text">{notes.text}</div>}
-                {notes.photos && notes.photos.length > 0 && (
-                  <div className="inv-notes-photo-row">
-                    {notes.photos.map((p, i) => (
-                      <div key={i} className="inv-notes-thumb-wrap" onClick={e => openLightbox(i, e)}>
-                        <img src={p.url} alt={p.name} className="inv-notes-thumb" />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Set row — bottom */}
-        {open && (
-          <div className="inv-set-row">
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              strokeWidth="2" style={{ opacity: 0.4, flexShrink: 0 }}>
-              <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-            {hasSet ? (
-              <>
-                <span style={{ color: 'var(--text-3)' }}>Набор:</span>
-                <Link to={`/set/${item.setId}`} state={{ fromProfile: true }} className="inv-set-link" onClick={e => e.stopPropagation()}>
-                  {item.set}
-                  <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M7 17L17 7M17 7H7M17 7v10" />
-                  </svg>
-                </Link>
-                {editMode && (
-                  <button className="inv-unlink-btn" onClick={e => { e.stopPropagation(); onUnlink() }}>
-                    Отвязать
-                  </button>
-                )}
-              </>
-            ) : (
-              <>
-                <span className="inv-personal-badge">Личное</span>
-                <button className="inv-link-btn" onClick={e => { e.stopPropagation(); onLinkSet() }}>
-                  <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"
-                    strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
-                    <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
-                  </svg>
-                  Привязать к набору
-                </button>
-              </>
-            )}
-          </div>
+          </>
         )}
       </div>
+
+      {/* Edit mode delete button */}
+      {editMode && (
+        <div style={{ padding: '4px 0 8px' }}>
+          <button className="inv-item-delete-full" onClick={onDelete}>
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+              <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+            </svg>
+            Удалить позицию
+          </button>
+        </div>
+      )}
 
       {/* Lightbox */}
       {lightboxIdx !== null && lbTotal > 0 && (
@@ -829,10 +955,11 @@ function InventoryItem({ item, open, onToggle, override, onOverrideChange, onSte
   )
 }
 
-function ShoppingList({ items, infoMap, groups, overrides, categoryFilter, setFilter, onClose }) {
-  const [period, setPeriod] = useState('month') // 'week' | 'month'
+// ── SHOPPING LIST ──────────────────────────────────────────────────────────────
 
-  // Для месяца — только срочные; для недели — все не на паузе (могут иметь дефицит на неделю даже при статусе 'soon')
+function ShoppingList({ items, infoMap, groups, overrides, categoryFilter, setFilter, onClose }) {
+  const [period, setPeriod] = useState('month')
+
   const baseItems = items.filter(i => {
     if (i.paused) return false
     if (categoryFilter && i.groupId !== categoryFilter) return false
@@ -840,12 +967,11 @@ function ShoppingList({ items, infoMap, groups, overrides, categoryFilter, setFi
       if (setFilter === '__personal__' ? i.set : i.set !== setFilter) return false
     }
     if (period === 'month') return infoMap[i.id]?.filterStatus === 'urgent'
-    return true // week — все позиции, потом отфильтруем у которых дефицита нет
+    return true
   })
 
   function getAction(item) {
     if (item.type === 'wear') {
-      // Для вещей показываем только срочные
       if (infoMap[item.id]?.filterStatus !== 'urgent') return null
       return { qty: '1 шт', cost: item.price || 0 }
     }
@@ -912,6 +1038,8 @@ function ShoppingList({ items, infoMap, groups, overrides, categoryFilter, setFi
     </div>
   )
 }
+
+// ── ADD ITEM FORM ──────────────────────────────────────────────────────────────
 
 function AddItemForm({ groupId, groupSetCategories, groupPersonalSets, onAdd, onCancel }) {
   const today = new Date().toISOString().slice(0, 10)
@@ -1019,7 +1147,7 @@ function AddItemForm({ groupId, groupSetCategories, groupPersonalSets, onAdd, on
   )
 }
 
-// ── PAGE ──────────────────────────────────────────────────────────────────────
+// ── PERSISTENCE ────────────────────────────────────────────────────────────────
 
 function loadExtraItems() {
   try { return JSON.parse(localStorage.getItem('ss_inventory_extra') || '[]') } catch { return [] }
@@ -1031,27 +1159,26 @@ function syncExtra(nextItems) {
   } catch {}
 }
 
+// ── PAGE ──────────────────────────────────────────────────────────────────────
+
 export default function Inventory() {
-  // Mutable flat items state (mock + localStorage extras)
   const [items, setItems] = useState(() => {
     const base = inventoryGroups.flatMap(g => g.items.map(item => ({ ...item, groupId: g.id })))
     const extra = loadExtraItems().map(i => ({ ...i, isExtra: true }))
     return [...base, ...extra]
   })
   const [personalSets] = useState(() => loadPersonalSets())
-  const [openItems, setOpenItems] = useState(new Set())
-  const [galleryGroups, setGalleryGroups] = useState(new Set())
-  const [globalGallery, setGlobalGallery] = useState(false)
-  const [galleryLightbox, setGalleryLightbox] = useState(null) // { photos: [{url,name,itemName}], index }
+  const [selectedItemId, setSelectedItemId] = useState(null)
   const [statusFilter, setStatusFilter] = useState(null)
-  const [categoryFilter, setCategoryFilter] = useState(null)  // group.id
-  const [setFilter, setSetFilter] = useState(null)             // set name string
+  const [categoryFilter, setCategoryFilter] = useState(null)
+  const [setFilter, setSetFilter] = useState(null)
   const [editMode, setEditMode] = useState(false)
   const [showSpotlight, setShowSpotlight] = useState(false)
-  const [deleteConfirm, setDeleteConfirm] = useState(null)   // {id, name, set}
-  const [unlinkConfirm, setUnlinkConfirm] = useState(null)   // {id, name, set}
-  const [linkToSetItem, setLinkToSetItem] = useState(null)   // item id
-  const [addFormGroup, setAddFormGroup] = useState(null)     // group id
+  const [deleteConfirm, setDeleteConfirm] = useState(null)
+  const [unlinkConfirm, setUnlinkConfirm] = useState(null)
+  const [linkToSetItem, setLinkToSetItem] = useState(null)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [addFormGroupId, setAddFormGroupId] = useState(null)
   const nextIdRef = useRef(1000)
 
   const [overrides, setOverrides] = useState(() => {
@@ -1063,14 +1190,12 @@ export default function Inventory() {
         map[item.id] = item.purchaseDate
       }
     }))
-    // Init overrides for extra items too
     loadExtraItems().forEach(item => {
       map[item.id] = item.type === 'consumable' ? 0 : item.purchaseDate
     })
     return map
   })
 
-  // filterOverrides — debounced copy of overrides used only for filter membership checks
   const [filterOverrides, setFilterOverrides] = useState(() => {
     const map = {}
     inventoryGroups.forEach(g => g.items.forEach(item => {
@@ -1085,15 +1210,13 @@ export default function Inventory() {
     })
     return map
   })
-  const overridesRef     = useRef(overrides)
-  overridesRef.current   = overrides
+  const overridesRef = useRef(overrides)
+  overridesRef.current = overrides
   const filterDebounceRef = useRef(null)
 
-  // Compute info for all items
   const infoMap = {}
   items.forEach(item => { infoMap[item.id] = getItemInfo(item, overrides[item.id] ?? null) })
 
-  // filterInfoMap — uses debounced overrides, controls filter membership only
   const filterInfoMap = {}
   items.forEach(item => { filterInfoMap[item.id] = getItemInfo(item, filterOverrides[item.id] ?? null) })
 
@@ -1101,7 +1224,8 @@ export default function Inventory() {
   const soonItems   = items.filter(i => !i.paused && infoMap[i.id].filterStatus === 'soon')
   const okItems     = items.filter(i => !i.paused && infoMap[i.id].filterStatus === 'ok')
   const pausedItems = items.filter(i => i.paused)
-  const urgentCost  = urgentItems.reduce((s, i) => {
+
+  const urgentCost = urgentItems.reduce((s, i) => {
     if (i.type === 'consumable') {
       const mb = infoMap[i.id].monthlyBlock
       return s + (mb?.type === 'deficit' ? mb.deficitRub : 0)
@@ -1116,7 +1240,6 @@ export default function Inventory() {
   }, 0)
   const wearVal = items.filter(i => i.type === 'wear').reduce((s, item) => {
     if (Array.isArray(item.purchases)) {
-      // Multi-purchase: sum residual only for bought items
       const boughtList = item.purchases.filter(p => p.bought && p.purchaseDate)
       if (boughtList.length === 0) return s
       const oldestDate = boughtList.map(p => p.purchaseDate).sort()[0]
@@ -1131,18 +1254,6 @@ export default function Inventory() {
   }, 0)
   const totalValue = Math.round(consumableVal + wearVal)
 
-  // Groups to show
-  const visibleGroups = editMode
-    ? ALL_GROUPS
-    : ALL_GROUPS.filter(g => {
-        if (categoryFilter && g.id !== categoryFilter) return false
-        const gi = items.filter(i => i.groupId === g.id)
-        if (!statusFilter) return gi.length > 0
-        if (statusFilter === 'paused') return gi.some(i => i.paused)
-        return gi.some(i => !i.paused && filterInfoMap[i.id]?.filterStatus === statusFilter)
-      })
-
-  // Sets available for selected category
   const setsInCategory = categoryFilter
     ? [
         ...new Set(items.filter(i => i.groupId === categoryFilter && i.set).map(i => i.set)),
@@ -1150,37 +1261,29 @@ export default function Inventory() {
       ]
     : []
 
-  // Collapsed groups — по умолчанию свёрнуты группы без urgent/soon
-  const [collapsedGroups, setCollapsedGroups] = useState(() => {
-    const set = new Set()
-    ALL_GROUPS.forEach(g => {
-      const gi = items.filter(i => i.groupId === g.id)
-      const hasAttention = gi.some(i => {
-        const info = getItemInfo(i, i.type === 'consumable'
-          ? Math.max(0, Math.round(i.qty - daysSince(i.lastBought) * i.dailyUse))
-          : i.purchaseDate)
-        return info.status !== 'ok'
-      })
-      if (!hasAttention) set.add(g.id)
-    })
-    return set
-  })
-
-  function toggleGroupCollapse(groupId) {
-    setCollapsedGroups(prev => {
-      const next = new Set(prev)
-      if (next.has(groupId)) {
-        next.delete(groupId)
-        // при разворачивании восстанавливаем галерею если глобальный режим активен
-        if (globalGallery) setGalleryGroups(g => { const gs = new Set(g); gs.add(groupId); return gs })
-      } else {
-        next.add(groupId)
-        // автовыход из галереи при сворачивании
-        setGalleryGroups(g => { const gs = new Set(g); gs.delete(groupId); return gs })
+  // Build flat list filtered by status, category, set
+  function applyFilters(list) {
+    return list.filter(i => {
+      if (categoryFilter && i.groupId !== categoryFilter) return false
+      if (setFilter) {
+        if (setFilter === '__personal__' ? !!i.set : i.set !== setFilter) return false
       }
-      return next
+      return true
     })
   }
+
+  const STATUS_GROUPS = [
+    { key: 'urgent',     label: 'Критично',  items: applyFilters(urgentItems) },
+    { key: 'soon',       label: 'Следи',     items: applyFilters(soonItems) },
+    { key: 'ok',         label: 'Норма',     items: applyFilters(okItems) },
+    { key: 'paused',     label: 'На паузе',  items: applyFilters(pausedItems) },
+  ].filter(sg => {
+    if (statusFilter && sg.key !== statusFilter) return false
+    if (editMode) return true
+    return sg.items.length > 0
+  })
+
+  const selectedItem = selectedItemId ? items.find(i => i.id === selectedItemId) : null
 
   // Handlers
   function doDelete(id) {
@@ -1189,7 +1292,7 @@ export default function Inventory() {
       syncExtra(next)
       return next
     })
-    setOpenItems(prev => { const s = new Set(prev); s.delete(id); return s })
+    if (selectedItemId === id) setSelectedItemId(null)
     setDeleteConfirm(null)
   }
 
@@ -1254,7 +1357,8 @@ export default function Inventory() {
       syncExtra(next)
       return next
     })
-    setAddFormGroup(null)
+    setShowAddForm(false)
+    setAddFormGroupId(null)
   }
 
   function doNotesChange(id, notes) {
@@ -1269,13 +1373,11 @@ export default function Inventory() {
     setItems(prev => {
       const next = prev.map(i => {
         if (i.id !== id) return i
-        // Direct item update (purchases list, inline changes)
         if (form.purchases !== undefined) {
           const updated = { ...i, ...form }
           if (updated.isExtra) syncExtra([...prev.filter(x => x.id !== id), updated])
           return updated
         }
-        // Param form update
         const updated = { ...i, name: form.name?.trim() || i.name, price: Number(form.price) || 0 }
         if (i.type === 'consumable') {
           return { ...updated, qty: Number(form.qty) || 100, dailyUse: Number(form.dailyUse) || 1, unit: form.unit || 'г' }
@@ -1298,20 +1400,13 @@ export default function Inventory() {
 
   function toggleEditMode() {
     setEditMode(m => !m)
-    if (editMode) setAddFormGroup(null)
-  }
-
-  function toggleGlobalGallery() {
-    if (globalGallery) {
-      setGlobalGallery(false)
-      setGalleryGroups(new Set())
-    } else {
-      setGlobalGallery(true)
-      setGalleryGroups(new Set(visibleGroups.map(g => g.id)))
-      // разворачиваем все свёрнутые группы
-      setCollapsedGroups(new Set())
+    if (editMode) {
+      setShowAddForm(false)
+      setAddFormGroupId(null)
     }
   }
+
+  const addFormGroup = addFormGroupId ? ALL_GROUPS.find(g => g.id === addFormGroupId) : null
 
   return (
     <Layout>
@@ -1319,20 +1414,13 @@ export default function Inventory() {
         {/* Header */}
         <div className="inv-page-header">
           <div>
-            <div className="page-title" style={{display:'flex',alignItems:'center',gap:10}}>
+            <div className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               Инвентарь
               <HelpButton seenKey="ss_spl_inv" onOpen={() => setShowSpotlight(true)} />
             </div>
             <div className="page-subtitle">{items.length} позиций</div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className={`btn-gallery-mode${globalGallery ? ' active' : ''}`} onClick={toggleGlobalGallery}>
-              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-                <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-              </svg>
-              Галерея
-            </button>
             <button id="sp-inv-edit" className={`btn-edit-mode${editMode ? ' active' : ''}`} onClick={toggleEditMode}>
               {editMode ? (
                 <>
@@ -1436,328 +1524,190 @@ export default function Inventory() {
           )}
         </div>
 
-        {/* Shopping list — показывается при фильтре срочно */}
+        {/* Shopping list */}
         {statusFilter === 'urgent' && (
           <ShoppingList items={items} infoMap={infoMap} groups={ALL_GROUPS} overrides={overrides} categoryFilter={categoryFilter} setFilter={setFilter} onClose={() => setStatusFilter(null)} />
         )}
 
-        {/* Global gallery exit bar */}
-        {globalGallery && (
-          <div className="inv-gallery-exit-bar">
-            <span className="inv-gallery-exit-label">
-              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-                <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-              </svg>
-              Режим галереи
-            </span>
-            <button className="inv-gallery-exit-btn" onClick={toggleGlobalGallery}>
-              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-              Выйти из галереи
-            </button>
+        {/* Add form in edit mode */}
+        {editMode && (
+          <div className="inv-add-section">
+            {!showAddForm ? (
+              <button className="inv-add-toggle" onClick={() => setShowAddForm(true)}>
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Добавить позицию
+              </button>
+            ) : (
+              <div className="inv-add-inline">
+                {!addFormGroupId ? (
+                  <div className="inv-add-group-chooser">
+                    <div className="inv-add-group-chooser-title">Выберите категорию</div>
+                    <div className="inv-add-group-list">
+                      {ALL_GROUPS.map(g => (
+                        <button key={g.id} className="inv-add-group-btn" onClick={() => setAddFormGroupId(g.id)}>
+                          <span className="inv-add-group-dot" style={{ background: g.color }} />
+                          {g.name}
+                          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 'auto', color: 'var(--text-3)' }}>
+                            <path d="M9 18l6-6-6-6" />
+                          </svg>
+                        </button>
+                      ))}
+                    </div>
+                    <button className="inv-add-cancel" onClick={() => { setShowAddForm(false); setAddFormGroupId(null) }}>Отмена</button>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="inv-add-group-back">
+                      <button className="inv-add-group-back-btn" onClick={() => setAddFormGroupId(null)}>
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M15 18l-6-6 6-6" />
+                        </svg>
+                        Категория: {addFormGroup?.name}
+                      </button>
+                    </div>
+                    <AddItemForm
+                      groupId={addFormGroupId}
+                      groupSetCategories={addFormGroup?.setCategories}
+                      groupPersonalSets={personalSets}
+                      onAdd={doAddItem}
+                      onCancel={() => { setShowAddForm(false); setAddFormGroupId(null) }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
-        {/* Groups */}
-        <div id="sp-inv-groups" className="inv-groups">
-          {visibleGroups.map(group => {
-            const groupItems = items.filter(i => i.groupId === group.id && (!setFilter || (setFilter === '__personal__' ? !i.set : i.set === setFilter)))
-            const displayItems = statusFilter
-              ? statusFilter === 'paused'
-                ? groupItems.filter(i => i.paused)
-                : groupItems.filter(i => !i.paused && filterInfoMap[i.id]?.filterStatus === statusFilter)
-              : groupItems
-            const urgentCount = displayItems.filter(i => filterInfoMap[i.id]?.filterStatus === 'urgent').length
-            const soonCount = displayItems.filter(i => filterInfoMap[i.id]?.filterStatus === 'soon').length
-            const isCollapsed = !editMode && collapsedGroups.has(group.id) && !statusFilter
-            const groupOpenIds = displayItems.map(i => i.id)
-            const anyOpen = groupOpenIds.some(id => openItems.has(id))
-            const isGallery = galleryGroups.has(group.id)
-            const photoItems = displayItems.filter(i => (i.notes?.photos?.length || 0) > 0)
-
-            function toggleAllInGroup(e) {
-              e.stopPropagation()
-              setOpenItems(prev => {
-                const s = new Set(prev)
-                if (anyOpen) groupOpenIds.forEach(id => s.delete(id))
-                else groupOpenIds.forEach(id => s.add(id))
-                return s
-              })
-            }
-
-
-            return (
-              <div key={group.id} className="inv-section-card">
-                <div className="inv-cat-header" style={{ cursor: 'pointer' }} onClick={() => toggleGroupCollapse(group.id)}>
-                  <div className="inv-cat-name">{group.name}</div>
-                  {urgentCount > 0 && <span className="inv-cat-urgent">{urgentCount} срочно</span>}
-                  {urgentCount === 0 && soonCount > 0 && <span className="inv-cat-soon">{soonCount} скоро</span>}
-                  <span className="inv-cat-count">{groupItems.length} поз.</span>
-                  {!isCollapsed && !isGallery && displayItems.length > 1 && (
-                    <button className="inv-expand-all-btn" onClick={toggleAllInGroup}>
-                      {anyOpen ? 'Свернуть все' : 'Развернуть все'}
-                    </button>
+        {/* Split layout */}
+        <div id="sp-inv-groups" className={`inv-split${selectedItem ? ' inv-split--has-panel' : ''}`}>
+          {/* Left: flat list */}
+          <div className="inv-list-col">
+            {STATUS_GROUPS.map(sg => (
+              <div key={sg.key} className="inv-status-group">
+                <div className={`inv-status-group-header inv-status-group-header--${sg.key}`}>
+                  <span className={`inv-status-group-dot inv-status-group-dot--${sg.key}`} />
+                  <span className="inv-status-group-label">{sg.label}</span>
+                  <span className="inv-status-group-count">{sg.items.length}</span>
+                </div>
+                <div className="inv-status-group-items">
+                  {sg.items.map(item => {
+                    const group = ALL_GROUPS.find(g => g.id === item.groupId)
+                    return (
+                      <ItemRow
+                        key={item.id}
+                        item={item}
+                        info={infoMap[item.id]}
+                        group={group}
+                        override={overrides[item.id] ?? null}
+                        selected={selectedItemId === item.id}
+                        editMode={editMode}
+                        onSelect={() => setSelectedItemId(id => id === item.id ? null : item.id)}
+                        onDelete={() => setDeleteConfirm({ id: item.id, name: item.name, set: item.set })}
+                      />
+                    )
+                  })}
+                  {sg.items.length === 0 && (
+                    <div className="inv-group-empty">Нет позиций с таким статусом</div>
                   )}
-                  <svg className="inv-cat-chevron" width="13" height="13" fill="none" stroke="currentColor"
-                    viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                    style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }}>
-                    <path d="M19 9l-7 7-7-7" />
+                </div>
+              </div>
+            ))}
+
+            {STATUS_GROUPS.length === 0 && !editMode && (
+              <div className="inv-empty-state">
+                <div className="inv-empty-icon">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
                   </svg>
                 </div>
+                <div className="inv-empty-title">Нет позиций с таким статусом</div>
+                <div className="inv-empty-sub">Попробуйте сбросить фильтр</div>
+                <button className="inv-empty-reset" onClick={() => setStatusFilter(null)}>Показать все</button>
+              </div>
+            )}
 
-                {!isCollapsed && isGallery && photoItems.length === 0 && (
-                  <div className="inv-gallery-empty">
-                    <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)' }}>
-                      <rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/>
-                      <path d="M21 15l-5-5L5 21"/>
-                    </svg>
-                    <span>Нет заметок с фото</span>
+            {!editMode && items.length === 0 && (
+              <div className="inv-cold-start">
+                <div className="inv-cold-icon">
+                  <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                    <rect x="8" y="6" width="26" height="32" rx="4" fill="var(--surface)" stroke="var(--border)" strokeWidth="1.5"/>
+                    <rect x="14" y="14" width="14" height="2" rx="1" fill="var(--border)"/>
+                    <rect x="14" y="19" width="10" height="2" rx="1" fill="var(--border)"/>
+                    <rect x="14" y="24" width="12" height="2" rx="1" fill="var(--border)"/>
+                    <circle cx="37" cy="37" r="9" fill="var(--bg)" stroke="var(--border)" strokeWidth="1.5"/>
+                    <path d="M37 33v4l2.5 2.5" stroke="var(--text-3)" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <div className="inv-cold-title">Инвентарь пуст</div>
+                <div className="inv-cold-desc">Добавьте готовый набор из каталога или внесите позиции вручную</div>
+                <div className="inv-cold-actions">
+                  <Link to="/catalog" className="inv-cold-btn-primary">Найти набор в каталоге</Link>
+                  <button className="inv-cold-btn-secondary" onClick={() => setEditMode(true)}>Добавить вручную</button>
+                </div>
+              </div>
+            )}
+
+            {/* Value summary */}
+            {items.length > 0 && (
+              <div className="inv-value-card">
+                <div className="inv-value-main">
+                  <div className="inv-value-lbl">стоимость инвентаря</div>
+                  <div className="inv-value-val">{totalValue.toLocaleString('ru')}&thinsp;₽</div>
+                </div>
+                <div className="inv-value-breakdown">
+                  <div className="inv-value-item">
+                    <span className="inv-value-item-val">{Math.round(consumableVal).toLocaleString('ru')}&thinsp;₽</span>
+                    <span className="inv-value-item-lbl">расходники</span>
                   </div>
-                )}
-
-                {!isCollapsed && isGallery && photoItems.length > 0 && (() => {
-                  // flat array of all photos across all items for lightbox navigation
-                  const flatPhotos = photoItems.flatMap(item => {
-                    const info = infoMap[item.id]
-                    const status = item.paused ? 'paused' : (info?.status || 'ok')
-                    const dates = Array.isArray(item.purchases)
-                      ? item.purchases.filter(p => p.bought && p.purchaseDate).map(p => p.purchaseDate)
-                      : item.purchaseDate ? [item.purchaseDate] : []
-                    const lifespanLabel = item.wearLifeWeeks
-                      ? item.wearLifeWeeks >= 52
-                        ? `${(item.wearLifeWeeks / 52).toFixed(1).replace('.0', '')} лет`
-                        : `${item.wearLifeWeeks} нед.`
-                      : null
-                    return (item.notes?.photos || []).map(p => ({
-                      ...p,
-                      itemName: item.name,
-                      setName: item.set || null,
-                      noteText: item.notes?.text || '',
-                      status,
-                      remainderText: info?.remainderText || null,
-                      price: item.price || 0,
-                      dates,
-                      lifespanLabel,
-                    }))
-                  })
-                  return (
-                    <div className="inv-gallery-grid">
-                      {photoItems.map(item => {
-                        const photos = item.notes?.photos || []
-                        const noteText = item.notes?.text || ''
-                        const info = infoMap[item.id]
-                        const status = item.paused ? 'paused' : (info?.status || 'ok')
-                        const firstIdx = flatPhotos.findIndex(p => p.itemName === item.name && p.url === photos[0]?.url)
-
-                        // Purchase dates
-                        const dates = Array.isArray(item.purchases)
-                          ? item.purchases.filter(p => p.bought && p.purchaseDate).map(p => p.purchaseDate)
-                          : item.purchaseDate ? [item.purchaseDate] : []
-
-                        // Lifespan label
-                        const lifespanLabel = item.wearLifeWeeks
-                          ? item.wearLifeWeeks >= 52
-                            ? `${(item.wearLifeWeeks / 52).toFixed(1).replace('.0', '')} лет`
-                            : `${item.wearLifeWeeks} нед.`
-                          : null
-
-                        const needsReplacement = status === 'urgent' || status === 'overexploit'
-
-                        return (
-                          <div key={item.id} className={`inv-gallery-card${needsReplacement ? ' inv-gallery-card--urgent' : ''}`}>
-                            {/* Photo column */}
-                            <div className="inv-gallery-photo-col">
-                              <div className="inv-gallery-main-photo" onClick={() => setGalleryLightbox({ photos: flatPhotos, index: firstIdx })}>
-                                <img src={photos[0].url} alt={photos[0].name} className="inv-gallery-img" />
-                                {photos.length > 1 && (
-                                  <span className="inv-gallery-photo-count">1 / {photos.length}</span>
-                                )}
-                              </div>
-                              {photos.length > 1 && (
-                                <div className="inv-gallery-thumbs">
-                                  {photos.slice(1).map((p, i) => (
-                                    <img key={i} src={p.url} alt={p.name} className="inv-gallery-thumb"
-                                      onClick={() => setGalleryLightbox({ photos: flatPhotos, index: firstIdx + i + 1 })}
-                                    />
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Info column */}
-                            <div className="inv-gallery-info-col">
-                              <div className="inv-gallery-card-name">{item.name}</div>
-                              {item.set
-                                ? <span className="inv-gallery-card-set">{item.set}</span>
-                                : <span className="inv-gallery-card-set inv-gallery-card-set--personal">Личное</span>
-                              }
-
-                              {needsReplacement && (
-                                <div className="inv-gallery-badge inv-gallery-badge--urgent">Требует замены</div>
-                              )}
-                              {status === 'soon' && (
-                                <div className="inv-gallery-badge inv-gallery-badge--soon">Скоро заменить</div>
-                              )}
-
-                              <div className="inv-gallery-meta">
-                                {dates.length > 0 && (
-                                  <div className="inv-gallery-meta-row">
-                                    <span className="inv-gallery-meta-label">
-                                      {dates.length === 1 ? 'Куплено' : 'Даты покупок'}
-                                    </span>
-                                    <span className="inv-gallery-meta-val">
-                                      {dates.map(d => {
-                                        const dt = new Date(d)
-                                        const dd = String(dt.getDate()).padStart(2, '0')
-                                        const mm = String(dt.getMonth() + 1).padStart(2, '0')
-                                        const yy = String(dt.getFullYear()).slice(-2)
-                                        return `${dd}/${mm}/${yy}`
-                                      }).join(', ')}
-                                    </span>
-                                  </div>
-                                )}
-                                {item.price > 0 && (
-                                  <div className="inv-gallery-meta-row">
-                                    <span className="inv-gallery-meta-label">Цена за шт.</span>
-                                    <span className="inv-gallery-meta-val">{item.price.toLocaleString('ru')}&thinsp;₽</span>
-                                  </div>
-                                )}
-                                {lifespanLabel && (
-                                  <div className="inv-gallery-meta-row">
-                                    <span className="inv-gallery-meta-label">Срок</span>
-                                    <span className="inv-gallery-meta-val">{lifespanLabel}</span>
-                                  </div>
-                                )}
-                                {info?.remainderText && (
-                                  <div className="inv-gallery-meta-row">
-                                    <span className="inv-gallery-meta-label">Остаток</span>
-                                    <span className={`inv-gallery-meta-val inv-gallery-meta-val--${status}`}>{info.remainderText}</span>
-                                  </div>
-                                )}
-                              </div>
-
-                              {noteText && <div className="inv-gallery-note-text">{noteText}</div>}
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )
-                })()}
-
-                {!isCollapsed && !isGallery && <div className="inv-section-items">
-                  {displayItems.map(item => (
-                    <InventoryItem
-                      key={item.id}
-                      item={item}
-                      open={openItems.has(item.id)}
-                      onToggle={() => setOpenItems(prev => { const s = new Set(prev); s.has(item.id) ? s.delete(item.id) : s.add(item.id); return s })}
-                      override={overrides[item.id] ?? null}
-                      onOverrideChange={v => {
-                        const iid = item.id
-                        setOverrides(prev => ({ ...prev, [iid]: v }))
-                        if (!statusFilter) {
-                          setFilterOverrides(prev => ({ ...prev, [iid]: v }))
-                        }
-                      }}
-                      onStepStop={() => {
-                        if (!statusFilter) return
-                        if (filterDebounceRef.current) clearTimeout(filterDebounceRef.current)
-                        filterDebounceRef.current = setTimeout(() => {
-                          setFilterOverrides({ ...overridesRef.current })
-                        }, 3000)
-                      }}
-                      editMode={editMode}
-                      onDelete={() => setDeleteConfirm({ id: item.id, name: item.name, set: item.set })}
-                      onUnlink={() => setUnlinkConfirm({ id: item.id, name: item.name, set: item.set })}
-                      onLinkSet={() => setLinkToSetItem(item.id)}
-                      onLaunch={() => doLaunch(item.id)}
-                      notes={item.notes || { text: '', photos: [] }}
-                      onNotesChange={n => doNotesChange(item.id, n)}
-                      onUpdateItem={form => doUpdateItem(item.id, form)}
-                    />
-                  ))}
-
-                  {displayItems.length === 0 && (
-                    <div className="inv-group-empty">
-                      {editMode ? 'Нет позиций — добавьте первую' : 'Нет позиций с таким статусом'}
-                    </div>
-                  )}
-                </div>}
-
-                {!isCollapsed && editMode && (
-                  addFormGroup === group.id
-                    ? <AddItemForm groupId={group.id} groupSetCategories={group.setCategories} groupPersonalSets={personalSets} onAdd={doAddItem} onCancel={() => setAddFormGroup(null)} />
-                    : (
-                      <button className="inv-add-toggle" onClick={() => {
-                        setAddFormGroup(group.id)
-                      }}>
-                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                          strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-                        </svg>
-                        Добавить позицию
-                      </button>
-                    )
-                )}
+                  <div className="inv-value-item">
+                    <span className="inv-value-item-val">{wearVal.toLocaleString('ru')}&thinsp;₽</span>
+                    <span className="inv-value-item-lbl">вещи</span>
+                  </div>
+                </div>
               </div>
-            )
-          })}
+            )}
+          </div>
 
-          {!editMode && visibleGroups.length === 0 && statusFilter && (
-            <div className="inv-empty-state">
-              <div className="inv-empty-icon">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
-                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                </svg>
-              </div>
-              <div className="inv-empty-title">Нет позиций с таким статусом</div>
-              <div className="inv-empty-sub">Попробуйте сбросить фильтр</div>
-              <button className="inv-empty-reset" onClick={() => setStatusFilter(null)}>Показать все</button>
-            </div>
-          )}
-
-          {!editMode && items.length === 0 && (
-            <div className="inv-cold-start">
-              <div className="inv-cold-icon">
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                  <rect x="8" y="6" width="26" height="32" rx="4" fill="var(--surface)" stroke="var(--border)" strokeWidth="1.5"/>
-                  <rect x="14" y="14" width="14" height="2" rx="1" fill="var(--border)"/>
-                  <rect x="14" y="19" width="10" height="2" rx="1" fill="var(--border)"/>
-                  <rect x="14" y="24" width="12" height="2" rx="1" fill="var(--border)"/>
-                  <circle cx="37" cy="37" r="9" fill="var(--bg)" stroke="var(--border)" strokeWidth="1.5"/>
-                  <path d="M37 33v4l2.5 2.5" stroke="var(--text-3)" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-              </div>
-              <div className="inv-cold-title">Инвентарь пуст</div>
-              <div className="inv-cold-desc">Добавьте готовый набор из каталога или внесите позиции вручную</div>
-              <div className="inv-cold-actions">
-                <Link to="/catalog" className="inv-cold-btn-primary">Найти набор в каталоге</Link>
-                <button className="inv-cold-btn-secondary" onClick={() => setEditMode(true)}>Добавить вручную</button>
-              </div>
+          {/* Right: detail panel */}
+          {selectedItem && (
+            <div className="inv-panel-col">
+              <ItemDetail
+                key={selectedItem.id}
+                item={selectedItem}
+                info={infoMap[selectedItem.id]}
+                override={overrides[selectedItem.id] ?? null}
+                editMode={editMode}
+                onOverrideChange={v => {
+                  const iid = selectedItem.id
+                  setOverrides(prev => ({ ...prev, [iid]: v }))
+                  if (!statusFilter) {
+                    setFilterOverrides(prev => ({ ...prev, [iid]: v }))
+                  }
+                }}
+                onStepStop={() => {
+                  if (!statusFilter) return
+                  if (filterDebounceRef.current) clearTimeout(filterDebounceRef.current)
+                  filterDebounceRef.current = setTimeout(() => {
+                    setFilterOverrides({ ...overridesRef.current })
+                  }, 3000)
+                }}
+                onDelete={() => setDeleteConfirm({ id: selectedItem.id, name: selectedItem.name, set: selectedItem.set })}
+                onUnlink={() => setUnlinkConfirm({ id: selectedItem.id, name: selectedItem.name, set: selectedItem.set })}
+                onLinkSet={() => setLinkToSetItem(selectedItem.id)}
+                onLaunch={() => doLaunch(selectedItem.id)}
+                notes={selectedItem.notes || { text: '', photos: [] }}
+                onNotesChange={n => doNotesChange(selectedItem.id, n)}
+                onUpdateItem={form => doUpdateItem(selectedItem.id, form)}
+                onClose={() => setSelectedItemId(null)}
+              />
             </div>
           )}
         </div>
-
-        {/* Value summary — bottom of page */}
-        {items.length > 0 && <div className="inv-value-card">
-          <div className="inv-value-main">
-            <div className="inv-value-lbl">стоимость инвентаря</div>
-            <div className="inv-value-val">{totalValue.toLocaleString('ru')}&thinsp;₽</div>
-          </div>
-          <div className="inv-value-breakdown">
-            <div className="inv-value-item">
-              <span className="inv-value-item-val">{Math.round(consumableVal).toLocaleString('ru')}&thinsp;₽</span>
-              <span className="inv-value-item-lbl">расходники</span>
-            </div>
-            <div className="inv-value-item">
-              <span className="inv-value-item-val">{wearVal.toLocaleString('ru')}&thinsp;₽</span>
-              <span className="inv-value-item-lbl">вещи</span>
-            </div>
-          </div>
-        </div>}
       </main>
 
       {/* Delete confirmation modal */}
@@ -1804,116 +1754,35 @@ export default function Inventory() {
           ? personalSets.filter(s => linkGroup.setCategories.includes(s.catId))
           : personalSets
         return (
-        <div className="inv-modal-overlay" onClick={() => setLinkToSetItem(null)}>
-          <div className="inv-modal" onClick={e => e.stopPropagation()}>
-            <div className="inv-modal-title">Привязать к набору</div>
-            <div className="inv-set-picker-list">
-              {pickerSets.length === 0 && (
-                <div style={{ padding: '12px 0', color: 'var(--text-3)', fontSize: 13 }}>
-                  Нет личных наборов в этой категории.<br/>Добавьте наборы в профиле.
-                </div>
-              )}
-              {pickerSets.map(s => (
-                <button key={s.id} className="inv-set-picker-item" onClick={() => doLinkSet(linkToSetItem, s)}>
-                  <div className="inv-set-picker-dot" style={{ background: '#4E8268' }} />
-                  <div className="inv-set-picker-name">{s.name}</div>
-                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)' }}>
-                    <path d="M9 18l6-6-6-6" />
-                  </svg>
-                </button>
-              ))}
-            </div>
-            <div className="inv-modal-actions" style={{ marginTop: 16 }}>
-              <button className="inv-modal-btn" onClick={() => setLinkToSetItem(null)}>Отмена</button>
-            </div>
-          </div>
-        </div>
-        )
-      })()}
-      {showSpotlight && <SpotlightTour steps={INV_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
-
-      {/* Gallery lightbox */}
-      {galleryLightbox && (() => {
-        const { photos, index } = galleryLightbox
-        const total = photos.length
-        const current = photos[index]
-        const prev = () => setGalleryLightbox(lb => ({ ...lb, index: (lb.index - 1 + total) % total }))
-        const next = () => setGalleryLightbox(lb => ({ ...lb, index: (lb.index + 1) % total }))
-        return (
-          <div className="inv-lightbox-overlay" onClick={() => setGalleryLightbox(null)}>
-            <button className="inv-lightbox-close" onClick={() => setGalleryLightbox(null)}>
-              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
-            {total > 1 && (
-              <button className="inv-lightbox-nav prev" onClick={e => { e.stopPropagation(); prev() }}>
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="15 18 9 12 15 6"/>
-                </svg>
-              </button>
-            )}
-            <div className="inv-lightbox-content" onClick={e => e.stopPropagation()}>
-              <img src={current.url} alt={current.name} className="inv-lightbox-img" />
-              <div className="inv-gallery-lb-panel">
-                <div className="inv-gallery-lb-header">
-                  <span className="inv-gallery-lb-name">{current.itemName}</span>
-                  {current.setName && <span className="inv-gallery-lb-set">{current.setName}</span>}
-                  {total > 1 && <span className="inv-lightbox-counter" style={{ marginLeft: 'auto' }}>{index + 1} / {total}</span>}
-                </div>
-                {(current.status === 'urgent' || current.status === 'overexploit') && (
-                  <div className="inv-gallery-lb-badge inv-gallery-lb-badge--urgent">Требует замены</div>
+          <div className="inv-modal-overlay" onClick={() => setLinkToSetItem(null)}>
+            <div className="inv-modal" onClick={e => e.stopPropagation()}>
+              <div className="inv-modal-title">Привязать к набору</div>
+              <div className="inv-set-picker-list">
+                {pickerSets.length === 0 && (
+                  <div style={{ padding: '12px 0', color: 'var(--text-3)', fontSize: 13 }}>
+                    Нет личных наборов в этой категории.<br/>Добавьте наборы в профиле.
+                  </div>
                 )}
-                {current.status === 'soon' && (
-                  <div className="inv-gallery-lb-badge inv-gallery-lb-badge--soon">Скоро заменить</div>
-                )}
-                <div className="inv-gallery-lb-meta">
-                  {current.dates?.length > 0 && (
-                    <div className="inv-gallery-lb-row">
-                      <span className="inv-gallery-lb-label">{current.dates.length === 1 ? 'Куплено' : 'Даты покупок'}</span>
-                      <span className="inv-gallery-lb-val">
-                        {current.dates.length === 1
-                          ? (() => { const dt = new Date(current.dates[0]); return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getFullYear()).slice(-2)}` })()
-                          : current.dates.map(d => { const dt = new Date(d); return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getFullYear()).slice(-2)}` }).join(', ')
-                        }
-                      </span>
-                    </div>
-                  )}
-                  {current.price > 0 && (
-                    <div className="inv-gallery-lb-row">
-                      <span className="inv-gallery-lb-label">Цена за шт.</span>
-                      <span className="inv-gallery-lb-val">{current.price.toLocaleString('ru')}&thinsp;₽</span>
-                    </div>
-                  )}
-                  {current.lifespanLabel && (
-                    <div className="inv-gallery-lb-row">
-                      <span className="inv-gallery-lb-label">Срок</span>
-                      <span className="inv-gallery-lb-val">{current.lifespanLabel}</span>
-                    </div>
-                  )}
-                  {current.remainderText && (
-                    <div className="inv-gallery-lb-row">
-                      <span className="inv-gallery-lb-label">Остаток</span>
-                      <span className={`inv-gallery-lb-val inv-gallery-lb-val--${current.status}`}>{current.remainderText}</span>
-                    </div>
-                  )}
-                </div>
-                {current.noteText && (
-                  <div className="inv-gallery-lb-note">{current.noteText}</div>
-                )}
+                {pickerSets.map(s => (
+                  <button key={s.id} className="inv-set-picker-item" onClick={() => doLinkSet(linkToSetItem, s)}>
+                    <div className="inv-set-picker-dot" style={{ background: '#4E8268' }} />
+                    <div className="inv-set-picker-name">{s.name}</div>
+                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)' }}>
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
+                  </button>
+                ))}
+              </div>
+              <div className="inv-modal-actions" style={{ marginTop: 16 }}>
+                <button className="inv-modal-btn" onClick={() => setLinkToSetItem(null)}>Отмена</button>
               </div>
             </div>
-            {total > 1 && (
-              <button className="inv-lightbox-nav next" onClick={e => { e.stopPropagation(); next() }}>
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6"/>
-                </svg>
-              </button>
-            )}
           </div>
         )
       })()}
+
+      {showSpotlight && <SpotlightTour steps={INV_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
     </Layout>
   )
 }
