@@ -48,8 +48,20 @@ function getItemInfo(item, override = null) {
     const daysLeft = item.dailyUse > 0 ? Math.round(remaining / item.dailyUse) : 0
     pct = Math.max(0, Math.min(100, Math.round((1 - remaining / item.qty) * 100)))
 
-    const daysHint = daysLeft > 0 ? ` (~\u00a0${daysLeft}\u00a0дн.)` : ''
     const r = (unit === 'г' || unit === 'мл') ? Math.round(remaining) : parseFloat(remaining.toFixed(1))
+    let daysHint = ''
+    if (daysLeft > 0) {
+      if (daysLeft < 7) {
+        const d = daysLeft; const f = d === 1 ? 'день' : d < 5 ? 'дня' : 'дней'
+        daysHint = ` (${d}\u00a0${f})`
+      } else if (daysLeft < 30) {
+        const w = Math.floor(daysLeft / 7); const f = w === 1 ? 'неделя' : w < 5 ? 'недели' : 'недель'
+        daysHint = ` (${w}\u00a0${f})`
+      } else {
+        const m = Math.floor(daysLeft / 30); const f = m === 1 ? 'месяц' : m < 5 ? 'месяца' : 'месяцев'
+        daysHint = ` (${m}\u00a0${f})`
+      }
+    }
     remainderText = r > 0 ? `осталось ${r}\u00a0${unit}${daysHint}` : 'закончилось'
 
     if (daysLeft <= 0) { ringNum = '0'; ringUnit = 'дн' }
@@ -557,18 +569,6 @@ function ItemDetail({ item, info, group, override, costPeriod, onCostPeriodChang
             </div>
           </div>
           <div className="ipanel-wear-rows">
-            <div className="ipanel-wear-row">
-              <span className="ipanel-wear-row-lbl">Хватит на</span>
-              <span className="ipanel-wear-row-val mono">
-                {consumableVals.daysLeft > 0
-                  ? consumableVals.daysLeft < 7
-                    ? `${consumableVals.daysLeft}\u00a0дн.`
-                    : consumableVals.daysLeft < 30
-                      ? `${Math.floor(consumableVals.daysLeft / 7)}\u00a0нед.`
-                      : `${Math.floor(consumableVals.daysLeft / 30)}\u00a0мес.`
-                  : 'закончилось'}
-              </span>
-            </div>
             <div className="ipanel-wear-row">
               <span className="ipanel-wear-row-lbl">Потребность/мес.</span>
               <span className="ipanel-wear-row-val mono">{consumableVals.monthlyQty}&thinsp;{unit}</span>
@@ -1112,6 +1112,25 @@ export default function Inventory() {
 
   const selectedItem = selectedItemId ? items.find(i => i.id === selectedItemId) : null
   const selectedGroup = selectedItem ? ALL_GROUPS.find(g => g.id === selectedItem.groupId) : null
+
+  const flatList = STATUS_GROUPS.flatMap(sg => sg.items)
+
+  useEffect(() => {
+    function handleKey(e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+      e.preventDefault()
+      if (flatList.length === 0) return
+      const idx = selectedItemId ? flatList.findIndex(i => i.id === selectedItemId) : -1
+      const next = e.key === 'ArrowDown'
+        ? (idx < flatList.length - 1 ? idx + 1 : 0)
+        : (idx > 0 ? idx - 1 : flatList.length - 1)
+      setSelectedItemId(flatList[next].id)
+      setShowAddPanel(false)
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [flatList, selectedItemId]) // eslint-disable-line
 
   // Handlers
   function doDelete(id) {
