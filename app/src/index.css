@@ -490,11 +490,11 @@ body.dark .fsel-option.active { background: var(--accent-green); border-color: v
   position: relative; width: 48px; margin-bottom: 24px;
   display: flex; flex-direction: column; align-items: center;
 }
-.feed-end-cube { animation: happyBounce 2.2s cubic-bezier(0.4,0,0.2,1) 2 forwards; transform-origin: center bottom; display: block; }
+.feed-end-cube { animation: happyBounce 2.2s cubic-bezier(0.4,0,0.2,1) 1 forwards; transform-origin: center bottom; display: block; }
 .feed-end-shadow {
   width: 36px; height: 8px; border-radius: 50%;
   background: #0E0E0C; opacity: 0.13; margin-top: -4px;
-  animation: shadowBounceEnd 2.2s cubic-bezier(0.4,0,0.2,1) 2 forwards;
+  animation: shadowBounceEnd 2.2s cubic-bezier(0.4,0,0.2,1) 1 forwards;
 }
 body.dark .feed-end-shadow { background: #fff; }
 .feed-end-title { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 6px; text-align: center; }
@@ -2967,6 +2967,7 @@ body.dark .auth-modal { box-shadow: 0 24px 64px rgba(0,0,0,0.5); }
   font-family: var(--mono); font-size: 22px; font-weight: 500;
   color: var(--text); letter-spacing: -0.02em; min-width: 0;
 }
+.fin-input:focus-visible { outline: none; }
 .fin-input::placeholder { color: var(--text-3); }
 .fin-input-unit {
   font-size: 13px; color: var(--text-3); white-space: nowrap; flex-shrink: 0;
