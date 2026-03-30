@@ -431,44 +431,51 @@ function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeTo
       <h2 className="fa-title">{item.title}</h2>
       <p className="fa-preview">{item.preview}</p>
 
-      {/* Actions row */}
-      <div className="fa-bottom" onClick={e => e.stopPropagation()}>
-        <LikeBtn liked={isLiked} count={item.likes + (isLiked ? 1 : 0)} onToggle={() => onLikeToggle(item.id)} />
-        {item.comments != null && (
-          <div className="fa-action-stat">
-            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            {item.comments}
-          </div>
-        )}
-        <DislikeBtn disliked={isDisliked} onToggle={() => onDislikeToggle(item.id)} />
-        <BookmarkBtn bookmarked={isBookmarked} onToggle={() => onBookmarkToggle(item.id)} />
-        {reactions.length > 0 && (
-          <>
-            <span className="fa-reactions-sep" />
-            {reactions.map(r => (
-              <ReactionPill
-                key={r.emoji}
-                emoji={r.emoji}
-                count={r.count}
-                active={myReactions.has(r.emoji)}
-                onToggle={toggleReaction}
-              />
-            ))}
-          </>
-        )}
-      </div>
-
-      {/* Author + Category */}
+      {/* Author · Actions · Category+Set — single row */}
       <div className="fa-meta-row" onClick={e => e.stopPropagation()}>
         <AuthorChip author={author} authorId={item.authorId} navigate={navigate} date={item.time} />
-        {catLabel && catLabel !== 'Все' && (
-          <button
-            className="fa-category"
-            onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}
-          >{catLabel}</button>
-        )}
+
+        <div className="fa-meta-actions">
+          <LikeBtn liked={isLiked} count={item.likes + (isLiked ? 1 : 0)} onToggle={() => onLikeToggle(item.id)} />
+          {item.comments != null && (
+            <div className="fa-action-stat">
+              <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              {item.comments}
+            </div>
+          )}
+          <DislikeBtn disliked={isDisliked} onToggle={() => onDislikeToggle(item.id)} />
+          <BookmarkBtn bookmarked={isBookmarked} onToggle={() => onBookmarkToggle(item.id)} />
+          {reactions.length > 0 && (
+            <>
+              <span className="fa-reactions-sep" />
+              {reactions.map(r => (
+                <ReactionPill
+                  key={r.emoji}
+                  emoji={r.emoji}
+                  count={r.count}
+                  active={myReactions.has(r.emoji)}
+                  onToggle={toggleReaction}
+                />
+              ))}
+            </>
+          )}
+        </div>
+
+        <div className="fa-meta-right">
+          {catLabel && catLabel !== 'Все' && (
+            <button
+              className="fa-category"
+              onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}
+            >{catLabel}</button>
+          )}
+          {item.setLink && (
+            <span className="fa-set-link" style={{ '--set-clr': item.setLink.color }}>
+              {item.setLink.title}
+            </span>
+          )}
+        </div>
       </div>
 
     </article>
