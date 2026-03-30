@@ -94,7 +94,7 @@ function loadUserPublicArticles() {
 
 // ── ARTICLE CARD ──────────────────────────────────────────────────────────────
 
-function AuthorPopoverCard({ author, authorId, navigate, onMouseEnter, onMouseLeave }) {
+function AuthorPopoverCard({ author, authorId, navigate, onMouseEnter, onMouseLeave, style }) {
   const [following, setFollowing] = useState(author.following || false)
   const [followAnim, setFollowAnim] = useState(false)
   const isDeleted = author.type === 'deleted'
@@ -111,7 +111,7 @@ function AuthorPopoverCard({ author, authorId, navigate, onMouseEnter, onMouseLe
   }
 
   return (
-    <div className="author-popover" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onClick={e => e.stopPropagation()}>
+    <div className="author-popover" style={style} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onClick={e => e.stopPropagation()}>
       {/* Row 1: avatar + follow button */}
       <div className="ap-top">
         <div
@@ -211,8 +211,10 @@ function AuthorBottomSheet({ author, authorId, navigate, onClose }) {
 function AuthorChip({ author, authorId, navigate, date }) {
   const [showCard, setShowCard] = useState(false)
   const [showSheet, setShowSheet] = useState(false)
+  const [popPos, setPopPos] = useState(null)
   const showTimer = useRef(null)
   const hideTimer = useRef(null)
+  const chipRef = useRef(null)
 
   if (!author) return null
 
@@ -230,7 +232,13 @@ function AuthorChip({ author, authorId, navigate, date }) {
   function onEnter() {
     if (isTouch()) return
     clearTimeout(hideTimer.current)
-    showTimer.current = setTimeout(() => setShowCard(true), 350)
+    showTimer.current = setTimeout(() => {
+      if (chipRef.current) {
+        const r = chipRef.current.getBoundingClientRect()
+        setPopPos({ top: r.bottom + 8, left: r.left })
+      }
+      setShowCard(true)
+    }, 350)
   }
   function onLeave() {
     if (isTouch()) return
@@ -241,6 +249,7 @@ function AuthorChip({ author, authorId, navigate, date }) {
   return (
     <span className="author-chip-wrap" onMouseEnter={onEnter} onMouseLeave={onLeave}>
       <button
+        ref={chipRef}
         className={`author-chip${isDeleted ? ' author-chip--ghost' : ''}`}
         onClick={handleClick}
         title={isDeleted ? 'Аккаунт удалён' : undefined}
@@ -267,14 +276,16 @@ function AuthorChip({ author, authorId, navigate, date }) {
           </>
         )}
       </button>
-      {showCard && (
+      {showCard && popPos && createPortal(
         <AuthorPopoverCard
           author={author}
           authorId={authorId}
           navigate={navigate}
+          style={{ position: 'fixed', top: popPos.top, left: popPos.left }}
           onMouseEnter={() => clearTimeout(hideTimer.current)}
           onMouseLeave={onLeave}
-        />
+        />,
+        document.body
       )}
       {showSheet && (
         <AuthorBottomSheet
