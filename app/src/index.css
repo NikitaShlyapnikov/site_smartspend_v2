@@ -1894,6 +1894,81 @@ body.dark .btn-danger { background: #2A1010; color: #E87070; border-color: #4A20
 .btn-logout:hover { background: #FFE4E0; }
 body.dark .btn-logout { background: #2A1010; color: #E87070; border-color: #4A2020; }
 
+/* ── DISCO CUBE ── */
+.disco-stage {
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px 24px 32px; position: relative; overflow: hidden;
+  cursor: pointer;
+}
+.particles { position: absolute; inset: 0; pointer-events: none; }
+.cell { display: flex; flex-direction: column; align-items: center; gap: 16px; position: relative; z-index: 2; }
+.cube-svg { display: block; }
+@keyframes dance {
+  0%   { transform: translateX(0)     translateY(0)     rotate(0deg)    scaleX(1)    scaleY(1); }
+  10%  { transform: translateX(-14px) translateY(4px)   rotate(-8deg)   scaleX(1.08) scaleY(0.93); }
+  20%  { transform: translateX(-18px) translateY(-2px)  rotate(-10deg)  scaleX(0.95) scaleY(1.06); }
+  35%  { transform: translateX(-10px) translateY(6px)   rotate(-6deg)   scaleX(1.06) scaleY(0.94); }
+  50%  { transform: translateX(0)     translateY(-4px)  rotate(0deg)    scaleX(0.96) scaleY(1.05); }
+  65%  { transform: translateX(10px)  translateY(6px)   rotate(6deg)    scaleX(1.06) scaleY(0.94); }
+  80%  { transform: translateX(18px)  translateY(-2px)  rotate(10deg)   scaleX(0.95) scaleY(1.06); }
+  90%  { transform: translateX(14px)  translateY(4px)   rotate(8deg)    scaleX(1.08) scaleY(0.93); }
+  100% { transform: translateX(0)     translateY(0)     rotate(0deg)    scaleX(1)    scaleY(1); }
+}
+.cube-dance { animation: dance 1.2s cubic-bezier(0.4,0,0.2,1) infinite; transform-origin: center 80px; }
+@keyframes discoFill {
+  0%   { fill: #FF6B9D; } 12% { fill: #FF9F45; } 25% { fill: #FFE045; }
+  37%  { fill: #6BFF8E; } 50% { fill: #45D4FF; } 62% { fill: #A78BFF; }
+  75%  { fill: #FF6B9D; } 87% { fill: #FF4560; } 100% { fill: #FF6B9D; }
+}
+.inner-square { animation: discoFill 1.4s linear infinite; }
+.shadow-disco {
+  width: 60px; height: 12px; border-radius: 50%;
+  background: #0E0E0C; opacity: 0.12; margin-top: -8px;
+  animation: shadowDance 1.2s cubic-bezier(0.4,0,0.2,1) infinite;
+}
+@keyframes shadowDance {
+  0%,100% { transform: scaleX(1);    opacity: 0.12; }
+  10%,90%  { transform: scaleX(1.15); opacity: 0.09; }
+  50%      { transform: scaleX(0.8);  opacity: 0.07; }
+}
+.spark {
+  position: absolute; border-radius: 50%; pointer-events: none;
+  animation: sparkle var(--d) ease-in-out var(--delay) infinite;
+  width: var(--sz); height: var(--sz); background: var(--clr); opacity: 0;
+}
+@keyframes sparkle {
+  0%   { opacity: 0;   transform: translate(0,0) scale(0); }
+  30%  { opacity: 1;   transform: translate(var(--tx),var(--ty)) scale(1); }
+  70%  { opacity: 0.6; transform: translate(var(--tx2),var(--ty2)) scale(0.7); }
+  100% { opacity: 0;   transform: translate(var(--tx3),var(--ty3)) scale(0); }
+}
+.beam {
+  position: absolute; top: 0; width: 3px; border-radius: 0 0 4px 4px;
+  opacity: 0; animation: beam var(--bd) ease-in-out var(--bdelay) infinite;
+  background: var(--bclr); height: var(--bh); left: var(--bx); transform-origin: top center;
+}
+@keyframes beam {
+  0%   { opacity: 0;   transform: rotate(var(--br1)); }
+  20%  { opacity: 0.5; transform: rotate(var(--br2)); }
+  50%  { opacity: 0.7; transform: rotate(var(--br3)); }
+  80%  { opacity: 0.4; transform: rotate(var(--br2)); }
+  100% { opacity: 0;   transform: rotate(var(--br1)); }
+}
+@keyframes disco-toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.disco-toast {
+  position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+  background: #0E0E0C; color: #fff;
+  padding: 12px 22px; border-radius: 32px;
+  font-size: 14px; font-weight: 500; letter-spacing: -0.01em;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  animation: disco-toast-in 0.22s ease;
+  white-space: nowrap; z-index: 9999; pointer-events: none;
+}
+body.dark .disco-toast { background: #fff; color: #0E0E0C; }
+
 /* ── NOTIFICATIONS PAGE ── */
 .notif-main {
   display: flex; flex-direction: column;
