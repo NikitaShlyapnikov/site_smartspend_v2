@@ -365,25 +365,19 @@ function SmartSpendChip() {
   )
 }
 
+function fmtAdded(iso) {
+  if (!iso) return null
+  const d = new Date(iso)
+  const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек']
+  return `${months[d.getMonth()]} ${d.getFullYear()}`
+}
+
 function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike, onBookmark, onCategoryClick, navigate, username }) {
   const catLabel = CATEGORIES.find(c => c.id === set.category)?.label
-  const totalItems = set.items.length + (set.more || 0)
-  const [reactions, setReactions] = useState(() => (set.reactions || []).map(r => ({ ...r })))
-  const [myReactions, setMyReactions] = useState(new Set())
-
-  function toggleReaction(emoji) {
-    setMyReactions(prev => {
-      const next = new Set(prev)
-      const hadIt = next.has(emoji)
-      hadIt ? next.delete(emoji) : next.add(emoji)
-      setReactions(rs => rs.map(r => r.emoji === emoji ? { ...r, count: r.count + (hadIt ? -1 : 1) } : r))
-      return next
-    })
-  }
-
   const effectiveFullCost = set.fullCost || set.monthly || set.amount
+  const dateLabel = fmtAdded(set.added)
 
-  const authorRow = set.source === 'ss'
+  const authorChip = set.source === 'ss'
     ? <SmartSpendChip />
     : set.source === 'own'
       ? <AuthorChip username={username || 'я'} navigate={navigate} />
@@ -393,17 +387,9 @@ function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike
 
   return (
     <div className="catalog-card" onClick={() => navigate(`/set/${set.id}`)}>
-      {authorRow && (
-        <div className="card-author-row" onClick={e => e.stopPropagation()}>
-          {authorRow}
-          {catLabel && <><span className="fa-sep">·</span><button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(set.category) }}>{catLabel}</button></>}
-        </div>
-      )}
       <div className="card-body">
-        <div>
-          <div className="card-title">{set.title}</div>
-          <div className="card-desc">{set.desc}</div>
-        </div>
+        <div className="card-title">{set.title}</div>
+        <div className="card-desc">{set.desc}</div>
       </div>
       <div className="card-cost-row">
         <div className="card-cost-item card-cost-monthly">
@@ -434,29 +420,29 @@ function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike
         </div>
       </div>
       <div className="card-bottom" onClick={e => e.stopPropagation()}>
-        <LikeBtn liked={isLiked} count={(set.likes || 0) + (isLiked ? 1 : 0)} onToggle={onLike} />
-        {set.comments > 0 && (
-          <button className="fa-action-stat fa-action-stat--btn" onClick={() => navigate(`/set/${set.id}`)}>
-            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            {set.comments}
-          </button>
-        )}
-        <DislikeBtn disliked={isDisliked} onToggle={onDislike} />
-        <BookmarkBtn bookmarked={isBookmarked} onToggle={onBookmark} />
-        {reactions.length > 0 && (
-          <>
-            <span className="fa-reactions-sep" />
-            {reactions.map(r => (
-              <ReactionPill key={r.emoji} emoji={r.emoji} count={r.count} active={myReactions.has(r.emoji)} onToggle={toggleReaction} />
-            ))}
-          </>
-        )}
-        <div className="f-spacer" />
-        <div className="fa-time">
-          {totalItems} позиций
-          {set.articles > 0 && <> · {set.articles} {set.articles === 1 ? 'статья' : set.articles < 5 ? 'статьи' : 'статей'}</>}
+        <div className="card-bottom-author">
+          {authorChip}
+          {dateLabel && <span className="author-chip-date">{dateLabel}</span>}
+        </div>
+        <div className="fa-meta-actions">
+          <LikeBtn liked={isLiked} count={(set.likes || 0) + (isLiked ? 1 : 0)} onToggle={onLike} />
+          {set.comments > 0 && (
+            <button className="fa-action-stat fa-action-stat--btn" onClick={() => navigate(`/set/${set.id}`)}>
+              <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              {set.comments}
+            </button>
+          )}
+          <DislikeBtn disliked={isDisliked} onToggle={onDislike} />
+          <BookmarkBtn bookmarked={isBookmarked} onToggle={onBookmark} />
+        </div>
+        <div className="fa-meta-right">
+          {catLabel && catLabel !== 'Все' && (
+            <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(set.category) }}>
+              {catLabel}
+            </button>
+          )}
         </div>
       </div>
     </div>

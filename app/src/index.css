@@ -620,13 +620,18 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
 .fa-meta-row .author-chip-date { font-size: 11px; white-space: nowrap; }
 /* actions — рядом с автором */
 .fa-meta-actions {
-  display: flex; align-items: center; gap: 4px;
+  display: flex; align-items: center; gap: 2px;
   flex-shrink: 0;
 }
-/* right: category + set */
+/* увеличенные кнопки в ленте */
+.fa-meta-actions .fa-action-btn { padding: 6px 10px; font-size: 14px; }
+.fa-meta-actions .fa-action-btn svg { width: 22px; height: 22px; }
+.fa-meta-actions .fa-action-stat { padding: 6px 10px; font-size: 14px; }
+.fa-meta-actions .fa-action-stat svg { width: 20px; height: 20px; }
+/* right: category + set — left-aligned text, pushed to the right */
 .fa-meta-right {
-  display: flex; flex-direction: column; align-items: flex-end; gap: 3px;
-  flex-shrink: 0; max-width: 140px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  flex-shrink: 0; max-width: 140px; margin-left: auto;
 }
 .fa-sep { font-size: 11px; color: var(--text-3); user-select: none; }
 .fa-category {
@@ -1255,13 +1260,18 @@ body.dark .catalog-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
 }
 .cat-badge:hover { background: var(--accent-green-light); color: var(--accent-green); border-color: transparent; }
 
-/* Author row on catalog card */
-.card-author-row {
-  padding: 16px 24px 0;
-  display: flex; align-items: center;
-  gap: 6px;
+/* Card author row — now inside card-bottom */
+.card-bottom-author {
+  display: flex; align-items: center; gap: 6px;
+  min-width: 0; flex-shrink: 1;
 }
-.card-author-row .author-avatar-sm { width: 28px; height: 28px; font-size: 10px; }
+.card-bottom-author .author-chip-meta { min-width: 0; overflow: hidden; }
+.card-bottom-author .author-name-inline {
+  font-size: 12px; font-weight: 500; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 110px;
+}
+.card-bottom-author .author-chip-date { font-size: 11px; white-space: nowrap; }
+.card-bottom-author .author-avatar-sm { width: 26px; height: 26px; font-size: 10px; flex-shrink: 0; }
 
 /* Card cost info row */
 .card-cost-row {
@@ -1277,11 +1287,12 @@ body.dark .catalog-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
 .card-cost-val { font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--text-1); line-height: 1.2; }
 .card-cost-lbl { font-size: 10px; color: var(--text-3); }
 
-/* Card bottom (fa-bottom style) */
+/* Card bottom — same layout as fa-meta-row */
 .card-bottom {
-  display: flex; align-items: center; gap: 4px;
+  display: flex; align-items: flex-end; gap: 6px;
   padding: 8px 14px;
   border-top: 1px solid var(--border);
+  min-width: 0;
 }
 
 .empty-state { grid-column: 1/-1; padding: 56px 24px; text-align: center; }
