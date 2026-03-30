@@ -834,7 +834,7 @@ function FeedEndBlock({ onScrollTop }) {
   return (
     <div className="feed-end-block">
       <div className="feed-end-cube-wrap">
-        <HappyCube size={96} className="feed-end-cube" />
+        <HappyCube size={48} className="feed-end-cube" />
         <div className="feed-end-shadow" />
       </div>
       <div className="feed-end-title">Это всё</div>
@@ -864,8 +864,6 @@ export default function Feed() {
   const [dislikedIds,   setDislikedIds]   = useState(new Set())
   const [bookmarkedIds, setBookmarkedIds] = useState(new Set())
   const [filtersScrolled, setFiltersScrolled] = useState(false)
-  const [showScrollTop,   setShowScrollTop]   = useState(false)
-  const [isAtEnd,         setIsAtEnd]         = useState(false)
   const feedScrollElRef = useRef(null)
 
   const feedScrollRef = useCallback(el => {
@@ -878,8 +876,6 @@ export default function Feed() {
     const handler = () => {
       const { scrollTop, scrollHeight, clientHeight } = el
       setFiltersScrolled(scrollTop > 8)
-      setShowScrollTop(scrollTop > 200)
-      setIsAtEnd(scrollTop + clientHeight >= scrollHeight - 80)
     }
     feedScrollElRef._handler = handler
     el.addEventListener('scroll', handler, { passive: true })
@@ -1039,13 +1035,6 @@ export default function Feed() {
           </div>
         </div>
       </main>
-
-      {/* Floating scroll-to-top cube */}
-      {showScrollTop && !isAtEnd && (
-        <button className="scroll-top-cube" onClick={scrollToTop} title="Наверх">
-          <HappyCube size={48} />
-        </button>
-      )}
 
       {showWelcome && <WelcomeTour onClose={() => setShowWelcome(false)} />}
       {showSpotlight && <SpotlightTour steps={FEED_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
