@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import PublicLayout from '../components/PublicLayout'
 import { useAuthModal } from '../components/AuthModal'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
+import FeedEndBlock from '../components/FeedEndBlock'
 import { catalogSets } from '../data/mock'
 
 const CATALOG_SPOTLIGHT = [
@@ -540,15 +541,27 @@ export default function Catalog() {
   const { modal: authModal, requireAuth } = useAuthModal()
   const [showSpotlight, setShowSpotlight] = useState(false)
   const [filtersScrolled, setFiltersScrolled] = useState(false)
-  const scrollElRef = useRef(null)
+  const [bounceKey,       setBounceKey]       = useState(0)
+  const scrollElRef  = useRef(null)
+  const wasAtEndRef  = useRef(false)
   const catalogScrollRef = useCallback(el => {
     if (scrollElRef.current) scrollElRef.current.removeEventListener('scroll', scrollElRef._handler)
     scrollElRef.current = el
     if (!el) return
-    const handler = () => setFiltersScrolled(el.scrollTop > 8)
+    const handler = () => {
+      const { scrollTop, scrollHeight, clientHeight } = el
+      setFiltersScrolled(scrollTop > 8)
+      const atEnd = scrollTop + clientHeight >= scrollHeight - 80
+      if (atEnd && !wasAtEndRef.current) setBounceKey(k => k + 1)
+      wasAtEndRef.current = atEnd
+    }
     scrollElRef._handler = handler
     el.addEventListener('scroll', handler, { passive: true })
   }, [])
+
+  function scrollToTop() {
+    scrollElRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   function toggleLike(id, e) {
     e.stopPropagation()
@@ -719,6 +732,7 @@ export default function Catalog() {
             </div>
           )}
         </div>
+          {filtered.length > 0 && <FeedEndBlock key={bounceKey} onScrollTop={scrollToTop} />}
         </div>
       </main>
       {authModal}

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
+import FeedEndBlock from '../components/FeedEndBlock'
 import { companies, promoItems, whisperItems as whisperItemsMock } from '../data/mock'
 
 const WHISPER_EMOJIS = [
@@ -1091,11 +1092,25 @@ export default function Promo() {
   const [extUrl,        setExtUrl]        = useState(null)
 
   const [filtersScrolled, setFiltersScrolled] = useState(false)
+  const [bounceKey,       setBounceKey]       = useState(0)
+  const scrollElRef  = useRef(null)
+  const wasAtEndRef  = useRef(false)
   const scrollRef = useCallback(el => {
+    scrollElRef.current = el
     if (!el) return
     setFiltersScrolled(false)
-    el.addEventListener('scroll', () => setFiltersScrolled(el.scrollTop > 8), { passive: true })
+    el.addEventListener('scroll', () => {
+      const { scrollTop, scrollHeight, clientHeight } = el
+      setFiltersScrolled(scrollTop > 8)
+      const atEnd = scrollTop + clientHeight >= scrollHeight - 80
+      if (atEnd && !wasAtEndRef.current) setBounceKey(k => k + 1)
+      wasAtEndRef.current = atEnd
+    }, { passive: true })
   }, [])
+
+  function scrollToTop() {
+    scrollElRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   function handlePromoCat(id) {
     if (id === '__clear__') { setPromoCat(new Set()); setPromoCompany(new Set()); return }
@@ -1280,6 +1295,7 @@ export default function Promo() {
               return index === 0 ? <div key={item.id} id="sp-promo-card">{card}</div> : card
             })}
           </div>
+          {filtered.length > 0 && <FeedEndBlock key={bounceKey} onScrollTop={scrollToTop} />}
         </div>
       </main>
       {showSpotlight && <SpotlightTour steps={PROMO_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
