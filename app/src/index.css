@@ -618,10 +618,10 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px;
 }
 .fa-meta-row .author-chip-date { font-size: 11px; white-space: nowrap; }
-/* actions — по центру между автором и категорией */
+/* actions — рядом с автором */
 .fa-meta-actions {
   display: flex; align-items: center; gap: 4px;
-  flex: 1; justify-content: center; flex-shrink: 0;
+  flex-shrink: 0;
 }
 /* right: category + set */
 .fa-meta-right {
@@ -637,8 +637,8 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
 }
 .fa-category:hover { color: var(--accent-green); }
 .fa-set-link {
-  font-size: 11px; color: var(--set-clr, var(--accent-green));
-  font-family: var(--mono); letter-spacing: -0.01em; opacity: 0.85;
+  font-size: 11px; color: var(--text-3);
+  font-family: var(--mono); letter-spacing: -0.01em;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
 }
 

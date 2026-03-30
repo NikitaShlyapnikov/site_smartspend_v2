@@ -437,7 +437,7 @@ function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeTo
           author={author}
           authorId={item.authorId}
           navigate={navigate}
-          date={[item.time, item.readTime ? `${item.readTime} мин` : null].filter(Boolean).join(' · ')}
+          date={item.time}
         />
 
         <div className="fa-meta-actions">
