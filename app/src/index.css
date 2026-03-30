@@ -602,12 +602,11 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
 .feed-article.read:hover { opacity: 1; }
 
 .fa-author-row {
-  display: flex; align-items: center; gap: 6px;
-  margin-bottom: 10px; flex-wrap: wrap;
+  display: flex; align-items: flex-start;
+  margin-bottom: 10px;
 }
-.fa-author-row .author-avatar-sm { width: 28px; height: 28px; font-size: 10px; }
-.fa-author-row .author-name-inline { font-size: 13px; font-weight: 500; }
-.fa-date { font-size: 11px; color: var(--text-3); font-family: var(--mono); margin-left: auto; }
+.fa-author-row .author-avatar-sm { width: 32px; height: 32px; font-size: 11px; flex-shrink: 0; }
+.fa-author-row .author-name-inline { font-size: 13px; font-weight: 500; color: var(--text); }
 .fa-category-row { margin-top: 10px; }
 .fa-sep { font-size: 11px; color: var(--text-3); user-select: none; }
 .fa-category {
@@ -6644,10 +6643,16 @@ body.dark .sd-total-row td { background: #1A2820; }
 
 /* ── AUTHOR CHIP (clickable author row in article card) ── */
 .author-chip {
-  display: inline-flex; align-items: center; gap: 6px;
+  display: inline-flex; align-items: flex-start; gap: 8px;
   background: none; border: none; cursor: pointer; padding: 0;
   border-radius: 20px; transition: opacity 0.12s;
   max-width: 100%;
+}
+.author-chip-meta {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+}
+.author-chip-date {
+  font-size: 11px; color: var(--text-3); font-family: var(--mono);
 }
 .author-chip:hover { opacity: 0.72; }
 .author-chip--ss { cursor: default; }

@@ -206,7 +206,7 @@ function AuthorBottomSheet({ author, authorId, navigate, onClose }) {
   )
 }
 
-function AuthorChip({ author, authorId, navigate }) {
+function AuthorChip({ author, authorId, navigate, date }) {
   const [showCard, setShowCard] = useState(false)
   const [showSheet, setShowSheet] = useState(false)
   const showTimer = useRef(null)
@@ -250,12 +250,18 @@ function AuthorChip({ author, authorId, navigate }) {
                 <path d="M12 2a8 8 0 0 0-8 8v10l3-3 3 3 3-3 3 3 3-3V10a8 8 0 0 0-8-8zm-2.5 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
               </svg>
             </span>
-            <span className="author-name-inline author-name--special">Привидение</span>
+            <span className="author-chip-meta">
+              <span className="author-name-inline author-name--special">Привидение</span>
+              {date && <span className="author-chip-date">{date}</span>}
+            </span>
           </>
         ) : (
           <>
             <div className="author-avatar-sm" style={{ background: author.color }}>{author.initials}</div>
-            <span className="author-name-inline">{author.name}</span>
+            <span className="author-chip-meta">
+              <span className="author-name-inline">{author.name}</span>
+              {date && <span className="author-chip-date">{date}</span>}
+            </span>
           </>
         )}
       </button>
@@ -427,8 +433,7 @@ function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeTo
 
       {/* Author + date */}
       <div className="fa-author-row">
-        <AuthorChip author={author} authorId={item.authorId} navigate={navigate} />
-        {item.time && <span className="fa-date">{item.time}</span>}
+        <AuthorChip author={author} authorId={item.authorId} navigate={navigate} date={item.time} />
       </div>
 
       {/* Actions row */}
