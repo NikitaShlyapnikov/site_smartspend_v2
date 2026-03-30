@@ -601,13 +601,12 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
 .feed-article.read { opacity: 0.5; }
 .feed-article.read:hover { opacity: 1; }
 
-.fa-author-row {
-  display: flex; align-items: flex-start;
-  margin-bottom: 10px;
+.fa-meta-row {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-top: 12px; gap: 8px;
 }
-.fa-author-row .author-avatar-sm { width: 32px; height: 32px; font-size: 11px; flex-shrink: 0; }
-.fa-author-row .author-name-inline { font-size: 13px; font-weight: 500; color: var(--text); }
-.fa-category-row { margin-top: 10px; }
+.fa-meta-row .author-avatar-sm { width: 32px; height: 32px; font-size: 11px; flex-shrink: 0; }
+.fa-meta-row .author-name-inline { font-size: 13px; font-weight: 500; color: var(--text); }
 .fa-sep { font-size: 11px; color: var(--text-3); user-select: none; }
 .fa-category {
   font-size: 12px; color: var(--text-3); letter-spacing: -0.01em;
@@ -624,7 +623,7 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
 }
 .fa-preview {
   font-size: 14px; color: var(--text-2); line-height: 1.6;
-  margin: 0 0 12px;
+  margin: 0 0 14px;
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
   overflow: hidden; word-break: break-word;
 }
