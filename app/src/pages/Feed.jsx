@@ -452,20 +452,6 @@ function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeTo
           )}
           <DislikeBtn disliked={isDisliked} onToggle={() => onDislikeToggle(item.id)} />
           <BookmarkBtn bookmarked={isBookmarked} onToggle={() => onBookmarkToggle(item.id)} />
-          {reactions.length > 0 && (
-            <>
-              <span className="fa-reactions-sep" />
-              {reactions.map(r => (
-                <ReactionPill
-                  key={r.emoji}
-                  emoji={r.emoji}
-                  count={r.count}
-                  active={myReactions.has(r.emoji)}
-                  onToggle={toggleReaction}
-                />
-              ))}
-            </>
-          )}
         </div>
 
         <div className="fa-meta-right">
