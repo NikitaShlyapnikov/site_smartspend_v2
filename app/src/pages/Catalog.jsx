@@ -147,7 +147,7 @@ function AuthorBottomSheet({ author, onClose, navigate }) {
   )
 }
 
-function AuthorChip({ username, navigate }) {
+function AuthorChip({ username, navigate, date }) {
   const [showCard, setShowCard] = useState(false)
   const [showSheet, setShowSheet] = useState(false)
   const [popPos, setPopPos] = useState(null)
@@ -182,7 +182,10 @@ function AuthorChip({ username, navigate }) {
     <span className="author-chip-wrap" onMouseEnter={onEnter} onMouseLeave={onLeave}>
       <button className="author-chip" ref={chipRef} onClick={handleClick}>
         <div className="author-avatar-sm" style={{ background: author.color }}>{author.initials}</div>
-        <span className="author-name-inline">{author.name}</span>
+        <span className="author-chip-meta">
+          <span className="author-name-inline">{author.name}</span>
+          {date && <span className="author-chip-date">{date}</span>}
+        </span>
       </button>
       {showCard && popPos && createPortal(
         <AuthorPopoverCard author={author} navigate={navigate}
@@ -304,7 +307,7 @@ function BookmarkBtn({ bookmarked, onToggle }) {
 
 const SS_AUTHOR = { name: 'SmartSpend', initials: 'SS', color: '#4E8268', followers: 12400, articles: 47, sets: 14, desc: 'Официальные наборы и статьи от команды SmartSpend' }
 
-function SmartSpendChip() {
+function SmartSpendChip({ date }) {
   const [showCard, setShowCard] = useState(false)
   const [popPos, setPopPos] = useState(null)
   const [following, setFollowing] = useState(false)
@@ -337,7 +340,10 @@ function SmartSpendChip() {
     <span className="author-chip-wrap" onMouseEnter={onEnter} onMouseLeave={onLeave}>
       <button className="author-chip" ref={chipRef} onClick={e => e.stopPropagation()}>
         <div className="author-avatar-sm" style={{ background: SS_AUTHOR.color, fontSize: 9, fontWeight: 700 }}>SS</div>
-        <span className="author-name-inline">SmartSpend</span>
+        <span className="author-chip-meta">
+          <span className="author-name-inline">SmartSpend</span>
+          {date && <span className="author-chip-date">{date}</span>}
+        </span>
       </button>
       {showCard && popPos && createPortal(
         <div
@@ -378,11 +384,11 @@ function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike
   const dateLabel = fmtAdded(set.added)
 
   const authorChip = set.source === 'ss'
-    ? <SmartSpendChip />
+    ? <SmartSpendChip date={dateLabel} />
     : set.source === 'own'
-      ? <AuthorChip username={username || 'я'} navigate={navigate} />
+      ? <AuthorChip username={username || 'я'} navigate={navigate} date={dateLabel} />
       : set.addedBy
-        ? <AuthorChip username={set.addedBy} navigate={navigate} />
+        ? <AuthorChip username={set.addedBy} navigate={navigate} date={dateLabel} />
         : null
 
   return (
@@ -422,7 +428,6 @@ function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike
       <div className="card-bottom" onClick={e => e.stopPropagation()}>
         <div className="card-bottom-author">
           {authorChip}
-          {dateLabel && <span className="author-chip-date">{dateLabel}</span>}
         </div>
         <div className="fa-meta-actions">
           <LikeBtn liked={isLiked} count={(set.likes || 0) + (isLiked ? 1 : 0)} onToggle={onLike} />

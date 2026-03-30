@@ -624,13 +624,13 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
   flex-shrink: 0;
 }
 /* увеличенные кнопки в ленте */
-.fa-meta-actions .fa-action-btn { padding: 6px 10px; font-size: 14px; }
-.fa-meta-actions .fa-action-btn svg { width: 22px; height: 22px; }
-.fa-meta-actions .fa-action-stat { padding: 6px 10px; font-size: 14px; }
+.fa-meta-actions .fa-action-btn { padding: 6px 10px; font-size: 13px; }
+.fa-meta-actions .fa-action-btn svg { width: 20px; height: 20px; }
+.fa-meta-actions .fa-action-stat { padding: 6px 10px; font-size: 13px; }
 .fa-meta-actions .fa-action-stat svg { width: 20px; height: 20px; }
-/* right: category + set — left-aligned text, pushed to the right */
+/* right: category + set */
 .fa-meta-right {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 3px;
   flex-shrink: 0; max-width: 140px; margin-left: auto;
 }
 .fa-sep { font-size: 11px; color: var(--text-3); user-select: none; }
@@ -1214,7 +1214,7 @@ body.dark .card-like-btn.liked { background: #2A1010; border-color: #6A2020; col
 .cat-btn-liked.active .cat-count { color: rgba(255,255,255,0.6); }
 body.dark .cat-btn-liked.active { background: #8A2020; border-color: #8A2020; color: #fff; }
 body.dark .catalog-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
-.card-body { padding: 8px 24px 14px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.card-body { padding: 22px 24px 14px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
 .card-badges { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
 .card-title { font-size: 18px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.2; }
 .card-desc { font-size: 14px; color: var(--text-2); line-height: 1.6; margin-top: 2px; }
@@ -1290,10 +1290,11 @@ body.dark .catalog-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
 /* Card bottom — same layout as fa-meta-row */
 .card-bottom {
   display: flex; align-items: flex-end; gap: 6px;
-  padding: 8px 14px;
+  padding: 10px 24px;
   border-top: 1px solid var(--border);
   min-width: 0;
 }
+.card-bottom .fa-meta-right { align-self: flex-start; }
 
 .empty-state { grid-column: 1/-1; padding: 56px 24px; text-align: center; }
 .empty-state-icon { font-size: 28px; margin-bottom: 12px; opacity: 0.4; }
