@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
@@ -105,6 +105,30 @@ const CREDIT_MONTHS_STEP = {
   unit: 'мес',
 }
 
+const PLATE_ICONS = {
+  income: (
+    <text y="7" fill="#0E0E0C" fontFamily="Arial" fontSize="18" fontWeight="bold">₽</text>
+  ),
+  housing: (
+    <path d="M-9 2 L-9 10 L-3 10 L-3 4 L3 4 L3 10 L9 10 L9 2 L0 -6 Z" stroke="#0E0E0C" strokeWidth="2.5" fill="none" strokeLinejoin="round" transform="translate(0,-1)"/>
+  ),
+  credit: (
+    <>
+      <rect x="-11" y="-7" width="22" height="14" rx="3" stroke="#0E0E0C" strokeWidth="2" fill="none"/>
+      <line x1="-11" y1="-1" x2="11" y2="-1" stroke="#0E0E0C" strokeWidth="2"/>
+    </>
+  ),
+  creditMonths: (
+    <>
+      <circle cx="0" cy="0" r="10" stroke="#0E0E0C" strokeWidth="2" fill="none"/>
+      <path d="M0 -6 L0 0 L4 3" stroke="#0E0E0C" strokeWidth="2" strokeLinecap="round" fill="none"/>
+    </>
+  ),
+  capital: (
+    <path d="M-10 -2 L-5 -8 L5 -8 L10 -2 L0 8 Z" stroke="#0E0E0C" strokeWidth="2" fill="none" strokeLinejoin="round"/>
+  ),
+}
+
 function FinancialModal({ open, initialData, onSave, onClose }) {
   const [step, setStep] = useState(0)
   const [values, setValues] = useState({
@@ -115,8 +139,12 @@ function FinancialModal({ open, initialData, onSave, onClose }) {
     capital:      String(initialData.capital),
   })
   const [done, setDone] = useState(false)
+  const [plateIconId, setPlateIconId] = useState('income')
+  const cubeRef = useRef(null)
+  const clickCountRef = useRef(0)
+  const clickTimerRef = useRef(null)
+  const skipNextIconEffect = useRef(true)
 
-  // Dynamically build steps: insert creditMonths after credit if credit > 0
   const hasCredit = parseInt(values.credit) > 0
   const steps = hasCredit
     ? [BASE_STEPS[0], BASE_STEPS[1], BASE_STEPS[2], CREDIT_MONTHS_STEP, BASE_STEPS[3]]
@@ -128,6 +156,28 @@ function FinancialModal({ open, initialData, onSave, onClose }) {
   const numVal = parseInt(rawVal.replace(/\s/g, ''), 10)
   const isValid = !isNaN(numVal) && numVal >= 0
 
+  function cubeSetState(s) {
+    const el = cubeRef.current
+    if (!el || el.classList.contains('angry-disappear')) return
+    el.classList.remove('state-idle', 'state-animate', 'state-suck')
+    void el.offsetWidth
+    el.classList.add('state-' + s)
+  }
+
+  // Animate plate in when modal first opens
+  useEffect(() => {
+    if (open) {
+      const t = setTimeout(() => cubeSetState('animate'), 80)
+      return () => clearTimeout(t)
+    }
+  }, [open])
+
+  // Animate plate in when icon changes (new step loaded)
+  useEffect(() => {
+    if (skipNextIconEffect.current) { skipNextIconEffect.current = false; return }
+    cubeSetState('animate')
+  }, [plateIconId])
+
   function handleInput(e) {
     const digits = e.target.value.replace(/\D/g, '')
     setValues(v => ({ ...v, [current.id]: digits }))
@@ -135,15 +185,27 @@ function FinancialModal({ open, initialData, onSave, onClose }) {
 
   function next() {
     if (!isValid) return
+    cubeSetState('suck')
     if (step < steps.length - 1) {
-      setStep(s => s + 1)
+      setTimeout(() => {
+        const ns = step + 1
+        setStep(ns)
+        setPlateIconId(steps[ns]?.id || 'income')
+      }, 380)
     } else {
-      setDone(true)
+      setTimeout(() => setDone(true), 550)
     }
   }
 
   function back() {
-    if (step > 0) setStep(s => s - 1)
+    if (step > 0) {
+      cubeSetState('suck')
+      setTimeout(() => {
+        const ps = step - 1
+        setStep(ps)
+        setPlateIconId(steps[ps]?.id || 'income')
+      }, 320)
+    }
   }
 
   function handleSave() {
@@ -167,6 +229,10 @@ function FinancialModal({ open, initialData, onSave, onClose }) {
   function handleClose() {
     setStep(0)
     setDone(false)
+    setPlateIconId('income')
+    skipNextIconEffect.current = true
+    clickCountRef.current = 0
+    clearTimeout(clickTimerRef.current)
     setValues({
       income:       String(initialData.income),
       housing:      String(initialData.housing),
@@ -177,61 +243,139 @@ function FinancialModal({ open, initialData, onSave, onClose }) {
     onClose()
   }
 
+  function handleCubeClick() {
+    const el = cubeRef.current
+    if (!el || el.classList.contains('angry-disappear')) return
+
+    clickCountRef.current++
+    el.classList.remove('angry-shake', 'show-face')
+    void el.offsetWidth
+
+    if (clickCountRef.current <= 2) {
+      el.classList.add('angry-shake')
+    } else if (clickCountRef.current === 3) {
+      el.classList.add('angry-shake', 'show-face')
+    } else {
+      el.classList.remove('state-animate', 'state-suck', 'state-idle')
+      el.classList.add('angry-disappear')
+      clickCountRef.current = 0
+      setTimeout(() => {
+        if (el) {
+          el.classList.remove('angry-disappear')
+          cubeSetState('animate')
+        }
+      }, 1200)
+    }
+
+    clearTimeout(clickTimerRef.current)
+    clickTimerRef.current = setTimeout(() => {
+      if (el && !el.classList.contains('angry-disappear')) {
+        el.classList.remove('angry-shake', 'show-face')
+        clickCountRef.current = 0
+      }
+    }, 1500)
+  }
+
   if (!open) return null
 
-  return (
+  return createPortal(
     <div className="quiz-overlay open" onClick={e => e.target === e.currentTarget && handleClose()}>
-      <div className="quiz-modal fin-modal">
-        <div className="quiz-progress-bar" style={{ width: `${progress}%` }} />
-        <div className="quiz-inner">
-          {done ? (
-            <div className="quiz-result">
-              <div className="quiz-result-icon">✅</div>
-              <div className="quiz-result-title">Данные обновлены</div>
-              <div className="quiz-result-desc">
-                Финансовая картина и прогноз накоплений пересчитаны с новыми данными
-              </div>
-              <button className="quiz-result-btn" onClick={handleSave}>
-                Сохранить →
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className="fin-step-icon">{current.icon}</div>
-              <div className="quiz-q">{current.q}</div>
-              <div className="fin-step-hint">{current.hint}</div>
-              <div className="fin-input-wrap">
-                <input
-                  className="fin-input"
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="0"
-                  value={rawVal ? parseInt(rawVal).toLocaleString('ru') : ''}
-                  onChange={handleInput}
-                  onKeyDown={e => e.key === 'Enter' && next()}
-                  autoFocus
-                />
-                <span className="fin-input-unit">{current.unit}</span>
-              </div>
-              <div className="quiz-actions">
-                {step > 0 && (
-                  <button className="quiz-btn-skip" onClick={back}>← Назад</button>
-                )}
-                <button
-                  className="quiz-btn-next"
-                  onClick={next}
-                  disabled={!isValid}
-                  style={{ opacity: isValid ? 1 : 0.4, cursor: isValid ? 'pointer' : 'default' }}
-                >
-                  {step < steps.length - 1 ? 'Далее →' : 'Завершить'}
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+      <div className="quiz-modal fin-modal-v2">
+        <div className="quiz-progress-bar" style={{ width: done ? '100%' : `${progress}%` }} />
         <button className="fin-modal-close" onClick={handleClose} title="Закрыть">✕</button>
+
+        <div className="fin-v2-layout">
+          {/* ── Cube character ── */}
+          <div className="fin-v2-cube-col">
+            <div ref={cubeRef} className="cw">
+              <svg width="260" height="260" viewBox="0 0 260 260" fill="none">
+                <defs>
+                  <clipPath id="portalClip">
+                    <path d="M-100 -100 H360 V175 H175 A 45 7 0 0 1 85 175 H-100 Z" />
+                  </clipPath>
+                  <mask id="outsideMask">
+                    <rect width="260" height="260" fill="white"/>
+                    <rect x="90" y="90" width="80" height="80" rx="18" fill="black"/>
+                  </mask>
+                </defs>
+
+                <ellipse id="portal-ellipse" cx="130" cy="175" rx="45" ry="7" />
+
+                <g id="masked-content">
+                  <g id="cube-group">
+                    <rect id="main-rect" x="90" y="90" width="80" height="80" rx="18" onClick={handleCubeClick} />
+                    <g id="cube-inner" style={{ pointerEvents: 'none' }}>
+                      <rect id="cube-inner-bg" x="104" y="104" width="52" height="52" rx="10" fill="#EEEDE9"/>
+                      <path className="check-path" d="M115 132 L124 141 L146 119" stroke="#0E0E0C" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                      <g id="disgruntled-face">
+                        <rect x="115" y="125" width="8" height="3" rx="1.5" fill="#0E0E0C"/>
+                        <rect x="137" y="125" width="8" height="3" rx="1.5" fill="#0E0E0C"/>
+                        <path d="M120 140 Q124 137 128 140 Q132 143 136 140 Q139 138 140 140" stroke="#0E0E0C" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+
+                <g id="plate" mask="url(#outsideMask)">
+                  <rect x="178" y="90" width="4" height="42" rx="2" fill="#0E0E0C"/>
+                  <rect x="158" y="56" width="44" height="34" rx="6" fill="#0E0E0C"/>
+                  <rect x="161" y="59" width="38" height="28" rx="4" fill="#EEEDE9"/>
+                  <g transform="translate(180, 73)" textAnchor="middle">
+                    {PLATE_ICONS[plateIconId]}
+                  </g>
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          {/* ── Form area ── */}
+          <div className="fin-v2-form">
+            {done ? (
+              <div className="fin-v2-done">
+                <div className="fin-v2-done-title">Данные обновлены</div>
+                <div className="fin-v2-done-desc">
+                  Финансовая картина и прогноз накоплений пересчитаны с новыми данными
+                </div>
+                <div className="quiz-actions" style={{ marginTop: 20 }}>
+                  <button className="quiz-result-btn" onClick={handleSave}>Сохранить →</button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="fin-v2-q">{current.q}</div>
+                <div className="fin-v2-hint">{current.hint}</div>
+                <div className="fin-input-wrap">
+                  <input
+                    className="fin-input"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={rawVal ? parseInt(rawVal).toLocaleString('ru') : ''}
+                    onChange={handleInput}
+                    onKeyDown={e => e.key === 'Enter' && next()}
+                    autoFocus
+                  />
+                  <span className="fin-input-unit">{current.unit}</span>
+                </div>
+                <div className="quiz-actions">
+                  {step > 0 && <button className="quiz-btn-skip" onClick={back}>← Назад</button>}
+                  <button
+                    className="quiz-btn-next"
+                    onClick={next}
+                    disabled={!isValid}
+                    style={{ opacity: isValid ? 1 : 0.4, cursor: isValid ? 'pointer' : 'default' }}
+                  >
+                    {step < steps.length - 1 ? 'Далее →' : 'Завершить'}
+                  </button>
+                </div>
+                <div className="fin-v2-counter">{step + 1} / {steps.length}</div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

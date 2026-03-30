@@ -2853,6 +2853,100 @@ body.dark .auth-modal { box-shadow: 0 24px 64px rgba(0,0,0,0.5); }
 }
 .quiz-result-btn:hover { opacity: 0.88; }
 
+/* ── Financial modal v2 — with cube ── */
+.fin-modal-v2 {
+  width: 680px; max-width: calc(100vw - 32px);
+  position: relative;
+}
+.fin-v2-layout {
+  display: flex; align-items: center; gap: 0;
+  padding: 20px 28px 28px 20px;
+  min-height: 300px;
+}
+.fin-v2-cube-col {
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.fin-v2-form {
+  flex: 1; min-width: 0;
+  padding-left: 20px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.fin-v2-q {
+  font-size: 20px; font-weight: 700; color: var(--text);
+  letter-spacing: -0.03em; line-height: 1.25; margin-bottom: 8px;
+}
+.fin-v2-hint {
+  font-size: 13px; color: var(--text-3); line-height: 1.5; margin-bottom: 20px;
+}
+.fin-v2-counter {
+  font-size: 12px; color: var(--text-3); margin-top: 12px;
+  font-family: var(--mono); letter-spacing: 0.02em;
+}
+.fin-v2-done {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.fin-v2-done-title {
+  font-size: 22px; font-weight: 700; letter-spacing: -0.03em; color: var(--text);
+}
+.fin-v2-done-desc {
+  font-size: 14px; color: var(--text-3); line-height: 1.55;
+}
+@media (max-width: 560px) {
+  .fin-modal-v2 { width: calc(100vw - 32px); }
+  .fin-v2-layout { flex-direction: column; padding: 12px 20px 24px; gap: 4px; }
+  .fin-v2-cube-col { transform: scale(0.72); transform-origin: center top; }
+  .fin-v2-form { padding-left: 0; padding-top: 0; width: 100%; }
+}
+
+/* ── Cube character styles (keep as-is from raw prototype) ── */
+.cw { width:260px; height:260px; display:flex; justify-content:center; align-items:center; position: relative; }
+#main-rect { fill: #0E0E0C; cursor: pointer; transition: fill 0.1s; transform-origin: center; }
+@keyframes cubeMicroShake {
+  0% { transform: translate(0.3px, 0.3px); }
+  50% { transform: translate(-0.3px, -0.3px); }
+  100% { transform: translate(0.3px, 0.3px); }
+}
+.angry-shake #main-rect { animation: cubeMicroShake 0.02s infinite; }
+.angry-shake #cube-inner-bg { fill: #FF0000; }
+#portal-ellipse { fill: #0E0E0C; opacity: 0; transform-origin: center; transform: scaleX(0); }
+.angry-disappear #portal-ellipse { animation: cubePortalOpenClose 1s ease-in-out forwards; }
+@keyframes cubePortalOpenClose {
+  0%   { opacity: 0; transform: scaleX(0); }
+  10%  { opacity: 0.4; transform: scaleX(1.2); }
+  85%  { opacity: 0.4; transform: scaleX(1.2); }
+  100% { opacity: 0; transform: scaleX(0); }
+}
+@keyframes cubeJumpIntoPortal {
+  0%   { transform: translateY(0); }
+  15%  { transform: translateY(-75px) scaleY(1.1); }
+  30%  { transform: translateY(-75px); }
+  100% { transform: translateY(200px); }
+}
+.angry-disappear #cube-group { animation: cubeJumpIntoPortal 1s cubic-bezier(0.5, 0, 0.5, 1) forwards; }
+.angry-disappear #masked-content { clip-path: url(#portalClip); }
+.check-path { opacity: 0; stroke-dasharray: 60; stroke-dashoffset: 60; }
+.state-suck .check-path { opacity: 1; animation: cubeDrawCheck 0.4s ease-out forwards 0.1s; }
+.angry-shake .check-path, .show-face .check-path, .angry-disappear .check-path { display: none !important; }
+#disgruntled-face { opacity: 0; transition: opacity 0.1s; }
+.show-face #disgruntled-face { opacity: 1; }
+@keyframes cubeDrawCheck { to { stroke-dashoffset: 0; } }
+#plate { opacity: 0; transform-origin: 180px 130px; pointer-events: none; }
+.state-animate #plate {
+  opacity: 1;
+  animation: cubePlatePopOut 0.2s ease-out forwards, cubePlateFullSwipe 0.6s cubic-bezier(0.2, 0.8, 0.2, 1.1) forwards;
+}
+.state-suck #plate {
+  opacity: 1;
+  animation: cubePlateSuckIn 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+@keyframes cubePlatePopOut { 0% { transform: translate(-30px, 20px); } 100% { transform: translate(0, -20px); } }
+@keyframes cubePlateFullSwipe { 0% { transform: rotate(-225deg) scale(0.5); } 100% { transform: rotate(-330deg) scale(1.1); } }
+@keyframes cubePlateSuckIn {
+  0%   { transform: translate(0, -20px) rotate(-330deg) scale(1.1); opacity: 1; }
+  100% { transform: translate(-50px, 50px) rotate(-220deg) scale(0); opacity: 0; }
+}
+
 /* ── Financial modal overrides ── */
 .fin-modal { position: relative; }
 .fin-step-icon { font-size: 32px; margin-bottom: 12px; }
@@ -4931,7 +5025,9 @@ body.dark .article-type-badge { background: #1A2820; color: #7AAF96; border-colo
   background: var(--surface); border-radius: var(--r);
   border: 1px solid var(--border); overflow: hidden;
 }
-.hero-body { padding: 28px 32px 24px; }
+.hero-body { padding: 28px 32px 24px; display: flex; align-items: flex-start; gap: 16px; }
+.hero-body-main { flex: 1; min-width: 0; }
+.hero-body-actions { flex-shrink: 0; padding-top: 4px; }
 .hero-badges { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
 .hero-title { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.2; margin-bottom: 12px; }
 .hero-desc { font-size: 15px; color: var(--text-2); line-height: 1.6; letter-spacing: -0.01em; }

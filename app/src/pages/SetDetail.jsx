@@ -714,98 +714,21 @@ export default function SetDetail() {
           }
         </div>
 
-        {/* ── UNIFIED CARD: hero + about + items ── */}
+        {/* ── UNIFIED CARD: hero + items + about + meta ── */}
         <div id="sp-sd-hero" className="hero-card">
           <div className="hero-body">
-            <div className="hero-title">{set.title}</div>
-            <div className="hero-desc">{set.desc}</div>
+            <div className="hero-body-main">
+              <div className="hero-title">{set.title}</div>
+              <div className="hero-desc">{set.desc}</div>
+            </div>
+            {!isPersonal && (
+              <div className="hero-body-actions">
+                <AddInventoryBtn added={added} onAdd={handleAdd} onRemove={handleRemove} />
+              </div>
+            )}
           </div>
 
-          {/* Detailed description — collapsible */}
-          {detail?.about && (
-            <div className="sd-about-wrap">
-              <div className={`content-body sd-about-body${showAbout ? '' : ' sd-about-collapsed'}`}>
-                <h2>{detail.about.title}</h2>
-                {detail.about.paragraphs.map((p, i) => <p key={i}>{p}</p>)}
-              </div>
-              {!showAbout && (
-                <div className="sd-about-fade">
-                  <button className="sd-about-expand" onClick={() => setShowAbout(true)}>Показать всё</button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Meta + actions row */}
-          <div className="art-meta-row">
-              {!isPersonal && detail?.author && (
-                <SetAuthorChip
-                  author={detail.author}
-                  authorSlug={set.source || 'ss'}
-                  navigate={navigate}
-                  color={`linear-gradient(135deg, ${color}, #B8A0C8)`}
-                  date={set.added ? fmtDate(set.added) : null}
-                />
-              )}
-              {!isPersonal && detail?.author && <div className="art-meta-sep" />}
-              {isPersonal && (
-                <div className="sd-personal-actions">
-                  <button
-                    className={`sd-personal-state${envPaused ? ' paused' : ''}`}
-                    onClick={toggleEnvPause}
-                    title={envPaused ? 'Запустить набор' : 'Поставить на паузу'}
-                  >
-                    {envPaused ? (
-                      <><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Запустить</>
-                    ) : (
-                      <><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> На паузу</>
-                    )}
-                  </button>
-                  <button className="sd-personal-delete" onClick={() => { setDeleteConfirmText(''); setShowDeleteModal(true) }} title="Удалить набор из профиля">
-                    <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
-                    </svg>
-                  </button>
-                </div>
-              )}
-              {!isPersonal && set.users != null && (
-                <><div className="art-meta-sep" />
-                <div className="fa-action-stat">
-                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
-                  </svg>
-                  {fmtNum(set.users)}
-                </div></>
-              )}
-              {!isPersonal && <LikeBtn liked={liked} count={(catalog?.likes || 0) + (liked ? 1 : 0)} onToggle={toggleLike} />}
-              {!isPersonal && comments.length > 0 && (
-                <div className="fa-action-stat fa-action-stat--link"
-                  onClick={() => document.getElementById('sd-comments-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
-                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                  </svg>
-                  {comments.length}
-                </div>
-              )}
-              {!isPersonal && allArticles.length > 0 && (
-                <div className="fa-action-stat fa-action-stat--link"
-                  onClick={() => document.getElementById('sd-articles-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
-                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                    <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-                  </svg>
-                  {allArticles.length}
-                </div>
-              )}
-              {!isPersonal && <DislikeBtn disliked={disliked} onToggle={toggleDislike} />}
-              {!isPersonal && <BookmarkBtn bookmarked={bookmarked} onToggle={() => setBookmarked(b => !b)} />}
-              <div className="f-spacer" />
-              {!isPersonal && <AddInventoryBtn added={added} onAdd={handleAdd} onRemove={handleRemove} />}
-            </div>
-
-          {/* Items section — merged into unified card */}
+          {/* Items section */}
           {tableItems ? (
             <>
               <div id="sp-sd-items" className="sd-section-header">
@@ -982,6 +905,88 @@ export default function SetDetail() {
               </div>
             </>
           )}
+
+          {/* Detailed description — collapsible */}
+          {detail?.about && (
+            <div className="sd-about-wrap">
+              <div className={`content-body sd-about-body${showAbout ? '' : ' sd-about-collapsed'}`}>
+                <h2>{detail.about.title}</h2>
+                {detail.about.paragraphs.map((p, i) => <p key={i}>{p}</p>)}
+              </div>
+              {!showAbout && (
+                <div className="sd-about-fade">
+                  <button className="sd-about-expand" onClick={() => setShowAbout(true)}>Показать всё</button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Meta + actions row */}
+          <div className="art-meta-row">
+            {!isPersonal && detail?.author && (
+              <SetAuthorChip
+                author={detail.author}
+                authorSlug={set.source || 'ss'}
+                navigate={navigate}
+                color={`linear-gradient(135deg, ${color}, #B8A0C8)`}
+                date={set.added ? fmtDate(set.added) : null}
+              />
+            )}
+            {!isPersonal && detail?.author && <div className="art-meta-sep" />}
+            {isPersonal && (
+              <div className="sd-personal-actions">
+                <button
+                  className={`sd-personal-state${envPaused ? ' paused' : ''}`}
+                  onClick={toggleEnvPause}
+                  title={envPaused ? 'Запустить набор' : 'Поставить на паузу'}
+                >
+                  {envPaused ? (
+                    <><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Запустить</>
+                  ) : (
+                    <><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> На паузу</>
+                  )}
+                </button>
+                <button className="sd-personal-delete" onClick={() => { setDeleteConfirmText(''); setShowDeleteModal(true) }} title="Удалить набор из профиля">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+                  </svg>
+                </button>
+              </div>
+            )}
+            {!isPersonal && set.users != null && (
+              <><div className="art-meta-sep" />
+              <div className="fa-action-stat">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+                </svg>
+                {fmtNum(set.users)}
+              </div></>
+            )}
+            {!isPersonal && <LikeBtn liked={liked} count={(catalog?.likes || 0) + (liked ? 1 : 0)} onToggle={toggleLike} />}
+            {!isPersonal && comments.length > 0 && (
+              <div className="fa-action-stat fa-action-stat--link"
+                onClick={() => document.getElementById('sd-comments-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                {comments.length}
+              </div>
+            )}
+            {!isPersonal && allArticles.length > 0 && (
+              <div className="fa-action-stat fa-action-stat--link"
+                onClick={() => document.getElementById('sd-articles-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                {allArticles.length}
+              </div>
+            )}
+            {!isPersonal && <DislikeBtn disliked={disliked} onToggle={toggleDislike} />}
+            {!isPersonal && <BookmarkBtn bookmarked={bookmarked} onToggle={() => setBookmarked(b => !b)} />}
+          </div>
         </div>
 
         {/* ── PARENT SET CARD (personal only) ── */}
