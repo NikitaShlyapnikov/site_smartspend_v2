@@ -414,7 +414,11 @@ body.dark .fsel-option.active { background: var(--accent-green); border-color: v
   min-width: 0; max-width: var(--page-max); width: 100%; margin: 0 auto;
   height: 100vh; overflow: hidden;
 }
-.page-header { padding: 32px 36px 0; flex-shrink: 0; }
+.page-header {
+  padding: 32px 36px 0; flex-shrink: 0;
+  position: sticky; top: 0; z-index: 20;
+  background: var(--bg);
+}
 
 /* ── Header filter icon button ── */
 .header-filter-btn {
@@ -434,37 +438,16 @@ body.dark .fsel-option.active { background: var(--accent-green); border-color: v
   border: 1.5px solid var(--bg);
 }
 
-/* ── Filter drawer ── */
-.filter-drawer-overlay {
-  position: fixed; inset: 0; z-index: 300;
-  background: rgba(0,0,0,0.35);
-  animation: fdFadeIn 0.18s ease;
+/* ── Header filter panel (drops from title) ── */
+.header-filter-panel {
+  padding: 12px 0 16px;
+  border-bottom: 1px solid var(--border);
+  animation: hfpSlideDown 0.2s ease;
+  overflow: hidden;
 }
-@keyframes fdFadeIn { from { opacity: 0; } to { opacity: 1; } }
-.filter-drawer {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 301;
-  background: var(--surface);
-  border-radius: 20px 20px 0 0;
-  padding: 0 24px 40px;
-  max-height: 85vh; overflow-y: auto;
-  scrollbar-width: none;
-  animation: fdSlideUp 0.22s cubic-bezier(0.34, 1.2, 0.64, 1);
-}
-.filter-drawer::-webkit-scrollbar { display: none; }
-@keyframes fdSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-.filter-drawer-handle {
-  width: 36px; height: 4px; border-radius: 2px;
-  background: var(--border); margin: 12px auto 0;
-}
-.filter-drawer-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 0 4px;
-}
-.filter-drawer-label { font-size: 15px; font-weight: 600; color: var(--text); font-family: var(--sans); }
-.filter-drawer-close {
-  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
-  background: var(--surface-2); border: none; border-radius: 50%;
-  cursor: pointer; color: var(--text-2);
+@keyframes hfpSlideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .filters-sticky {
@@ -1155,6 +1138,8 @@ body.dark .reset-btn:hover { background: rgba(224, 112, 112, 0.22); border-color
 .catalog-header {
   padding: 32px 36px 0;
   flex-shrink: 0;
+  position: sticky; top: 0; z-index: 20;
+  background: var(--bg);
 }
 .catalog-filters-bar {
   padding: 16px 0 12px;

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import FeedEndBlock from '../components/FeedEndBlock'
-import FilterDrawer, { FilterIconBtn } from '../components/FilterDrawer'
+import { FilterIconBtn } from '../components/FilterDrawer'
 import { feedItems, feedAuthors } from '../data/mock'
 
 const FEED_SPOTLIGHT = [
@@ -931,8 +931,28 @@ export default function Feed() {
           <div className="page-title" style={{display:'flex',alignItems:'center',gap:10}}>
             Лента
             <HelpButton seenKey="ss_spl_feed" onOpen={() => setShowSpotlight(true)} />
-            {filtersHidden && <FilterIconBtn active={!!hasFilters} onClick={() => setShowFilterDrawer(true)} />}
+            {filtersHidden && <FilterIconBtn active={!!hasFilters} onClick={() => setShowFilterDrawer(v => !v)} />}
           </div>
+          {filtersHidden && showFilterDrawer && (
+            <div className="header-filter-panel">
+              <div className="filters-block">
+                <div className="cats-scroll feed-mode-pills">
+                  {MODES.map(m => (
+                    <button key={String(m.id)} className={`cat-pill${mode === m.id ? ' active' : ''}`}
+                      onClick={() => setMode(m.id)}>{m.label}</button>
+                  ))}
+                </div>
+                <SortDropdown sort={sort} onSort={setSort} />
+                <FilterSelect items={CATEGORIES} value={cat} onChange={handleCatChange} placeholder="Категории" />
+                {hasFilters && (
+                  <div className="filter-summary">
+                    <span>{filtered.length} {noun(filtered.length)}</span>
+                    <button className="reset-btn" onClick={resetFilters}>Сбросить</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="feed-scroll" ref={feedScrollRef}>
@@ -1006,26 +1026,6 @@ export default function Feed() {
 
       {showWelcome && <WelcomeTour onClose={() => setShowWelcome(false)} />}
       {showSpotlight && <SpotlightTour steps={FEED_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
-      {showFilterDrawer && (
-        <FilterDrawer onClose={() => setShowFilterDrawer(false)}>
-          <div className="filters-block">
-            <div className="cats-scroll feed-mode-pills">
-              {MODES.map(m => (
-                <button key={String(m.id)} className={`cat-pill${mode === m.id ? ' active' : ''}`}
-                  onClick={() => setMode(m.id)}>{m.label}</button>
-              ))}
-            </div>
-            <SortDropdown sort={sort} onSort={setSort} />
-            <FilterSelect items={CATEGORIES} value={cat} onChange={handleCatChange} placeholder="Категории" />
-            {hasFilters && (
-              <div className="filter-summary">
-                <span>{filtered.length} {noun(filtered.length)}</span>
-                <button className="reset-btn" onClick={resetFilters}>Сбросить</button>
-              </div>
-            )}
-          </div>
-        </FilterDrawer>
-      )}
     </Layout>
   )
 }

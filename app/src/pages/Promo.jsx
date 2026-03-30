@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import FeedEndBlock from '../components/FeedEndBlock'
-import FilterDrawer, { FilterIconBtn } from '../components/FilterDrawer'
+import { FilterIconBtn } from '../components/FilterDrawer'
 import { companies, promoItems, whisperItems as whisperItemsMock } from '../data/mock'
 
 const WHISPER_EMOJIS = [
@@ -1193,8 +1193,41 @@ export default function Promo() {
           <div className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             Промо
             <HelpButton seenKey="ss_spl_promo" onOpen={() => setShowSpotlight(true)} />
-            {filtersHidden && <FilterIconBtn active={!!hasFilters} onClick={() => setShowFilterDrawer(true)} />}
+            {filtersHidden && <FilterIconBtn active={!!hasFilters} onClick={() => setShowFilterDrawer(v => !v)} />}
           </div>
+          {filtersHidden && showFilterDrawer && (
+            <div className="header-filter-panel">
+              <div className="filters-block">
+                <div className="promo-selects-row">
+                  <div><SimpleSelect label="Источник" options={TYPE_CHIPS} value={typeFilter} onChange={setTypeFilter} /></div>
+                  <div><SimpleSelect label="Условия" options={ACTS_FILTERS} value={actsFilter} onChange={setActsFilter} disabled={typeFilter === 'broadcast'} /></div>
+                </div>
+                <div className="cats-scroll promo-type-chips">
+                  <button className={`cat-pill${promoScope === 'mine' ? ' active' : ''}`} onClick={() => setPromoScope('mine')}>Мои компании</button>
+                  <button className={`cat-pill${promoScope === 'all' ? ' active' : ''}`} onClick={() => setPromoScope('all')}>Все компании</button>
+                  <button className="cat-pill cat-pill--edit" onClick={() => navigate('/company-picker', { state: { edit: true } })}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    Изменить компании
+                  </button>
+                </div>
+                <CompanySearch onSelect={handleCompanySearch} />
+                <FilterSelect items={CATEGORIES.filter(c => c.id === 'all' || PROMO_CATS_WITH_ITEMS.has(c.id))} value={promoCat} onChange={handlePromoCat} placeholder="Категории" />
+                {promoCat.size > 0 && (() => {
+                  const coItems = [...promoCat].flatMap(catId => companies[catId]?.list || []).map(c => ({ id: c.id, label: c.name }))
+                  return coItems.length > 0 ? <FilterSelect items={coItems} value={promoCompany} onChange={handlePromoCompany} placeholder="Компании" /> : null
+                })()}
+                {hasFilters && (
+                  <div className="filter-summary">
+                    <span>{filtered.length} {noun(filtered.length)}</span>
+                    <button className="reset-btn" onClick={resetFilters}>Сбросить</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="feed-scroll" ref={scrollRef}>
@@ -1306,32 +1339,6 @@ export default function Promo() {
       </main>
       {showSpotlight && <SpotlightTour steps={PROMO_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
       {extUrl && <ExternalLinkModal url={extUrl} onClose={() => setExtUrl(null)} />}
-      {showFilterDrawer && (
-        <FilterDrawer onClose={() => setShowFilterDrawer(false)}>
-          <div className="filters-block">
-            <div className="promo-selects-row">
-              <div><SimpleSelect label="Источник" options={TYPE_CHIPS} value={typeFilter} onChange={setTypeFilter} /></div>
-              <div><SimpleSelect label="Условия" options={ACTS_FILTERS} value={actsFilter} onChange={setActsFilter} disabled={typeFilter === 'broadcast'} /></div>
-            </div>
-            <div className="cats-scroll promo-type-chips">
-              <button className={`cat-pill${promoScope === 'mine' ? ' active' : ''}`} onClick={() => setPromoScope('mine')}>Мои компании</button>
-              <button className={`cat-pill${promoScope === 'all' ? ' active' : ''}`} onClick={() => setPromoScope('all')}>Все компании</button>
-            </div>
-            <CompanySearch onSelect={handleCompanySearch} />
-            <FilterSelect items={CATEGORIES.filter(c => c.id === 'all' || PROMO_CATS_WITH_ITEMS.has(c.id))} value={promoCat} onChange={handlePromoCat} placeholder="Категории" />
-            {promoCat.size > 0 && (() => {
-              const coItems = [...promoCat].flatMap(catId => companies[catId]?.list || []).map(c => ({ id: c.id, label: c.name }))
-              return coItems.length > 0 ? <FilterSelect items={coItems} value={promoCompany} onChange={handlePromoCompany} placeholder="Компании" /> : null
-            })()}
-            {hasFilters && (
-              <div className="filter-summary">
-                <span>{filtered.length} {noun(filtered.length)}</span>
-                <button className="reset-btn" onClick={resetFilters}>Сбросить</button>
-              </div>
-            )}
-          </div>
-        </FilterDrawer>
-      )}
     </Layout>
   )
 }
