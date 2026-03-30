@@ -432,10 +432,8 @@ body.dark .fsel-option.active { background: var(--accent-green); border-color: v
   padding: 20px 36px 40px;
   display: flex; flex-direction: column; gap: 20px;
 }
-.feed-scroll::-webkit-scrollbar { width: 6px; }
-.feed-scroll::-webkit-scrollbar-track { background: transparent; }
-.feed-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-.feed-scroll::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+.feed-scroll::-webkit-scrollbar { display: none; }
+.feed-scroll { scrollbar-width: none; }
 
 .filters-block { display: flex; flex-direction: column; gap: 8px; }
 .filters-row1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -1080,7 +1078,6 @@ body.dark .reset-btn:hover { background: rgba(224, 112, 112, 0.22); border-color
   padding: 16px 36px 12px;
   flex-shrink: 0;
   background: var(--bg);
-  border-bottom: 1px solid var(--border);
 }
 .catalog-scroll {
   flex: 1; overflow-y: auto;
