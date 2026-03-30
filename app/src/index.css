@@ -618,15 +618,15 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px;
 }
 .fa-meta-row .author-chip-date { font-size: 11px; white-space: nowrap; }
-/* actions — никогда не сжимаются */
+/* actions — прижаты к автору, не сжимаются */
 .fa-meta-actions {
   display: flex; align-items: center; gap: 4px;
-  margin-left: auto; flex-shrink: 0;
+  flex-shrink: 0;
 }
-/* right: category + set — фиксированная ширина, текст обрубается */
+/* right: category + set — прижаты вправо, больше места */
 .fa-meta-right {
   display: flex; flex-direction: column; align-items: flex-end; gap: 3px;
-  flex-shrink: 0; margin-left: 6px; max-width: 100px;
+  flex-shrink: 0; margin-left: auto; max-width: 140px;
 }
 .fa-sep { font-size: 11px; color: var(--text-3); user-select: none; }
 .fa-category {

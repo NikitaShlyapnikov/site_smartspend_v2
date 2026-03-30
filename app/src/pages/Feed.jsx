@@ -433,7 +433,12 @@ function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeTo
 
       {/* Author · Actions · Category+Set — single row */}
       <div className="fa-meta-row" onClick={e => e.stopPropagation()}>
-        <AuthorChip author={author} authorId={item.authorId} navigate={navigate} date={item.time} />
+        <AuthorChip
+          author={author}
+          authorId={item.authorId}
+          navigate={navigate}
+          date={[item.time, item.readTime ? `${item.readTime} мин` : null].filter(Boolean).join(' · ')}
+        />
 
         <div className="fa-meta-actions">
           <LikeBtn liked={isLiked} count={item.likes + (isLiked ? 1 : 0)} onToggle={() => onLikeToggle(item.id)} />
@@ -840,11 +845,18 @@ export default function Feed() {
   const [dislikedIds,   setDislikedIds]   = useState(new Set())
   const [bookmarkedIds, setBookmarkedIds] = useState(new Set())
   const [filtersScrolled, setFiltersScrolled] = useState(false)
+  const feedScrollElRef = useRef(null)
 
   const feedScrollRef = useCallback(el => {
+    if (feedScrollElRef.current) {
+      feedScrollElRef.current.removeEventListener('scroll', feedScrollElRef._handler)
+    }
+    feedScrollElRef.current = el
     if (!el) return
     setFiltersScrolled(false)
-    el.addEventListener('scroll', () => setFiltersScrolled(el.scrollTop > 8), { passive: true })
+    const handler = () => setFiltersScrolled(el.scrollTop > 8)
+    feedScrollElRef._handler = handler
+    el.addEventListener('scroll', handler, { passive: true })
   }, [])
 
   function handleCategoryQuickFilter(catId) {
@@ -879,10 +891,6 @@ export default function Feed() {
     setBookmarkedIds(prev => {
       const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next
     })
-  }
-
-  function toggleMode(m) {
-    setMode(prev => prev === m ? null : m)
   }
 
   const allItems = [...userArticles, ...feedItems]
@@ -955,21 +963,27 @@ export default function Feed() {
           <div id="sp-feed-list" className="feed-list">
             {filtered.length === 0 ? (
               <div className="empty-state">
-                {mode === 'liked' && bookmarkedIds.size === 0 ? (
+                {mode === 'liked' && likedIds.size === 0 ? (
                   <>
-                    <div className="empty-icon">🔖</div>
+                    <div className="empty-icon"><svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></div>
                     <div className="empty-title">Закладок пока нет</div>
                     <div className="empty-desc">Нажмите <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:'middle',margin:'0 2px'}}><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> на любой статье, чтобы сохранить её сюда</div>
                   </>
                 ) : mode === 'subscriptions' ? (
                   <>
-                    <div className="empty-icon">👥</div>
+                    <div className="empty-icon"><svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
                     <div className="empty-title">Нет подписок</div>
                     <div className="empty-desc">Подпишитесь на авторов через карточку профиля, чтобы видеть их статьи здесь</div>
                   </>
+                ) : mode === 'my-sets' ? (
+                  <>
+                    <div className="empty-icon"><svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+                    <div className="empty-title">Нет статей по вашим наборам</div>
+                    <div className="empty-desc">Добавьте наборы из каталога — статьи, связанные с ними, появятся здесь</div>
+                  </>
                 ) : (
                   <>
-                    <div className="empty-icon">🔍</div>
+                    <div className="empty-icon"><svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
                     <div className="empty-title">Ничего не найдено</div>
                     <div className="empty-desc">Попробуйте изменить фильтры</div>
                   </>
