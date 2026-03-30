@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import PublicLayout from '../components/PublicLayout'
@@ -539,6 +539,16 @@ export default function Catalog() {
   const [catalogDislikes, setCatalogDislikes] = useState(new Set())
   const { modal: authModal, requireAuth } = useAuthModal()
   const [showSpotlight, setShowSpotlight] = useState(false)
+  const [filtersScrolled, setFiltersScrolled] = useState(false)
+  const scrollElRef = useRef(null)
+  const catalogScrollRef = useCallback(el => {
+    if (scrollElRef.current) scrollElRef.current.removeEventListener('scroll', scrollElRef._handler)
+    scrollElRef.current = el
+    if (!el) return
+    const handler = () => setFiltersScrolled(el.scrollTop > 8)
+    scrollElRef._handler = handler
+    el.addEventListener('scroll', handler, { passive: true })
+  }, [])
 
   function toggleLike(id, e) {
     e.stopPropagation()
@@ -607,7 +617,7 @@ export default function Catalog() {
         </div>
 
         {/* Sticky Filters */}
-        <div id="sp-cat-filters" className="catalog-filters-bar">
+        <div id="sp-cat-filters" className={`catalog-filters-bar${filtersScrolled ? ' scrolled' : ''}`}>
           <div className="filters-block">
             {/* Row 1: source pills */}
             <div className="cats-scroll feed-mode-pills">
@@ -661,7 +671,7 @@ export default function Catalog() {
         </div>
 
         {/* Scrollable Grid */}
-        <div className="catalog-scroll">
+        <div className="catalog-scroll" ref={catalogScrollRef}>
         <div id="sp-cat-grid" className="catalog-grid">
           {filtered.length === 0 ? (
             sourceFilter === 'liked' && likedSets.size === 0 ? (

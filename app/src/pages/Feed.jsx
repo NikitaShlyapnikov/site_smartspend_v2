@@ -816,6 +816,39 @@ function FilterSelect({ items, value, onChange, placeholder }) {
   )
 }
 
+// ── CUBE + END OF FEED ────────────────────────────────────────────────────────
+
+function HappyCube({ size = 80, className = '' }) {
+  return (
+    <svg className={className} width={size} height={size} viewBox="0 0 80 80" fill="none">
+      <rect width="80" height="80" rx="18" fill="#0E0E0C"/>
+      <rect x="14" y="14" width="52" height="52" rx="10" fill="#EEEDE9"/>
+      <path d="M26 36 Q29 31 32 36" stroke="#0E0E0C" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M48 36 Q51 31 54 36" stroke="#0E0E0C" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+      <path d="M29 48 Q40 58 51 48" stroke="#0E0E0C" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+    </svg>
+  )
+}
+
+function FeedEndBlock({ onScrollTop }) {
+  return (
+    <div className="feed-end-block">
+      <div className="feed-end-cube-wrap">
+        <HappyCube size={96} className="feed-end-cube" />
+        <div className="feed-end-shadow" />
+      </div>
+      <div className="feed-end-title">Это всё</div>
+      <div className="feed-end-sub">Ты прочитал всё что было.<br/>Загляни позже — появится новое.</div>
+      <button className="feed-end-up-btn" onClick={onScrollTop}>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M6 10 L6 2 M2 5 L6 2 L10 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        Вернуться наверх
+      </button>
+    </div>
+  )
+}
+
 // ── PAGE ──────────────────────────────────────────────────────────────────────
 
 export default function Feed() {
@@ -831,6 +864,8 @@ export default function Feed() {
   const [dislikedIds,   setDislikedIds]   = useState(new Set())
   const [bookmarkedIds, setBookmarkedIds] = useState(new Set())
   const [filtersScrolled, setFiltersScrolled] = useState(false)
+  const [showScrollTop,   setShowScrollTop]   = useState(false)
+  const [isAtEnd,         setIsAtEnd]         = useState(false)
   const feedScrollElRef = useRef(null)
 
   const feedScrollRef = useCallback(el => {
@@ -840,10 +875,19 @@ export default function Feed() {
     feedScrollElRef.current = el
     if (!el) return
     setFiltersScrolled(false)
-    const handler = () => setFiltersScrolled(el.scrollTop > 8)
+    const handler = () => {
+      const { scrollTop, scrollHeight, clientHeight } = el
+      setFiltersScrolled(scrollTop > 8)
+      setShowScrollTop(scrollTop > 200)
+      setIsAtEnd(scrollTop + clientHeight >= scrollHeight - 80)
+    }
     feedScrollElRef._handler = handler
     el.addEventListener('scroll', handler, { passive: true })
   }, [])
+
+  function scrollToTop() {
+    feedScrollElRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   function handleCategoryQuickFilter(catId) {
     setCat(new Set([catId]))
@@ -975,23 +1019,34 @@ export default function Feed() {
                   </>
                 )}
               </div>
-            ) : filtered.map(item => (
-              <ArticleCard key={item.id} item={item}
-                isRead={readIds.has(item.id)}
-                isLiked={likedIds.has(item.id)}
-                isDisliked={dislikedIds.has(item.id)}
-                isBookmarked={bookmarkedIds.has(item.id)}
-                onLikeToggle={toggleLike}
-                onDislikeToggle={toggleDislike}
-                onBookmarkToggle={toggleBookmark}
-                onCategoryClick={handleCategoryQuickFilter}
-                onClick={handleItemClick}
-                navigate={navigate}
-              />
-            ))}
+            ) : <>
+              {filtered.map(item => (
+                <ArticleCard key={item.id} item={item}
+                  isRead={readIds.has(item.id)}
+                  isLiked={likedIds.has(item.id)}
+                  isDisliked={dislikedIds.has(item.id)}
+                  isBookmarked={bookmarkedIds.has(item.id)}
+                  onLikeToggle={toggleLike}
+                  onDislikeToggle={toggleDislike}
+                  onBookmarkToggle={toggleBookmark}
+                  onCategoryClick={handleCategoryQuickFilter}
+                  onClick={handleItemClick}
+                  navigate={navigate}
+                />
+              ))}
+              <FeedEndBlock onScrollTop={scrollToTop} />
+            </>}
           </div>
         </div>
       </main>
+
+      {/* Floating scroll-to-top cube */}
+      {showScrollTop && !isAtEnd && (
+        <button className="scroll-top-cube" onClick={scrollToTop} title="Наверх">
+          <HappyCube size={48} />
+        </button>
+      )}
+
       {showWelcome && <WelcomeTour onClose={() => setShowWelcome(false)} />}
       {showSpotlight && <SpotlightTour steps={FEED_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
     </Layout>
