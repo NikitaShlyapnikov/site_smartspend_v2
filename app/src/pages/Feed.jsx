@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import FeedEndBlock from '../components/FeedEndBlock'
+import FilterDrawer, { FilterIconBtn } from '../components/FilterDrawer'
 import { feedItems, feedAuthors } from '../data/mock'
 
 const FEED_SPOTLIGHT = [
@@ -831,9 +832,11 @@ export default function Feed() {
   const [likedIds,      setLikedIds]      = useState(new Set())
   const [dislikedIds,   setDislikedIds]   = useState(new Set())
   const [bookmarkedIds, setBookmarkedIds] = useState(new Set())
-  const [filtersScrolled, setFiltersScrolled] = useState(false)
-  const [bounceKey,       setBounceKey]       = useState(0)
+  const [filtersHidden,    setFiltersHidden]    = useState(false)
+  const [showFilterDrawer, setShowFilterDrawer] = useState(false)
+  const [bounceKey,        setBounceKey]        = useState(0)
   const feedScrollElRef = useRef(null)
+  const filtersRef      = useRef(null)
   const wasAtEndRef     = useRef(false)
 
   const feedScrollRef = useCallback(el => {
@@ -842,10 +845,12 @@ export default function Feed() {
     }
     feedScrollElRef.current = el
     if (!el) return
-    setFiltersScrolled(false)
     const handler = () => {
       const { scrollTop, scrollHeight, clientHeight } = el
-      setFiltersScrolled(scrollTop > 8)
+      if (filtersRef.current) {
+        const { offsetTop, offsetHeight } = filtersRef.current
+        setFiltersHidden(scrollTop >= offsetTop + offsetHeight)
+      }
       const atEnd = scrollTop + clientHeight >= scrollHeight - 80
       if (atEnd && !wasAtEndRef.current) setBounceKey(k => k + 1)
       wasAtEndRef.current = atEnd
@@ -926,39 +931,29 @@ export default function Feed() {
           <div className="page-title" style={{display:'flex',alignItems:'center',gap:10}}>
             Лента
             <HelpButton seenKey="ss_spl_feed" onOpen={() => setShowSpotlight(true)} />
-          </div>
-        </div>
-
-        <div id="sp-feed-filters" className={`filters-sticky${filtersScrolled ? ' scrolled' : ''}`}>
-          <div className="filters-block">
-            {/* Row 1: modes + sort */}
-            <div className="cats-scroll feed-mode-pills">
-              {MODES.map(m => (
-                <button key={String(m.id)} className={`cat-pill${mode === m.id ? ' active' : ''}`}
-                  onClick={() => setMode(m.id)}>{m.label}</button>
-              ))}
-            </div>
-
-            <SortDropdown sort={sort} onSort={setSort} />
-
-            <FilterSelect
-              items={CATEGORIES}
-              value={cat}
-              onChange={handleCatChange}
-              placeholder="Категории"
-            />
-
-            {/* Filter summary — shown inside sticky block */}
-            {hasFilters && (
-              <div className="filter-summary">
-                <span>{filtered.length} {noun(filtered.length)}</span>
-                <button className="reset-btn" onClick={resetFilters}>Сбросить</button>
-              </div>
-            )}
+            {filtersHidden && <FilterIconBtn active={!!hasFilters} onClick={() => setShowFilterDrawer(true)} />}
           </div>
         </div>
 
         <div className="feed-scroll" ref={feedScrollRef}>
+          <div id="sp-feed-filters" ref={filtersRef} className="filters-sticky">
+            <div className="filters-block">
+              <div className="cats-scroll feed-mode-pills">
+                {MODES.map(m => (
+                  <button key={String(m.id)} className={`cat-pill${mode === m.id ? ' active' : ''}`}
+                    onClick={() => setMode(m.id)}>{m.label}</button>
+                ))}
+              </div>
+              <SortDropdown sort={sort} onSort={setSort} />
+              <FilterSelect items={CATEGORIES} value={cat} onChange={handleCatChange} placeholder="Категории" />
+              {hasFilters && (
+                <div className="filter-summary">
+                  <span>{filtered.length} {noun(filtered.length)}</span>
+                  <button className="reset-btn" onClick={resetFilters}>Сбросить</button>
+                </div>
+              )}
+            </div>
+          </div>
           <div id="sp-feed-list" className="feed-list">
             {filtered.length === 0 ? (
               <div className="empty-state">
@@ -1011,6 +1006,26 @@ export default function Feed() {
 
       {showWelcome && <WelcomeTour onClose={() => setShowWelcome(false)} />}
       {showSpotlight && <SpotlightTour steps={FEED_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
+      {showFilterDrawer && (
+        <FilterDrawer onClose={() => setShowFilterDrawer(false)}>
+          <div className="filters-block">
+            <div className="cats-scroll feed-mode-pills">
+              {MODES.map(m => (
+                <button key={String(m.id)} className={`cat-pill${mode === m.id ? ' active' : ''}`}
+                  onClick={() => setMode(m.id)}>{m.label}</button>
+              ))}
+            </div>
+            <SortDropdown sort={sort} onSort={setSort} />
+            <FilterSelect items={CATEGORIES} value={cat} onChange={handleCatChange} placeholder="Категории" />
+            {hasFilters && (
+              <div className="filter-summary">
+                <span>{filtered.length} {noun(filtered.length)}</span>
+                <button className="reset-btn" onClick={resetFilters}>Сбросить</button>
+              </div>
+            )}
+          </div>
+        </FilterDrawer>
+      )}
     </Layout>
   )
 }

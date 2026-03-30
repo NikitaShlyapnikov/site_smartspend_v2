@@ -5,6 +5,7 @@ import PublicLayout from '../components/PublicLayout'
 import { useAuthModal } from '../components/AuthModal'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import FeedEndBlock from '../components/FeedEndBlock'
+import FilterDrawer, { FilterIconBtn } from '../components/FilterDrawer'
 import { catalogSets } from '../data/mock'
 
 const CATALOG_SPOTLIGHT = [
@@ -540,9 +541,11 @@ export default function Catalog() {
   const [catalogDislikes, setCatalogDislikes] = useState(new Set())
   const { modal: authModal, requireAuth } = useAuthModal()
   const [showSpotlight, setShowSpotlight] = useState(false)
-  const [filtersScrolled, setFiltersScrolled] = useState(false)
-  const [bounceKey,       setBounceKey]       = useState(0)
+  const [filtersHidden,    setFiltersHidden]    = useState(false)
+  const [showFilterDrawer, setShowFilterDrawer] = useState(false)
+  const [bounceKey,        setBounceKey]        = useState(0)
   const scrollElRef  = useRef(null)
+  const filtersRef   = useRef(null)
   const wasAtEndRef  = useRef(false)
   const catalogScrollRef = useCallback(el => {
     if (scrollElRef.current) scrollElRef.current.removeEventListener('scroll', scrollElRef._handler)
@@ -550,7 +553,10 @@ export default function Catalog() {
     if (!el) return
     const handler = () => {
       const { scrollTop, scrollHeight, clientHeight } = el
-      setFiltersScrolled(scrollTop > 8)
+      if (filtersRef.current) {
+        const { offsetTop, offsetHeight } = filtersRef.current
+        setFiltersHidden(scrollTop >= offsetTop + offsetHeight)
+      }
       const atEnd = scrollTop + clientHeight >= scrollHeight - 80
       if (atEnd && !wasAtEndRef.current) setBounceKey(k => k + 1)
       wasAtEndRef.current = atEnd
@@ -624,67 +630,48 @@ export default function Catalog() {
               <div className="page-title" style={{display:'flex',alignItems:'center',gap:10}}>
                 Наборы
                 <HelpButton seenKey="ss_spl_catalog" onOpen={() => setShowSpotlight(true)} />
+                {filtersHidden && <FilterIconBtn active={!!hasFilters} onClick={() => setShowFilterDrawer(true)} />}
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Sticky Filters */}
-        <div id="sp-cat-filters" className={`catalog-filters-bar${filtersScrolled ? ' scrolled' : ''}`}>
-          <div className="filters-block">
-            {/* Row 1: source pills */}
-            <div className="cats-scroll feed-mode-pills">
-              {SOURCE_MODES.map(m => (
-                <button key={m.id} className={`cat-pill${sourceFilter === m.id ? ' active' : ''}`}
-                  onClick={() => handleSourceFilter(m.id)}>{m.label}</button>
-              ))}
-            </div>
-
-            {/* Row 2: item search */}
-            <div className="catalog-search-row">
-              <div className="catalog-search-wrap">
-                <svg className="catalog-search-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-                </svg>
-                <input
-                  className="catalog-search-input"
-                  type="text"
-                  placeholder="Поиск по составу набора..."
-                  value={itemSearch}
-                  onChange={e => setItemSearch(e.target.value)}
-                />
-                {itemSearch && (
-                  <button className="catalog-search-clear" onClick={() => setItemSearch('')}>
-                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
-                      <path d="M18 6L6 18M6 6l12 12"/>
-                    </svg>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Row 3: sort */}
-            <SortDropdown sort={sortFilter} onSort={setSort} />
-
-            {/* Row 4: categories */}
-            <FilterSelect
-              items={CATEGORIES}
-              value={cat}
-              onChange={handleCatChange}
-              placeholder="Категории"
-            />
-
-            {hasFilters && (
-              <div className="filter-summary">
-                <span>{filtered.length} {noun(filtered.length)}</span>
-                <button className="reset-btn" onClick={resetFilters}>Сбросить</button>
-              </div>
-            )}
           </div>
         </div>
 
         {/* Scrollable Grid */}
         <div className="catalog-scroll" ref={catalogScrollRef}>
+          <div id="sp-cat-filters" ref={filtersRef} className="catalog-filters-bar">
+            <div className="filters-block">
+              <div className="cats-scroll feed-mode-pills">
+                {SOURCE_MODES.map(m => (
+                  <button key={m.id} className={`cat-pill${sourceFilter === m.id ? ' active' : ''}`}
+                    onClick={() => handleSourceFilter(m.id)}>{m.label}</button>
+                ))}
+              </div>
+              <div className="catalog-search-row">
+                <div className="catalog-search-wrap">
+                  <svg className="catalog-search-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                  </svg>
+                  <input className="catalog-search-input" type="text" placeholder="Поиск по составу набора..."
+                    value={itemSearch} onChange={e => setItemSearch(e.target.value)} />
+                  {itemSearch && (
+                    <button className="catalog-search-clear" onClick={() => setItemSearch('')}>
+                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </div>
+              <SortDropdown sort={sortFilter} onSort={setSort} />
+              <FilterSelect items={CATEGORIES} value={cat} onChange={handleCatChange} placeholder="Категории" />
+              {hasFilters && (
+                <div className="filter-summary">
+                  <span>{filtered.length} {noun(filtered.length)}</span>
+                  <button className="reset-btn" onClick={resetFilters}>Сбросить</button>
+                </div>
+              )}
+            </div>
+          </div>
         <div id="sp-cat-grid" className="catalog-grid">
           {filtered.length === 0 ? (
             sourceFilter === 'liked' && likedSets.size === 0 ? (
@@ -737,6 +724,42 @@ export default function Catalog() {
       </main>
       {authModal}
       {showSpotlight && <SpotlightTour steps={CATALOG_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
+      {showFilterDrawer && (
+        <FilterDrawer onClose={() => setShowFilterDrawer(false)}>
+          <div className="filters-block">
+            <div className="cats-scroll feed-mode-pills">
+              {SOURCE_MODES.map(m => (
+                <button key={m.id} className={`cat-pill${sourceFilter === m.id ? ' active' : ''}`}
+                  onClick={() => handleSourceFilter(m.id)}>{m.label}</button>
+              ))}
+            </div>
+            <div className="catalog-search-row">
+              <div className="catalog-search-wrap">
+                <svg className="catalog-search-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                </svg>
+                <input className="catalog-search-input" type="text" placeholder="Поиск по составу набора..."
+                  value={itemSearch} onChange={e => setItemSearch(e.target.value)} />
+                {itemSearch && (
+                  <button className="catalog-search-clear" onClick={() => setItemSearch('')}>
+                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
+                      <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+            <SortDropdown sort={sortFilter} onSort={setSort} />
+            <FilterSelect items={CATEGORIES} value={cat} onChange={handleCatChange} placeholder="Категории" />
+            {hasFilters && (
+              <div className="filter-summary">
+                <span>{filtered.length} {noun(filtered.length)}</span>
+                <button className="reset-btn" onClick={resetFilters}>Сбросить</button>
+              </div>
+            )}
+          </div>
+        </FilterDrawer>
+      )}
     </PublicLayout>
   )
 }

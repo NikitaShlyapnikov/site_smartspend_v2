@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import FeedEndBlock from '../components/FeedEndBlock'
+import FilterDrawer, { FilterIconBtn } from '../components/FilterDrawer'
 import { companies, promoItems, whisperItems as whisperItemsMock } from '../data/mock'
 
 const WHISPER_EMOJIS = [
@@ -1091,17 +1092,21 @@ export default function Promo() {
   const [whisperVotes,  setWhisperVotes]  = useState(new Map())
   const [extUrl,        setExtUrl]        = useState(null)
 
-  const [filtersScrolled, setFiltersScrolled] = useState(false)
-  const [bounceKey,       setBounceKey]       = useState(0)
+  const [filtersHidden,    setFiltersHidden]    = useState(false)
+  const [showFilterDrawer, setShowFilterDrawer] = useState(false)
+  const [bounceKey,        setBounceKey]        = useState(0)
   const scrollElRef  = useRef(null)
+  const filtersRef   = useRef(null)
   const wasAtEndRef  = useRef(false)
   const scrollRef = useCallback(el => {
     scrollElRef.current = el
     if (!el) return
-    setFiltersScrolled(false)
     el.addEventListener('scroll', () => {
       const { scrollTop, scrollHeight, clientHeight } = el
-      setFiltersScrolled(scrollTop > 8)
+      if (filtersRef.current) {
+        const { offsetTop, offsetHeight } = filtersRef.current
+        setFiltersHidden(scrollTop >= offsetTop + offsetHeight)
+      }
       const atEnd = scrollTop + clientHeight >= scrollHeight - 80
       if (atEnd && !wasAtEndRef.current) setBounceKey(k => k + 1)
       wasAtEndRef.current = atEnd
@@ -1188,11 +1193,13 @@ export default function Promo() {
           <div className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             Промо
             <HelpButton seenKey="ss_spl_promo" onOpen={() => setShowSpotlight(true)} />
+            {filtersHidden && <FilterIconBtn active={!!hasFilters} onClick={() => setShowFilterDrawer(true)} />}
           </div>
         </div>
 
-        <div className={`filters-sticky${filtersScrolled ? ' scrolled' : ''}`}>
-          <div className="filters-block">
+        <div className="feed-scroll" ref={scrollRef}>
+          <div ref={filtersRef} className="filters-sticky">
+            <div className="filters-block">
             {/* Row 1: Source + Conditions dropdowns */}
             <div className="promo-selects-row">
               <div id="sp-promo-types">
@@ -1262,9 +1269,8 @@ export default function Promo() {
               </div>
             )}
           </div>
-        </div>
+          </div>
 
-        <div className="feed-scroll" ref={scrollRef}>
           <button id="sp-promo-add" className="whisper-add-cta" onClick={() => navigate('/create-whisper')}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 5v14M5 12h14"/>
@@ -1300,6 +1306,32 @@ export default function Promo() {
       </main>
       {showSpotlight && <SpotlightTour steps={PROMO_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
       {extUrl && <ExternalLinkModal url={extUrl} onClose={() => setExtUrl(null)} />}
+      {showFilterDrawer && (
+        <FilterDrawer onClose={() => setShowFilterDrawer(false)}>
+          <div className="filters-block">
+            <div className="promo-selects-row">
+              <div><SimpleSelect label="Источник" options={TYPE_CHIPS} value={typeFilter} onChange={setTypeFilter} /></div>
+              <div><SimpleSelect label="Условия" options={ACTS_FILTERS} value={actsFilter} onChange={setActsFilter} disabled={typeFilter === 'broadcast'} /></div>
+            </div>
+            <div className="cats-scroll promo-type-chips">
+              <button className={`cat-pill${promoScope === 'mine' ? ' active' : ''}`} onClick={() => setPromoScope('mine')}>Мои компании</button>
+              <button className={`cat-pill${promoScope === 'all' ? ' active' : ''}`} onClick={() => setPromoScope('all')}>Все компании</button>
+            </div>
+            <CompanySearch onSelect={handleCompanySearch} />
+            <FilterSelect items={CATEGORIES.filter(c => c.id === 'all' || PROMO_CATS_WITH_ITEMS.has(c.id))} value={promoCat} onChange={handlePromoCat} placeholder="Категории" />
+            {promoCat.size > 0 && (() => {
+              const coItems = [...promoCat].flatMap(catId => companies[catId]?.list || []).map(c => ({ id: c.id, label: c.name }))
+              return coItems.length > 0 ? <FilterSelect items={coItems} value={promoCompany} onChange={handlePromoCompany} placeholder="Компании" /> : null
+            })()}
+            {hasFilters && (
+              <div className="filter-summary">
+                <span>{filtered.length} {noun(filtered.length)}</span>
+                <button className="reset-btn" onClick={resetFilters}>Сбросить</button>
+              </div>
+            )}
+          </div>
+        </FilterDrawer>
+      )}
     </Layout>
   )
 }
