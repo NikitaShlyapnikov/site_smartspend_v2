@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<style>
+  .main-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f9f9f7;
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .content-layout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    min-height: 300px;
+  }
+
+  /* --- Стили опроса --- */
+  .quiz-container {
+    width: 300px;
+    padding: 20px;
+    background: white;
+    border: 2px solid #0E0E0C;
+    border-radius: 15px;
+    box-shadow: 5px 5px 0px #0E0E0C;
+  }
+
+  .quiz-container h3 { margin-top: 0; font-size: 16px; color: #0E0E0C; }
+  .quiz-container input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 16px;
+  }
+
+  .quiz-btn {
+    background: #0E0E0C;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: bold;
+    transition: transform 0.1s;
+  }
+
+  .quiz-btn:active { transform: scale(0.95); }
+
+  /* --- Твой оригинальный CSS для КУБА --- */
+  .cw { width:260px; height:260px; display:flex; justify-content:center; align-items:center; position: relative; }
+  #main-rect { fill: #0E0E0C; cursor: pointer; transition: fill 0.1s; transform-origin: center; }
+  
+  @keyframes microShake {
+    0% { transform: translate(0.3px, 0.3px); }
+    50% { transform: translate(-0.3px, -0.3px); }
+    100% { transform: translate(0.3px, 0.3px); }
+  }
+  .angry-shake #main-rect { animation: microShake 0.02s infinite; }
+  .angry-shake #cube-inner-bg { fill: #FF0000; }
+
+  #portal-ellipse { fill: #0E0E0C; opacity: 0; transform-origin: center; transform: scaleX(0); }
+  .angry-disappear #portal-ellipse { animation: portalOpenClose 1s ease-in-out forwards; }
+
+  @keyframes portalOpenClose {
+    0% { opacity: 0; transform: scaleX(0); }
+    10% { opacity: 0.4; transform: scaleX(1.2); }
+    85% { opacity: 0.4; transform: scaleX(1.2); }
+    100% { opacity: 0; transform: scaleX(0); }
+  }
+
+  @keyframes jumpIntoPortal {
+    0% { transform: translateY(0); }
+    15% { transform: translateY(-75px) scaleY(1.1); }
+    30% { transform: translateY(-75px); }
+    100% { transform: translateY(200px); }
+  }
+  .angry-disappear #cube-group { animation: jumpIntoPortal 1s cubic-bezier(0.5, 0, 0.5, 1) forwards; }
+  .angry-disappear #masked-content { clip-path: url(#portalClip); }
+
+  .check-path { opacity: 0; stroke-dasharray: 60; stroke-dashoffset: 60; }
+  .state-suck .check-path { opacity: 1; animation: drawCheck 0.4s ease-out forwards 0.1s; }
+  
+  .angry-shake .check-path, .show-face .check-path, .angry-disappear .check-path { display: none !important; }
+  #disgruntled-face { opacity: 0; transition: opacity 0.1s; }
+  .show-face #disgruntled-face { opacity: 1; }
+  @keyframes drawCheck { to { stroke-dashoffset: 0; } }
+  
+  #plate { opacity: 0; transform-origin: 180px 130px; pointer-events: none; }
+  .state-animate #plate {
+    opacity: 1;
+    animation: cssPopOut 0.2s ease-out forwards, cssFullSwipe 0.6s cubic-bezier(0.2, 0.8, 0.2, 1.1) forwards;
+  }
+  .state-suck #plate {
+    opacity: 1;
+    animation: plateSuckIn 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+
+  @keyframes cssPopOut { 0% { transform: translate(-30px, 20px); } 100% { transform: translate(0, -20px); } }
+  @keyframes cssFullSwipe { 0% { transform: rotate(-225deg) scale(0.5); } 100% { transform: rotate(-330deg) scale(1.1); } }
+  @keyframes plateSuckIn {
+    0% { transform: translate(0, -20px) rotate(-330deg) scale(1.1); opacity: 1; }
+    100% { transform: translate(-50px, 50px) rotate(-220deg) scale(0); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="main-wrapper">
+  <div class="content-layout">
+    <div class="quiz-container" id="quiz-box">
+      <h3 id="question-text">Загрузка...</h3>
+      <input type="number" id="quiz-input" placeholder="Введите число">
+      <button class="quiz-btn" onclick="nextQuestion()">Далее</button>
+    </div>
+
+    <div class="cw" id="main-container">
+      <svg width="260" height="260" viewBox="0 0 260 260" fill="none">
+        <defs>
+          <clipPath id="portalClip">
+            <path d="M-100 -100 H360 V175 H175 A 45 7 0 0 1 85 175 H-100 Z" />
+          </clipPath>
+          <mask id="outsideMask">
+            <rect width="260" height="260" fill="white"/>
+            <rect x="90" y="90" width="80" height="80" rx="18" fill="black"/>
+          </mask>
+        </defs>
+
+        <ellipse id="portal-ellipse" cx="130" cy="175" rx="45" ry="7" />
+
+        <g id="masked-content">
+          <g id="cube-group">
+            <rect id="main-rect" x="90" y="90" width="80" height="80" rx="18" onclick="handleCubeClick()"/>
+            <g id="cube-inner" style="pointer-events: none;">
+              <rect id="cube-inner-bg" x="104" y="104" width="52" height="52" rx="10" fill="#EEEDE9"/>
+              <path class="check-path" d="M115 132 L124 141 L146 119" stroke="#0E0E0C" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <g id="disgruntled-face">
+                <rect x="115" y="125" width="8" height="3" rx="1.5" fill="#0E0E0C"/>
+                <rect x="137" y="125" width="8" height="3" rx="1.5" fill="#0E0E0C"/>
+                <path d="M120 140 Q124 137 128 140 Q132 143 136 140 Q139 138 140 140" stroke="#0E0E0C" stroke-width="2" stroke-linecap="round" fill="none"/>
+              </g>
+            </g>
+          </g>
+        </g>
+
+        <g id="plate" mask="url(#outsideMask)">
+          <rect x="178" y="90" width="4" height="42" rx="2" fill="#0E0E0C"/>
+          <rect x="158" y="56" width="44" height="34" rx="6" fill="#0E0E0C"/>
+          <rect x="161" y="59" width="38" height="28" rx="4" fill="#EEEDE9"/>
+          <g id="plate-icon-content" transform="translate(180, 73)" text-anchor="middle"></g>
+        </g>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Иконки из твоего кода
+  const iconTemplates = {
+    house: `<path d="M-9 2 L-9 10 L-3 10 L-3 4 L3 4 L3 10 L9 10 L9 2 L0 -6 Z" stroke="#0E0E0C" stroke-width="2.5" fill="none" stroke-linejoin="round" transform="translate(0,-1)"/>`,
+    credit: `<rect x="-11" y="-7" width="22" height="14" rx="3" stroke="#0E0E0C" stroke-width="2" fill="none"/><line x1="-11" y1="-1" x2="11" y2="-1" stroke="#0E0E0C" stroke-width="2"/>`,
+    time: `<circle cx="0" cy="0" r="10" stroke="#0E0E0C" stroke-width="2" fill="none"/><path d="M0 -6 L0 0 L4 3" stroke="#0E0E0C" stroke-width="2" stroke-linecap="round" fill="none"/>`,
+    ruble: `<text y="7" fill="#0E0E0C" font-family="Arial" font-size="18" font-weight="bold">₽</text>`,
+    capital: `<path d="M-10 -2 L-5 -8 L5 -8 L10 -2 L0 8 Z" stroke="#0E0E0C" stroke-width="2" fill="none" stroke-linejoin="round"/>`
+  };
+
+  // Конфигурация вопросов
+  const questions = [
+    { text: "Размер вашего дохода?", icon: "ruble", key: "income" },
+    { text: "Расходы на жилье?", icon: "house", key: "rent" },
+    { text: "Платеж по кредиту?", icon: "credit", key: "loan" },
+    { text: "Сколько месяцев осталось платить?", icon: "time", key: "loan_months", condition: (ans) => ans.loan > 0 },
+    { text: "Размер вашего капитала?", icon: "capital", key: "capital" }
+  ];
+
+  let currentStep = 0;
+  let answers = {};
+  let clickCount = 0;
+  let clickTimer;
+
+  // Инициализация первого вопроса
+  function initQuiz() {
+    showQuestion();
+  }
+
+  function showQuestion() {
+    const q = questions[currentStep];
+    
+    // Проверка условия (нужно ли показывать этот вопрос)
+    if (q.condition && !q.condition(answers)) {
+        currentStep++;
+        showQuestion();
+        return;
+    }
+
+    document.getElementById('question-text').innerText = q.text;
+    document.getElementById('quiz-input').value = "";
+    
+    // Меняем иконку на табличке кубика
+    document.getElementById('plate-icon-content').innerHTML = iconTemplates[q.icon];
+    updateState('animate'); // Анимация появления таблички
+  }
+
+  function nextQuestion() {
+    const val = parseFloat(document.getElementById('quiz-input').value) || 0;
+    const q = questions[currentStep];
+    
+    // Сохраняем ответ
+    answers[q.key] = val;
+
+    currentStep++;
+
+    if (currentStep < questions.length) {
+      updateState('suck'); // Эффект втягивания старой таблички
+      setTimeout(showQuestion, 400);
+    } else {
+      finishQuiz();
+    }
+  }
+
+  function finishQuiz() {
+    document.getElementById('quiz-box').innerHTML = `<h3>Готово!</h3><p>Данные собраны.</p>`;
+    // Кубик радуется (показывает галочку)
+    updateState('suck');
+    console.log("Результаты опроса:", answers);
+  }
+
+  // --- Твои функции управления кубиком ---
+  function handleCubeClick() {
+    const el = document.getElementById('main-container');
+    if (el.classList.contains('angry-disappear')) return;
+
+    clickCount++;
+    el.classList.remove('angry-shake', 'show-face');
+    void el.offsetWidth;
+
+    if (clickCount === 1 || clickCount === 2) {
+      el.classList.add('angry-shake');
+    } else if (clickCount === 3) {
+      el.classList.add('angry-shake', 'show-face');
+    } else if (clickCount >= 4) {
+      el.classList.remove('angry-shake', 'show-face', 'state-animate', 'state-suck');
+      el.classList.add('angry-disappear');
+      clickCount = 0;
+    }
+
+    clearTimeout(clickTimer);
+    clickTimer = setTimeout(() => {
+      if (!el.classList.contains('angry-disappear')) {
+        el.classList.remove('angry-shake', 'show-face');
+        clickCount = 0;
+      }
+    }, 1500);
+  }
+
+  function updateState(s) {
+    const el = document.getElementById('main-container');
+    if (el.classList.contains('angry-disappear')) return;
+    el.classList.remove('state-idle', 'state-animate', 'state-suck');
+    void el.offsetWidth;
+    el.classList.add('state-' + s);
+  }
+
+  initQuiz();
+</script>
+
+</body>
+</html>

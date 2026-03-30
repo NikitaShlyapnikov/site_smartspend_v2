@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import CommentItem from '../components/CommentAuthorChip'
 import PublicLayout from '../components/PublicLayout'
 import { useApp } from '../context/AppContext'
 import { articles } from '../data/mock'
@@ -795,31 +796,25 @@ export default function Article() {
         {/* Comments */}
         {article.pub !== false && (
           <div className="section-card" ref={commentsRef}>
-            <div className="section-header">
-              <div className="section-title">
-                Комментарии
-                {(Array.isArray(article.comments) ? article.comments.length : (article.comments || 0)) > 0 && <span className="section-count">{Array.isArray(article.comments) ? article.comments.length : article.comments}</span>}
-              </div>
-            </div>
-
-            {/* Emoji reactions */}
-            <div className="art-reactions-row">
-              <span className="art-reactions-label">Что вы думаете?</span>
+            {/* Unified comments header row */}
+            <div className="sd-comments-header-row">
+              <span className="sd-section-title">Комментарии</span>
+              <span className="sd-comments-header-spacer" />
               {reactions.map(r => (
                 <ArticleReactionPill key={r.emoji} emoji={r.emoji} count={r.count} active={myReactions.has(r.emoji)} onToggle={toggleReaction} autoAnimate={justAdded === r.emoji} />
               ))}
-              <div style={{ position: 'relative' }}>
-                <button className="ar-add-btn" onClick={() => setShowPicker(p => !p)} title="Добавить реакцию">
-                  <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
-                  </svg>
-                </button>
-                {showPicker && <EmojiPicker onPick={emoji => { toggleReaction(emoji); setJustAdded(emoji); setTimeout(() => setJustAdded(null), 700); setShowPicker(false) }} onClose={() => setShowPicker(false)} />}
-              </div>
-            </div>
-
-            <div className="comments-subheader">
-              <div className="csort">
+              {reactions.length < 6 && (
+                <div style={{ position: 'relative' }}>
+                  <button className="ar-add-btn" onClick={() => setShowPicker(p => !p)} title="Добавить реакцию">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+                    </svg>
+                  </button>
+                  {showPicker && <EmojiPicker onPick={emoji => { toggleReaction(emoji); setJustAdded(emoji); setTimeout(() => setJustAdded(null), 700); setShowPicker(false) }} onClose={() => setShowPicker(false)} />}
+                </div>
+              )}
+              <span className="sd-comments-header-spacer" />
+              <div className="csort" style={{ flexShrink: 0 }}>
                 <button className={`c-sort-btn${commentSort === 'new' ? ' active' : ''}`} onClick={() => setCommentSort('new')}>Новые</button>
                 <button className={`c-sort-btn${commentSort === 'top' ? ' active' : ''}`} onClick={() => setCommentSort('top')}>Популярные</button>
               </div>
@@ -827,28 +822,17 @@ export default function Article() {
             <div className="comments-list">
               {displayComments.map((c, i) => (
                 <div key={i} className="comment-item">
-                  <div className="c-avatar">{c.ini}</div>
-                  <div className="c-body">
-                    <div className="c-header">
-                      <span className="c-name">{c.name}</span>
-                      <span className="c-date">{c.date}</span>
-                    </div>
+                  <CommentItem name={c.name} ini={c.ini} navigate={navigate} avatarClass="c-avatar" nameClass="c-name" date={c.date}>
                     <div className="c-text">{c.text}</div>
                     <div className="c-actions">
-                      <button
-                        className={`c-like${likedComments.has(i) ? ' liked' : ''}`}
-                        onClick={() => toggleCommentLike(i)}
-                      >
+                      <button className={`c-like${likedComments.has(i) ? ' liked' : ''}`} onClick={() => toggleCommentLike(i)}>
                         <svg width="11" height="11" fill={likedComments.has(i) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
                           <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
                         </svg>
                         {c.likes + (likedComments.has(i) ? 1 : 0)}
                       </button>
-                      <button
-                        className={`c-like c-dislike${dislikedComments.has(i) ? ' disliked' : ''}`}
-                        onClick={() => toggleCommentDislike(i)}
-                      >
+                      <button className={`c-like c-dislike${dislikedComments.has(i) ? ' disliked' : ''}`} onClick={() => toggleCommentDislike(i)}>
                         <svg width="11" height="11" fill={dislikedComments.has(i) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
                           <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
@@ -856,14 +840,14 @@ export default function Article() {
                         {(c.dislikes || 0) + (dislikedComments.has(i) ? 1 : 0)}
                       </button>
                     </div>
-                  </div>
+                  </CommentItem>
                 </div>
               ))}
             </div>
             {!showAll && article.comments.length > 2 && (
               <div className="show-more-row">
                 <button className="btn-show" onClick={() => setShowAll(true)}>
-                  Показать ещё {article.comments.length - 2}
+                  Показать все комментарии ({article.comments.length})
                   <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                     <polyline points="6 9 12 15 18 9"/>
                   </svg>

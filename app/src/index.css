@@ -5204,6 +5204,12 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
   width: 1px; height: 14px; background: var(--border);
   flex-shrink: 0; margin: 0 4px;
 }
+/* Author chip in art-meta-row */
+.art-meta-row > .author-chip-wrap,
+.art-meta-row > .author-chip { min-width: 0; flex-shrink: 1; }
+.art-meta-row .author-chip-meta { min-width: 0; overflow: hidden; }
+.art-meta-row .author-avatar-sm { width: 28px; height: 28px; font-size: 10px; flex-shrink: 0; }
+.art-meta-row .author-name-inline { font-size: 12px; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; }
 /* More contrast than feed defaults */
 .art-meta-row .fa-action-btn { color: var(--text-2); }
 .art-meta-row .fa-action-btn svg { opacity: 0.65; }
@@ -6555,9 +6561,6 @@ body.dark .sd-inline-input { background: var(--surface-3); color: var(--text); }
 .sd-comments-header-row {
   display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
   padding: 12px 24px; border-bottom: 1px solid var(--border);
-}
-.sd-comments-header-sep {
-  width: 1px; height: 14px; background: var(--border); flex-shrink: 0; margin: 0 4px;
 }
 .sd-comments-header-spacer { flex: 1; min-width: 8px; }
 .sd-comments-subheader {

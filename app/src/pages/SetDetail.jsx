@@ -1,6 +1,7 @@
 import { useState, useRef, useMemo, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
+import CommentItem from '../components/CommentAuthorChip'
 import PublicLayout from '../components/PublicLayout'
 import { useApp } from '../context/AppContext'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
@@ -14,82 +15,6 @@ const REACTION_EMOJIS = [
 ]
 const EMOJI_ANIM = { '🔥':'fire','😂':'laugh','💡':'bulb','🤯':'mindblown','💸':'money','👏':'clap','❤️':'heart','✨':'sparkle','🎉':'party','💪':'flex' }
 const EMOJI_DUR  = { fire:900, laugh:650, bulb:1400, mindblown:1100, money:1000, clap:500, heart:1000, sparkle:1200, party:750, flex:1100 }
-
-function CommentAuthorPopover({ name, ini, onClose, style }) {
-  return createPortal(
-    <div className="author-popover" style={style} onClick={e => e.stopPropagation()}>
-      <div className="ap-top">
-        <div className="ap-avatar" style={{ background: '#8B7B6B' }}>{ini}</div>
-      </div>
-      <div className="ap-name" style={{ cursor: 'default' }}>{name}</div>
-      <div className="ap-meta">Пользователь SmartSpend</div>
-    </div>,
-    document.body
-  )
-}
-
-function CommentAuthorChip({ name, ini, navigate }) {
-  const [showCard, setShowCard] = useState(false)
-  const [showSheet, setShowSheet] = useState(false)
-  const [popPos, setPopPos] = useState(null)
-  const chipRef = useRef(null)
-  const showTimer = useRef(null)
-  const hideTimer = useRef(null)
-  const isTouch = () => window.matchMedia('(hover: none)').matches
-
-  function goToUser(e) {
-    e && e.stopPropagation()
-    navigate('/author/' + ini.toLowerCase(), { state: {
-      name, ini, handle: '@' + name.toLowerCase().replace(/[\s.]+/g, '_'),
-      bio: '', color: '#8B7B6B', followers: '—', articles: 0, sets: 0, following: false,
-    }})
-  }
-  function onEnter() {
-    if (isTouch()) return
-    clearTimeout(hideTimer.current)
-    showTimer.current = setTimeout(() => {
-      if (chipRef.current) {
-        const r = chipRef.current.getBoundingClientRect()
-        setPopPos({ top: r.bottom + 8, left: r.left })
-      }
-      setShowCard(true)
-    }, 350)
-  }
-  function onLeave() {
-    if (isTouch()) return
-    clearTimeout(showTimer.current)
-    hideTimer.current = setTimeout(() => setShowCard(false), 180)
-  }
-  function handleClick(e) {
-    e.stopPropagation()
-    if (isTouch()) { setShowSheet(true); return }
-    goToUser()
-  }
-
-  return (
-    <span onMouseEnter={onEnter} onMouseLeave={onLeave} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-      <div ref={chipRef} className="sd-c-avatar" style={{ cursor: 'pointer', flexShrink: 0 }} onClick={handleClick}>{ini}</div>
-      <span className="sd-c-name sd-c-name--link" onClick={handleClick}>{name}</span>
-      {showCard && popPos && (
-        <CommentAuthorPopover name={name} ini={ini} style={{ position: 'fixed', top: popPos.top, left: popPos.left }} />
-      )}
-      {showSheet && createPortal(
-        <>
-          <div className="abs-backdrop" onClick={() => setShowSheet(false)} />
-          <div className="author-bottom-sheet">
-            <div className="abs-handle" />
-            <div className="ap-top">
-              <div className="ap-avatar" style={{ background: '#8B7B6B' }}>{ini}</div>
-            </div>
-            <div className="ap-name" style={{ cursor: 'default' }}>{name}</div>
-            <div className="ap-meta">Пользователь SmartSpend</div>
-          </div>
-        </>,
-        document.body
-      )}
-    </span>
-  )
-}
 
 function EmojiPicker({ onPick, onClose }) {
   const [popping, setPopping] = useState(null)
@@ -219,13 +144,78 @@ function DislikeBtn({ disliked, onToggle }) {
   )
 }
 
-function FollowBtn({ following, onToggle }) {
-  const [anim, setAnim] = useState(false)
-  function handleClick(e) { e.stopPropagation(); setAnim(true); setTimeout(() => setAnim(false), 450); onToggle() }
+function SetAuthorChip({ author, authorSlug, navigate, color }) {
+  const [showCard, setShowCard] = useState(false)
+  const [showSheet, setShowSheet] = useState(false)
+  const [popPos, setPopPos] = useState(null)
+  const chipRef = useRef(null)
+  const showTimer = useRef(null)
+  const hideTimer = useRef(null)
+  const isTouch = () => window.matchMedia('(hover: none)').matches
+
+  function handleClick(e) {
+    e.stopPropagation()
+    if (isTouch()) { setShowSheet(true); return }
+    navigate('/author/' + authorSlug, { state: {
+      name: author.name, ini: author.initials,
+      handle: author.handle || ('@' + author.name.toLowerCase().replace(/\s+/g, '_')),
+      bio: author.bio, color,
+    }})
+  }
+  function onEnter() {
+    if (isTouch()) return
+    clearTimeout(hideTimer.current)
+    showTimer.current = setTimeout(() => {
+      if (chipRef.current) {
+        const r = chipRef.current.getBoundingClientRect()
+        setPopPos({ top: r.bottom + 8, left: r.left })
+      }
+      setShowCard(true)
+    }, 350)
+  }
+  function onLeave() {
+    if (isTouch()) return
+    clearTimeout(showTimer.current)
+    hideTimer.current = setTimeout(() => setShowCard(false), 180)
+  }
+
   return (
-    <button className={`btn-follow${following ? ' following' : ''}${anim ? ' follow-pop' : ''}`} onClick={handleClick}>
-      {following ? 'Отменить подписку' : 'Подписаться'}
-    </button>
+    <span className="author-chip-wrap" onMouseEnter={onEnter} onMouseLeave={onLeave}>
+      <button ref={chipRef} className="author-chip" onClick={handleClick}>
+        <div className="author-avatar-sm" style={{ background: color }}>{author.initials}</div>
+        <span className="author-chip-meta">
+          <span className="author-name-inline">{author.name}</span>
+        </span>
+      </button>
+      {showCard && popPos && createPortal(
+        <div className="author-popover" style={{ position: 'fixed', top: popPos.top, left: popPos.left, zIndex: 300 }}
+          onClick={e => e.stopPropagation()}
+          onMouseEnter={() => clearTimeout(hideTimer.current)}
+          onMouseLeave={onLeave}
+        >
+          <div className="ap-top">
+            <div className="ap-avatar" style={{ background: color }}>{author.initials}</div>
+          </div>
+          <button className="ap-name" onClick={handleClick}>{author.name}</button>
+          {author.bio && <p className="ap-desc">{author.bio}</p>}
+        </div>,
+        document.body
+      )}
+      {showSheet && createPortal(
+        <>
+          <div className="abs-backdrop" onClick={() => setShowSheet(false)} />
+          <div className="author-bottom-sheet">
+            <div className="abs-handle" />
+            <div className="ap-top">
+              <div className="ap-avatar" style={{ background: color }}>{author.initials}</div>
+            </div>
+            <div className="ap-name" style={{ cursor: 'default' }}>{author.name}</div>
+            {author.bio && <div className="ap-meta">{author.bio}</div>}
+          </div>
+        </>,
+        document.body
+      )}
+    </span>
   )
 }
 
@@ -383,7 +373,6 @@ export default function SetDetail() {
   const [cmtText, setCmtText]     = useState('')
   const [likes, setLikes]         = useState({})
   const [dislikes, setDislikes]   = useState({})
-  const [following, setFollowing] = useState(false)
   const [bookmarked, setBookmarked] = useState(false)
   const [addToast, setAddToast] = useState(false)
   const addToastTimerRef = useRef(null)
@@ -731,6 +720,17 @@ export default function SetDetail() {
 
             {/* Meta + actions row */}
             <div className="art-meta-row">
+              {!isPersonal && detail?.author && (
+                <>
+                  <SetAuthorChip
+                    author={detail.author}
+                    authorSlug={set.source || 'ss'}
+                    navigate={navigate}
+                    color={`linear-gradient(135deg, ${color}, #B8A0C8)`}
+                  />
+                  <div className="art-meta-sep" />
+                </>
+              )}
               {isPersonal && (
                 <div className="sd-personal-actions">
                   <button
@@ -790,33 +790,6 @@ export default function SetDetail() {
             </div>
           </div>
 
-          {/* Author block at bottom of hero — hidden for personal sets */}
-          {detail?.author && !isPersonal && (
-            <div className="hero-author">
-              <div className="author-avatar" style={{ background: `linear-gradient(135deg, ${color}, #B8A0C8)`, cursor: 'pointer' }}
-                onClick={() => navigate('/author/' + (set.source || 'ss'), { state: {
-                  name: detail.author.name, ini: detail.author.initials,
-                  handle: detail.author.handle || ('@' + detail.author.name.toLowerCase().replace(/\s+/g, '_')),
-                  bio: detail.author.bio, color,
-                  followers: set.users ? set.users.toLocaleString('ru') : '—',
-                  articles: detail.authorArticles?.length ?? 0, sets: 1, following: false,
-                }})}>
-                {detail.author.initials}
-              </div>
-              <div className="author-info" style={{ cursor: 'pointer' }}
-                onClick={() => navigate('/author/' + (set.source || 'ss'), { state: {
-                  name: detail.author.name, ini: detail.author.initials,
-                  handle: detail.author.handle || ('@' + detail.author.name.toLowerCase().replace(/\s+/g, '_')),
-                  bio: detail.author.bio, color,
-                  followers: set.users ? set.users.toLocaleString('ru') : '—',
-                  articles: detail.authorArticles?.length ?? 0, sets: 1, following: false,
-                }})}>
-                <div className="author-name">{detail.author.name}</div>
-                {detail.author.bio && <div className="author-bio">{detail.author.bio}</div>}
-              </div>
-              <FollowBtn following={following} onToggle={() => setFollowing(f => !f)} />
-            </div>
-          )}
         </div>
 
         {/* ── PARENT SET CARD (personal only) ── */}
@@ -1176,8 +1149,7 @@ export default function SetDetail() {
             {/* Single unified header row */}
             <div className="sd-comments-header-row">
               <span className="sd-section-title">Комментарии</span>
-              <span className="sd-comments-header-sep" />
-              <span className="art-reactions-label">Быстрый комментарий:</span>
+              <span className="sd-comments-header-spacer" />
               {reactions.map(r => (
                 <ReactionPill key={r.emoji} emoji={r.emoji} count={r.count}
                   active={myReactions.has(r.emoji)} onToggle={toggleReaction}
@@ -1199,7 +1171,7 @@ export default function SetDetail() {
                 </div>
               )}
               <span className="sd-comments-header-spacer" />
-              <div className="sd-csort">
+              <div className="sd-csort" style={{ flexShrink: 0 }}>
                 {[['popular', 'Популярные'], ['new', 'Новые']].map(([k, l]) => (
                   <button key={k} className={`sd-sort-btn${cmtSort === k ? ' active' : ''}`}
                     onClick={() => setCmtSort(k)}>{l}</button>
@@ -1209,19 +1181,14 @@ export default function SetDetail() {
             <div className="sd-comments-list">
               {(cmtExpanded ? sortedComments : sortedComments.slice(0, SHOW_CMT)).map((c, i) => (
                 <div key={i} className="sd-comment-item">
-                  <div className="sd-c-body">
-                    <div className="sd-c-header">
-                      <CommentAuthorChip name={c.name} ini={c.ini} navigate={navigate} />
-                      <span className="sd-c-date">{c.date}</span>
-                    </div>
+                  <CommentItem name={c.name} ini={c.ini} navigate={navigate} avatarClass="sd-c-avatar" nameClass="sd-c-name sd-c-name--link" date={c.date}>
                     <div className="sd-c-text">{c.text}</div>
                     <div className="sd-c-actions">
                       <button className={`sd-c-like${likes[i] ? ' liked' : ''}`} onClick={() => {
                         setLikes(p => ({ ...p, [i]: !p[i] }))
                         if (!likes[i]) setDislikes(p => ({ ...p, [i]: false }))
                       }}>
-                        <svg width="12" height="12" fill={likes[i] ? 'currentColor' : 'none'} stroke="currentColor"
-                          viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="12" height="12" fill={likes[i] ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
                           <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
                         </svg>
@@ -1231,15 +1198,14 @@ export default function SetDetail() {
                         setDislikes(p => ({ ...p, [i]: !p[i] }))
                         if (!dislikes[i]) setLikes(p => ({ ...p, [i]: false }))
                       }}>
-                        <svg width="12" height="12" fill={dislikes[i] ? 'currentColor' : 'none'} stroke="currentColor"
-                          viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="12" height="12" fill={dislikes[i] ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
                           <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
                         </svg>
                         {(c.dislikes || 0) + (dislikes[i] ? 1 : 0)}
                       </button>
                     </div>
-                  </div>
+                  </CommentItem>
                 </div>
               ))}
             </div>
