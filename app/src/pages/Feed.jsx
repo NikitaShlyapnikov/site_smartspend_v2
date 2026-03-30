@@ -835,9 +835,11 @@ export default function Feed() {
   const [filtersHidden,    setFiltersHidden]    = useState(false)
   const [showFilterDrawer, setShowFilterDrawer] = useState(false)
   const [bounceKey,        setBounceKey]        = useState(0)
-  const feedScrollElRef = useRef(null)
-  const filtersRef      = useRef(null)
-  const wasAtEndRef     = useRef(false)
+  const feedScrollElRef    = useRef(null)
+  const filtersRef         = useRef(null)
+  const wasAtEndRef        = useRef(false)
+  const showDrawerRef      = useRef(false)
+  showDrawerRef.current = showFilterDrawer
 
   const feedScrollRef = useCallback(el => {
     if (feedScrollElRef.current) {
@@ -851,6 +853,7 @@ export default function Feed() {
         const { offsetTop, offsetHeight } = filtersRef.current
         setFiltersHidden(scrollTop >= offsetTop + offsetHeight)
       }
+      if (showDrawerRef.current) setShowFilterDrawer(false)
       const atEnd = scrollTop + clientHeight >= scrollHeight - 80
       if (atEnd && !wasAtEndRef.current) setBounceKey(k => k + 1)
       wasAtEndRef.current = atEnd
@@ -955,7 +958,7 @@ export default function Feed() {
           )}
         </div>
 
-        <div className="feed-scroll" ref={feedScrollRef}>
+        <div className="feed-scroll" ref={feedScrollRef} onClick={() => showDrawerRef.current && setShowFilterDrawer(false)}>
           <div id="sp-feed-filters" ref={filtersRef} className="filters-sticky">
             <div className="filters-block">
               <div className="cats-scroll feed-mode-pills">

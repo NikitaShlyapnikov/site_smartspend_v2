@@ -544,9 +544,12 @@ export default function Catalog() {
   const [filtersHidden,    setFiltersHidden]    = useState(false)
   const [showFilterDrawer, setShowFilterDrawer] = useState(false)
   const [bounceKey,        setBounceKey]        = useState(0)
-  const scrollElRef  = useRef(null)
-  const filtersRef   = useRef(null)
-  const wasAtEndRef  = useRef(false)
+  const scrollElRef   = useRef(null)
+  const filtersRef    = useRef(null)
+  const wasAtEndRef   = useRef(false)
+  const showDrawerRef = useRef(false)
+  showDrawerRef.current = showFilterDrawer
+
   const catalogScrollRef = useCallback(el => {
     if (scrollElRef.current) scrollElRef.current.removeEventListener('scroll', scrollElRef._handler)
     scrollElRef.current = el
@@ -557,6 +560,7 @@ export default function Catalog() {
         const { offsetTop, offsetHeight } = filtersRef.current
         setFiltersHidden(scrollTop >= offsetTop + offsetHeight)
       }
+      if (showDrawerRef.current) setShowFilterDrawer(false)
       const atEnd = scrollTop + clientHeight >= scrollHeight - 80
       if (atEnd && !wasAtEndRef.current) setBounceKey(k => k + 1)
       wasAtEndRef.current = atEnd
@@ -673,7 +677,7 @@ export default function Catalog() {
         </div>
 
         {/* Scrollable Grid */}
-        <div className="catalog-scroll" ref={catalogScrollRef}>
+        <div className="catalog-scroll" ref={catalogScrollRef} onClick={() => showDrawerRef.current && setShowFilterDrawer(false)}>
           <div id="sp-cat-filters" ref={filtersRef} className="catalog-filters-bar">
             <div className="filters-block">
               <div className="cats-scroll feed-mode-pills">

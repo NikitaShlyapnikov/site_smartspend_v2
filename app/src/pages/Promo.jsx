@@ -1095,9 +1095,12 @@ export default function Promo() {
   const [filtersHidden,    setFiltersHidden]    = useState(false)
   const [showFilterDrawer, setShowFilterDrawer] = useState(false)
   const [bounceKey,        setBounceKey]        = useState(0)
-  const scrollElRef  = useRef(null)
-  const filtersRef   = useRef(null)
-  const wasAtEndRef  = useRef(false)
+  const scrollElRef   = useRef(null)
+  const filtersRef    = useRef(null)
+  const wasAtEndRef   = useRef(false)
+  const showDrawerRef = useRef(false)
+  showDrawerRef.current = showFilterDrawer
+
   const scrollRef = useCallback(el => {
     scrollElRef.current = el
     if (!el) return
@@ -1107,6 +1110,7 @@ export default function Promo() {
         const { offsetTop, offsetHeight } = filtersRef.current
         setFiltersHidden(scrollTop >= offsetTop + offsetHeight)
       }
+      if (showDrawerRef.current) setShowFilterDrawer(false)
       const atEnd = scrollTop + clientHeight >= scrollHeight - 80
       if (atEnd && !wasAtEndRef.current) setBounceKey(k => k + 1)
       wasAtEndRef.current = atEnd
@@ -1230,7 +1234,7 @@ export default function Promo() {
           )}
         </div>
 
-        <div className="feed-scroll" ref={scrollRef}>
+        <div className="feed-scroll" ref={scrollRef} onClick={() => showDrawerRef.current && setShowFilterDrawer(false)}>
           <div ref={filtersRef} className="filters-sticky">
             <div className="filters-block">
             {/* Row 1: Source + Conditions dropdowns */}

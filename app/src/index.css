@@ -415,7 +415,7 @@ body.dark .fsel-option.active { background: var(--accent-green); border-color: v
   height: 100vh; overflow: hidden;
 }
 .page-header {
-  padding: 32px 36px 0; flex-shrink: 0;
+  padding: 32px 36px 16px; flex-shrink: 0;
   position: sticky; top: 0; z-index: 20;
   background: var(--bg);
 }
@@ -1136,7 +1136,7 @@ body.dark .reset-btn:hover { background: rgba(224, 112, 112, 0.22); border-color
   height: 100vh; overflow: hidden;
 }
 .catalog-header {
-  padding: 32px 36px 0;
+  padding: 32px 36px 16px;
   flex-shrink: 0;
   position: sticky; top: 0; z-index: 20;
   background: var(--bg);
