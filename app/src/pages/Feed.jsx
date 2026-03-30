@@ -833,18 +833,12 @@ function HappyCube({ size = 80, className = '' }) {
 function FeedEndBlock({ onScrollTop }) {
   return (
     <div className="feed-end-block">
-      <div className="feed-end-cube-wrap">
+      <div className="feed-end-cube-wrap" onClick={onScrollTop} style={{ cursor: 'pointer' }}>
         <HappyCube size={48} className="feed-end-cube" />
         <div className="feed-end-shadow" />
       </div>
       <div className="feed-end-title">Это всё</div>
       <div className="feed-end-sub">Ты прочитал всё что было.<br/>Загляни позже — появится новое.</div>
-      <button className="feed-end-up-btn" onClick={onScrollTop}>
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-          <path d="M6 10 L6 2 M2 5 L6 2 L10 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-        Вернуться наверх
-      </button>
     </div>
   )
 }
