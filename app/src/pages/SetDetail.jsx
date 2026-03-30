@@ -144,7 +144,7 @@ function DislikeBtn({ disliked, onToggle }) {
   )
 }
 
-function SetAuthorChip({ author, authorSlug, navigate, color }) {
+function SetAuthorChip({ author, authorSlug, navigate, color, date }) {
   const [showCard, setShowCard] = useState(false)
   const [showSheet, setShowSheet] = useState(false)
   const [popPos, setPopPos] = useState(null)
@@ -185,6 +185,7 @@ function SetAuthorChip({ author, authorSlug, navigate, color }) {
         <div className="author-avatar-sm" style={{ background: color }}>{author.initials}</div>
         <span className="author-chip-meta">
           <span className="author-name-inline">{author.name}</span>
+          {date && <span className="author-chip-date">{date}</span>}
         </span>
       </button>
       {showCard && popPos && createPortal(
@@ -364,6 +365,7 @@ export default function SetDetail() {
   }
   const [showSpotlight, setShowSpotlight] = useState(false)
   const [showPersonalSpotlight, setShowPersonalSpotlight] = useState(false)
+  const [showAbout, setShowAbout] = useState(false)
   const [editMode, setEditMode]   = useState(false)
   const [scale, setScaleRaw]      = useState(1.0)
   const [artSort, setArtSort]     = useState('author')
@@ -712,25 +714,40 @@ export default function SetDetail() {
           }
         </div>
 
-        {/* ── HERO CARD ── */}
+        {/* ── UNIFIED CARD: hero + about + items ── */}
         <div id="sp-sd-hero" className="hero-card">
           <div className="hero-body">
             <div className="hero-title">{set.title}</div>
             <div className="hero-desc">{set.desc}</div>
+          </div>
 
-            {/* Meta + actions row */}
-            <div className="art-meta-row">
-              {!isPersonal && detail?.author && (
-                <>
-                  <SetAuthorChip
-                    author={detail.author}
-                    authorSlug={set.source || 'ss'}
-                    navigate={navigate}
-                    color={`linear-gradient(135deg, ${color}, #B8A0C8)`}
-                  />
-                  <div className="art-meta-sep" />
-                </>
+          {/* Detailed description — collapsible */}
+          {detail?.about && (
+            <div className="sd-about-wrap">
+              <div className={`content-body sd-about-body${showAbout ? '' : ' sd-about-collapsed'}`}>
+                <h2>{detail.about.title}</h2>
+                {detail.about.paragraphs.map((p, i) => <p key={i}>{p}</p>)}
+              </div>
+              {!showAbout && (
+                <div className="sd-about-fade">
+                  <button className="sd-about-expand" onClick={() => setShowAbout(true)}>Показать всё</button>
+                </div>
               )}
+            </div>
+          )}
+
+          {/* Meta + actions row */}
+          <div className="art-meta-row">
+              {!isPersonal && detail?.author && (
+                <SetAuthorChip
+                  author={detail.author}
+                  authorSlug={set.source || 'ss'}
+                  navigate={navigate}
+                  color={`linear-gradient(135deg, ${color}, #B8A0C8)`}
+                  date={set.added ? fmtDate(set.added) : null}
+                />
+              )}
+              {!isPersonal && detail?.author && <div className="art-meta-sep" />}
               {isPersonal && (
                 <div className="sd-personal-actions">
                   <button
@@ -751,7 +768,6 @@ export default function SetDetail() {
                   </button>
                 </div>
               )}
-              {!isPersonal && set.added && <span className="fa-time">{fmtDate(set.added)}</span>}
               {!isPersonal && set.users != null && (
                 <><div className="art-meta-sep" />
                 <div className="fa-action-stat">
@@ -788,8 +804,184 @@ export default function SetDetail() {
               <div className="f-spacer" />
               {!isPersonal && <AddInventoryBtn added={added} onAdd={handleAdd} onRemove={handleRemove} />}
             </div>
-          </div>
 
+          {/* Items section — merged into unified card */}
+          {tableItems ? (
+            <>
+              <div id="sp-sd-items" className="sd-section-header">
+                <div className="sd-section-title">
+                  Состав набора
+                  <span className="sd-section-count">{tableItems.length} позиций</span>
+                </div>
+                <div className="sd-section-actions">
+                  {!isDefault && (
+                    <button className="sd-btn-sm" onClick={handleReset}>
+                      <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                      </svg>
+                      Сбросить
+                    </button>
+                  )}
+                  <button className={`sd-btn-sm${editMode ? ' active' : ''}`}
+                    onClick={() => {
+                      if (isPersonal && scale !== 1.0) {
+                        setItems(prev => prev.map(i => ({ ...i, qty: Math.round(i.qty * scale * 1000) / 1000 })))
+                        setScaleRaw(1.0)
+                      }
+                      setEditMode(m => !m)
+                    }}>
+                    {editMode ? (
+                      <><svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Готово</>
+                    ) : (
+                      <><svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> {isPersonal ? 'Редактировать' : 'Настрой под себя'}</>
+                    )}
+                  </button>
+                </div>
+              </div>
+              {editMode && (
+                <div className="sd-scale-row">
+                  <div>
+                    <div className="sd-scale-title">Масштаб набора</div>
+                  </div>
+                  <div className="sd-scale-right">
+                    <span className="sd-scale-val">×{scale.toFixed(2)}</span>
+                    <div className="sd-scale-stepper">
+                      <button className="sd-scale-btn"
+                        onMouseDown={() => startScale(-1)} onMouseUp={stopScale}
+                        onMouseLeave={stopScale} onTouchStart={() => startScale(-1)} onTouchEnd={stopScale}>−</button>
+                      <button className="sd-scale-btn"
+                        onMouseDown={() => startScale(1)} onMouseUp={stopScale}
+                        onMouseLeave={stopScale} onTouchStart={() => startScale(1)} onTouchEnd={stopScale}>+</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <table className="sd-items-table">
+                <thead>
+                  <tr>
+                    <th>Позиция</th>
+                    <th>Кол-во</th>
+                    <th>Цена</th>
+                    <th>{isConsumable ? 'Расход / мес' : 'Срок службы'}</th>
+                    <th>₽/мес</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tableItems.map(item => {
+                    const monthly = itemMonthly(item, scale)
+                    const periodYears = item.period
+                    const periodStr = (periodYears % 1 === 0) ? periodYears + '\u00a0лет' : (periodYears * 12) + '\u00a0мес'
+                    const rawScaled = item.qty * scale
+                    let displayQty, displayUnit
+                    if (item.unit === 'кг') { displayQty = Math.round(rawScaled * 1000); displayUnit = 'г' }
+                    else if (item.unit === 'л') { displayQty = Math.round(rawScaled * 1000); displayUnit = 'мл' }
+                    else { displayQty = parseFloat(rawScaled.toFixed(2)); displayUnit = item.unit }
+                    if (editMode) {
+                      const editDisplayQty = isPersonal
+                        ? (item.unit === 'кг' || item.unit === 'л') ? Math.round(item.qty * 1000) : item.qty
+                        : item.qty
+                      const editDisplayUnit = isPersonal
+                        ? item.unit === 'кг' ? 'г' : item.unit === 'л' ? 'мл' : item.unit
+                        : item.unit
+                      return (
+                        <tr key={`${item.id}-e-${scale}`}>
+                          <td><div className="sd-item-name">{item.name}</div></td>
+                          <td>
+                            <div className="sd-qty-ctrl">
+                              {isPersonal ? (
+                                <>
+                                  <button className="sd-qty-btn" onClick={() => chQtyPersonal(item.id, -1, item.unit)}>−</button>
+                                  <span className="sd-qty-n">{editDisplayQty.toLocaleString('ru')}&thinsp;{editDisplayUnit}</span>
+                                  <button className="sd-qty-btn" onClick={() => chQtyPersonal(item.id, +1, item.unit)}>+</button>
+                                </>
+                              ) : (
+                                <>
+                                  <button className="sd-qty-btn" onClick={() => chQty(item.id, -1)}>−</button>
+                                  <span className="sd-qty-n">{item.qty}&thinsp;{item.unit}</span>
+                                  <button className="sd-qty-btn" onClick={() => chQty(item.id, +1)}>+</button>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                          <td>
+                            <input className="sd-inline-input" type="number"
+                              defaultValue={Math.round(item.basePrice)} min="0" step="100"
+                              onBlur={e => chPrice(item.id, e.target.value)}
+                              style={{ width: 80 }} />
+                          </td>
+                          <td>
+                            <div className="sd-period-row">
+                              <input className="sd-inline-input" type="number"
+                                defaultValue={isConsumable ? item.period * 12 : item.period}
+                                min={isConsumable ? 1 : 0.25}
+                                step={isConsumable ? 1 : 0.5}
+                                onBlur={e => chPeriod(item.id, isConsumable ? parseFloat(e.target.value) / 12 : e.target.value)}
+                                style={{ width: 60 }} />
+                              <span className="sd-period-unit">{isConsumable ? 'мес' : 'лет'}</span>
+                            </div>
+                          </td>
+                          <td><span className="sd-mono-accent">{Math.round(monthly).toLocaleString('ru')}&thinsp;₽</span></td>
+                        </tr>
+                      )
+                    }
+                    return (
+                      <tr key={item.id}>
+                        <td><div className="sd-item-name">{item.name}</div></td>
+                        <td><span className="sd-mono-val">{displayQty.toLocaleString('ru')}&thinsp;{displayUnit}</span></td>
+                        <td><span className="sd-mono-val">{Math.round(item.basePrice).toLocaleString('ru')}&thinsp;₽</span></td>
+                        <td>
+                          {isConsumable
+                            ? <span className="sd-mono-val" style={{ color: 'var(--text-2)' }}>{displayQty.toLocaleString('ru')}&thinsp;{displayUnit}/мес</span>
+                            : <span className="amort-chip">{periodStr}</span>
+                          }
+                        </td>
+                        <td><span className="sd-mono-accent">{Math.round(monthly).toLocaleString('ru')}&thinsp;₽</span></td>
+                      </tr>
+                    )
+                  })}
+                  <tr id="sp-sd-calc" className="sd-total-row">
+                    <td colSpan={4}>
+                      Итого в месяц
+                      {scale !== 1.0 && (
+                        <span style={{ fontFamily: 'var(--mono)', fontSize: 11, fontWeight: 400, color: 'var(--accent-green)', marginLeft: 6 }}>
+                          (×{scale.toFixed(2).replace(/\.?0+$/, '')})
+                        </span>
+                      )}
+                    </td>
+                    <td className="sd-total-amt">{fmtRub(totalMonthly)}</td>
+                  </tr>
+                  {totalPrice != null && (
+                    <tr className="sd-total-row" style={{ opacity: 0.7 }}>
+                      <td colSpan={4}>Общая стоимость</td>
+                      <td className="sd-total-amt">{fmtRub(totalPrice)}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </>
+          ) : (
+            <>
+              <div className="sd-section-header">
+                <div className="sd-section-title">
+                  Состав набора
+                  <span className="sd-section-count">{(set.items || []).length + (set.more || 0)} позиций</span>
+                </div>
+              </div>
+              <div className="sd-simple-list">
+                {(set.items || []).map((name, i) => (
+                  <div key={i} className="sd-simple-row">{name}</div>
+                ))}
+                {set.more > 0 && (
+                  <div className="sd-simple-row sd-simple-more">+{set.more} позиций</div>
+                )}
+              </div>
+              <div className="sd-items-footer">
+                <span className="sd-items-amount">{(set.amount || 0).toLocaleString('ru')}&thinsp;₽</span>
+                <span className="sd-items-period">{set.amountLabel}</span>
+              </div>
+            </>
+          )}
         </div>
 
         {/* ── PARENT SET CARD (personal only) ── */}
@@ -802,205 +994,6 @@ export default function SetDetail() {
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 18 15 12 9 6"/>
             </svg>
-          </div>
-        )}
-
-        {/* ── ITEMS SECTION CARD ── */}
-        {tableItems ? (
-          <div id="sp-sd-items" className="sd-section-card">
-            {/* Section header */}
-            <div className="sd-section-header">
-              <div className="sd-section-title">
-                Состав набора
-                <span className="sd-section-count">{tableItems.length} позиций</span>
-              </div>
-              <div className="sd-section-actions">
-                {!isDefault && (
-                  <button className="sd-btn-sm" onClick={handleReset}>
-                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                      <path d="M3 3v5h5"/>
-                    </svg>
-                    Сбросить
-                  </button>
-                )}
-                <button className={`sd-btn-sm${editMode ? ' active' : ''}`}
-                  onClick={() => {
-                    if (isPersonal && scale !== 1.0) {
-                      // Bake scale into item quantities for personal sets
-                      setItems(prev => prev.map(i => ({ ...i, qty: Math.round(i.qty * scale * 1000) / 1000 })))
-                      setScaleRaw(1.0)
-                    }
-                    setEditMode(m => !m)
-                  }}>
-                  {editMode ? (
-                    <><svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Готово</>
-                  ) : (
-                    <><svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> {isPersonal ? 'Редактировать' : 'Настрой под себя'}</>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Scale stepper — visible only in edit mode */}
-            {editMode && (
-              <div className="sd-scale-row">
-                <div>
-                  <div className="sd-scale-title">Масштаб набора</div>
-                </div>
-                <div className="sd-scale-right">
-                  <span className="sd-scale-val">×{scale.toFixed(2)}</span>
-                  <div className="sd-scale-stepper">
-                    <button className="sd-scale-btn"
-                      onMouseDown={() => startScale(-1)} onMouseUp={stopScale}
-                      onMouseLeave={stopScale} onTouchStart={() => startScale(-1)} onTouchEnd={stopScale}>−</button>
-                    <button className="sd-scale-btn"
-                      onMouseDown={() => startScale(1)} onMouseUp={stopScale}
-                      onMouseLeave={stopScale} onTouchStart={() => startScale(1)} onTouchEnd={stopScale}>+</button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Table */}
-            <table className="sd-items-table">
-              <thead>
-                <tr>
-                  <th>Позиция</th>
-                  <th>Кол-во</th>
-                  <th>Цена</th>
-                  <th>{isConsumable ? 'Расход / мес' : 'Срок службы'}</th>
-                  <th>₽/мес</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tableItems.map(item => {
-                  const monthly = itemMonthly(item, scale)
-                  const periodYears = item.period
-                  const periodStr = (periodYears % 1 === 0) ? periodYears + '\u00a0лет' : (periodYears * 12) + '\u00a0мес'
-
-                  // qty * scale with unit conversion kg→g, l→ml
-                  const rawScaled = item.qty * scale
-                  let displayQty, displayUnit
-                  if (item.unit === 'кг') { displayQty = Math.round(rawScaled * 1000); displayUnit = 'г' }
-                  else if (item.unit === 'л') { displayQty = Math.round(rawScaled * 1000); displayUnit = 'мл' }
-                  else { displayQty = parseFloat(rawScaled.toFixed(2)); displayUnit = item.unit }
-
-                  if (editMode) {
-                    const editDisplayQty = isPersonal
-                      ? (item.unit === 'кг' || item.unit === 'л') ? Math.round(item.qty * 1000) : item.qty
-                      : item.qty
-                    const editDisplayUnit = isPersonal
-                      ? item.unit === 'кг' ? 'г' : item.unit === 'л' ? 'мл' : item.unit
-                      : item.unit
-                    return (
-                      <tr key={`${item.id}-e-${scale}`}>
-                        <td><div className="sd-item-name">{item.name}</div></td>
-                        <td>
-                          <div className="sd-qty-ctrl">
-                            {isPersonal ? (
-                              <>
-                                <button className="sd-qty-btn" onClick={() => chQtyPersonal(item.id, -1, item.unit)}>−</button>
-                                <span className="sd-qty-n">{editDisplayQty.toLocaleString('ru')}&thinsp;{editDisplayUnit}</span>
-                                <button className="sd-qty-btn" onClick={() => chQtyPersonal(item.id, +1, item.unit)}>+</button>
-                              </>
-                            ) : (
-                              <>
-                                <button className="sd-qty-btn" onClick={() => chQty(item.id, -1)}>−</button>
-                                <span className="sd-qty-n">{item.qty}&thinsp;{item.unit}</span>
-                                <button className="sd-qty-btn" onClick={() => chQty(item.id, +1)}>+</button>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                        <td>
-                          <input className="sd-inline-input" type="number"
-                            defaultValue={Math.round(item.basePrice)} min="0" step="100"
-                            onBlur={e => chPrice(item.id, e.target.value)}
-                            style={{ width: 80 }} />
-                        </td>
-                        <td>
-                          <div className="sd-period-row">
-                            <input className="sd-inline-input" type="number"
-                              defaultValue={isConsumable ? item.period * 12 : item.period}
-                              min={isConsumable ? 1 : 0.25}
-                              step={isConsumable ? 1 : 0.5}
-                              onBlur={e => chPeriod(item.id, isConsumable ? parseFloat(e.target.value) / 12 : e.target.value)}
-                              style={{ width: 60 }} />
-                            <span className="sd-period-unit">{isConsumable ? 'мес' : 'лет'}</span>
-                          </div>
-                        </td>
-                        <td><span className="sd-mono-accent">{Math.round(monthly).toLocaleString('ru')}&thinsp;₽</span></td>
-                      </tr>
-                    )
-                  }
-                  return (
-                    <tr key={item.id}>
-                      <td><div className="sd-item-name">{item.name}</div></td>
-                      <td><span className="sd-mono-val">{displayQty.toLocaleString('ru')}&thinsp;{displayUnit}</span></td>
-                      <td><span className="sd-mono-val">{Math.round(item.basePrice).toLocaleString('ru')}&thinsp;₽</span></td>
-                      <td>
-                        {isConsumable
-                          ? <span className="sd-mono-val" style={{ color: 'var(--text-2)' }}>{displayQty.toLocaleString('ru')}&thinsp;{displayUnit}/мес</span>
-                          : <span className="amort-chip">{periodStr}</span>
-                        }
-                      </td>
-                      <td><span className="sd-mono-accent">{Math.round(monthly).toLocaleString('ru')}&thinsp;₽</span></td>
-                    </tr>
-                  )
-                })}
-                <tr id="sp-sd-calc" className="sd-total-row">
-                  <td colSpan={4}>
-                    Итого в месяц
-                    {scale !== 1.0 && (
-                      <span style={{ fontFamily: 'var(--mono)', fontSize: 11, fontWeight: 400, color: 'var(--accent-green)', marginLeft: 6 }}>
-                        (×{scale.toFixed(2).replace(/\.?0+$/, '')})
-                      </span>
-                    )}
-                  </td>
-                  <td className="sd-total-amt">{fmtRub(totalMonthly)}</td>
-                </tr>
-                {totalPrice != null && (
-                  <tr className="sd-total-row" style={{ opacity: 0.7 }}>
-                    <td colSpan={4}>Общая стоимость</td>
-                    <td className="sd-total-amt">{fmtRub(totalPrice)}</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-
-          </div>
-        ) : (
-          /* Simple items list for sets without rich data */
-          <div className="sd-section-card">
-            <div className="sd-section-header">
-              <div className="sd-section-title">
-                Состав набора
-                <span className="sd-section-count">{(set.items || []).length + (set.more || 0)} позиций</span>
-              </div>
-            </div>
-            <div className="sd-simple-list">
-              {(set.items || []).map((name, i) => (
-                <div key={i} className="sd-simple-row">{name}</div>
-              ))}
-              {set.more > 0 && (
-                <div className="sd-simple-row sd-simple-more">+{set.more} позиций</div>
-              )}
-            </div>
-            <div className="sd-items-footer">
-              <span className="sd-items-amount">{(set.amount || 0).toLocaleString('ru')}&thinsp;₽</span>
-              <span className="sd-items-period">{set.amountLabel}</span>
-            </div>
-          </div>
-        )}
-
-        {/* ── ABOUT CARD ── */}
-        {detail?.about && (
-          <div className="content-card">
-            <div className="content-body">
-              <h2>{detail.about.title}</h2>
-              {detail.about.paragraphs.map((p, i) => <p key={i}>{p}</p>)}
-            </div>
           </div>
         )}
 
