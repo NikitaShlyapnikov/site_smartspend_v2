@@ -204,8 +204,6 @@ export default function Notifications() {
             </>
           )}
 
-          {filtered.length > 0 && <DiscoCube onToast={handleCubeClick} />}
-
           {filtered.length === 0 && (
             <div className="notif-empty">
               <div className="notif-empty-icon">

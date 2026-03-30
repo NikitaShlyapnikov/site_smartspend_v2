@@ -610,8 +610,8 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
 }
 /* author section — shrinks, but не ниже 0 */
 .fa-meta-row > .author-chip-wrap,
-.fa-meta-row > .author-chip { min-width: 0; flex-shrink: 1; overflow: hidden; }
-.fa-meta-row .author-chip-meta { min-width: 0; }
+.fa-meta-row > .author-chip { min-width: 0; flex-shrink: 1; }
+.fa-meta-row .author-chip-meta { min-width: 0; overflow: hidden; }
 .fa-meta-row .author-avatar-sm { width: 28px; height: 28px; font-size: 10px; flex-shrink: 0; }
 .fa-meta-row .author-name-inline {
   font-size: 12px; font-weight: 500; color: var(--text);
@@ -660,13 +660,13 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
   display: inline-flex; align-items: center; gap: 5px;
   background: none; border: none; cursor: pointer;
   padding: 5px 8px; border-radius: 7px;
-  color: var(--text-3);
+  color: var(--text-2);
   font-size: 12px; font-family: var(--mono);
   transition: color 0.12s, background 0.12s;
 }
-.fa-action-btn svg { opacity: 0.32; transition: opacity 0.12s, fill 0.12s; flex-shrink: 0; }
+.fa-action-btn svg { opacity: 0.6; transition: opacity 0.12s, fill 0.12s; flex-shrink: 0; }
 .fa-action-btn:hover { background: var(--surface-2); }
-.fa-action-btn:hover svg { opacity: 0.6; }
+.fa-action-btn:hover svg { opacity: 0.85; }
 
 /* Like */
 .fa-action-btn.liked { color: var(--accent-green); }
@@ -771,7 +771,7 @@ button.fa-action-stat--btn:hover svg { opacity: 0.55; }
 }
 .fa-reaction {
   display: inline-flex; align-items: center; gap: 4px;
-  background: none; border: 1px solid var(--border); cursor: pointer;
+  background: none; border: none; cursor: pointer;
   padding: 3px 8px; border-radius: 20px;
   transition: background 0.12s, border-color 0.12s;
 }
@@ -917,10 +917,9 @@ button.fa-action-stat--btn:hover svg { opacity: 0.55; }
   will-change: transform;
 }
 .fa-reaction .r-count { font-size: 11px; font-family: var(--mono); color: var(--text-3); transition: color 0.12s; }
-.fa-reaction:hover { background: var(--surface-2); border-color: var(--text-3); }
-.fa-reaction.active { background: var(--surface-2); border-color: var(--accent-green); }
+.fa-reaction:hover { background: var(--surface-2); }
+.fa-reaction.active { background: var(--surface-2); }
 .fa-reaction.active .r-count { color: var(--accent-green); }
-body.dark .fa-reaction.active { border-color: #6AAF8E; }
 body.dark .fa-reaction.active .r-count { color: #6AAF8E; }
 
 /* Pop animation */
@@ -1756,7 +1755,7 @@ body.dark .acc-btn-primary { background: var(--surface-3); color: var(--text); }
 .acc-reaction-pill {
   display: inline-flex; align-items: center; gap: 3px;
   padding: 3px 8px; border-radius: 20px;
-  background: var(--surface-2); border: 1px solid var(--border);
+  background: none; border: none;
   font-size: 12px; color: var(--text-2);
 }
 .acc-card-meta { font-size: 12px; color: var(--text-3); flex: 1; }
