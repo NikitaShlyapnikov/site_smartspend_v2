@@ -6552,6 +6552,14 @@ body.dark .sd-inline-input { background: var(--surface-3); color: var(--text); }
 .sd-btn-show.open .sd-chev { transform: rotate(180deg); }
 
 /* ── Comments ── */
+.sd-comments-header-row {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 12px 24px; border-bottom: 1px solid var(--border);
+}
+.sd-comments-header-sep {
+  width: 1px; height: 14px; background: var(--border); flex-shrink: 0; margin: 0 4px;
+}
+.sd-comments-header-spacer { flex: 1; min-width: 8px; }
 .sd-comments-subheader {
   padding: 11px 24px; border-bottom: 1px solid var(--border);
   display: flex; align-items: center;

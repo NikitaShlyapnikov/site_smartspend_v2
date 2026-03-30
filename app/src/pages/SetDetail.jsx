@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import PublicLayout from '../components/PublicLayout'
 import { useApp } from '../context/AppContext'
@@ -13,6 +14,82 @@ const REACTION_EMOJIS = [
 ]
 const EMOJI_ANIM = { '🔥':'fire','😂':'laugh','💡':'bulb','🤯':'mindblown','💸':'money','👏':'clap','❤️':'heart','✨':'sparkle','🎉':'party','💪':'flex' }
 const EMOJI_DUR  = { fire:900, laugh:650, bulb:1400, mindblown:1100, money:1000, clap:500, heart:1000, sparkle:1200, party:750, flex:1100 }
+
+function CommentAuthorPopover({ name, ini, onClose, style }) {
+  return createPortal(
+    <div className="author-popover" style={style} onClick={e => e.stopPropagation()}>
+      <div className="ap-top">
+        <div className="ap-avatar" style={{ background: '#8B7B6B' }}>{ini}</div>
+      </div>
+      <div className="ap-name" style={{ cursor: 'default' }}>{name}</div>
+      <div className="ap-meta">Пользователь SmartSpend</div>
+    </div>,
+    document.body
+  )
+}
+
+function CommentAuthorChip({ name, ini, navigate }) {
+  const [showCard, setShowCard] = useState(false)
+  const [showSheet, setShowSheet] = useState(false)
+  const [popPos, setPopPos] = useState(null)
+  const chipRef = useRef(null)
+  const showTimer = useRef(null)
+  const hideTimer = useRef(null)
+  const isTouch = () => window.matchMedia('(hover: none)').matches
+
+  function goToUser(e) {
+    e && e.stopPropagation()
+    navigate('/author/' + ini.toLowerCase(), { state: {
+      name, ini, handle: '@' + name.toLowerCase().replace(/[\s.]+/g, '_'),
+      bio: '', color: '#8B7B6B', followers: '—', articles: 0, sets: 0, following: false,
+    }})
+  }
+  function onEnter() {
+    if (isTouch()) return
+    clearTimeout(hideTimer.current)
+    showTimer.current = setTimeout(() => {
+      if (chipRef.current) {
+        const r = chipRef.current.getBoundingClientRect()
+        setPopPos({ top: r.bottom + 8, left: r.left })
+      }
+      setShowCard(true)
+    }, 350)
+  }
+  function onLeave() {
+    if (isTouch()) return
+    clearTimeout(showTimer.current)
+    hideTimer.current = setTimeout(() => setShowCard(false), 180)
+  }
+  function handleClick(e) {
+    e.stopPropagation()
+    if (isTouch()) { setShowSheet(true); return }
+    goToUser()
+  }
+
+  return (
+    <span onMouseEnter={onEnter} onMouseLeave={onLeave} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+      <div ref={chipRef} className="sd-c-avatar" style={{ cursor: 'pointer', flexShrink: 0 }} onClick={handleClick}>{ini}</div>
+      <span className="sd-c-name sd-c-name--link" onClick={handleClick}>{name}</span>
+      {showCard && popPos && (
+        <CommentAuthorPopover name={name} ini={ini} style={{ position: 'fixed', top: popPos.top, left: popPos.left }} />
+      )}
+      {showSheet && createPortal(
+        <>
+          <div className="abs-backdrop" onClick={() => setShowSheet(false)} />
+          <div className="author-bottom-sheet">
+            <div className="abs-handle" />
+            <div className="ap-top">
+              <div className="ap-avatar" style={{ background: '#8B7B6B' }}>{ini}</div>
+            </div>
+            <div className="ap-name" style={{ cursor: 'default' }}>{name}</div>
+            <div className="ap-meta">Пользователь SmartSpend</div>
+          </div>
+        </>,
+        document.body
+      )}
+    </span>
+  )
+}
 
 function EmojiPicker({ onPick, onClose }) {
   const [popping, setPopping] = useState(null)
@@ -1096,36 +1173,32 @@ export default function SetDetail() {
         {/* ── COMMENTS ── */}
         {!isPersonal && comments.length > 0 && (
           <div id="sd-comments-section" className="sd-section-card">
-            <div className="sd-section-header">
-              <div className="sd-section-title">
-                Комментарии
-                <span className="sd-section-count">{comments.length}</span>
-              </div>
-            </div>
-            {/* Reactions */}
-            <div className="art-reactions-row">
-              <span className="art-reactions-label">Что вы думаете?</span>
+            {/* Single unified header row */}
+            <div className="sd-comments-header-row">
+              <span className="sd-section-title">Комментарии</span>
+              <span className="sd-comments-header-sep" />
+              <span className="art-reactions-label">Быстрый комментарий:</span>
               {reactions.map(r => (
                 <ReactionPill key={r.emoji} emoji={r.emoji} count={r.count}
                   active={myReactions.has(r.emoji)} onToggle={toggleReaction}
                   autoAnimate={justAdded === r.emoji} />
               ))}
-              <div style={{ position: 'relative' }}>
-                <button className="ar-add-btn" onClick={() => setShowReactPicker(p => !p)} title="Добавить реакцию">
-                  <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
-                  </svg>
-                </button>
-                {showReactPicker && (
-                  <EmojiPicker
-                    onPick={emoji => { toggleReaction(emoji); setJustAdded(emoji); setTimeout(() => setJustAdded(null), 700); setShowReactPicker(false) }}
-                    onClose={() => setShowReactPicker(false)}
-                  />
-                )}
-              </div>
-            </div>
-
-            <div className="sd-comments-subheader">
+              {reactions.length < 6 && (
+                <div style={{ position: 'relative' }}>
+                  <button className="ar-add-btn" onClick={() => setShowReactPicker(p => !p)} title="Добавить реакцию">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+                    </svg>
+                  </button>
+                  {showReactPicker && (
+                    <EmojiPicker
+                      onPick={emoji => { toggleReaction(emoji); setJustAdded(emoji); setTimeout(() => setJustAdded(null), 700); setShowReactPicker(false) }}
+                      onClose={() => setShowReactPicker(false)}
+                    />
+                  )}
+                </div>
+              )}
+              <span className="sd-comments-header-spacer" />
               <div className="sd-csort">
                 {[['popular', 'Популярные'], ['new', 'Новые']].map(([k, l]) => (
                   <button key={k} className={`sd-sort-btn${cmtSort === k ? ' active' : ''}`}
@@ -1134,19 +1207,11 @@ export default function SetDetail() {
               </div>
             </div>
             <div className="sd-comments-list">
-              {(cmtExpanded ? sortedComments : sortedComments.slice(0, SHOW_CMT)).map((c, i) => {
-                const goToUser = () => navigate('/author/' + c.ini.toLowerCase(), { state: {
-                  name: c.name, ini: c.ini,
-                  handle: '@' + c.name.toLowerCase().replace(/[\s.]+/g, '_'),
-                  bio: '', color: '#8B7B6B',
-                  followers: '—', articles: 0, sets: 0, following: false,
-                }})
-                return (
+              {(cmtExpanded ? sortedComments : sortedComments.slice(0, SHOW_CMT)).map((c, i) => (
                 <div key={i} className="sd-comment-item">
-                  <div className="sd-c-avatar" style={{ cursor: 'pointer' }} onClick={goToUser}>{c.ini}</div>
                   <div className="sd-c-body">
                     <div className="sd-c-header">
-                      <span className="sd-c-name sd-c-name--link" onClick={goToUser}>{c.name}</span>
+                      <CommentAuthorChip name={c.name} ini={c.ini} navigate={navigate} />
                       <span className="sd-c-date">{c.date}</span>
                     </div>
                     <div className="sd-c-text">{c.text}</div>
@@ -1176,14 +1241,12 @@ export default function SetDetail() {
                     </div>
                   </div>
                 </div>
-                )
-              })}
+              ))}
             </div>
-            {comments.length > SHOW_CMT && (
+            {!cmtExpanded && comments.length > SHOW_CMT && (
               <div className="sd-show-more-row">
-                <button className={`sd-btn-show${cmtExpanded ? ' open' : ''}`}
-                  onClick={() => setCmtExpanded(o => !o)}>
-                  {cmtExpanded ? 'Скрыть' : `Показать все комментарии (${comments.length})`}
+                <button className="sd-btn-show" onClick={() => setCmtExpanded(true)}>
+                  Показать все комментарии ({comments.length})
                   <svg className="sd-chev" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 9l-7 7-7-7"/></svg>
                 </button>
