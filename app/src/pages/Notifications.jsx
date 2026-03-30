@@ -182,9 +182,6 @@ export default function Notifications() {
           ))}
         </div>
 
-        {/* Disco cube */}
-        <DiscoCube onToast={handleCubeClick} />
-
         {/* List */}
         <div id="sp-notif-list" className="notif-scroll">
           {unreadFiltered.length > 0 && (
@@ -206,6 +203,8 @@ export default function Notifications() {
               ))}
             </>
           )}
+
+          {filtered.length > 0 && <DiscoCube onToast={handleCubeClick} />}
 
           {filtered.length === 0 && (
             <div className="notif-empty">

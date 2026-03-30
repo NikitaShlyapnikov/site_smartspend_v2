@@ -606,29 +606,40 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
   margin-top: 12px; gap: 6px;
   border-top: 1px solid var(--border);
   padding-top: 10px;
+  min-width: 0;
 }
+/* author section — shrinks, but не ниже 0 */
+.fa-meta-row > .author-chip-wrap,
+.fa-meta-row > .author-chip { min-width: 0; flex-shrink: 1; overflow: hidden; }
+.fa-meta-row .author-chip-meta { min-width: 0; }
 .fa-meta-row .author-avatar-sm { width: 28px; height: 28px; font-size: 10px; flex-shrink: 0; }
-.fa-meta-row .author-name-inline { font-size: 12px; font-weight: 500; color: var(--text); }
-.fa-meta-row .author-chip-date { font-size: 11px; }
+.fa-meta-row .author-name-inline {
+  font-size: 12px; font-weight: 500; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px;
+}
+.fa-meta-row .author-chip-date { font-size: 11px; white-space: nowrap; }
+/* actions — никогда не сжимаются */
 .fa-meta-actions {
   display: flex; align-items: center; gap: 4px;
   margin-left: auto; flex-shrink: 0;
 }
+/* right: category + set — фиксированная ширина, текст обрубается */
 .fa-meta-right {
   display: flex; flex-direction: column; align-items: flex-end; gap: 3px;
-  flex-shrink: 0; margin-left: 6px;
+  flex-shrink: 0; margin-left: 6px; max-width: 100px;
 }
 .fa-sep { font-size: 11px; color: var(--text-3); user-select: none; }
 .fa-category {
   font-size: 12px; color: var(--text-3); letter-spacing: -0.01em;
   background: none; border: none; cursor: pointer; padding: 0;
-  font-family: var(--sans); transition: color 0.12s; white-space: nowrap;
+  font-family: var(--sans); transition: color 0.12s;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
 }
 .fa-category:hover { color: var(--accent-green); }
 .fa-set-link {
   font-size: 11px; color: var(--set-clr, var(--accent-green));
-  font-family: var(--mono); letter-spacing: -0.01em;
-  white-space: nowrap; opacity: 0.85;
+  font-family: var(--mono); letter-spacing: -0.01em; opacity: 0.85;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
 }
 
 .fa-title {
