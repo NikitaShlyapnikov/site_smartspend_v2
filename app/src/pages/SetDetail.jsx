@@ -144,6 +144,81 @@ function DislikeBtn({ disliked, onToggle }) {
   )
 }
 
+function ArticleAuthorBubble({ name, ini, color }) {
+  const [showCard, setShowCard] = useState(false)
+  const [showSheet, setShowSheet] = useState(false)
+  const [popPos, setPopPos] = useState(null)
+  const ref = useRef(null)
+  const showTimer = useRef(null)
+  const hideTimer = useRef(null)
+  const isTouch = () => window.matchMedia('(hover: none)').matches
+
+  function open() {
+    if (ref.current) {
+      const r = ref.current.getBoundingClientRect()
+      setPopPos({ top: r.bottom + 8, left: r.left })
+    }
+    setShowCard(true)
+  }
+  function onEnter() {
+    if (isTouch()) return
+    clearTimeout(hideTimer.current)
+    showTimer.current = setTimeout(open, 300)
+  }
+  function onLeave() {
+    if (isTouch()) return
+    clearTimeout(showTimer.current)
+    hideTimer.current = setTimeout(() => setShowCard(false), 180)
+  }
+  function handleClick(e) {
+    e.stopPropagation()
+    if (isTouch()) { setShowSheet(true); return }
+    open()
+  }
+
+  return (
+    <>
+      <div
+        ref={ref}
+        className="sd-art-author-avatar"
+        style={{ background: color }}
+        title={name}
+        onClick={handleClick}
+        onMouseEnter={onEnter}
+        onMouseLeave={onLeave}
+      >{ini}</div>
+      {showCard && popPos && createPortal(
+        <div className="author-popover" style={{ position: 'fixed', top: popPos.top, left: popPos.left, zIndex: 300 }}
+          onClick={e => e.stopPropagation()}
+          onMouseEnter={() => clearTimeout(hideTimer.current)}
+          onMouseLeave={onLeave}
+        >
+          <div className="ap-top">
+            <div className="ap-avatar" style={{ background: color }}>{ini}</div>
+          </div>
+          <div className="ap-name" style={{ cursor: 'default' }}>{name}</div>
+          <div className="ap-meta">Автор статей в этом наборе</div>
+        </div>,
+        document.body
+      )}
+      {showSheet && createPortal(
+        <>
+          <div className="abs-backdrop" onClick={() => setShowSheet(false)} />
+          <div className="author-bottom-sheet">
+            <div className="abs-handle" />
+            <div className="ap-top">
+              <div className="ap-avatar" style={{ background: color }}>{ini}</div>
+            </div>
+            <div className="ap-name" style={{ cursor: 'default' }}>{name}</div>
+            <div className="ap-meta">Автор статей в этом наборе</div>
+          </div>
+        </>,
+        document.body
+      )}
+    </>
+  )
+}
+
 function SetAuthorChip({ author, authorSlug, navigate, color, date }) {
   const [showCard, setShowCard] = useState(false)
   const [showSheet, setShowSheet] = useState(false)
@@ -676,6 +751,23 @@ export default function SetDetail() {
     return allArticles
   }, [allArticles, artSort])
 
+  const uniqueArticleAuthors = useMemo(() => {
+    const seen = new Set()
+    const result = []
+    allArticles.forEach(a => {
+      const ini = a.isAuthor ? (detail?.author?.initials || 'SS') : (a.ini || a.author?.[0]?.toUpperCase() || 'С')
+      if (!seen.has(ini)) {
+        seen.add(ini)
+        result.push({
+          name:  a.isAuthor ? (detail?.author?.name || 'SmartSpend') : (a.author || 'Сообщество'),
+          ini,
+          color: a.isAuthor ? color : '#8B7B6B',
+        })
+      }
+    })
+    return result
+  }, [allArticles, detail, color])
+
   const SHOW_ART = 4
   const SHOW_CMT = 2
 
@@ -1089,9 +1181,9 @@ export default function SetDetail() {
         ) : allArticles.length > 0 && (
           <div id="sd-articles-section" className="sd-section-card">
             <div className="sd-section-header">
-              <div className="sd-section-title">
-                Статьи по набору
-                <span className="sd-section-count">{allArticles.length}</span>
+              <div className="sd-section-title-block">
+                <div className="sd-section-title">Дополнения</div>
+                <div className="sd-section-subtitle">Статьи, одобренные автором набора</div>
               </div>
               <div className="sd-csort">
                 {[['author', 'От автора'], ['popular', 'Популярные']].map(([k, l]) => (
@@ -1100,34 +1192,27 @@ export default function SetDetail() {
                 ))}
               </div>
             </div>
-            <div className="sd-articles-list">
-              {(artExpanded ? sortedArticles : sortedArticles.slice(0, SHOW_ART)).map((a, i) => {
-                const authorName = a.isAuthor ? (detail?.author?.name || 'SmartSpend') : (a.author || 'Сообщество')
-                const avatarBg   = a.isAuthor ? color : '#8B7B6B'
-                const avatarText = a.isAuthor
-                  ? (detail?.author?.initials || 'SS')
-                  : (a.ini || a.author?.[0]?.toUpperCase() || 'С')
-                return (
-                  <div key={i} className="sd-article-card" onClick={() => navigate('/article/a1')}>
-                    <div className="sd-art-avatar" style={{ background: avatarBg }}>{avatarText}</div>
-                    <div className="sd-art-body">
-                      <div className="sd-art-meta-row">
-                        <span className="sd-art-author">{authorName}</span>
-                        <span className="sd-art-views">
-                          <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
-                            <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
-                          </svg>
-                          {a.views}
-                        </span>
-                      </div>
-                      <div className="sd-art-title">{a.title}</div>
-                    </div>
-                    <ArrIcon />
-                  </div>
-                )
-              })}
+
+            {/* Authors row */}
+            {uniqueArticleAuthors.length > 0 && (
+              <div className="sd-art-authors-row">
+                <span className="sd-art-authors-label">Авторы</span>
+                {uniqueArticleAuthors.map((a, i) => (
+                  <ArticleAuthorBubble key={i} name={a.name} ini={a.ini} color={a.color} />
+                ))}
+              </div>
+            )}
+
+            {/* Articles grid */}
+            <div className="sd-articles-grid">
+              {(artExpanded ? sortedArticles : sortedArticles.slice(0, SHOW_ART)).map((a, i) => (
+                <div key={i} className="sd-art-grid-card" onClick={() => navigate('/article/a1')}>
+                  <div className="sd-art-grid-tag">{a.tag}</div>
+                  <div className="sd-art-grid-title">{a.title}</div>
+                </div>
+              ))}
             </div>
+
             {allArticles.length > SHOW_ART && (
               <div className="sd-show-more-row">
                 <button className={`sd-btn-show${artExpanded ? ' open' : ''}`}

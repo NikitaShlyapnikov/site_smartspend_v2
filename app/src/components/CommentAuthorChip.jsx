@@ -36,22 +36,19 @@ export default function CommentItem({ name, ini, navigate, avatarClass = 'c-avat
   const hideTimer = useRef(null)
   const isTouch = () => window.matchMedia('(hover: none)').matches
 
-  function goToUser() {
-    navigate('/author/' + ini.toLowerCase(), { state: {
-      name, ini, handle: '@' + name.toLowerCase().replace(/[\s.]+/g, '_'),
-      bio: '', color: '#8B7B6B', followers: '—', articles: 0, sets: 0, following: false,
-    }})
+  function openPopover() {
+    clearTimeout(showTimer.current)
+    clearTimeout(hideTimer.current)
+    if (avatarRef.current) {
+      const r = avatarRef.current.getBoundingClientRect()
+      setPopPos({ top: r.bottom + 8, left: r.left })
+    }
+    setShowCard(true)
   }
   function onEnter() {
     if (isTouch()) return
     clearTimeout(hideTimer.current)
-    showTimer.current = setTimeout(() => {
-      if (avatarRef.current) {
-        const r = avatarRef.current.getBoundingClientRect()
-        setPopPos({ top: r.bottom + 8, left: r.left })
-      }
-      setShowCard(true)
-    }, 350)
+    showTimer.current = setTimeout(openPopover, 350)
   }
   function onLeave() {
     if (isTouch()) return
@@ -61,7 +58,7 @@ export default function CommentItem({ name, ini, navigate, avatarClass = 'c-avat
   function handleClick(e) {
     e.stopPropagation()
     if (isTouch()) { setShowSheet(true); return }
-    goToUser()
+    openPopover()
   }
 
   return (
