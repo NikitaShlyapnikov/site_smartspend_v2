@@ -1024,8 +1024,10 @@ export default function Feed() {
             <div className="header-filter-panel">
               <div className="filters-block">
                 <TagSearchInput value={tagSearch} onChange={setTagSearch} allItems={allItems} />
-                <SimpleSelect label="Режим" options={MODES} value={mode} onChange={setMode} />
-                <SortDropdown sort={sort} onSort={setSort} />
+                <div className="promo-selects-row">
+                  <SimpleSelect label="Режим" options={MODES} value={mode} onChange={setMode} />
+                  <SortDropdown sort={sort} onSort={setSort} />
+                </div>
                 <FilterSelect items={CATEGORIES} value={cat} onChange={handleCatChange} placeholder="Категории" />
                 {hasFilters && (
                   <div className="filter-summary">

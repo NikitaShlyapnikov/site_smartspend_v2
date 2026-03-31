@@ -47,6 +47,11 @@ const TYPE_CHIPS = [
   { id: 'whisper',   label: 'Сообщество' },
 ]
 
+const SCOPE_OPTIONS = [
+  { id: 'mine', label: 'Мои компании' },
+  { id: 'all',  label: 'Все компании' },
+]
+
 function getSortKey(item) {
   if (item.addedAt) return item.addedAt
   if (item.ts) {
@@ -269,7 +274,7 @@ function SimpleSelect({ label, options, value, onChange, disabled }) {
   }, [open])
 
   const selected = options.find(o => o.id === value)
-  const isDefault = value === 'all'
+  const isDefault = value === (options[0]?.id ?? 'all')
 
   return (
     <div className={`ssel-wrap${disabled ? ' ssel-disabled' : ''}`} ref={ref}>
@@ -1259,11 +1264,10 @@ export default function Promo() {
             <div className="header-filter-panel">
               <div className="filters-block">
                 <CompanySearch onSelect={handleCompanySearch} />
-                <div className="cats-scroll promo-type-chips">
-                  <button className={`cat-pill${promoScope === 'mine' ? ' active' : ''}`} onClick={() => setPromoScope('mine')}>Мои компании</button>
-                  <button className={`cat-pill${promoScope === 'all' ? ' active' : ''}`} onClick={() => setPromoScope('all')}>Все компании</button>
+                <div className="promo-selects-row">
+                  <SimpleSelect label="Компании" options={SCOPE_OPTIONS} value={promoScope} onChange={setPromoScope} />
+                  <SimpleSelect label="Условия" options={ACTS_FILTERS} value={actsFilter} onChange={setActsFilter} />
                 </div>
-                <SimpleSelect label="Условия" options={ACTS_FILTERS} value={actsFilter} onChange={setActsFilter} />
                 <FilterSelect items={CATEGORIES.filter(c => c.id === 'all' || PROMO_CATS_WITH_ITEMS.has(c.id))} value={promoCat} onChange={handlePromoCat} placeholder="Категории" />
                 {promoCat.size > 0 && (() => {
                   const coItems = [...promoCat].flatMap(catId => companies[catId]?.list || []).map(c => ({ id: c.id, label: c.name }))
@@ -1286,20 +1290,15 @@ export default function Promo() {
             {/* Company search */}
             <CompanySearch onSelect={handleCompanySearch} />
 
-            {/* Scope */}
-            <div id="sp-promo-types" className="cats-scroll promo-type-chips">
-              <button className={`cat-pill${promoScope === 'mine' ? ' active' : ''}`} onClick={() => setPromoScope('mine')}>Мои компании</button>
-              <button className={`cat-pill${promoScope === 'all' ? ' active' : ''}`} onClick={() => setPromoScope('all')}>Все компании</button>
-            </div>
-
-            {/* Conditions */}
-            <div id="sp-promo-acts">
-              <SimpleSelect
-                label="Условия"
-                options={ACTS_FILTERS}
-                value={actsFilter}
-                onChange={setActsFilter}
-              />
+            {/* Scope + Conditions + Sort */}
+            <div className="promo-selects-row">
+              <div id="sp-promo-types">
+                <SimpleSelect label="Компании" options={SCOPE_OPTIONS} value={promoScope} onChange={setPromoScope} />
+              </div>
+              <div id="sp-promo-acts">
+                <SimpleSelect label="Условия" options={ACTS_FILTERS} value={actsFilter} onChange={setActsFilter} />
+              </div>
+              <PromoSortDropdown sort={promoSort} onSort={setPromoSort} />
             </div>
 
             {/* Categories */}
@@ -1326,8 +1325,6 @@ export default function Promo() {
                 />
               ) : null
             })()}
-
-            <PromoSortDropdown sort={promoSort} onSort={setPromoSort} />
 
             {hasFilters && (
               <div className="filter-summary">
