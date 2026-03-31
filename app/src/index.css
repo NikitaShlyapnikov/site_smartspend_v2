@@ -8891,7 +8891,7 @@ body.dark .feed-section-card.active.promo    { background: #A86828; border-color
   text-align: left; min-width: 0; flex: 1;
   border-radius: 8px; transition: opacity .15s;
 }
-.promo-co-btn:hover { opacity: .75; }
+.promo-co-btn:hover { opacity: 1; }
 /* Type filter chips row */
 .promo-type-chips { gap: 6px; }
 /* Setup hint bar */
@@ -9030,6 +9030,16 @@ body.dark .wh-question { background: rgba(50,40,8,0.3); color: #C8A850; border-c
   border-radius: 8px; padding: 6px 12px;
   font-size: 14px; font-weight: 700; letter-spacing: 0.07em;
   color: var(--text); flex: 1;
+  user-select: none;
+}
+.whisper-code:hover { border-color: var(--accent-green); }
+.whisper-code-toast {
+  position: absolute; bottom: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%);
+  background: var(--text-1); color: var(--bg);
+  padding: 4px 10px; border-radius: 6px;
+  font-size: 12px; white-space: nowrap;
+  pointer-events: none; z-index: 10;
 }
 
 .whisper-first-check {
@@ -9115,7 +9125,7 @@ body.dark .whisper-card--not {
 
 .whisper-history {
   display: flex; gap: 1px; height: 4px; align-items: stretch;
-  border-radius: 4px; overflow: hidden; margin: 4px 16px 2px;
+  border-radius: 0; overflow: hidden; margin: 4px 0 2px;
 }
 .wvh-stripe {
   flex: 1; min-width: 2px; border-radius: 1px;

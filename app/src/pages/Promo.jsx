@@ -70,11 +70,6 @@ const ACTS_FILTERS = [
   { id: 'regular',     label: 'Обычная' },
 ]
 
-function ConditionBadge({ filter }) {
-  const f = filter || 'regular'
-  if (f === 'regular') return null
-  return <div className={`promo-type-badge promo-type-badge--cond promo-type-badge--cond-${f}`}>{ACTS_FILTERS.find(a => a.id === f)?.label}</div>
-}
 
 const CATEGORIES = [
   { id: 'all',        label: 'Все'                   },
@@ -272,21 +267,21 @@ function PromoVoteButtons({ myVote, onVote, works, notWorks, worksAnim, notAnim,
           <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
           <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
         </svg>
-        Работает{works > 0 ? ` · ${works}` : ''}
+        Работает{works > 0 ? ` ${works}` : ''}
       </button>
       <button className={`fa-action-btn wvb-not${myVote === 'not' ? ' active' : ''}${notAnim ? ' wv-not-shake' : ''}`} onClick={() => onVote('not')}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill={myVote === 'not' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
           <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
         </svg>
-        Не работает{notWorks > 0 ? ` · ${notWorks}` : ''}
+        Не работает{notWorks > 0 ? ` ${notWorks}` : ''}
       </button>
       {extraAction}
       <button className={`fa-action-btn${showComments ? ' wv-comments-open' : ''}`} onClick={onToggleComments}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
-        {commentCount > 0 ? commentCount : ''}
+        Комментарии{commentCount > 0 ? ` · ${commentCount}` : ''}
       </button>
       {badge}
     </div>
@@ -360,20 +355,30 @@ function PromoInteractions({ displayHistory = [], initComments = [], showComment
       {displayHistory.length === 0 && <div className="whisper-first-check">Будь первым, кто проверит</div>}
 
       {showComments && (
-        <div className="whisper-comments">
-          <div className="whisper-reactions-row">
-            <span className="art-reactions-label">Что думаете?</span>
+        <div className="section-card" style={{ marginTop: 10 }}>
+          <div className="sd-comments-header-row">
+            <span className="sd-section-title">Комментарии</span>
+            <span className="sd-comments-header-spacer" />
             {reactions.map(r => (
               <WhisperReactionPill key={r.emoji} emoji={r.emoji} count={r.count} active={myReactions.has(r.emoji)} onToggle={toggleReaction} autoAnimate={justAdded === r.emoji} />
             ))}
             <div style={{ position: 'relative' }}>
-              <button className="ar-add-btn" onClick={() => setShowEmojiPicker(v => !v)}>+</button>
+              <button className="ar-add-btn" onClick={() => setShowEmojiPicker(v => !v)} title="Добавить реакцию">
+                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+                </svg>
+              </button>
               {showEmojiPicker && (
                 <WhisperEmojiPicker
                   onPick={emoji => { toggleReaction(emoji); setJustAdded(emoji); setTimeout(() => setJustAdded(null), 700); setShowEmojiPicker(false) }}
                   onClose={() => setShowEmojiPicker(false)}
                 />
               )}
+            </div>
+            <span className="sd-comments-header-spacer" />
+            <div className="csort" style={{ flexShrink: 0 }}>
+              <button className={`c-sort-btn${commentSort === 'new' ? ' active' : ''}`} onClick={() => setCommentSort('new')}>Новые</button>
+              <button className={`c-sort-btn${commentSort === 'top' ? ' active' : ''}`} onClick={() => setCommentSort('top')}>Популярные</button>
             </div>
           </div>
 
@@ -587,8 +592,9 @@ function PromoCard({ item, onCategoryClick, onCompanyClick, onSourceClick }) {
       {item.desc && <div className="whisper-desc">{item.desc}</div>}
 
       {item.code && (
-        <div className="whisper-code-row">
-          <div className="whisper-code">{item.code}</div>
+        <div className="whisper-code-row" style={{ position: 'relative' }}>
+          {copied && <div className="whisper-code-toast">Промокод скопирован</div>}
+          <div className="whisper-code" onClick={copyCode} style={{ cursor: 'pointer' }}>{item.code}</div>
           <button className={`fa-action-btn pc-copy-btn${copied ? ' copied' : ''}`} onClick={copyCode}>
             {copied ? (
               <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Скопировано</>
@@ -631,7 +637,7 @@ function PromoCard({ item, onCategoryClick, onCompanyClick, onSourceClick }) {
               Источник
             </button>
           ) : null}
-          badge={<ConditionBadge filter={item.promo_filter} />}
+          badge={null}
         />
       </div>
     </div>
@@ -818,8 +824,9 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
       {item.desc && <div className="whisper-desc">{item.desc.slice(0, 140)}</div>}
 
       {item.code && (
-        <div className="whisper-code-row">
-          <div className="whisper-code">{item.code}</div>
+        <div className="whisper-code-row" style={{ position: 'relative' }}>
+          {copied && <div className="whisper-code-toast">Промокод скопирован</div>}
+          <div className="whisper-code" onClick={copyCode} style={{ cursor: 'pointer' }}>{item.code}</div>
           <button className={`fa-action-btn pc-copy-btn${copied ? ' copied' : ''}`} onClick={copyCode}>
             {copied ? (
               <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Скопировано</>
@@ -871,14 +878,14 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
               <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
               <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
             </svg>
-            Работает{works > 0 ? ` · ${works}` : ''}
+            Работает{works > 0 ? ` ${works}` : ''}
           </button>
           <button className={`fa-action-btn wvb-not${myVote === 'not' ? ' active' : ''}${notAnim ? ' wv-not-shake' : ''}`} onClick={() => handleVote('not')}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill={myVote === 'not' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
               <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
             </svg>
-            Не работает{notWorks > 0 ? ` · ${notWorks}` : ''}
+            Не работает{notWorks > 0 ? ` ${notWorks}` : ''}
           </button>
           {voteToast && (
             <span className={`whisper-vote-toast${voteToast === 'works' ? ' wvt-works' : ' wvt-not'}`}>
@@ -898,22 +905,25 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
-            {comments.length > 0 ? comments.length : ''}
+            Комментарии{comments.length > 0 ? ` · ${comments.length}` : ''}
           </button>
-          <ConditionBadge filter={item.promo_filter} />
         </div>
       </div>
 
       {showComments && (
-        <div className="whisper-comments">
-          {/* Emoji reactions */}
-          <div className="whisper-reactions-row">
-            <span className="art-reactions-label">Что думаете?</span>
+        <div className="section-card" style={{ marginTop: 10 }}>
+          <div className="sd-comments-header-row">
+            <span className="sd-section-title">Комментарии</span>
+            <span className="sd-comments-header-spacer" />
             {reactions.map(r => (
               <WhisperReactionPill key={r.emoji} emoji={r.emoji} count={r.count} active={myReactions.has(r.emoji)} onToggle={toggleReaction} autoAnimate={justAdded === r.emoji} />
             ))}
             <div style={{ position: 'relative' }}>
-              <button className="ar-add-btn" onClick={() => setShowEmojiPicker(v => !v)}>+</button>
+              <button className="ar-add-btn" onClick={() => setShowEmojiPicker(v => !v)} title="Добавить реакцию">
+                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+                </svg>
+              </button>
               {showEmojiPicker && (
                 <WhisperEmojiPicker
                   onPick={emoji => { toggleReaction(emoji); setJustAdded(emoji); setTimeout(() => setJustAdded(null), 700); setShowEmojiPicker(false) }}
@@ -921,16 +931,23 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
                 />
               )}
             </div>
+            <span className="sd-comments-header-spacer" />
+            <div className="csort" style={{ flexShrink: 0 }}>
+              <button className={`c-sort-btn${commentSort === 'new' ? ' active' : ''}`} onClick={() => setCommentSort('new')}>Новые</button>
+              <button className={`c-sort-btn${commentSort === 'top' ? ' active' : ''}`} onClick={() => setCommentSort('top')}>Популярные</button>
+            </div>
           </div>
 
           {(() => {
-            const sorted = [...comments].reverse()
-            const visible = sorted.slice(0, visibleCount)
-            const remaining = sorted.length - visibleCount
+            const sortedC = commentSort === 'top'
+              ? [...comments].sort((a, b) => (b.likes || 0) - (a.likes || 0))
+              : [...comments].reverse()
+            const visibleC = sortedC.slice(0, visibleCount)
+            const remainingC = sortedC.length - visibleCount
             return (
               <>
                 <div className="comments-list">
-                  {visible.map((c, idx) => (
+                  {visibleC.map((c, idx) => (
                     <div key={idx} className="comment-item">
                       <div className="c-avatar">{getIni(c.author)}</div>
                       <div className="c-body">
@@ -941,14 +958,14 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
                         <div className="c-text">{c.text}</div>
                         <div className="c-actions">
                           <button className={`c-like${likedComments.has(idx) ? ' liked' : ''}`} onClick={() => toggleCommentLike(idx)}>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill={likedComments.has(idx) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill={likedComments.has(idx) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
                               <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
                             </svg>
                             {(c.likes || 0) + (likedComments.has(idx) ? 1 : 0)}
                           </button>
                           <button className={`c-like c-dislike${dislikedComments.has(idx) ? ' disliked' : ''}`} onClick={() => toggleCommentDislike(idx)}>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill={dislikedComments.has(idx) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill={dislikedComments.has(idx) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
                               <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
                             </svg>
@@ -959,10 +976,10 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
                     </div>
                   ))}
                 </div>
-                {remaining > 0 && (
+                {remainingC > 0 && (
                   <div className="show-more-row">
                     <button className="btn-show" onClick={() => setVisibleCount(v => v + 20)}>
-                      Показать ещё {Math.min(remaining, 20)}
+                      Показать ещё {Math.min(remainingC, 20)}
                       <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                         <polyline points="6 9 12 15 18 9"/>
                       </svg>
