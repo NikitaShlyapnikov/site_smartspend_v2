@@ -5,72 +5,12 @@ import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import FeedEndBlock from '../components/FeedEndBlock'
 import { FilterIconBtn } from '../components/FilterDrawer'
+import ReactionPill from '../components/ReactionPill'
+import EmojiPickerPopup from '../components/EmojiPickerPopup'
 import { companies, promoItems, whisperItems as whisperItemsMock } from '../data/mock'
 
-const WHISPER_EMOJIS = [
-  '🔥','💡','😍','🤯','💸','🤮','🤔','👏',
-  '😮','💪','🎯','🙏','❤️','😂','🥰','😅',
-  '💯','✨','🎉','👀','🥲','😤','🫡','🤝',
-]
-
-function WhisperEmojiPicker({ onPick, onClose }) {
-  const [popping, setPopping] = useState(null)
-  const ref = useRef(null)
-  useEffect(() => {
-    function handler(e) { if (ref.current && !ref.current.contains(e.target)) onClose() }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [onClose])
-  function handlePick(emoji) {
-    setPopping(emoji)
-    setTimeout(() => { onPick(emoji); onClose() }, 260)
-  }
-  return (
-    <div className="emoji-picker" ref={ref}>
-      {WHISPER_EMOJIS.map(emoji => (
-        <button key={emoji} className={`ep-btn${popping === emoji ? ' ep-pop' : ''}`} onClick={() => handlePick(emoji)}>{emoji}</button>
-      ))}
-    </div>
-  )
-}
-
-function WhisperReactionPill({ emoji, count, active, onToggle, autoAnimate }) {
-  const [popping, setPopping] = useState(false)
-  const [particles, setParticles] = useState([])
-
-  function triggerAnim(isNew) {
-    setPopping(true)
-    setTimeout(() => setPopping(false), 400)
-    if (isNew) {
-      const newP = Array.from({ length: 5 }, (_, i) => ({
-        id: Date.now() + i, angle: i * 72 + Math.random() * 20 - 10, dist: 18 + Math.random() * 8,
-      }))
-      setParticles(newP)
-      setTimeout(() => setParticles([]), 600)
-    }
-  }
-
-  useEffect(() => {
-    if (autoAnimate) triggerAnim(true)
-  }, [autoAnimate])
-
-  function handleClick() {
-    triggerAnim(!active)
-    onToggle(emoji)
-  }
-
-  return (
-    <div className="r-pill-wrap">
-      <button className={`fa-reaction${active ? ' active' : ''}${popping ? ' popping' : ''}`} onClick={handleClick}>
-        <span className="r-emoji">{emoji}</span>
-        <span className="r-count">{count}</span>
-      </button>
-      {particles.map(p => (
-        <span key={p.id} className="r-particle" style={{ '--angle': `${p.angle}deg`, '--dist': `${p.dist}px` }}>{emoji}</span>
-      ))}
-    </div>
-  )
-}
+const WhisperReactionPill = (props) => <ReactionPill {...props} />
+const WhisperEmojiPicker = (props) => <EmojiPickerPopup {...props} />
 
 const PROMO_SPOTLIGHT = [
   {

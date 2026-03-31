@@ -6,6 +6,7 @@ import { useAuthModal } from '../components/AuthModal'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import FeedEndBlock from '../components/FeedEndBlock'
 import { FilterIconBtn } from '../components/FilterDrawer'
+import ReactionPill from '../components/ReactionPill'
 import { catalogSets } from '../data/mock'
 
 const CATALOG_SPOTLIGHT = [
@@ -201,41 +202,7 @@ function AuthorChip({ username, navigate, date }) {
 }
 
 // ── FEED-STYLE ACTIONS ────────────────────────────────────────────────────────
-
-const EMOJI_ANIM = { '🔥':'fire','😂':'laugh','💡':'bulb','🤯':'mindblown','💸':'money','👏':'clap','❤️':'heart','✨':'sparkle','🎉':'party','💪':'flex' }
-const EMOJI_DUR  = { fire:900, laugh:650, bulb:1400, mindblown:1100, money:1000, clap:500, heart:1000, sparkle:1200, party:750, flex:1100 }
-
-function ReactionPill({ emoji, count, active, onToggle }) {
-  const [popping, setPopping] = useState(false)
-  const [emojiAnim, setEmojiAnim] = useState(false)
-  const [particles, setParticles] = useState([])
-
-  function handleClick(e) {
-    e.stopPropagation()
-    setPopping(true)
-    setTimeout(() => setPopping(false), 400)
-    const key = EMOJI_ANIM[emoji]
-    if (key) { setEmojiAnim(true); setTimeout(() => setEmojiAnim(false), EMOJI_DUR[key] + 50) }
-    if (!active) {
-      const newP = Array.from({ length: 6 }, (_, i) => ({ id: Date.now() + i, angle: i * 60 + Math.random() * 20 - 10, dist: 22 + Math.random() * 10 }))
-      setParticles(newP)
-      setTimeout(() => setParticles([]), 600)
-    }
-    onToggle(emoji)
-  }
-
-  return (
-    <div className="r-pill-wrap">
-      <button className={`fa-reaction${active ? ' active' : ''}${popping ? ' popping' : ''}`} onClick={handleClick}>
-        <span className={`r-emoji${emojiAnim && EMOJI_ANIM[emoji] ? ` r-emoji--${EMOJI_ANIM[emoji]}` : ''}`}>{emoji}</span>
-        <span className="r-count">{count}</span>
-      </button>
-      {particles.map(p => (
-        <span key={p.id} className="r-particle" style={{ '--angle': `${p.angle}deg`, '--dist': `${p.dist}px` }}>{emoji}</span>
-      ))}
-    </div>
-  )
-}
+// ReactionPill → shared component (see components/ReactionPill.jsx)
 
 function LikeBtn({ liked, count, onToggle }) {
   const [anim, setAnim] = useState(false)

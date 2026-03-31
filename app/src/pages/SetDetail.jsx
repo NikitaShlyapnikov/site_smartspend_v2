@@ -6,64 +6,8 @@ import PublicLayout from '../components/PublicLayout'
 import { useApp } from '../context/AppContext'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import { setDetails, catalogSets } from '../data/mock'
-
-
-const REACTION_EMOJIS = [
-  '🔥','💡','😍','🤯','💸','🤮','🤔','👏',
-  '😮','💪','🎯','🙏','❤️','😂','🥰','😅',
-  '💯','✨','🎉','👀','🥲','😤','🫡','🤝',
-]
-const EMOJI_ANIM = { '🔥':'fire','😂':'laugh','💡':'bulb','🤯':'mindblown','💸':'money','👏':'clap','❤️':'heart','✨':'sparkle','🎉':'party','💪':'flex' }
-const EMOJI_DUR  = { fire:900, laugh:650, bulb:1400, mindblown:1100, money:1000, clap:500, heart:1000, sparkle:1200, party:750, flex:1100 }
-
-function EmojiPicker({ onPick, onClose }) {
-  const [popping, setPopping] = useState(null)
-  const ref = useRef(null)
-  useEffect(() => {
-    function handler(e) { if (ref.current && !ref.current.contains(e.target)) onClose() }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [onClose])
-  function handlePick(emoji) {
-    setPopping(emoji)
-    setTimeout(() => { onPick(emoji); onClose() }, 260)
-  }
-  return (
-    <div className="emoji-picker" ref={ref}>
-      {REACTION_EMOJIS.map(emoji => (
-        <button key={emoji} className={`ep-btn${popping === emoji ? ' ep-pop' : ''}`} onClick={() => handlePick(emoji)}>{emoji}</button>
-      ))}
-    </div>
-  )
-}
-
-function ReactionPill({ emoji, count, active, onToggle, autoAnimate }) {
-  const [popping, setPopping] = useState(false)
-  const [emojiAnim, setEmojiAnim] = useState(false)
-  const [particles, setParticles] = useState([])
-  function triggerAnim(isNew) {
-    setPopping(true); setTimeout(() => setPopping(false), 400)
-    const key = EMOJI_ANIM[emoji]
-    if (key) { setEmojiAnim(true); setTimeout(() => setEmojiAnim(false), EMOJI_DUR[key] + 50) }
-    if (isNew) {
-      const newP = Array.from({ length: 5 }, (_, i) => ({ id: Date.now() + i, angle: i * 72 + Math.random() * 20 - 10, dist: 20 + Math.random() * 10 }))
-      setParticles(newP); setTimeout(() => setParticles([]), 600)
-    }
-  }
-  useEffect(() => { if (autoAnimate) triggerAnim(true) }, [autoAnimate])
-  function handleClick() { triggerAnim(!active); onToggle(emoji) }
-  return (
-    <div className="r-pill-wrap">
-      <button className={`fa-reaction${active ? ' active' : ''}${popping ? ' popping' : ''}`} onClick={handleClick}>
-        <span className={`r-emoji${emojiAnim && EMOJI_ANIM[emoji] ? ` r-emoji--${EMOJI_ANIM[emoji]}` : ''}`}>{emoji}</span>
-        <span className="r-count">{count}</span>
-      </button>
-      {particles.map(p => (
-        <span key={p.id} className="r-particle" style={{ '--angle': `${p.angle}deg`, '--dist': `${p.dist}px` }}>{emoji}</span>
-      ))}
-    </div>
-  )
-}
+import ReactionPill from '../components/ReactionPill'
+import EmojiPickerPopup from '../components/EmojiPickerPopup'
 
 const SD_SPOTLIGHT = [
   { targetId: 'sp-sd-hero',  btnId: 'sp-sd-add',   title: 'Карточка набора',      desc: 'Здесь — название, описание и ключевые показатели набора. Кнопка «В инвентарь» добавит позиции в твой инвентарь.' },
@@ -1237,7 +1181,7 @@ export default function SetDetail() {
                     </svg>
                   </button>
                   {showReactPicker && (
-                    <EmojiPicker
+                    <EmojiPickerPopup
                       onPick={emoji => { toggleReaction(emoji); setJustAdded(emoji); setTimeout(() => setJustAdded(null), 700); setShowReactPicker(false) }}
                       onClose={() => setShowReactPicker(false)}
                     />
