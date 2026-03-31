@@ -1042,12 +1042,7 @@ export default function Feed() {
           <div id="sp-feed-filters" ref={filtersRef} className="filters-sticky">
             <div className="filters-block">
               <TagSearchInput value={tagSearch} onChange={setTagSearch} allItems={allItems} />
-              <div className="cats-scroll feed-mode-pills">
-                {MODES.map(m => (
-                  <button key={String(m.id)} className={`cat-pill${mode === m.id ? ' active' : ''}`}
-                    onClick={() => setMode(m.id)}>{m.label}</button>
-                ))}
-              </div>
+              <SimpleSelect label="Режим" options={MODES} value={mode} onChange={setMode} />
               <SortDropdown sort={sort} onSort={setSort} />
               <FilterSelect items={CATEGORIES} value={cat} onChange={handleCatChange} placeholder="Категории" />
               {hasFilters && (

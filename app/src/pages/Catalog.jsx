@@ -702,12 +702,7 @@ export default function Catalog() {
                   </button>
                 )}
               </div>
-              <div className="cats-scroll feed-mode-pills">
-                {SOURCE_MODES.map(m => (
-                  <button key={m.id} className={`cat-pill${sourceFilter === m.id ? ' active' : ''}`}
-                    onClick={() => handleSourceFilter(m.id)}>{m.label}</button>
-                ))}
-              </div>
+              <SimpleSelect label="Источник" options={SOURCE_MODES} value={sourceFilter} onChange={handleSourceFilter} />
               <SortDropdown sort={sortFilter} onSort={setSort} />
               <FilterSelect items={CATEGORIES} value={cat} onChange={handleCatChange} placeholder="Категории" />
               {hasFilters && (
