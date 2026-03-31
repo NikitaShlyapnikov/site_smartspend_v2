@@ -1236,11 +1236,11 @@ export default function Promo() {
   })
 
   const hasFilters = promoCat.size > 0 || promoCompany.size > 0 ||
-    typeFilter !== 'all' || promoScope !== 'mine' || actsFilter !== 'all'
+    promoScope !== 'mine' || actsFilter !== 'all'
 
   function resetFilters() {
     setPromoCat(new Set()); setPromoCompany(new Set())
-    setPromoScope('mine'); setActsFilter('all'); setTypeFilter('all')
+    setPromoScope('mine'); setActsFilter('all')
   }
 
   // Broadcasts are always "regular", hide sub-filter for broadcast-only view
@@ -1259,14 +1259,11 @@ export default function Promo() {
             <div className="header-filter-panel">
               <div className="filters-block">
                 <CompanySearch onSelect={handleCompanySearch} />
-                <div className="promo-selects-row">
-                  <div><SimpleSelect label="Источник" options={TYPE_CHIPS} value={typeFilter} onChange={setTypeFilter} /></div>
-                  <div><SimpleSelect label="Условия" options={ACTS_FILTERS} value={actsFilter} onChange={setActsFilter} disabled={typeFilter === 'broadcast'} /></div>
-                </div>
                 <div className="cats-scroll promo-type-chips">
                   <button className={`cat-pill${promoScope === 'mine' ? ' active' : ''}`} onClick={() => setPromoScope('mine')}>Мои компании</button>
                   <button className={`cat-pill${promoScope === 'all' ? ' active' : ''}`} onClick={() => setPromoScope('all')}>Все компании</button>
                 </div>
+                <SimpleSelect label="Условия" options={ACTS_FILTERS} value={actsFilter} onChange={setActsFilter} />
                 <FilterSelect items={CATEGORIES.filter(c => c.id === 'all' || PROMO_CATS_WITH_ITEMS.has(c.id))} value={promoCat} onChange={handlePromoCat} placeholder="Категории" />
                 {promoCat.size > 0 && (() => {
                   const coItems = [...promoCat].flatMap(catId => companies[catId]?.list || []).map(c => ({ id: c.id, label: c.name }))
@@ -1289,31 +1286,20 @@ export default function Promo() {
             {/* Company search */}
             <CompanySearch onSelect={handleCompanySearch} />
 
-            {/* Row 1: Source + Conditions dropdowns */}
-            <div className="promo-selects-row">
-              <div id="sp-promo-types">
-                <SimpleSelect
-                  label="Источник"
-                  options={TYPE_CHIPS}
-                  value={typeFilter}
-                  onChange={setTypeFilter}
-                />
-              </div>
-              <div id="sp-promo-acts">
-                <SimpleSelect
-                  label="Условия"
-                  options={ACTS_FILTERS}
-                  value={actsFilter}
-                  onChange={setActsFilter}
-                  disabled={typeFilter === 'broadcast'}
-                />
-              </div>
-            </div>
-
             {/* Scope */}
-            <div id="sp-promo-scope" className="cats-scroll promo-type-chips">
+            <div id="sp-promo-types" className="cats-scroll promo-type-chips">
               <button className={`cat-pill${promoScope === 'mine' ? ' active' : ''}`} onClick={() => setPromoScope('mine')}>Мои компании</button>
               <button className={`cat-pill${promoScope === 'all' ? ' active' : ''}`} onClick={() => setPromoScope('all')}>Все компании</button>
+            </div>
+
+            {/* Conditions */}
+            <div id="sp-promo-acts">
+              <SimpleSelect
+                label="Условия"
+                options={ACTS_FILTERS}
+                value={actsFilter}
+                onChange={setActsFilter}
+              />
             </div>
 
             {/* Categories */}
