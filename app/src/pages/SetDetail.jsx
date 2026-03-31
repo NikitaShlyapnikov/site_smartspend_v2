@@ -768,7 +768,7 @@ export default function SetDetail() {
     return result
   }, [allArticles, detail, color])
 
-  const SHOW_ART = 4
+  const SHOW_ART = 9
   const SHOW_CMT = 2
 
   const sortedComments = [...comments].sort(
@@ -1007,7 +1007,7 @@ export default function SetDetail() {
               </div>
               {!showAbout && (
                 <div className="sd-about-fade">
-                  <button className="sd-about-expand" onClick={() => setShowAbout(true)}>Показать всё</button>
+                  <button className="sd-about-expand" onClick={() => setShowAbout(true)}>Развернуть</button>
                 </div>
               )}
             </div>
@@ -1181,16 +1181,7 @@ export default function SetDetail() {
         ) : allArticles.length > 0 && (
           <div id="sd-articles-section" className="sd-section-card">
             <div className="sd-section-header">
-              <div className="sd-section-title-block">
-                <div className="sd-section-title">Дополнения</div>
-                <div className="sd-section-subtitle">Статьи, одобренные автором набора</div>
-              </div>
-              <div className="sd-csort">
-                {[['author', 'От автора'], ['popular', 'Популярные']].map(([k, l]) => (
-                  <button key={k} className={`sd-sort-btn${artSort === k ? ' active' : ''}`}
-                    onClick={() => setArtSort(k)}>{l}</button>
-                ))}
-              </div>
+              <div className="sd-section-title">Дополнения</div>
             </div>
 
             {/* Authors row */}
@@ -1207,8 +1198,8 @@ export default function SetDetail() {
             <div className="sd-articles-grid">
               {(artExpanded ? sortedArticles : sortedArticles.slice(0, SHOW_ART)).map((a, i) => (
                 <div key={i} className="sd-art-grid-card" onClick={() => navigate('/article/a1')}>
-                  <div className="sd-art-grid-tag">{a.tag}</div>
                   <div className="sd-art-grid-title">{a.title}</div>
+                  {a.preview && <div className="sd-art-grid-preview">{a.preview}</div>}
                 </div>
               ))}
             </div>
