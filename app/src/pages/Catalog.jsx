@@ -51,6 +51,54 @@ const SORT_OPTIONS = [
   { id: 'newest',  label: 'Сначала новые' },
 ]
 
+function SimpleSelect({ label, options, value, onChange }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handler(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('pointerdown', handler)
+    return () => document.removeEventListener('pointerdown', handler)
+  }, [open])
+
+  const selected = options.find(o => o.id === value)
+  const isDefault = value === 'all'
+
+  return (
+    <div className="ssel-wrap" ref={ref}>
+      <button
+        className={`ssel-btn${open ? ' open' : ''}${!isDefault ? ' active' : ''}`}
+        onClick={() => setOpen(v => !v)}
+      >
+        <span className="ssel-label">{label}</span>
+        {!isDefault && <span className="ssel-value">{selected?.label}</span>}
+        <svg className="ssel-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      {open && (
+        <div className="ssel-panel">
+          {options.map(opt => (
+            <button
+              key={opt.id}
+              className={`ssel-option${value === opt.id ? ' active' : ''}`}
+              onClick={() => { onChange(opt.id); setOpen(false) }}
+            >
+              {opt.label}
+              {value === opt.id && (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function SortDropdown({ sort, onSort }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -622,12 +670,7 @@ export default function Catalog() {
                     </button>
                   )}
                 </div>
-                <div className="cats-scroll feed-mode-pills">
-                  {SOURCE_MODES.map(m => (
-                    <button key={m.id} className={`cat-pill${sourceFilter === m.id ? ' active' : ''}`}
-                      onClick={() => handleSourceFilter(m.id)}>{m.label}</button>
-                  ))}
-                </div>
+                <SimpleSelect label="Источник" options={SOURCE_MODES} value={sourceFilter} onChange={handleSourceFilter} />
                 <SortDropdown sort={sortFilter} onSort={setSort} />
                 <FilterSelect items={CATEGORIES} value={cat} onChange={handleCatChange} placeholder="Категории" />
                 {hasFilters && (
