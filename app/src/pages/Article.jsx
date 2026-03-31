@@ -376,6 +376,7 @@ export default function Article() {
   const [likedComments, setLikedComments] = useState(new Set())
   const [dislikedComments, setDislikedComments] = useState(new Set())
   const [showAll, setShowAll] = useState(false)
+  const [showAbout, setShowAbout] = useState(false)
   const [toast, setToast] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [showAddToSet, setShowAddToSet] = useState(false)
@@ -564,93 +565,108 @@ export default function Article() {
         {/* Hero card */}
         <div className="hero-card">
           <div className="hero-body">
-            <div className="hero-title">{article.title}</div>
-            <div className="hero-desc">{article.preview}</div>
+            <div className="hero-body-main">
+              <div className="hero-title">{article.title}</div>
+              <div className="hero-desc">{article.preview}</div>
+            </div>
+          </div>
 
-            {article.pub !== false ? (
-              <div className="art-meta-row">
-                <span className="fa-time">{article.date}{article.readTime ? ` · ${article.readTime} мин` : ''}</span>
-                <div className="art-meta-sep" />
-                <div className="fa-action-stat">
-                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                  </svg>
-                  {fmtNum(article.views)}
+          {/* Collapsible detailed description */}
+          {article.about?.length > 0 && (
+            <div className="sd-about-wrap">
+              <div className={`sd-about-body${showAbout ? '' : ' sd-about-collapsed'}`}>
+                {article.about.map((p, i) => <p key={i}>{p}</p>)}
+              </div>
+              {!showAbout && (
+                <div className="sd-about-fade">
+                  <button className="sd-about-expand" onClick={() => setShowAbout(true)}>Развернуть</button>
                 </div>
-                <ArticleLikeBtn liked={liked} count={article.likes + (liked ? 1 : 0)} onToggle={toggleLike} />
-                <button className="fa-action-stat fa-action-stat--btn" onClick={() => commentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
-                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                  </svg>
-                  {Array.isArray(article.comments) ? article.comments.length : (article.comments || 0)}
-                </button>
-                <ArticleDislikeBtn disliked={disliked} onToggle={toggleDislike} />
-                <ArticleBookmarkBtn bookmarked={bookmarked} onToggle={() => setBookmarked(b => !b)} />
-                <div className="f-spacer" />
-                <button className="fa-action-btn art-add-set-btn" onClick={() => setShowAddToSet(true)} title="Добавить к набору">
-                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                    <circle cx="19" cy="19" r="3.5" fill="var(--surface)" stroke="currentColor" strokeWidth="2"/>
-                    <path d="M19 17.5v3M17.5 19h3"/>
-                  </svg>
-                  К набору
-                </button>
-                {isMine && (
-                  <>
-                    <button className="fa-action-btn" onClick={handleEditArticle} title="Редактировать">
-                      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                      </svg>
-                    </button>
-                    <button className="fa-action-btn art-delete-btn" onClick={() => setConfirmDelete(true)} title="Удалить">
-                      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-                      </svg>
-                    </button>
-                  </>
-                )}
-              </div>
-            ) : isMine && (
-              <div className="art-meta-row art-meta-row--private">
-                <span className="fa-time">{article.date}{article.readTime ? ` · ${article.readTime} мин` : ''}</span>
-                <div className="f-spacer" />
-                <button className="fa-action-btn" onClick={handleEditArticle} title="Редактировать">
-                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                  </svg>
-                </button>
-                <button className="fa-action-btn art-delete-btn" onClick={() => setConfirmDelete(true)} title="Удалить">
-                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-                  </svg>
-                </button>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
-          {/* Author inside hero */}
-          <div className="hero-author">
-            <div className="author-avatar" style={{ background: article.authorColor, cursor: 'pointer' }}
-              onClick={() => navigate('/author/' + (article.authorId || 'unknown'), { state: {
-                name: article.author, ini: article.authorInitials,
-                handle: '@' + (article.author || '').toLowerCase().replace(/\s+/g, '_'),
-                bio: article.authorBio, color: article.authorColor,
-                followers: '—', articles: 0, sets: 0, following: false,
-              }})}>
-              {article.authorInitials}
+          {/* Author + stats row */}
+          {article.pub !== false ? (
+            <div className="art-meta-row">
+              <span className="author-chip-wrap">
+                <button className="author-chip" onClick={() => navigate('/author/' + (article.authorId || 'unknown'), { state: {
+                  name: article.author, ini: article.authorInitials,
+                  handle: '@' + (article.author || '').toLowerCase().replace(/\s+/g, '_'),
+                  bio: article.authorBio, color: article.authorColor,
+                  followers: '—', articles: 0, sets: 0, following: false,
+                }})}>
+                  <div className="author-avatar-sm" style={{ background: article.authorColor }}>{article.authorInitials}</div>
+                  <span className="author-chip-meta">
+                    <span className="author-name-inline">{article.author}</span>
+                    {article.date && <span className="author-chip-date">{article.date}{article.readTime ? ` · ${article.readTime} мин` : ''}</span>}
+                  </span>
+                </button>
+              </span>
+              <FollowBtn following={isFollowing} onToggle={() => setFollowing(f => !f)} />
+              <div className="art-meta-sep" />
+              <div className="fa-action-stat">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+                {fmtNum(article.views)}
+              </div>
+              <ArticleLikeBtn liked={liked} count={article.likes + (liked ? 1 : 0)} onToggle={toggleLike} />
+              <button className="fa-action-stat fa-action-stat--btn" onClick={() => commentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                {Array.isArray(article.comments) ? article.comments.length : (article.comments || 0)}
+              </button>
+              <ArticleDislikeBtn disliked={disliked} onToggle={toggleDislike} />
+              <ArticleBookmarkBtn bookmarked={bookmarked} onToggle={() => setBookmarked(b => !b)} />
+              <div className="f-spacer" />
+              <button className="fa-action-btn art-add-set-btn" onClick={() => setShowAddToSet(true)} title="Добавить к набору">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                  <circle cx="19" cy="19" r="3.5" fill="var(--surface)" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M19 17.5v3M17.5 19h3"/>
+                </svg>
+                К набору
+              </button>
+              {isMine && (
+                <>
+                  <button className="fa-action-btn" onClick={handleEditArticle} title="Редактировать">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                    </svg>
+                  </button>
+                  <button className="fa-action-btn art-delete-btn" onClick={() => setConfirmDelete(true)} title="Удалить">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                    </svg>
+                  </button>
+                </>
+              )}
             </div>
-            <div className="author-info" style={{ cursor: 'pointer' }}
-              onClick={() => navigate('/author/' + (article.authorId || 'unknown'), { state: {
-                name: article.author, ini: article.authorInitials,
-                handle: '@' + (article.author || '').toLowerCase().replace(/\s+/g, '_'),
-                bio: article.authorBio, color: article.authorColor,
-                followers: '—', articles: 0, sets: 0, following: false,
-              }})}>
-              <div className="author-name">{article.author}</div>
-              {article.authorBio && <div className="author-bio">{article.authorBio}</div>}
+          ) : isMine && (
+            <div className="art-meta-row art-meta-row--private">
+              <span className="author-chip-wrap">
+                <button className="author-chip">
+                  <div className="author-avatar-sm" style={{ background: article.authorColor }}>{article.authorInitials}</div>
+                  <span className="author-chip-meta">
+                    <span className="author-name-inline">{article.author}</span>
+                    {article.date && <span className="author-chip-date">{article.date}{article.readTime ? ` · ${article.readTime} мин` : ''}</span>}
+                  </span>
+                </button>
+              </span>
+              <div className="f-spacer" />
+              <button className="fa-action-btn" onClick={handleEditArticle} title="Редактировать">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                </svg>
+              </button>
+              <button className="fa-action-btn art-delete-btn" onClick={() => setConfirmDelete(true)} title="Удалить">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                </svg>
+              </button>
             </div>
-            <FollowBtn following={isFollowing} onToggle={() => setFollowing(f => !f)} />
-          </div>
+          )}
         </div>
 
         {/* Article content */}
