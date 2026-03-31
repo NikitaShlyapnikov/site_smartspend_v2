@@ -459,10 +459,10 @@ function BroadcastCard({ item, onCategoryClick, onCompanyClick }) {
       <div className="broadcast-text">{item.text}</div>
       <PromoInteractions displayHistory={displayHistory} myVote={myVote} showComments={showComments} setShowComments={setShowComments} />
       <div className="pc-header">
-        <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId)}>
-          <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
+        <div className="promo-co-btn">
+          <div className="promo-logo" style={{ background: company?.color, cursor: 'pointer' }} onClick={() => onCompanyClick(item.companyId)}>{company?.abbr}</div>
           <div className="promo-company-info">
-            <div className="promo-company-name">
+            <div className="promo-company-name" style={{ cursor: 'pointer' }} onClick={() => onCompanyClick(item.companyId)}>
               {company?.name}
               {catLabel && catLabel !== 'Все' && (
                 <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
@@ -470,7 +470,7 @@ function BroadcastCard({ item, onCategoryClick, onCompanyClick }) {
             </div>
             <div className="promo-expires">{item.channel} · {item.time}</div>
           </div>
-        </button>
+        </div>
         <PromoVoteButtons
           myVote={myVote} onVote={handleVote} works={works} notWorks={notWorks}
           worksAnim={worksAnim} notAnim={notAnim}
@@ -608,10 +608,10 @@ function PromoCard({ item, onCategoryClick, onCompanyClick, onSourceClick }) {
       <PromoInteractions displayHistory={displayHistory} myVote={myVote} showComments={showComments} setShowComments={setShowComments} />
 
       <div className="pc-header">
-        <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId)}>
-          <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
+        <div className="promo-co-btn">
+          <div className="promo-logo" style={{ background: company?.color, cursor: 'pointer' }} onClick={() => onCompanyClick(item.companyId)}>{company?.abbr}</div>
           <div className="whisper-company-info">
-            <div className="whisper-company-name">
+            <div className="whisper-company-name" style={{ cursor: 'pointer' }} onClick={() => onCompanyClick(item.companyId)}>
               {company?.name}
               {catLabel && catLabel !== 'Все' && (
                 <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
@@ -622,7 +622,7 @@ function PromoCard({ item, onCategoryClick, onCompanyClick, onSourceClick }) {
               <span>{item.expires ? `до ${item.expires}` : ''}</span>
             </div>
           </div>
-        </button>
+        </div>
         <PromoVoteButtons
           myVote={myVote} onVote={handleVote} works={works} notWorks={notWorks}
           worksAnim={worksAnim} notAnim={notAnim}
@@ -857,10 +857,10 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
       )}
 
       <div className="pc-header">
-        <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId)}>
-          <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
+        <div className="promo-co-btn">
+          <div className="promo-logo" style={{ background: company?.color, cursor: 'pointer' }} onClick={() => onCompanyClick(item.companyId)}>{company?.abbr}</div>
           <div className="promo-company-info">
-            <div className="promo-company-name">
+            <div className="promo-company-name" style={{ cursor: 'pointer' }} onClick={() => onCompanyClick(item.companyId)}>
               {company?.name}
               {catLabel && catLabel !== 'Все' && (
                 <button className="fa-category" onClick={e => { e.stopPropagation(); onCategoryClick(item.category) }}>{catLabel}</button>
@@ -871,7 +871,7 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
               <span>{timeAgo(item.addedAt)}{item.expires ? ` · до ${item.expires}` : ''}</span>
             </div>
           </div>
-        </button>
+        </div>
         <div className="pc-header-actions">
           <button className={`fa-action-btn wvb-works${myVote === 'works' ? ' active' : ''}${worksAnim ? ' wv-works-pop' : ''}`} onClick={() => handleVote('works')}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill={myVote === 'works' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
