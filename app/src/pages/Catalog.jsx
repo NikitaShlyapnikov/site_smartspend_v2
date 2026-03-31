@@ -74,7 +74,7 @@ function SortDropdown({ sort, onSort }) {
           <polyline points="6 9 12 15 18 9"/>
         </svg>
       </button>
-      <div className={`sort-dropdown sort-dropdown--left${open ? ' open' : ''}`}>
+      <div className={`sort-dropdown${open ? ' open' : ''}`}>
         {SORT_OPTIONS.map(opt => (
           <div key={opt.id} className={`sort-option${sort === opt.id ? ' active' : ''}`} onClick={() => { onSort(opt.id); setOpen(false) }}>
             {opt.label}

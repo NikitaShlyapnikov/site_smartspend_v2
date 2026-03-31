@@ -520,25 +520,25 @@ function TagSearchInput({ value, onChange, allItems }) {
   }
 
   return (
-    <div className="tag-search-wrap" ref={ref}>
-      <div className={`tag-search-row${focused ? ' focused' : ''}${value ? ' has-value' : ''}`}>
-        <span className="tag-search-hash">#</span>
-        <input
-          ref={inputRef}
-          className="tag-search-input"
-          placeholder="хэштег"
-          value={value.replace(/^#/, '')}
-          onChange={e => onChange(e.target.value)}
-          onFocus={() => setFocused(true)}
-        />
-        {value && (
-          <button className="tag-search-clear" onClick={() => { onChange(''); inputRef.current?.focus() }}>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        )}
-      </div>
+    <div className="catalog-search-wrap" ref={ref}>
+      <svg className="catalog-search-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+      </svg>
+      <input
+        ref={inputRef}
+        className="catalog-search-input"
+        placeholder="Поиск по хэштегу..."
+        value={value.replace(/^#/, '')}
+        onChange={e => onChange(e.target.value)}
+        onFocus={() => setFocused(true)}
+      />
+      {value && (
+        <button className="catalog-search-clear" onClick={() => { onChange(''); inputRef.current?.focus() }}>
+          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      )}
       {focused && suggestions.length > 0 && (
         <div className="tag-suggestions">
           {suggestions.slice(0, 8).map(t => (

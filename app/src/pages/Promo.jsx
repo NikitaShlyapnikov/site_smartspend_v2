@@ -1087,21 +1087,21 @@ function CompanySearch({ onSelect }) {
 
   return (
     <div className="co-search-wrap" ref={ref}>
-      <div className="co-search-bar">
-        <svg className="co-search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      <div className="catalog-search-wrap">
+        <svg className="catalog-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
         </svg>
         <input
-          className="co-search-input"
+          className="catalog-search-input"
           placeholder="Поиск компании..."
           value={query}
           onChange={e => { setQuery(e.target.value); setOpen(true) }}
           onFocus={() => setOpen(true)}
         />
         {query && (
-          <button className="co-search-clear" onClick={() => { setQuery(''); setOpen(false) }}>
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-              <line x1="2" y1="2" x2="8" y2="8"/><line x1="8" y1="2" x2="2" y2="8"/>
+          <button className="catalog-search-clear" onClick={() => { setQuery(''); setOpen(false) }}>
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M18 6L6 18M6 6l12 12"/>
             </svg>
           </button>
         )}
