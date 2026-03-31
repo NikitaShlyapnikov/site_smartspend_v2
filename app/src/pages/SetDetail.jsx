@@ -855,7 +855,7 @@ export default function SetDetail() {
                               ) : (
                                 <>
                                   <button className="sd-qty-btn" onClick={() => chQty(item.id, -1)}>−</button>
-                                  <span className="sd-qty-n">{item.qty}&thinsp;{item.unit}</span>
+                                  <span className="sd-qty-n">{parseFloat((item.qty * scale).toFixed(2)).toLocaleString('ru')}&thinsp;{item.unit}</span>
                                   <button className="sd-qty-btn" onClick={() => chQty(item.id, +1)}>+</button>
                                 </>
                               )}

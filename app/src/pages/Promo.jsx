@@ -451,6 +451,8 @@ function BroadcastCard({ item, onCategoryClick, onCompanyClick }) {
 
   return (
     <div className="broadcast-card">
+      <div className="broadcast-text">{item.text}</div>
+      <PromoInteractions displayHistory={displayHistory} myVote={myVote} showComments={showComments} setShowComments={setShowComments} />
       <div className="pc-header">
         <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId)}>
           <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
@@ -481,8 +483,6 @@ function BroadcastCard({ item, onCategoryClick, onCompanyClick }) {
           badge={<div className="promo-type-badge promo-type-badge--broadcast">Рассылка</div>}
         />
       </div>
-      <div className="broadcast-text">{item.text}</div>
-      <PromoInteractions displayHistory={displayHistory} myVote={myVote} showComments={showComments} setShowComments={setShowComments} />
     </div>
   )
 }
@@ -583,6 +583,24 @@ function PromoCard({ item, onCategoryClick, onCompanyClick, onSourceClick }) {
 
   return (
     <div className="whisper-card">
+      <div className="whisper-title">{item.title}</div>
+      {item.desc && <div className="whisper-desc">{item.desc}</div>}
+
+      {item.code && (
+        <div className="whisper-code-row">
+          <div className="whisper-code">{item.code}</div>
+          <button className={`fa-action-btn pc-copy-btn${copied ? ' copied' : ''}`} onClick={copyCode}>
+            {copied ? (
+              <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Скопировано</>
+            ) : (
+              <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Скопировать</>
+            )}
+          </button>
+        </div>
+      )}
+
+      <PromoInteractions displayHistory={displayHistory} myVote={myVote} showComments={showComments} setShowComments={setShowComments} />
+
       <div className="pc-header">
         <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId)}>
           <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
@@ -616,24 +634,6 @@ function PromoCard({ item, onCategoryClick, onCompanyClick, onSourceClick }) {
           badge={<ConditionBadge filter={item.promo_filter} />}
         />
       </div>
-
-      <div className="whisper-title">{item.title}</div>
-      {item.desc && <div className="whisper-desc">{item.desc}</div>}
-
-      {item.code && (
-        <div className="whisper-code-row">
-          <div className="whisper-code">{item.code}</div>
-          <button className={`fa-action-btn pc-copy-btn${copied ? ' copied' : ''}`} onClick={copyCode}>
-            {copied ? (
-              <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Скопировано</>
-            ) : (
-              <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Скопировать</>
-            )}
-          </button>
-        </div>
-      )}
-
-      <PromoInteractions displayHistory={displayHistory} myVote={myVote} showComments={showComments} setShowComments={setShowComments} />
     </div>
   )
 }
@@ -814,6 +814,41 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
 
   return (
     <div className={`whisper-card${cardMood ? ` whisper-card--${cardMood}` : ''}`}>
+      <div className="whisper-title">{item.title}</div>
+      {item.desc && <div className="whisper-desc">{item.desc.slice(0, 140)}</div>}
+
+      {item.code && (
+        <div className="whisper-code-row">
+          <div className="whisper-code">{item.code}</div>
+          <button className={`fa-action-btn pc-copy-btn${copied ? ' copied' : ''}`} onClick={copyCode}>
+            {copied ? (
+              <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Скопировано</>
+            ) : (
+              <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Скопировать</>
+            )}
+          </button>
+        </div>
+      )}
+
+      {displayHistory.length > 0 && (
+        <div className="whisper-history">
+          {displayHistory.slice(-40).map((v, i, arr) => {
+            const isMine = i === arr.length - 1 && !!myVote
+            return (
+              <div
+                key={isMine ? `mine-${myVote}` : i}
+                className={`wvh-stripe${isMine ? ' wvh-mine' : ''}`}
+                style={{ background: v === 'w' ? '#5E9478' : '#B85555' }}
+              />
+            )
+          })}
+        </div>
+      )}
+
+      {displayHistory.length === 0 && !myVote && (
+        <div className="whisper-first-check">Будь первым, кто проверит</div>
+      )}
+
       <div className="pc-header">
         <button className="promo-co-btn" onClick={() => onCompanyClick(item.companyId)}>
           <div className="promo-logo" style={{ background: company?.color }}>{company?.abbr}</div>
@@ -868,41 +903,6 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
           <ConditionBadge filter={item.promo_filter} />
         </div>
       </div>
-
-      <div className="whisper-title">{item.title}</div>
-      {item.desc && <div className="whisper-desc">{item.desc.slice(0, 140)}</div>}
-
-      {item.code && (
-        <div className="whisper-code-row">
-          <div className="whisper-code">{item.code}</div>
-          <button className={`fa-action-btn pc-copy-btn${copied ? ' copied' : ''}`} onClick={copyCode}>
-            {copied ? (
-              <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Скопировано</>
-            ) : (
-              <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Скопировать</>
-            )}
-          </button>
-        </div>
-      )}
-
-      {displayHistory.length > 0 && (
-        <div className="whisper-history">
-          {displayHistory.slice(-40).map((v, i, arr) => {
-            const isMine = i === arr.length - 1 && !!myVote
-            return (
-              <div
-                key={isMine ? `mine-${myVote}` : i}
-                className={`wvh-stripe${isMine ? ' wvh-mine' : ''}`}
-                style={{ background: v === 'w' ? '#5E9478' : '#B85555' }}
-              />
-            )
-          })}
-        </div>
-      )}
-
-      {displayHistory.length === 0 && !myVote && (
-        <div className="whisper-first-check">Будь первым, кто проверит</div>
-      )}
 
       {showComments && (
         <div className="whisper-comments">

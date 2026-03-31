@@ -497,19 +497,6 @@ export default function Article() {
             </div>
           </div>
 
-          {/* Collapsible detailed description */}
-          {article.about?.length > 0 && (
-            <div className="sd-about-wrap">
-              <div className={`sd-about-body${showAbout ? '' : ' sd-about-collapsed'}`}>
-                {article.about.map((p, i) => <p key={i}>{p}</p>)}
-              </div>
-              {!showAbout && (
-                <div className="sd-about-fade">
-                  <button className="sd-about-expand" onClick={() => setShowAbout(true)}>Развернуть</button>
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Author + stats row */}
           {article.pub !== false ? (
@@ -528,7 +515,6 @@ export default function Article() {
                   </span>
                 </button>
               </span>
-              <FollowBtn following={isFollowing} onToggle={() => setFollowing(f => !f)} />
               <div className="art-meta-sep" />
               <div className="fa-action-stat">
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -546,13 +532,8 @@ export default function Article() {
               <ArticleDislikeBtn disliked={disliked} onToggle={toggleDislike} />
               <ArticleBookmarkBtn bookmarked={bookmarked} onToggle={() => setBookmarked(b => !b)} />
               <div className="f-spacer" />
-              <button className="fa-action-btn art-add-set-btn" onClick={() => setShowAddToSet(true)} title="Добавить к набору">
-                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                  <circle cx="19" cy="19" r="3.5" fill="var(--surface)" stroke="currentColor" strokeWidth="2"/>
-                  <path d="M19 17.5v3M17.5 19h3"/>
-                </svg>
-                К набору
+              <button className="art-add-set-btn" onClick={() => setShowAddToSet(true)}>
+                Прикрепить к набору
               </button>
               {isMine && (
                 <>
@@ -656,7 +637,7 @@ export default function Article() {
             </div>
           <div className="catalog-card" onClick={() => navigate(`/set/${set.id}`)}>
             <div className="card-accent-bar" style={{ background: set.color }} />
-            <div className="card-body">
+            <div className="catalog-card" style={{ padding: '22px 24px 14px', borderRadius: 0, boxShadow: 'none' }}>
               <div className="card-badges">
                 <span className={`source-badge ${set.source}`}>
                   {set.source === 'ss' ? 'SmartSpend' : set.source === 'community' ? 'Сообщество' : 'Моё'}

@@ -5344,7 +5344,15 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
 .art-meta-row .fa-action-stat { color: var(--text-2); }
 .art-meta-row .fa-action-stat svg { opacity: 0.55; }
 .art-meta-row .fa-time { font-size: 12px; color: var(--text-2); white-space: nowrap; flex-shrink: 0; padding: 0 4px; }
-.art-meta-row .art-add-set-btn { white-space: nowrap; flex-shrink: 0; }
+.art-add-set-btn {
+  flex-shrink: 0; white-space: nowrap;
+  padding: 5px 12px; border-radius: var(--r-sm);
+  font-size: 12px; font-weight: 600;
+  background: var(--surface-2); color: var(--text-1);
+  border: 1px solid var(--border);
+  cursor: pointer; transition: background 0.15s, border-color 0.15s;
+}
+.art-add-set-btn:hover { background: var(--accent-green); color: #fff; border-color: var(--accent-green); }
 .art-meta-row .art-delete-btn:hover { color: #B85555; }
 .art-meta-row .art-delete-btn:hover svg { opacity: 0.9; }
 
@@ -8994,7 +9002,7 @@ body.dark .whisper-add-cta:hover { background: rgba(106,175,142,.08); }
   transition: border-color 0.15s;
 }
 
-.pc-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.pc-header { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
 .whisper-card .promo-co-btn { flex: 1; min-width: 0; }
 .pc-header-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
 
