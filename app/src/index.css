@@ -1181,11 +1181,11 @@ body.dark .reset-btn:hover { background: rgba(224, 112, 112, 0.22); border-color
 .catalog-filters-bar {
   padding: 16px 0 12px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 4px;
 }
 .catalog-scroll {
   flex: 1; overflow-y: auto;
   padding: 0 36px 40px;
+  display: flex; flex-direction: column; gap: 20px;
   scrollbar-width: none;
 }
 .catalog-scroll::-webkit-scrollbar { display: none; }
