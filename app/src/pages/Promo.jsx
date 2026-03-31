@@ -26,7 +26,7 @@ const PROMO_SPOTLIGHT = [
   {
     targetId: 'sp-promo-scope',
     title: 'Ваши компании',
-    desc: 'Показывать только предложения от компаний из вашего списка или сразу от всех. Нажмите «Изменить компании» чтобы добавить или убрать бренды — это влияет на раздел Рассылки и Официальные.',
+    desc: 'Переключайтесь между «Мои компании» и «Все компании». Список своих брендов можно настроить в разделе Аккаунт → Мои компании — это влияет на разделы Рассылки и Официальные.',
   },
   {
     targetId: 'sp-promo-cats',
@@ -254,7 +254,7 @@ function SimpleSelect({ label, options, value, onChange, disabled }) {
   )
 }
 
-// ── PROMO INTERACTIONS (shared: vote bar + comments) ───────────────────────────
+// ── PROMO INTERACTIONS (vote bar + comments panel) ────────────────────────────
 
 function getIni(author) {
   if (!author || author === 'вы') return 'ВЫ'
@@ -263,11 +263,37 @@ function getIni(author) {
   return author.slice(0, 2).toUpperCase()
 }
 
-function PromoInteractions({ initHistory = [], initComments = [], extraAction }) {
-  const [myVote,          setMyVote]          = useState(null)
-  const [worksAnim,       setWorksAnim]       = useState(false)
-  const [notAnim,         setNotAnim]         = useState(false)
-  const [showComments,    setShowComments]    = useState(false)
+// Shared vote buttons rendered in pc-header-actions
+function PromoVoteButtons({ myVote, onVote, works, notWorks, worksAnim, notAnim, showComments, onToggleComments, commentCount, badge, extraAction }) {
+  return (
+    <div className="pc-header-actions">
+      <button className={`fa-action-btn wvb-works${myVote === 'works' ? ' active' : ''}${worksAnim ? ' wv-works-pop' : ''}`} onClick={() => onVote('works')}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill={myVote === 'works' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+          <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+        </svg>
+        Работает{works > 0 ? ` · ${works}` : ''}
+      </button>
+      <button className={`fa-action-btn wvb-not${myVote === 'not' ? ' active' : ''}${notAnim ? ' wv-not-shake' : ''}`} onClick={() => onVote('not')}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill={myVote === 'not' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+          <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+        </svg>
+        Не работает{notWorks > 0 ? ` · ${notWorks}` : ''}
+      </button>
+      {extraAction}
+      <button className={`fa-action-btn${showComments ? ' wv-comments-open' : ''}`} onClick={onToggleComments}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        {commentCount > 0 ? commentCount : ''}
+      </button>
+      {badge}
+    </div>
+  )
+}
+
+function PromoInteractions({ displayHistory = [], initComments = [], showComments, setShowComments, myVote }) {
   const [comments,        setComments]        = useState(initComments)
   const [commentText,     setCommentText]     = useState('')
   const [reactions,       setReactions]       = useState([])
@@ -278,17 +304,6 @@ function PromoInteractions({ initHistory = [], initComments = [], extraAction })
   const [visibleCount,    setVisibleCount]    = useState(10)
   const [likedComments,   setLikedComments]   = useState(new Set())
   const [dislikedComments,setDislikedComments]= useState(new Set())
-
-  const displayHistory = myVote ? [...initHistory, myVote === 'works' ? 'w' : 'n'] : initHistory
-  const works    = displayHistory.filter(v => v === 'w').length
-  const notWorks = displayHistory.filter(v => v === 'n').length
-
-  function handleVote(vote) {
-    if (myVote === vote) { setMyVote(null); return }
-    if (vote === 'works') { setWorksAnim(true); setTimeout(() => setWorksAnim(false), 480) }
-    else                  { setNotAnim(true);   setTimeout(() => setNotAnim(false), 420) }
-    setMyVote(vote)
-  }
 
   function toggleReaction(emoji) {
     setMyReactions(prev => {
@@ -342,35 +357,10 @@ function PromoInteractions({ initHistory = [], initComments = [], extraAction })
           })}
         </div>
       )}
-
-      <div className="fa-bottom whisper-actions">
-        <button className={`fa-action-btn wvb-works${myVote === 'works' ? ' active' : ''}${worksAnim ? ' wv-works-pop' : ''}`} onClick={() => handleVote('works')}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill={myVote === 'works' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
-            <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
-          </svg>
-          Работает{works > 0 ? ` · ${works}` : ''}
-        </button>
-        <button className={`fa-action-btn wvb-not${myVote === 'not' ? ' active' : ''}${notAnim ? ' wv-not-shake' : ''}`} onClick={() => handleVote('not')}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill={myVote === 'not' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
-            <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
-          </svg>
-          Не работает{notWorks > 0 ? ` · ${notWorks}` : ''}
-        </button>
-        <div className="f-spacer" />
-        {extraAction}
-        <button className={`fa-action-btn${showComments ? ' wv-comments-open' : ''}`} onClick={() => setShowComments(v => !v)}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-          {comments.length > 0 ? comments.length : 'Комментарии'}
-        </button>
-      </div>
+      {displayHistory.length === 0 && <div className="whisper-first-check">Будь первым, кто проверит</div>}
 
       {showComments && (
         <div className="whisper-comments">
-          {/* Emoji reactions */}
           <div className="whisper-reactions-row">
             <span className="art-reactions-label">Что думаете?</span>
             {reactions.map(r => (
@@ -387,7 +377,6 @@ function PromoInteractions({ initHistory = [], initComments = [], extraAction })
             </div>
           </div>
 
-          {/* Comment list */}
           <div className="comments-list">
             {visible.map((c, idx) => (
               <div key={idx} className="comment-item">
@@ -429,7 +418,6 @@ function PromoInteractions({ initHistory = [], initComments = [], extraAction })
             )}
           </div>
 
-          {/* Input */}
           <form className="comments-input" onSubmit={submitComment}>
             <input className="c-input" placeholder="Написать комментарий..." value={commentText} onChange={e => setCommentText(e.target.value)} />
             <button type="submit" className="c-submit">Отправить</button>
@@ -445,6 +433,22 @@ function PromoInteractions({ initHistory = [], initComments = [], extraAction })
 function BroadcastCard({ item, onCategoryClick, onCompanyClick }) {
   const company  = COMPANY_MAP[item.companyId]
   const catLabel = CATEGORIES.find(c => c.id === item.category)?.label
+  const [myVote,       setMyVote]       = useState(null)
+  const [worksAnim,    setWorksAnim]    = useState(false)
+  const [notAnim,      setNotAnim]      = useState(false)
+  const [showComments, setShowComments] = useState(false)
+
+  const displayHistory = myVote ? [myVote === 'works' ? 'w' : 'n'] : []
+  const works    = displayHistory.filter(v => v === 'w').length
+  const notWorks = displayHistory.filter(v => v === 'n').length
+
+  function handleVote(vote) {
+    if (myVote === vote) { setMyVote(null); return }
+    if (vote === 'works') { setWorksAnim(true); setTimeout(() => setWorksAnim(false), 480) }
+    else                  { setNotAnim(true);   setTimeout(() => setNotAnim(false), 420) }
+    setMyVote(vote)
+  }
+
   return (
     <div className="broadcast-card">
       <div className="pc-header">
@@ -460,18 +464,25 @@ function BroadcastCard({ item, onCategoryClick, onCompanyClick }) {
             <div className="promo-expires">{item.channel} · {item.time}</div>
           </div>
         </button>
-        <div className="promo-type-badge promo-type-badge--broadcast">Рассылка</div>
+        <PromoVoteButtons
+          myVote={myVote} onVote={handleVote} works={works} notWorks={notWorks}
+          worksAnim={worksAnim} notAnim={notAnim}
+          showComments={showComments} onToggleComments={() => setShowComments(v => !v)}
+          commentCount={0}
+          extraAction={
+            <a href={item.url} target="_blank" rel="noopener noreferrer" className="fa-action-btn" onClick={e => e.stopPropagation()}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>
+              Открыть
+            </a>
+          }
+          badge={<div className="promo-type-badge promo-type-badge--broadcast">Рассылка</div>}
+        />
       </div>
       <div className="broadcast-text">{item.text}</div>
-      <PromoInteractions extraAction={
-        <a href={item.url} target="_blank" rel="noopener noreferrer" className="fa-action-btn" onClick={e => e.stopPropagation()}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-            <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-          </svg>
-          Открыть
-        </a>
-      } />
+      <PromoInteractions displayHistory={displayHistory} myVote={myVote} showComments={showComments} setShowComments={setShowComments} />
     </div>
   )
 }
@@ -546,7 +557,22 @@ function SmartSpendPromoChip() {
 function PromoCard({ item, onCategoryClick, onCompanyClick, onSourceClick }) {
   const company  = COMPANY_MAP[item.companyId]
   const catLabel = CATEGORIES.find(c => c.id === item.category)?.label
-  const [copied, setCopied] = useState(false)
+  const [copied,       setCopied]       = useState(false)
+  const [myVote,       setMyVote]       = useState(null)
+  const [worksAnim,    setWorksAnim]    = useState(false)
+  const [notAnim,      setNotAnim]      = useState(false)
+  const [showComments, setShowComments] = useState(false)
+
+  const displayHistory = myVote ? [myVote === 'works' ? 'w' : 'n'] : []
+  const works    = displayHistory.filter(v => v === 'w').length
+  const notWorks = displayHistory.filter(v => v === 'n').length
+
+  function handleVote(vote) {
+    if (myVote === vote) { setMyVote(null); return }
+    if (vote === 'works') { setWorksAnim(true); setTimeout(() => setWorksAnim(false), 480) }
+    else                  { setNotAnim(true);   setTimeout(() => setNotAnim(false), 420) }
+    setMyVote(vote)
+  }
 
   function copyCode(e) {
     e.stopPropagation()
@@ -573,7 +599,22 @@ function PromoCard({ item, onCategoryClick, onCompanyClick, onSourceClick }) {
             </div>
           </div>
         </button>
-        <ConditionBadge filter={item.promo_filter} />
+        <PromoVoteButtons
+          myVote={myVote} onVote={handleVote} works={works} notWorks={notWorks}
+          worksAnim={worksAnim} notAnim={notAnim}
+          showComments={showComments} onToggleComments={() => setShowComments(v => !v)}
+          commentCount={0}
+          extraAction={item.sourceUrl ? (
+            <button className="fa-action-btn" onClick={() => onSourceClick(item.sourceUrl)}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>
+              Источник
+            </button>
+          ) : null}
+          badge={<ConditionBadge filter={item.promo_filter} />}
+        />
       </div>
 
       <div className="whisper-title">{item.title}</div>
@@ -592,15 +633,7 @@ function PromoCard({ item, onCategoryClick, onCompanyClick, onSourceClick }) {
         </div>
       )}
 
-      <PromoInteractions extraAction={item.sourceUrl ? (
-        <button className="fa-action-btn" onClick={() => onSourceClick(item.sourceUrl)}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-            <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-          </svg>
-          Источник
-        </button>
-      ) : null} />
+      <PromoInteractions displayHistory={displayHistory} myVote={myVote} showComments={showComments} setShowComments={setShowComments} />
     </div>
   )
 }
@@ -797,7 +830,43 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
             </div>
           </div>
         </button>
-        <ConditionBadge filter={item.promo_filter} />
+        <div className="pc-header-actions">
+          <button className={`fa-action-btn wvb-works${myVote === 'works' ? ' active' : ''}${worksAnim ? ' wv-works-pop' : ''}`} onClick={() => handleVote('works')}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill={myVote === 'works' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+              <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+            </svg>
+            Работает{works > 0 ? ` · ${works}` : ''}
+          </button>
+          <button className={`fa-action-btn wvb-not${myVote === 'not' ? ' active' : ''}${notAnim ? ' wv-not-shake' : ''}`} onClick={() => handleVote('not')}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill={myVote === 'not' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+              <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+            </svg>
+            Не работает{notWorks > 0 ? ` · ${notWorks}` : ''}
+          </button>
+          {voteToast && (
+            <span className={`whisper-vote-toast${voteToast === 'works' ? ' wvt-works' : ' wvt-not'}`}>
+              {voteToast === 'works' ? 'Голос учтён' : 'Спасибо за проверку'}
+            </span>
+          )}
+          {item.sourceUrl && (
+            <button className="fa-action-btn" onClick={() => onSourceClick(item.sourceUrl)}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>
+              Источник
+            </button>
+          )}
+          <button className={`fa-action-btn${showComments ? ' wv-comments-open' : ''}`} onClick={() => setShowComments(v => !v)}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            {comments.length > 0 ? comments.length : ''}
+          </button>
+          <ConditionBadge filter={item.promo_filter} />
+        </div>
       </div>
 
       <div className="whisper-title">{item.title}</div>
@@ -834,44 +903,6 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
       {displayHistory.length === 0 && !myVote && (
         <div className="whisper-first-check">Будь первым, кто проверит</div>
       )}
-
-      <div className="fa-bottom whisper-actions">
-        <button className={`fa-action-btn wvb-works${myVote === 'works' ? ' active' : ''}${worksAnim ? ' wv-works-pop' : ''}`} onClick={() => handleVote('works')}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill={myVote === 'works' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
-            <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
-          </svg>
-          Работает{works > 0 ? ` · ${works}` : ''}
-        </button>
-        <button className={`fa-action-btn wvb-not${myVote === 'not' ? ' active' : ''}${notAnim ? ' wv-not-shake' : ''}`} onClick={() => handleVote('not')}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill={myVote === 'not' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
-            <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
-          </svg>
-          Не работает{notWorks > 0 ? ` · ${notWorks}` : ''}
-        </button>
-        {voteToast && (
-          <span className={`whisper-vote-toast${voteToast === 'works' ? ' wvt-works' : ' wvt-not'}`}>
-            {voteToast === 'works' ? 'Голос учтён' : 'Спасибо за проверку'}
-          </span>
-        )}
-        <div className="f-spacer" />
-        {item.sourceUrl && (
-          <button className="fa-action-btn" onClick={() => onSourceClick(item.sourceUrl)}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-              <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-            </svg>
-            Источник
-          </button>
-        )}
-        <button className={`fa-action-btn${showComments ? ' wv-comments-open' : ''}`} onClick={() => setShowComments(v => !v)}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-          {comments.length > 0 ? comments.length : 'Комментарии'}
-        </button>
-      </div>
 
       {showComments && (
         <div className="whisper-comments">
@@ -1149,13 +1180,6 @@ export default function Promo() {
                 <div className="cats-scroll promo-type-chips">
                   <button className={`cat-pill${promoScope === 'mine' ? ' active' : ''}`} onClick={() => setPromoScope('mine')}>Мои компании</button>
                   <button className={`cat-pill${promoScope === 'all' ? ' active' : ''}`} onClick={() => setPromoScope('all')}>Все компании</button>
-                  <button className="cat-pill cat-pill--edit" onClick={() => navigate('/company-picker', { state: { edit: true } })}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                    </svg>
-                    Изменить компании
-                  </button>
                 </div>
                 <CompanySearch onSelect={handleCompanySearch} />
                 <FilterSelect items={CATEGORIES.filter(c => c.id === 'all' || PROMO_CATS_WITH_ITEMS.has(c.id))} value={promoCat} onChange={handlePromoCat} placeholder="Категории" />
@@ -1202,13 +1226,6 @@ export default function Promo() {
             <div id="sp-promo-scope" className="cats-scroll promo-type-chips">
               <button className={`cat-pill${promoScope === 'mine' ? ' active' : ''}`} onClick={() => setPromoScope('mine')}>Мои компании</button>
               <button className={`cat-pill${promoScope === 'all' ? ' active' : ''}`} onClick={() => setPromoScope('all')}>Все компании</button>
-              <button className="cat-pill cat-pill--edit" onClick={() => navigate('/company-picker', { state: { edit: true } })}>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-                Изменить компании
-              </button>
             </div>
 
             {/* Company search */}
