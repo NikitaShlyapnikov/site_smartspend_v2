@@ -47,6 +47,7 @@ export const feedItems = [
     reactions: [{ emoji: '🔥', count: 24 }, { emoji: '💸', count: 15 }, { emoji: '🤯', count: 8 }],
     setLink: { title: 'Здоровый образ жизни', color: '#7DAF92' },
     category: 'health',
+    tags: ['ЗОЖ', 'здоровье', 'фитнес', 'экономия', 'бюджет'],
   },
   {
     id: 'fa2', type: 'article',
@@ -58,6 +59,7 @@ export const feedItems = [
     reactions: [{ emoji: '🔥', count: 31 }, { emoji: '🤮', count: 8 }, { emoji: '💡', count: 12 }],
     setLink: { title: 'Еда и доставка', color: '#C4A882' },
     category: 'food',
+    tags: ['доставка', 'еда', 'подписки', 'экономия', 'лайфхак'],
   },
   {
     id: 'f2', type: 'article',
@@ -69,6 +71,7 @@ export const feedItems = [
     reactions: [{ emoji: '😍', count: 18 }, { emoji: '🔥', count: 9 }],
     setLink: { title: 'Правильное питание', color: '#9AB8A8' },
     category: 'food',
+    tags: ['еда', 'рецепт', 'питание', 'ЗОЖ', 'здоровье'],
   },
   {
     id: 'f4', type: 'article',
@@ -80,6 +83,7 @@ export const feedItems = [
     reactions: [{ emoji: '💸', count: 22 }, { emoji: '🤔', count: 11 }, { emoji: '🔥', count: 7 }],
     setLink: { title: 'Авто и транспорт', color: '#9696B8' },
     category: 'transport',
+    tags: ['авто', 'транспорт', 'расходы', 'экономия', 'страховка'],
   },
   {
     id: 'f5', type: 'article',
@@ -91,6 +95,7 @@ export const feedItems = [
     reactions: [{ emoji: '💡', count: 19 }, { emoji: '🔥', count: 14 }],
     setLink: { title: 'Подписки и стриминг', color: '#A8B4A0' },
     category: 'leisure',
+    tags: ['подписки', 'стриминг', 'экономия', 'семья', 'лайфхак'],
   },
   {
     id: 'f6', type: 'article',
@@ -102,6 +107,7 @@ export const feedItems = [
     reactions: [{ emoji: '😍', count: 27 }, { emoji: '🔥', count: 16 }, { emoji: '💸', count: 9 }],
     setLink: { title: 'Базовый гардероб', color: '#8A9EB8' },
     category: 'clothes',
+    tags: ['одежда', 'гардероб', 'капсула', 'стиль', 'экономия'],
   },
   {
     id: 'f8', type: 'article',
@@ -113,6 +119,7 @@ export const feedItems = [
     reactions: [{ emoji: '💡', count: 13 }, { emoji: '🤮', count: 4 }],
     setLink: { title: 'Бытовая химия', color: '#B8A87A' },
     category: 'home',
+    tags: ['бытовая химия', 'дом', 'экономия', 'опт', 'закупки'],
   },
   {
     id: 'f10', type: 'article',
@@ -124,6 +131,7 @@ export const feedItems = [
     reactions: [{ emoji: '😍', count: 15 }, { emoji: '🔥', count: 8 }],
     setLink: { title: 'Базовое питание', color: '#7DAF92' },
     category: 'food',
+    tags: ['еда', 'меню', 'питание', 'бюджет', 'планирование'],
   },
   {
     id: 'f11', type: 'article',
@@ -134,6 +142,7 @@ export const feedItems = [
     views: 4100, likes: 77, comments: 14,
     reactions: [{ emoji: '🤯', count: 21 }, { emoji: '💡', count: 11 }, { emoji: '🤮', count: 6 }],
     category: 'food',
+    tags: ['еда', 'состав', 'здоровье', 'этикетка', 'питание'],
   },
 ]
 

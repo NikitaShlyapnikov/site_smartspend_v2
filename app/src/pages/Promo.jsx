@@ -91,6 +91,67 @@ const ALL_COMPANIES_LIST = Object.entries(companies).flatMap(([catId, cat]) =>
 )
 const PROMO_CATS_WITH_ITEMS = new Set([...promoItems.map(p => p.category), ...whisperItemsMock.map(w => w.category)])
 
+const PROMO_SORT_OPTIONS = [
+  { group: 'Новизна',      id: 'newest',     label: 'Сначала новые' },
+  { group: 'По голосам',   id: 'votes_7d',   label: 'За 7 дней' },
+  { group: 'По голосам',   id: 'votes_30d',  label: 'За месяц' },
+  { group: 'По голосам',   id: 'votes_all',  label: 'За всё время' },
+]
+
+function PromoSortDropdown({ sort, onSort }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    function handler(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const current = PROMO_SORT_OPTIONS.find(o => o.id === sort)
+  const groups = [...new Set(PROMO_SORT_OPTIONS.map(o => o.group))]
+
+  function pick(id) { onSort(id); setOpen(false) }
+
+  const btnLabel = current?.group === 'По голосам'
+    ? `По голосам ${current.label.toLowerCase()}`
+    : current?.label
+
+  return (
+    <div className="sort-wrap" ref={ref}>
+      <span className="sort-label-txt">Сортировка:</span>
+      <button className={`sort-btn${open ? ' open' : ''}${sort !== 'newest' ? ' active' : ''}`} onClick={() => setOpen(o => !o)}>
+        <span>{btnLabel}</span>
+        <svg className="sort-btn-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <div className={`sort-dropdown${open ? ' open' : ''}`}>
+        {groups.map((grp, gi) => (
+          <div key={grp}>
+            {gi > 0 && <div className="sort-divider" />}
+            <div className="sort-group-label">{grp}</div>
+            {PROMO_SORT_OPTIONS.filter(o => o.group === grp).map(opt => (
+              <div
+                key={opt.id}
+                className={`sort-option${sort === opt.id ? ' active' : ''}`}
+                onClick={() => pick(opt.id)}
+              >
+                {opt.label}
+                <svg className="sort-option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function loadFollowed() {
   try { return new Set(JSON.parse(localStorage.getItem('ss_companies') || '[]')) }
   catch { return new Set() }
@@ -819,7 +880,12 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
   }
 
   return (
-    <div className={`whisper-card${cardMood ? ` whisper-card--${cardMood}` : ''}`}>
+    <div className={`whisper-card${cardMood ? ` whisper-card--${cardMood}` : ''}`} style={{ position: 'relative' }}>
+      {voteToast && (
+        <div className={`whisper-vote-toast whisper-vote-toast--float${voteToast === 'works' ? ' wvt-works' : ' wvt-not'}`}>
+          {voteToast === 'works' ? 'Голос учтён' : 'Спасибо за проверку'}
+        </div>
+      )}
       <div className="whisper-title">{item.title}</div>
       {item.desc && <div className="whisper-desc">{item.desc.slice(0, 140)}</div>}
 
@@ -887,11 +953,6 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
             </svg>
             Не работает{notWorks > 0 ? ` ${notWorks}` : ''}
           </button>
-          {voteToast && (
-            <span className={`whisper-vote-toast${voteToast === 'works' ? ' wvt-works' : ' wvt-not'}`}>
-              {voteToast === 'works' ? 'Голос учтён' : 'Спасибо за проверку'}
-            </span>
-          )}
           {item.sourceUrl && (
             <button className="fa-action-btn" onClick={() => onSourceClick(item.sourceUrl)}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -1076,6 +1137,7 @@ export default function Promo() {
   const [promoCat,     setPromoCat]     = useState(new Set())
   const [promoCompany, setPromoCompany] = useState(new Set())
   const [actsFilter,   setActsFilter]   = useState('all')
+  const [promoSort,    setPromoSort]    = useState('newest')
   const [localWhispers, setLocalWhispers] = useState(whisperItemsMock)
   const [whisperVotes,  setWhisperVotes]  = useState(new Map())
   const [extUrl,        setExtUrl]        = useState(null)
@@ -1165,6 +1227,17 @@ export default function Promo() {
       if ((item.promo_filter || 'regular') !== actsFilter) return false
     }
     return true
+  })
+
+  const now = Date.now()
+  const sortedFiltered = [...filtered].sort((a, b) => {
+    if (promoSort === 'newest') return getSortKey(b) - getSortKey(a)
+    const cutoff = promoSort === 'votes_7d' ? now - 7 * 86400000
+                 : promoSort === 'votes_30d' ? now - 30 * 86400000
+                 : 0
+    const aVotes = (a.history || []).length + (cutoff > 0 && getSortKey(a) < cutoff ? -1000 : 0)
+    const bVotes = (b.history || []).length + (cutoff > 0 && getSortKey(b) < cutoff ? -1000 : 0)
+    return bVotes - aVotes
   })
 
   const hasFilters = promoCat.size > 0 || promoCompany.size > 0 ||
@@ -1273,6 +1346,8 @@ export default function Promo() {
               ) : null
             })()}
 
+            <PromoSortDropdown sort={promoSort} onSort={setPromoSort} />
+
             {hasFilters && (
               <div className="filter-summary">
                 <span>{filtered.length} {noun(filtered.length)}</span>
@@ -1304,7 +1379,7 @@ export default function Promo() {
                 <div className="empty-title">Ничего не найдено</div>
                 <div className="empty-desc">Попробуйте изменить фильтры или переключиться на «Все компании»</div>
               </div>
-            ) : filtered.map((item, index) => {
+            ) : sortedFiltered.map((item, index) => {
               let card
               if (item.kind === 'broadcast') card = <BroadcastCard key={item.id} item={item} onCategoryClick={handlePromoCat} onCompanyClick={(id) => handleCompanyClick(id, item.category)} />
               else if (item.kind === 'whisper') card = <WhisperCard key={item.id} item={item} myVote={whisperVotes.get(item.id) || null} onVote={voteWhisper} navigate={navigate} onCategoryClick={handlePromoCat} onCompanyClick={(id) => handleCompanyClick(id, item.category)} onSourceClick={setExtUrl} />

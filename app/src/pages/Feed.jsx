@@ -463,7 +463,7 @@ function SortDropdown({ sort, onSort }) {
     <div className="sort-wrap" ref={ref}>
       <span className="sort-label-txt">Сортировка:</span>
       <button className={`sort-btn${open ? ' open' : ''}${sort !== 'popular_7d' ? ' active' : ''}`} onClick={() => setOpen(o => !o)}>
-        <span>{current?.label || 'По популярности'}</span>
+        <span>{current?.group === 'По популярности' ? `По популярности ${current.label.toLowerCase()}` : current?.label}</span>
         <svg className="sort-btn-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="6 9 12 15 18 9"/>
         </svg>
@@ -488,6 +488,71 @@ function SortDropdown({ sort, onSort }) {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+// ── TAG SEARCH ─────────────────────────────────────────────────────────────────
+
+function TagSearchInput({ value, onChange, allItems }) {
+  const [focused, setFocused] = useState(false)
+  const ref = useRef(null)
+  const inputRef = useRef(null)
+
+  const query = value.replace(/^#/, '').trim().toLowerCase()
+
+  const allTags = [...new Set(allItems.flatMap(i => i.tags || []))].sort()
+  const suggestions = query
+    ? allTags.filter(t => t.toLowerCase().includes(query) && t.toLowerCase() !== query)
+    : []
+
+  useEffect(() => {
+    function handler(e) {
+      if (ref.current && !ref.current.contains(e.target)) setFocused(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  function pick(tag) {
+    onChange(tag)
+    setFocused(false)
+  }
+
+  return (
+    <div className="tag-search-wrap" ref={ref}>
+      <div className={`tag-search-row${focused ? ' focused' : ''}${value ? ' has-value' : ''}`}>
+        <span className="tag-search-hash">#</span>
+        <input
+          ref={inputRef}
+          className="tag-search-input"
+          placeholder="хэштег"
+          value={value.replace(/^#/, '')}
+          onChange={e => onChange(e.target.value)}
+          onFocus={() => setFocused(true)}
+        />
+        {value && (
+          <button className="tag-search-clear" onClick={() => { onChange(''); inputRef.current?.focus() }}>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        )}
+      </div>
+      {focused && suggestions.length > 0 && (
+        <div className="tag-suggestions">
+          {suggestions.slice(0, 8).map(t => (
+            <button key={t} className="tag-suggestion" onMouseDown={() => pick(t)}>#{t}</button>
+          ))}
+        </div>
+      )}
+      {focused && !query && (
+        <div className="tag-suggestions">
+          {allTags.slice(0, 12).map(t => (
+            <button key={t} className="tag-suggestion" onMouseDown={() => pick(t)}>#{t}</button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -793,6 +858,7 @@ export default function Feed() {
   const [mode,        setMode]        = useState(null)
   const [cat,         setCat]         = useState(new Set())
   const [sort,        setSort]        = useState('popular_7d')
+  const [tagSearch,   setTagSearch]   = useState('')
   const [readIds,       setReadIds]       = useState(new Set())
   const [likedIds,      setLikedIds]      = useState(new Set())
   const [dislikedIds,   setDislikedIds]   = useState(new Set())
@@ -867,12 +933,15 @@ export default function Feed() {
 
   const allItems = [...userArticles, ...feedItems]
 
+  const tagQuery = tagSearch.replace(/^#/, '').trim().toLowerCase()
+
   let filtered = allItems.filter(item => {
     if (mode === 'liked')         return item.type === 'article' && likedIds.has(item.id)
     if (mode === 'subscriptions') return !!(item.authorId && feedAuthors[item.authorId]?.following)
     if (mode === 'my-sets')       return item.type === 'article' && item.setLink && MY_SET_TITLES.has(item.setLink.title)
 
     if (cat.size > 0 && !cat.has(item.category)) return false
+    if (tagQuery && !(item.tags || []).some(t => t.toLowerCase().includes(tagQuery))) return false
     return true
   })
 
@@ -880,10 +949,10 @@ export default function Feed() {
     sort === 'newest' ? (a, b) => b.ts - a.ts : (a, b) => b.pop - a.pop
   )
 
-  const hasFilters = mode || cat.size > 0 || sort !== 'popular_7d'
+  const hasFilters = mode || cat.size > 0 || sort !== 'popular_7d' || tagQuery
 
   function resetFilters() {
-    setMode(null); setCat(new Set()); setSort('popular_7d')
+    setMode(null); setCat(new Set()); setSort('popular_7d'); setTagSearch('')
   }
 
   function handleItemClick(item) {
@@ -912,6 +981,7 @@ export default function Feed() {
                 </div>
                 <SortDropdown sort={sort} onSort={setSort} />
                 <FilterSelect items={CATEGORIES} value={cat} onChange={handleCatChange} placeholder="Категории" />
+                <TagSearchInput value={tagSearch} onChange={setTagSearch} allItems={allItems} />
                 {hasFilters && (
                   <div className="filter-summary">
                     <span>{filtered.length} {noun(filtered.length)}</span>
@@ -934,6 +1004,7 @@ export default function Feed() {
               </div>
               <SortDropdown sort={sort} onSort={setSort} />
               <FilterSelect items={CATEGORIES} value={cat} onChange={handleCatChange} placeholder="Категории" />
+              <TagSearchInput value={tagSearch} onChange={setTagSearch} allItems={allItems} />
               {hasFilters && (
                 <div className="filter-summary">
                   <span>{filtered.length} {noun(filtered.length)}</span>
