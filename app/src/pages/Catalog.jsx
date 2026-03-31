@@ -704,8 +704,10 @@ export default function Catalog() {
                   </button>
                 )}
               </div>
-              <SimpleSelect label="Источник" options={SOURCE_MODES} value={sourceFilter} onChange={handleSourceFilter} />
-              <SortDropdown sort={sortFilter} onSort={setSort} />
+              <div className="promo-selects-row">
+                <SimpleSelect label="Источник" options={SOURCE_MODES} value={sourceFilter} onChange={handleSourceFilter} />
+                <SortDropdown sort={sortFilter} onSort={setSort} />
+              </div>
               <FilterSelect items={CATEGORIES} value={cat} onChange={handleCatChange} placeholder="Категории" />
               {hasFilters && (
                 <div className="filter-summary">
