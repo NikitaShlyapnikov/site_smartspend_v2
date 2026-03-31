@@ -4,7 +4,7 @@ import LottieEmoji from './LottieEmoji'
 const REACTION_EMOJIS = [
   '🔥','💡','😍','🤯','💸','🤮','🤔','👏',
   '😮','💪','🎯','🙏','❤️','😂','🥰','😅',
-  '💯','✨','🎉','👀','🥲','😤','🫡','🤝',
+  '✨','🎉','👀','🤝',
 ]
 
 export default function EmojiPickerPopup({ onPick, onClose }) {

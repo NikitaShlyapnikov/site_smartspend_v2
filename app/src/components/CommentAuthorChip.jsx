@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
-function CommentAuthorPopover({ name, ini, style }) {
+function CommentAuthorPopover({ name, ini, style, onMouseEnter, onMouseLeave }) {
   return createPortal(
-    <div className="author-popover" style={style} onClick={e => e.stopPropagation()}>
+    <div className="author-popover" style={style} onClick={e => e.stopPropagation()} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <div className="ap-top">
         <div className="ap-avatar" style={{ background: '#8B7B6B' }}>{ini}</div>
       </div>
@@ -84,7 +84,7 @@ export default function CommentItem({ name, ini, navigate, avatarClass = 'c-avat
         </div>
         {children}
       </div>
-      {showCard && popPos && <CommentAuthorPopover name={name} ini={ini} style={{ position: 'fixed', top: popPos.top, left: popPos.left }} />}
+      {showCard && popPos && <CommentAuthorPopover name={name} ini={ini} style={{ position: 'fixed', top: popPos.top, left: popPos.left }} onMouseEnter={() => clearTimeout(hideTimer.current)} onMouseLeave={onLeave} />}
       {showSheet && createPortal(
         <>
           <div className="abs-backdrop" onClick={() => setShowSheet(false)} />

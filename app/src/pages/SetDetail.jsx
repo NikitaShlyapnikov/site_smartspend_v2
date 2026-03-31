@@ -10,7 +10,7 @@ import ReactionPill from '../components/ReactionPill'
 import EmojiPickerPopup from '../components/EmojiPickerPopup'
 
 const SD_SPOTLIGHT = [
-  { targetId: 'sp-sd-hero',  btnId: 'sp-sd-add',   title: 'Карточка набора',      desc: 'Здесь — название, описание и ключевые показатели набора. Кнопка «В инвентарь» добавит позиции в твой инвентарь.' },
+  { targetId: 'sp-sd-hero',  btnId: 'sp-sd-add',   title: 'Карточка набора',      desc: 'Здесь — название, описание и ключевые показатели набора. Кнопка «Использовать» добавит позиции в твой инвентарь.' },
   { targetId: 'sp-sd-items', btnId: null,           title: 'Состав набора',        desc: 'Список позиций. Нажми «Настрой под себя» — появится масштаб, позволяющий адаптировать набор под свои нужды (например, ×2 для двух человек).' },
   { targetId: 'sp-sd-calc',  btnId: null,           title: 'Как считается сумма?', desc: 'Вещи: цена × кол-во ÷ (срок_лет × 12) = ₽/мес — это ежемесячная амортизация. Расходники: стоимость партии ÷ месяцев между закупками = ₽/мес. «Общая стоимость» — итого за одну закупку.' },
 ]
@@ -286,7 +286,7 @@ function AddInventoryBtn({ added, onAdd, onRemove }) {
               <path d="M12 2v13M7 10l5 5 5-5"/>
               <path d="M3 17v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2"/>
             </svg>
-            В инвентарь
+            Использовать
           </>
         )}
       </button>
