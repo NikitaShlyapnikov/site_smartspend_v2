@@ -38,11 +38,6 @@ const PROMO_SPOTLIGHT = [
     title: 'Карточка предложения',
     desc: 'Нажмите на логотип или название компании — применится фильтр по ней. Нажмите на категорию рядом с названием — останутся только предложения этой категории. Цветная полоса показывает голоса «Работает / Не работает» от других пользователей.',
   },
-  {
-    targetId: 'sp-promo-add',
-    title: 'Поделитесь скидкой',
-    desc: 'Нашли выгодный промокод или лайфхак? Поделитесь с сообществом — другие пользователи проголосуют и подтвердят, работает ли предложение.',
-  },
 ]
 
 const TYPE_CHIPS = [
@@ -1263,6 +1258,7 @@ export default function Promo() {
           {filtersHidden && showFilterDrawer && (
             <div className="header-filter-panel">
               <div className="filters-block">
+                <CompanySearch onSelect={handleCompanySearch} />
                 <div className="promo-selects-row">
                   <div><SimpleSelect label="Источник" options={TYPE_CHIPS} value={typeFilter} onChange={setTypeFilter} /></div>
                   <div><SimpleSelect label="Условия" options={ACTS_FILTERS} value={actsFilter} onChange={setActsFilter} disabled={typeFilter === 'broadcast'} /></div>
@@ -1271,7 +1267,6 @@ export default function Promo() {
                   <button className={`cat-pill${promoScope === 'mine' ? ' active' : ''}`} onClick={() => setPromoScope('mine')}>Мои компании</button>
                   <button className={`cat-pill${promoScope === 'all' ? ' active' : ''}`} onClick={() => setPromoScope('all')}>Все компании</button>
                 </div>
-                <CompanySearch onSelect={handleCompanySearch} />
                 <FilterSelect items={CATEGORIES.filter(c => c.id === 'all' || PROMO_CATS_WITH_ITEMS.has(c.id))} value={promoCat} onChange={handlePromoCat} placeholder="Категории" />
                 {promoCat.size > 0 && (() => {
                   const coItems = [...promoCat].flatMap(catId => companies[catId]?.list || []).map(c => ({ id: c.id, label: c.name }))
@@ -1291,6 +1286,9 @@ export default function Promo() {
         <div className="feed-scroll" ref={scrollRef} onClick={() => showDrawerRef.current && setShowFilterDrawer(false)}>
           <div ref={filtersRef} className="filters-sticky">
             <div className="filters-block">
+            {/* Company search */}
+            <CompanySearch onSelect={handleCompanySearch} />
+
             {/* Row 1: Source + Conditions dropdowns */}
             <div className="promo-selects-row">
               <div id="sp-promo-types">
@@ -1317,9 +1315,6 @@ export default function Promo() {
               <button className={`cat-pill${promoScope === 'mine' ? ' active' : ''}`} onClick={() => setPromoScope('mine')}>Мои компании</button>
               <button className={`cat-pill${promoScope === 'all' ? ' active' : ''}`} onClick={() => setPromoScope('all')}>Все компании</button>
             </div>
-
-            {/* Company search */}
-            <CompanySearch onSelect={handleCompanySearch} />
 
             {/* Categories */}
             <div id="sp-promo-cats">
@@ -1357,12 +1352,6 @@ export default function Promo() {
           </div>
           </div>
 
-          <button id="sp-promo-add" className="whisper-add-cta" onClick={() => navigate('/create-whisper')}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-            Поделиться скидкой или промокодом
-          </button>
 
           {!hasPromoSetup && (typeFilter === 'all' || typeFilter === 'broadcast' || typeFilter === 'event' || typeFilter === 'coupon') && (
             <div className="promo-setup-hint">

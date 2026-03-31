@@ -608,27 +608,25 @@ export default function Catalog() {
           {filtersHidden && showFilterDrawer && (
             <div className="header-filter-panel">
               <div className="filters-block">
+                <div className="catalog-search-wrap">
+                  <svg className="catalog-search-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                  </svg>
+                  <input className="catalog-search-input" type="text" placeholder="Поиск по составу набора..."
+                    value={itemSearch} onChange={e => setItemSearch(e.target.value)} />
+                  {itemSearch && (
+                    <button className="catalog-search-clear" onClick={() => setItemSearch('')}>
+                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  )}
+                </div>
                 <div className="cats-scroll feed-mode-pills">
                   {SOURCE_MODES.map(m => (
                     <button key={m.id} className={`cat-pill${sourceFilter === m.id ? ' active' : ''}`}
                       onClick={() => handleSourceFilter(m.id)}>{m.label}</button>
                   ))}
-                </div>
-                <div className="catalog-search-row">
-                  <div className="catalog-search-wrap">
-                    <svg className="catalog-search-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-                    </svg>
-                    <input className="catalog-search-input" type="text" placeholder="Поиск по составу набора..."
-                      value={itemSearch} onChange={e => setItemSearch(e.target.value)} />
-                    {itemSearch && (
-                      <button className="catalog-search-clear" onClick={() => setItemSearch('')}>
-                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
-                          <path d="M18 6L6 18M6 6l12 12"/>
-                        </svg>
-                      </button>
-                    )}
-                  </div>
                 </div>
                 <SortDropdown sort={sortFilter} onSort={setSort} />
                 <FilterSelect items={CATEGORIES} value={cat} onChange={handleCatChange} placeholder="Категории" />
@@ -647,27 +645,25 @@ export default function Catalog() {
         <div className="catalog-scroll" ref={catalogScrollRef} onClick={() => showDrawerRef.current && setShowFilterDrawer(false)}>
           <div id="sp-cat-filters" ref={filtersRef} className="catalog-filters-bar">
             <div className="filters-block">
+              <div className="catalog-search-wrap">
+                <svg className="catalog-search-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                </svg>
+                <input className="catalog-search-input" type="text" placeholder="Поиск по составу набора..."
+                  value={itemSearch} onChange={e => setItemSearch(e.target.value)} />
+                {itemSearch && (
+                  <button className="catalog-search-clear" onClick={() => setItemSearch('')}>
+                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
+                      <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
               <div className="cats-scroll feed-mode-pills">
                 {SOURCE_MODES.map(m => (
                   <button key={m.id} className={`cat-pill${sourceFilter === m.id ? ' active' : ''}`}
                     onClick={() => handleSourceFilter(m.id)}>{m.label}</button>
                 ))}
-              </div>
-              <div className="catalog-search-row">
-                <div className="catalog-search-wrap">
-                  <svg className="catalog-search-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-                  </svg>
-                  <input className="catalog-search-input" type="text" placeholder="Поиск по составу набора..."
-                    value={itemSearch} onChange={e => setItemSearch(e.target.value)} />
-                  {itemSearch && (
-                    <button className="catalog-search-clear" onClick={() => setItemSearch('')}>
-                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
-                        <path d="M18 6L6 18M6 6l12 12"/>
-                      </svg>
-                    </button>
-                  )}
-                </div>
               </div>
               <SortDropdown sort={sortFilter} onSort={setSort} />
               <FilterSelect items={CATEGORIES} value={cat} onChange={handleCatChange} placeholder="Категории" />

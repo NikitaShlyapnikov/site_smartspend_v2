@@ -1251,7 +1251,7 @@ body.dark .seg-liked-count { background: #8A2020; }
 .catalog-search-row { padding: 2px 0 2px; }
 .catalog-search-wrap {
   position: relative; display: flex; align-items: center;
-  max-width: 340px;
+  width: 100%;
 }
 .catalog-search-icon {
   position: absolute; left: 10px; color: var(--text-3); pointer-events: none;

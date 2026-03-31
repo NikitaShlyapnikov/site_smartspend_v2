@@ -973,6 +973,7 @@ export default function Feed() {
           {filtersHidden && showFilterDrawer && (
             <div className="header-filter-panel">
               <div className="filters-block">
+                <TagSearchInput value={tagSearch} onChange={setTagSearch} allItems={allItems} />
                 <div className="cats-scroll feed-mode-pills">
                   {MODES.map(m => (
                     <button key={String(m.id)} className={`cat-pill${mode === m.id ? ' active' : ''}`}
@@ -981,7 +982,6 @@ export default function Feed() {
                 </div>
                 <SortDropdown sort={sort} onSort={setSort} />
                 <FilterSelect items={CATEGORIES} value={cat} onChange={handleCatChange} placeholder="Категории" />
-                <TagSearchInput value={tagSearch} onChange={setTagSearch} allItems={allItems} />
                 {hasFilters && (
                   <div className="filter-summary">
                     <span>{filtered.length} {noun(filtered.length)}</span>
@@ -996,6 +996,7 @@ export default function Feed() {
         <div className="feed-scroll" ref={feedScrollRef} onClick={() => showDrawerRef.current && setShowFilterDrawer(false)}>
           <div id="sp-feed-filters" ref={filtersRef} className="filters-sticky">
             <div className="filters-block">
+              <TagSearchInput value={tagSearch} onChange={setTagSearch} allItems={allItems} />
               <div className="cats-scroll feed-mode-pills">
                 {MODES.map(m => (
                   <button key={String(m.id)} className={`cat-pill${mode === m.id ? ' active' : ''}`}
@@ -1004,7 +1005,6 @@ export default function Feed() {
               </div>
               <SortDropdown sort={sort} onSort={setSort} />
               <FilterSelect items={CATEGORIES} value={cat} onChange={handleCatChange} placeholder="Категории" />
-              <TagSearchInput value={tagSearch} onChange={setTagSearch} allItems={allItems} />
               {hasFilters && (
                 <div className="filter-summary">
                   <span>{filtered.length} {noun(filtered.length)}</span>
