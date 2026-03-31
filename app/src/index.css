@@ -9195,8 +9195,6 @@ body.dark .whisper-card--not {
 }
 .ssel-wrap {
   position: relative;
-  min-width: 120px;
-  flex-shrink: 0;
 }
 .ssel-btn {
   display: flex;
