@@ -11,7 +11,7 @@ import EmojiPickerPopup from '../components/EmojiPickerPopup'
 
 const SD_SPOTLIGHT = [
   { targetId: 'sp-sd-hero',  btnId: 'sp-sd-add',   title: 'Карточка набора',      desc: 'Здесь — название, описание и ключевые показатели набора. Кнопка «Использовать» добавит позиции в твой инвентарь.' },
-  { targetId: 'sp-sd-items', btnId: null,           title: 'Состав набора',        desc: 'Список позиций. Нажми «Настрой под себя» — появится масштаб, позволяющий адаптировать набор под свои нужды (например, ×2 для двух человек).' },
+  { targetId: 'sp-sd-items', btnId: null,           title: 'Состав набора',        desc: 'Список позиций. Нажми «Изменить набор» — появится масштаб, позволяющий адаптировать набор под свои нужды (например, ×2 для двух человек).' },
   { targetId: 'sp-sd-calc',  btnId: null,           title: 'Как считается сумма?', desc: 'Вещи: цена × кол-во ÷ (срок_лет × 12) = ₽/мес — это ежемесячная амортизация. Расходники: стоимость партии ÷ месяцев между закупками = ₽/мес. «Общая стоимость» — итого за одну закупку.' },
 ]
 
@@ -793,7 +793,7 @@ export default function SetDetail() {
                     {editMode ? (
                       <><svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Готово</>
                     ) : (
-                      <><svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> {isPersonal ? 'Редактировать' : 'Настрой под себя'}</>
+                      isPersonal ? 'Редактировать' : 'Изменить набор'
                     )}
                   </button>
                 </div>
@@ -832,10 +832,8 @@ export default function SetDetail() {
                     const periodYears = item.period
                     const periodStr = (periodYears % 1 === 0) ? periodYears + '\u00a0лет' : (periodYears * 12) + '\u00a0мес'
                     const rawScaled = item.qty * scale
-                    let displayQty, displayUnit
-                    if (item.unit === 'кг') { displayQty = Math.round(rawScaled * 1000); displayUnit = 'г' }
-                    else if (item.unit === 'л') { displayQty = Math.round(rawScaled * 1000); displayUnit = 'мл' }
-                    else { displayQty = parseFloat(rawScaled.toFixed(2)); displayUnit = item.unit }
+                    const displayQty = parseFloat(rawScaled.toFixed(2))
+                    const displayUnit = item.unit
                     if (editMode) {
                       const editDisplayQty = isPersonal
                         ? (item.unit === 'кг' || item.unit === 'л') ? Math.round(item.qty * 1000) : item.qty
