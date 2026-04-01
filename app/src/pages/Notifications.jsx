@@ -155,12 +155,16 @@ export default function Notifications() {
     saveRead(next)
   }
 
+  const [deletedReqIds, setDeletedReqIds] = useState(new Set())
+
   function updateRequest(id, patch) {
     setRequests(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r))
   }
   function approveRequest(id) { updateRequest(id, { status: 'approved' }) }
   function rejectRequest(id)  { updateRequest(id, { status: 'rejected' }) }
   function withdrawRequest(id){ updateRequest(id, { status: 'withdrawn' }) }
+  function deleteRequest(id)  { setDeletedReqIds(prev => new Set([...prev, id])) }
+  function clearDeletedRequests() { setDeletedReqIds(new Set()) }
   function sendMessage(id, text) {
     setRequests(prev => prev.map(r =>
       r.id === id ? { ...r, messages: [...r.messages, { from: 'me', text, time: 'только что' }] } : r
@@ -168,6 +172,8 @@ export default function Notifications() {
   }
 
   const pendingRequestsCount = requests.filter(r => r.status === 'pending').length
+  const closedRequests  = requests.filter(r => r.status !== 'pending' && !deletedReqIds.has(r.id))
+  const deletedRequests = requests.filter(r => deletedReqIds.has(r.id))
 
   const withRead = INIT_NOTIFS.map(n => ({ ...n, unread: n.unread && !readIds.has(n.id) }))
   const visible = withRead.filter(n => !deletedIds.has(n.id))
@@ -254,10 +260,33 @@ export default function Notifications() {
                       ))}
                     </>
                   )}
-                  {requests.filter(r => r.status !== 'pending').length > 0 && (
+                  {closedRequests.length > 0 && (
                     <>
                       <div className="notif-group-label" style={{ marginTop: requests.some(r => r.status === 'pending') ? 20 : 0 }}>Завершённые</div>
-                      {requests.filter(r => r.status !== 'pending').map(r => (
+                      {closedRequests.map(r => (
+                        <RequestCard
+                          key={r.id} req={r}
+                          onApprove={() => approveRequest(r.id)}
+                          onReject={() => rejectRequest(r.id)}
+                          onWithdraw={() => withdrawRequest(r.id)}
+                          onSendMessage={text => sendMessage(r.id, text)}
+                          onDelete={() => deleteRequest(r.id)}
+                        />
+                      ))}
+                    </>
+                  )}
+
+                  {deletedRequests.length > 0 && (
+                    <>
+                      <div className="notif-group-label" style={{ marginTop: 20 }}>Удалённые</div>
+                      <div className="req-trash-banner">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6m4-6v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                        </svg>
+                        <span>Корзина автоматически очистится через 2 недели</span>
+                        <button className="req-trash-clear-btn" onClick={clearDeletedRequests}>Очистить все</button>
+                      </div>
+                      {deletedRequests.map(r => (
                         <RequestCard
                           key={r.id} req={r}
                           onApprove={() => approveRequest(r.id)}
@@ -355,7 +384,7 @@ function ConfirmModal({ type, setTitle, onConfirm, onCancel }) {
   )
 }
 
-function RequestCard({ req, onApprove, onReject, onWithdraw, onSendMessage }) {
+function RequestCard({ req, onApprove, onReject, onWithdraw, onSendMessage, onDelete }) {
   const [showDiscuss, setShowDiscuss] = useState(false)
   const [msgInput, setMsgInput] = useState('')
   const [showUserPopup, setShowUserPopup] = useState(false)
@@ -387,6 +416,24 @@ function RequestCard({ req, onApprove, onReject, onWithdraw, onSendMessage }) {
 
   return (
     <div className={`req-card${isPending ? ' req-card--pending' : ' req-card--closed'}`}>
+
+      {/* Status badge — top */}
+      {!isPending && (
+        <div className={`req-status-badge req-status-${req.status}`}>
+          {req.status === 'approved'  && <>
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Одобрено
+          </>}
+          {req.status === 'rejected'  && <>
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            Отклонено
+          </>}
+          {req.status === 'withdrawn' && <>
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 100-6"/></svg>
+            Запрос отозван
+          </>}
+        </div>
+      )}
 
       {/* Header */}
       <div className="req-card-header">
@@ -420,6 +467,13 @@ function RequestCard({ req, onApprove, onReject, onWithdraw, onSendMessage }) {
           <div className="req-card-set">{req.set.title}</div>
         </div>
         <div className="req-card-time">{req.time}</div>
+        {onDelete && (
+          <button className="req-card-delete-btn" onClick={onDelete} title="Удалить">
+            <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Article — just title as link */}
@@ -427,36 +481,20 @@ function RequestCard({ req, onApprove, onReject, onWithdraw, onSendMessage }) {
         <button className="req-article-link">{req.article.title}</button>
       </div>
 
-      {/* Status badge */}
-      {!isPending && (
-        <div className={`req-status-badge req-status-${req.status}`}>
-          {req.status === 'approved'  && <>
-            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            Одобрено
-          </>}
-          {req.status === 'rejected'  && <>
-            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            Отклонено
-          </>}
-          {req.status === 'withdrawn' && <>
-            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 100-6"/></svg>
-            Запрос отозван
-          </>}
-        </div>
-      )}
-
       {/* Actions row */}
       <div className="req-actions-row">
-        <button
-          className={`req-discuss-btn${showDiscuss ? ' active' : ''}`}
-          onClick={handleDiscussToggle}
-        >
-          <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-          </svg>
-          Обсудить
-          {req.messages.length > 0 && <span className="req-msg-count">{req.messages.length}</span>}
-        </button>
+        {isPending && (
+          <button
+            className={`req-discuss-btn${showDiscuss ? ' active' : ''}`}
+            onClick={handleDiscussToggle}
+          >
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+            </svg>
+            Обсудить
+            {req.messages.length > 0 && <span className="req-msg-count">{req.messages.length}</span>}
+          </button>
+        )}
 
         {isPending && (
           <div className="req-action-btns">
