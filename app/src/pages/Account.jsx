@@ -607,12 +607,12 @@ export default function Account() {
   // ── Tabs ───────────────────────────────────────────────────────────────────
 
   const TABS = [
-    { id: 'achievements', label: 'Активность' },
     { id: 'articles',     label: `Статьи · ${articles.length}` },
     { id: 'sets',         label: `Наборы · ${sets.length}` },
     { id: 'whispers',     label: `Промо · ${whispers.length}` },
     { id: 'subs',         label: `Мои подписки · ${subs.length}` },
     { id: 'companies',    label: (() => { try { const n = JSON.parse(localStorage.getItem('ss_companies') || '[]').length; return n > 0 ? `Мои компании · ${n}` : 'Мои компании' } catch { return 'Мои компании' } })() },
+    { id: 'achievements', label: 'Рейтинг' },
   ]
 
   return (
@@ -1065,17 +1065,18 @@ export default function Account() {
                 function AuthorRow({ a, tierLabel, isMe }) {
                   const [showPopup, setShowPopup] = useState(false)
                   const [popPos, setPopPos]       = useState(null)
+                  const [following, setFollowing] = useState(false)
+                  const [followAnim, setFollowAnim] = useState(false)
                   const showTimer = useRef(null)
                   const hideTimer = useRef(null)
-                  const avatarRef = useRef(null)
-                  const nameRef   = useRef(null)
+                  const triggerRef = useRef(null)
 
-                  function onEnter(ref) {
+                  function onEnter() {
+                    if (isMe) return
                     clearTimeout(hideTimer.current)
                     showTimer.current = setTimeout(() => {
-                      const el = ref.current
-                      if (el) {
-                        const r = el.getBoundingClientRect()
+                      if (triggerRef.current) {
+                        const r = triggerRef.current.getBoundingClientRect()
                         setPopPos({ top: r.bottom + 8, left: r.left })
                       }
                       setShowPopup(true)
@@ -1083,10 +1084,14 @@ export default function Account() {
                   }
                   function onLeave() {
                     clearTimeout(showTimer.current)
-                    hideTimer.current = setTimeout(() => setShowPopup(false), 160)
+                    hideTimer.current = setTimeout(() => setShowPopup(false), 180)
                   }
-
-                  const authorObj = { name: a.name, initials: a.ini, color: a.color, handle: a.handle }
+                  function handleFollow(e) {
+                    e.stopPropagation()
+                    setFollowAnim(true)
+                    setTimeout(() => setFollowAnim(false), 450)
+                    setFollowing(f => !f)
+                  }
 
                   return (
                     <div className={`popular-author-row${isMe ? ' popular-author-row--me' : ''}`}
@@ -1094,20 +1099,15 @@ export default function Account() {
                       style={isMe ? { cursor: 'default' } : {}}
                     >
                       <div
-                        ref={avatarRef}
-                        className="pa-avatar pa-avatar--round"
-                        style={{ background: a.color, cursor: isMe ? 'default' : 'pointer' }}
-                        onMouseEnter={() => onEnter(avatarRef)}
+                        ref={triggerRef}
+                        className="pa-avatar-sm"
+                        style={{ background: a.color }}
+                        onMouseEnter={onEnter}
                         onMouseLeave={onLeave}
                       >{a.ini}</div>
                       <div className="pa-info">
                         <div className="pa-name">
-                          <span
-                            ref={nameRef}
-                            style={{ cursor: isMe ? 'default' : 'pointer' }}
-                            onMouseEnter={() => onEnter(nameRef)}
-                            onMouseLeave={onLeave}
-                          >{a.name}</span>
+                          <span onMouseEnter={onEnter} onMouseLeave={onLeave}>{a.name}</span>
                           {isMe && <span className="pa-me-badge">Вы</span>}
                         </div>
                         <div className="pa-handle">{a.handle}</div>
@@ -1126,13 +1126,13 @@ export default function Account() {
                           <span className="pa-stat-lbl">наборов</span>
                         </div>
                         {a.influence != null && (
-                          <div className="pa-stat-row" title="Влияние — взвешенная сумма лайков, комментариев и эмодзи за текущий месяц. Сбрасывается 1 числа каждого месяца.">
+                          <div className="pa-stat-row" title="Влияние — взвешенная сумма лайков, комментариев и эмодзи за текущий месяц. Сбрасывается 1-го числа каждого месяца.">
                             <span className="pa-stat-val pa-stat-val--influence">{fmtFollowers(a.influence)}</span>
                             <span className="pa-stat-lbl">влияние</span>
                           </div>
                         )}
                         {a.contribution != null && (
-                          <div className="pa-stat-row" title="Вклад — суммарные подписчики автора и его наборов. Продвигает контент в ленте, сохраняется навсегда.">
+                          <div className="pa-stat-row" title="Вклад — суммарные подписчики автора и его наборов. Продвигает контент в ленте навсегда.">
                             <span className="pa-stat-val pa-stat-val--contribution">{fmtFollowers(a.contribution)}</span>
                             <span className="pa-stat-lbl">вклад</span>
                           </div>
@@ -1141,7 +1141,7 @@ export default function Account() {
                       <div className="pa-right">
                         <span className="pa-tier-badge">{tierLabel}</span>
                       </div>
-                      {showPopup && popPos && !isMe && createPortal(
+                      {showPopup && popPos && createPortal(
                         <div
                           className="author-popover"
                           style={{ position: 'fixed', top: popPos.top, left: popPos.left }}
@@ -1150,10 +1150,27 @@ export default function Account() {
                           onClick={e => e.stopPropagation()}
                         >
                           <div className="ap-top">
-                            <div className="ap-avatar" style={{ background: a.color }}>{a.ini}</div>
+                            <div className="ap-avatar" style={{ background: a.color, cursor: 'pointer' }}
+                              onClick={() => navigate('/author/' + a.handle.replace('@',''), { state: a })}>
+                              {a.ini}
+                            </div>
+                            <button
+                              className={`ap-follow-btn${following ? ' following' : ''}${followAnim ? ' follow-pop' : ''}`}
+                              onClick={handleFollow}
+                            >{following ? 'Отменить подписку' : 'Подписаться'}</button>
                           </div>
-                          <button className="ap-name" onClick={e => { e.stopPropagation(); navigate('/author/' + a.handle.replace('@',''), { state: a }) }}>{a.name}</button>
+                          <button className="ap-name"
+                            onClick={() => navigate('/author/' + a.handle.replace('@',''), { state: a })}>
+                            {a.name}
+                          </button>
                           <div className="ap-handle">{a.handle}</div>
+                          {(a.followers != null) && (
+                            <div className="ap-meta">
+                              {fmtFollowers(a.followers)} подписчиков
+                              {a.articles > 0 && <> · {a.articles} статей</>}
+                              {a.sets > 0 && <> · {a.sets} наборов</>}
+                            </div>
+                          )}
                         </div>,
                         document.body
                       )}
@@ -1163,16 +1180,33 @@ export default function Account() {
 
                 const allInCat = filteredAuthors
 
+                // Per-category stats for current user
+                const MY_CAT_STATS = {
+                  food:      { articles: 1, sets: 1, influence: 38,  contribution: 5  },
+                  cafe:      { articles: 0, sets: 1, influence: 12,  contribution: 2  },
+                  transport: { articles: 1, sets: 0, influence: 21,  contribution: 3  },
+                  home:      { articles: 0, sets: 2, influence: 44,  contribution: 8  },
+                  clothes:   { articles: 1, sets: 2, influence: 67,  contribution: 11 },
+                  leisure:   { articles: 0, sets: 1, influence: 18,  contribution: 4  },
+                  health:    { articles: 1, sets: 1, influence: 29,  contribution: 6  },
+                  education: { articles: 0, sets: 0, influence: 8,   contribution: 1  },
+                  travel:    { articles: 0, sets: 1, influence: 15,  contribution: 3  },
+                  other:     { articles: 1, sets: 2, influence: 124, contribution: 18 },
+                }
+                const myCatKey = achCatFilter || 'other'
+                const myCatStats = MY_CAT_STATS[myCatKey] || MY_CAT_STATS.other
+
                 const ME_ROW = {
                   id: 'me', handle: MY_HANDLE,
                   name: profile.displayName || 'Вы',
                   ini: (profile.displayName || 'Я').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
                   color: '#4E8268',
-                  followers: 12, articles: userData.stats?.articles || 3,
-                  sets: userData.stats?.sets || 6,
-                  category: achCatFilter || 'other',
-                  influence: 124,
-                  contribution: 18,
+                  followers: 12,
+                  articles: myCatStats.articles,
+                  sets: myCatStats.sets,
+                  category: myCatKey,
+                  influence: myCatStats.influence,
+                  contribution: myCatStats.contribution,
                 }
                 const myRank = MY_RATINGS[achCatFilter || 'other'] || 844
                 const myTotal = TOTAL_USERS[achCatFilter || 'other'] || DEFAULT_TOTAL

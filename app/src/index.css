@@ -2031,9 +2031,14 @@ body.dark .popular-author-row--me { background: rgba(106,175,142,0.08); }
   display: flex; align-items: center; justify-content: center;
   font-size: 16px; font-weight: 700; color: #fff; letter-spacing: -0.02em;
 }
+.pa-avatar-sm {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: #fff; cursor: pointer;
+}
 .pa-info { flex: 1; min-width: 0; }
 .pa-avatar--round { border-radius: 50%; }
-.pa-name { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+.pa-name { font-size: 13px; font-weight: 500; letter-spacing: -0.01em; }
 .pa-handle { font-size: 11px; color: var(--text-3); font-family: var(--mono); margin-top: 1px; }
 .pa-stats { display: flex; gap: 14px; flex-shrink: 0; }
 .pa-stat-val--influence { color: var(--accent-green); }
@@ -2051,7 +2056,7 @@ body.dark .pa-stat-val--contribution { color: #7AABF0; }
   color: var(--accent-green);
 }
 .pa-stat-row { display: flex; flex-direction: column; align-items: center; gap: 1px; }
-.pa-stat-val { font-size: 13px; font-weight: 700; font-family: var(--mono); color: var(--text); letter-spacing: -0.02em; }
+.pa-stat-val { font-size: 13px; font-weight: 400; font-family: var(--mono); color: var(--text); letter-spacing: -0.02em; }
 .pa-stat-lbl { font-size: 10px; color: var(--text-3); white-space: nowrap; }
 .pa-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; justify-content: center; }
 .pa-rating {
