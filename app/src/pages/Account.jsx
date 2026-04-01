@@ -1016,13 +1016,12 @@ export default function Account() {
             <div className="acc-panel">
 
               {/* Rating */}
-              <div className="pa-section-header">
-                <div className="pa-section-title">Рейтинг</div>
-                <div className="acc-filter-row acc-filter-row--cats">
+              <div className="inv-filters-row" style={{ paddingTop: 14, paddingBottom: 8 }}>
+                <div className="inv-filter-chips">
                   {PA_CATEGORIES.map(cat => (
                     <button
                       key={String(cat.id)}
-                      className={`acc-filter-pill${achCatFilter === cat.id ? ' active' : ''}`}
+                      className={`inv-filter-chip${achCatFilter === cat.id ? ' active' : ''}`}
                       onClick={() => setAchCatFilter(cat.id)}
                     >{cat.label}</button>
                   ))}
