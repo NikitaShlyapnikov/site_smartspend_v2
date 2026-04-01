@@ -1788,6 +1788,12 @@ body.dark .btn-danger-ghost:hover { background: rgba(200,72,72,0.12); }
 .acc-empty-icon { display: flex; align-items: center; justify-content: center; color: var(--text-3); }
 .acc-empty-title { font-size: 15px; font-weight: 600; color: var(--text-1); }
 .acc-empty-desc { font-size: 13px; color: var(--text-2); max-width: 280px; line-height: 1.5; }
+.acc-companies-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; padding: 40px 20px; color: var(--text-3); text-align: center;
+}
+.acc-companies-empty-title { font-size: 14px; font-weight: 600; color: var(--text-2); }
+.acc-companies-empty-desc { font-size: 13px; color: var(--text-3); }
 .panel-header {
   display: flex; justify-content: space-between; align-items: center; margin-top: 4px;
 }
