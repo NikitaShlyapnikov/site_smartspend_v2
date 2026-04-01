@@ -484,31 +484,25 @@ export default function Deposits() {
 
             <div className="dep-filter-group">
               <span className="dep-filter-label">Срок</span>
-              <select className="dep-term-select" value={selectedMonth}
-                onChange={e => { setSelectedMonth(Number(e.target.value)); setExpanded(null) }}>
+              <div className="dep-sort-toggle" style={{ height: 'auto', flexWrap: 'wrap' }}>
                 {DESKTOP_MONTHS.filter(m => DEPOSITS.some(d => d.rates[m])).map(m => (
-                  <option key={m} value={m}>{fmtMonth(m)}</option>
+                  <button
+                    key={m}
+                    className={`dep-sort-btn${selectedMonth === m ? ' active' : ''}`}
+                    style={{ padding: '7px 10px', fontSize: 12 }}
+                    onClick={() => { setSelectedMonth(m); setExpanded(null) }}
+                  >{fmtMonth(m)}</button>
                 ))}
-              </select>
+              </div>
             </div>
 
             <div className="dep-filter-group">
               <span className="dep-filter-label">Сортировка</span>
               <div className="dep-sort-toggle">
                 <button className={`dep-sort-btn${sortBy === 'rate' ? ' active' : ''}`}
-                  onClick={() => setSortBy('rate')}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M12 2v20M2 12h20"/>
-                  </svg>
-                  % ставка
-                </button>
+                  onClick={() => setSortBy('rate')}>Ставка</button>
                 <button className={`dep-sort-btn${sortBy === 'income' ? ' active' : ''}`}
-                  onClick={() => setSortBy('income')}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
-                  </svg>
-                  ₽ доход
-                </button>
+                  onClick={() => setSortBy('income')}>Доход</button>
               </div>
             </div>
 
