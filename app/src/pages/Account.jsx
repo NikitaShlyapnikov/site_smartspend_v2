@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 import ReactionPill from '../components/ReactionPill'
-import { companies } from '../data/mock'
+import { companies, userData } from '../data/mock'
 
 const SET_CATEGORIES = {
   other: 'Прочие расходы', food: 'Еда и Супермаркеты', cafe: 'Кафе, Бары, Рестораны',
@@ -424,81 +424,8 @@ function fmtFollowers(n) {
 }
 
 function SubsTab({ subs, onUnsub, navigate }) {
-  const [paCatFilter, setPaCatFilter] = useState(null)
-  const subsSet = new Set(subs.map(s => s.handle))
-  const filteredAuthors = paCatFilter
-    ? POPULAR_AUTHORS.filter(a => a.category === paCatFilter)
-    : POPULAR_AUTHORS
-
   return (
     <div className="acc-panel">
-
-      {/* ── Popular authors rating ── */}
-      <div className="pa-section-header">
-        <div className="pa-section-title">Рейтинг авторов</div>
-        <div className="acc-filter-row acc-filter-row--cats">
-          {PA_CATEGORIES.map(cat => (
-            <button
-              key={String(cat.id)}
-              className={`acc-filter-pill${paCatFilter === cat.id ? ' active' : ''}`}
-              onClick={() => setPaCatFilter(cat.id)}
-            >{cat.label}</button>
-          ))}
-        </div>
-      </div>
-
-      <div className="popular-authors-list">
-        {filteredAuthors.map((a, i) => {
-          const isSubscribed = subsSet.has(a.handle)
-          return (
-            <div key={a.id} className="popular-author-row"
-              onClick={() => navigate('/author/' + a.handle.replace('@', ''), { state: a })}>
-              <div className="pa-rank">{i + 1}</div>
-              <div className="pa-avatar" style={{ background: a.color }}>{a.ini}</div>
-              <div className="pa-info">
-                <div className="pa-name">{a.name}</div>
-                <div className="pa-handle">{a.handle}</div>
-                <div className="pa-bio">{a.bio}</div>
-              </div>
-              <div className="pa-stats">
-                <div className="pa-stat-row">
-                  <span className="pa-stat-val">{fmtFollowers(a.followers)}</span>
-                  <span className="pa-stat-lbl">подписчиков</span>
-                </div>
-                <div className="pa-stat-row">
-                  <span className="pa-stat-val">{a.articles}</span>
-                  <span className="pa-stat-lbl">статей</span>
-                </div>
-                <div className="pa-stat-row">
-                  <span className="pa-stat-val">{a.sets}</span>
-                  <span className="pa-stat-lbl">наборов</span>
-                </div>
-              </div>
-              <div className="pa-right" onClick={e => e.stopPropagation()}>
-                <div className="pa-stat-row" style={{ alignItems: 'flex-end' }}>
-                  <div className="pa-rating">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                    </svg>
-                    {a.rating}
-                  </div>
-                  <div className="pa-stat-lbl">рейтинг</div>
-                </div>
-                {isSubscribed ? (
-                  <button className="pa-sub-cta pa-sub-cta--active">Подписан</button>
-                ) : (
-                  <button className="pa-sub-cta">Подписаться</button>
-                )}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* ── My subscriptions ── */}
-      <div className="pa-section-header" style={{ marginTop: 8 }}>
-        <div className="pa-section-title">Мои подписки</div>
-      </div>
 
       {subs.length === 0 ? (
         <div className="acc-empty" style={{ paddingTop: 16, paddingBottom: 20 }}>
@@ -509,7 +436,7 @@ function SubsTab({ subs, onUnsub, navigate }) {
             </svg>
           </div>
           <div className="acc-empty-title">Нет подписок</div>
-          <div className="acc-empty-desc">Подписывайтесь на авторов из рейтинга выше</div>
+          <div className="acc-empty-desc">Подписывайтесь на авторов из раздела Достижения → Рейтинг</div>
         </div>
       ) : (
         <div className="subs-grid">
@@ -568,6 +495,7 @@ export default function Account() {
   const [artCatFilter,  setArtCatFilter]  = useState(null)
   const [setTypeFilter, setSetTypeFilter] = useState(null)
   const [setCatFilter,  setSetCatFilter]  = useState(null)
+  const [achCatFilter,  setAchCatFilter]  = useState(null)
 
   const [toast, showToast] = useToast()
 
@@ -676,11 +604,12 @@ export default function Account() {
   // ── Tabs ───────────────────────────────────────────────────────────────────
 
   const TABS = [
-    { id: 'articles',  label: `Статьи · ${articles.length}` },
-    { id: 'sets',      label: `Наборы · ${sets.length}` },
-    { id: 'whispers',  label: `Промо · ${whispers.length}` },
-    { id: 'subs',      label: `Подписки · ${subs.length}` },
-    { id: 'companies', label: 'Мои компании' },
+    { id: 'articles',     label: `Статьи · ${articles.length}` },
+    { id: 'sets',         label: `Наборы · ${sets.length}` },
+    { id: 'whispers',     label: `Промо · ${whispers.length}` },
+    { id: 'subs',         label: `Подписки · ${subs.length}` },
+    { id: 'achievements', label: 'Достижения' },
+    { id: 'companies',    label: 'Мои компании' },
   ]
 
   return (
@@ -1077,6 +1006,99 @@ export default function Account() {
         {tab === 'subs' && (
           <SubsTab subs={subs} onUnsub={handleUnsubscribe} navigate={navigate} />
         )}
+
+        {/* Achievements */}
+        {tab === 'achievements' && (() => {
+          const achievements = userData.achievements || []
+          const earned = achievements.filter(a => a.earned)
+          const locked = achievements.filter(a => !a.earned)
+
+          return (
+            <div className="acc-panel">
+
+              {/* Achievements grid */}
+              <div className="pa-section-header">
+                <div className="pa-section-title">Мои достижения</div>
+                <div className="ach-earned-count">{earned.length} / {achievements.length}</div>
+              </div>
+              <div className="ach-grid">
+                {achievements.map(a => (
+                  <div key={a.id} className={`ach-card${a.earned ? ' ach-card--earned' : ''}`}>
+                    <div className="ach-icon">{a.icon}</div>
+                    <div className="ach-name">{a.name}</div>
+                    {!a.earned && <div className="ach-lock">
+                      <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                      </svg>
+                    </div>}
+                  </div>
+                ))}
+              </div>
+
+              {/* Rating */}
+              <div className="pa-section-header" style={{ marginTop: 24 }}>
+                <div className="pa-section-title">Рейтинг</div>
+                <div className="acc-filter-row acc-filter-row--cats">
+                  {PA_CATEGORIES.map(cat => (
+                    <button
+                      key={String(cat.id)}
+                      className={`acc-filter-pill${achCatFilter === cat.id ? ' active' : ''}`}
+                      onClick={() => setAchCatFilter(cat.id)}
+                    >{cat.label}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="popular-authors-list">
+                {(achCatFilter ? POPULAR_AUTHORS.filter(a => a.category === achCatFilter) : POPULAR_AUTHORS).map((a, i) => {
+                  const isSubscribed = new Set(subs.map(s => s.handle)).has(a.handle)
+                  return (
+                    <div key={a.id} className="popular-author-row"
+                      onClick={() => navigate('/author/' + a.handle.replace('@', ''), { state: a })}>
+                      <div className="pa-rank">{i + 1}</div>
+                      <div className="pa-avatar" style={{ background: a.color }}>{a.ini}</div>
+                      <div className="pa-info">
+                        <div className="pa-name">{a.name}</div>
+                        <div className="pa-handle">{a.handle}</div>
+                        <div className="pa-bio">{a.bio}</div>
+                      </div>
+                      <div className="pa-stats">
+                        <div className="pa-stat-row">
+                          <span className="pa-stat-val">{fmtFollowers(a.followers)}</span>
+                          <span className="pa-stat-lbl">подписчиков</span>
+                        </div>
+                        <div className="pa-stat-row">
+                          <span className="pa-stat-val">{a.articles}</span>
+                          <span className="pa-stat-lbl">статей</span>
+                        </div>
+                        <div className="pa-stat-row">
+                          <span className="pa-stat-val">{a.sets}</span>
+                          <span className="pa-stat-lbl">наборов</span>
+                        </div>
+                      </div>
+                      <div className="pa-right" onClick={e => e.stopPropagation()}>
+                        <div className="pa-stat-row" style={{ alignItems: 'flex-end' }}>
+                          <div className="pa-rating">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                            </svg>
+                            {a.rating}
+                          </div>
+                          <div className="pa-stat-lbl">рейтинг</div>
+                        </div>
+                        {isSubscribed ? (
+                          <button className="pa-sub-cta pa-sub-cta--active">Подписан</button>
+                        ) : (
+                          <button className="pa-sub-cta">Подписаться</button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+            </div>
+          )
+        })()}
 
         {/* Companies */}
         {tab === 'companies' && (() => {
