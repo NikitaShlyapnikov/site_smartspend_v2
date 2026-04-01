@@ -308,6 +308,8 @@ export default function Article() {
   const [showAddToSet, setShowAddToSet] = useState(false)
   const [expandedReplies, setExpandedReplies] = useState(new Set())
   const [activeReplyInput, setActiveReplyInput] = useState(null) // origIdx or null
+  const [activeSubReplyInput, setActiveSubReplyInput] = useState(null) // `${origIdx}-${j}` or null
+  const [subReplyInput, setSubReplyInput] = useState('')
   const [commentReplies, setCommentReplies] = useState(() => {
     const a = articles.find(x => x.id === id)
     const init = {}
@@ -482,6 +484,17 @@ export default function Article() {
     setExpandedReplies(prev => { const next = new Set(prev); next.add(idx); return next })
     setReplyInput('')
     setActiveReplyInput(null)
+  }
+
+  function handleSubmitSubReply(e, commentOrigIdx, replyTo) {
+    e.preventDefault()
+    if (!subReplyInput.trim()) return
+    const username = localStorage.getItem('ss_username') || 'Я'
+    const ini = username[0]?.toUpperCase() || 'Я'
+    const reply = { ini, name: username, date: 'только что', likes: 0, text: subReplyInput.trim(), replyTo }
+    setCommentReplies(prev => ({ ...prev, [commentOrigIdx]: [...(prev[commentOrigIdx] || []), reply] }))
+    setSubReplyInput('')
+    setActiveSubReplyInput(null)
   }
 
   function toggleExpandedReplies(origIdx) {
@@ -831,10 +844,14 @@ export default function Article() {
                               <div className="replies-list">
                                 {replies.map((r, j) => {
                                   const key = `${origIdx}-${j}`
+                                  const isSubReplying = activeSubReplyInput === key
                                   return (
                                     <div key={j} className="reply-item">
                                       <CommentItem name={r.name} ini={r.ini} navigate={navigate} avatarClass="c-avatar" nameClass="c-name" date={r.date}>
-                                        <div className="c-text">{r.text}</div>
+                                        <div className="c-text">
+                                          {r.replyTo && <span className="c-mention">@{r.replyTo} </span>}
+                                          {r.text}
+                                        </div>
                                         <div className="c-actions">
                                           <button className={`c-like${likedReplies.has(key) ? ' liked' : ''}`} onClick={() => toggleReplyLike(key)}>
                                             <svg width="11" height="11" fill={likedReplies.has(key) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -850,7 +867,25 @@ export default function Article() {
                                             </svg>
                                             {(r.dislikes || 0) + (dislikedReplies.has(key) ? 1 : 0)}
                                           </button>
+                                          <button className="c-like c-reply-btn" onClick={() => { setActiveSubReplyInput(isSubReplying ? null : key); setSubReplyInput('') }}>
+                                            Ответить
+                                          </button>
                                         </div>
+                                        {isSubReplying && (
+                                          <form className="sub-reply-form" onSubmit={e => handleSubmitSubReply(e, origIdx, r.name)}>
+                                            <input
+                                              className="sub-reply-input"
+                                              placeholder={`@${r.name}...`}
+                                              value={subReplyInput}
+                                              onChange={e => setSubReplyInput(e.target.value)}
+                                              autoFocus
+                                            />
+                                            <div className="sub-reply-actions">
+                                              <button type="button" className="sub-reply-cancel-btn" onClick={() => setActiveSubReplyInput(null)}>Отмена</button>
+                                              <button type="submit" className="sub-reply-send-btn">Отправить</button>
+                                            </div>
+                                          </form>
+                                        )}
                                       </CommentItem>
                                     </div>
                                   )

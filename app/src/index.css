@@ -5354,7 +5354,7 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
 
 /* Thread: sits below parent comment, aligned with avatar left */
 .comment-thread {
-  padding: 0 24px 12px 24px;
+  padding: 0 24px 0 24px;
 }
 
 /* thread-line: L-shape connector from parent avatar to toggle button */
@@ -5397,8 +5397,38 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
   display: flex; gap: 10px; padding-top: 10px;
 }
 
+.c-mention { color: var(--accent-green); font-weight: 500; }
+
+.sub-reply-form { margin-top: 8px; }
+.sub-reply-input {
+  width: 100%; padding: 7px 12px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface-2);
+  font-family: var(--sans); font-size: 12px; color: var(--text);
+  outline: none; transition: border-color 0.15s; letter-spacing: -0.01em;
+  box-sizing: border-box;
+}
+.sub-reply-input::placeholder { color: var(--text-3); }
+.sub-reply-input:focus { border-color: var(--accent-green-border); background: var(--surface); }
+.sub-reply-actions {
+  display: flex; gap: 6px; margin-top: 6px; justify-content: flex-end;
+}
+.sub-reply-cancel-btn {
+  padding: 4px 12px; border-radius: 20px;
+  border: 1px solid var(--border); background: none;
+  font-size: 11px; font-family: var(--sans); color: var(--text-3);
+  cursor: pointer; transition: color 0.12s, border-color 0.12s;
+}
+.sub-reply-cancel-btn:hover { color: var(--text-2); border-color: var(--text-3); }
+.sub-reply-send-btn {
+  padding: 4px 14px; border-radius: 20px;
+  border: none; background: var(--accent-green); color: #fff;
+  font-size: 11px; font-family: var(--sans); font-weight: 500;
+  cursor: pointer; transition: opacity 0.12s;
+}
+.sub-reply-send-btn:hover { opacity: 0.85; }
+
 .comments-input {
-  padding: 16px 24px; border-top: 1px solid var(--border);
+  padding: 16px 24px;
   display: flex; gap: 10px;
 }
 .c-input {
