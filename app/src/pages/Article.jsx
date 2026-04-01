@@ -826,52 +826,54 @@ export default function Article() {
                     {(replyCount > 0 || isReplying) && (
                       <div className="comment-thread">
                         {replyCount > 0 && (
-                          <button className="replies-toggle-btn" onClick={() => toggleExpandedReplies(origIdx)}>
-                            {isExpanded ? (
-                              <>
-                                Скрыть ответы
-                                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="18 15 12 9 6 15"/>
-                                </svg>
-                              </>
-                            ) : (
-                              <>
-                                {replyCount} {replyWord(replyCount)}
-                                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="6 9 12 15 18 9"/>
-                                </svg>
-                              </>
-                            )}
-                          </button>
-                        )}
-                        {isExpanded && (
-                          <div className="replies-list">
-                            {replies.map((r, j) => {
-                              const key = `${origIdx}-${j}`
-                              return (
-                                <div key={j} className="reply-item">
-                                  <CommentItem name={r.name} ini={r.ini} navigate={navigate} avatarClass="c-avatar" nameClass="c-name" date={r.date}>
-                                    <div className="c-text">{r.text}</div>
-                                    <div className="c-actions">
-                                      <button className={`c-like${likedReplies.has(key) ? ' liked' : ''}`} onClick={() => toggleReplyLike(key)}>
-                                        <svg width="11" height="11" fill={likedReplies.has(key) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
-                                          <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
-                                        </svg>
-                                        {r.likes + (likedReplies.has(key) ? 1 : 0)}
-                                      </button>
-                                      <button className={`c-like c-dislike${dislikedReplies.has(key) ? ' disliked' : ''}`} onClick={() => toggleReplyDislike(key)}>
-                                        <svg width="11" height="11" fill={dislikedReplies.has(key) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                          <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
-                                          <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
-                                        </svg>
-                                        {(r.dislikes || 0) + (dislikedReplies.has(key) ? 1 : 0)}
-                                      </button>
+                          <div className="thread-line">
+                            {isExpanded && (
+                              <div className="replies-list">
+                                {replies.map((r, j) => {
+                                  const key = `${origIdx}-${j}`
+                                  return (
+                                    <div key={j} className="reply-item">
+                                      <CommentItem name={r.name} ini={r.ini} navigate={navigate} avatarClass="c-avatar" nameClass="c-name" date={r.date}>
+                                        <div className="c-text">{r.text}</div>
+                                        <div className="c-actions">
+                                          <button className={`c-like${likedReplies.has(key) ? ' liked' : ''}`} onClick={() => toggleReplyLike(key)}>
+                                            <svg width="11" height="11" fill={likedReplies.has(key) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                                              <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                                            </svg>
+                                            {r.likes + (likedReplies.has(key) ? 1 : 0)}
+                                          </button>
+                                          <button className={`c-like c-dislike${dislikedReplies.has(key) ? ' disliked' : ''}`} onClick={() => toggleReplyDislike(key)}>
+                                            <svg width="11" height="11" fill={dislikedReplies.has(key) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                              <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+                                              <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                                            </svg>
+                                            {(r.dislikes || 0) + (dislikedReplies.has(key) ? 1 : 0)}
+                                          </button>
+                                        </div>
+                                      </CommentItem>
                                     </div>
-                                  </CommentItem>
-                                </div>
-                              )
-                            })}
+                                  )
+                                })}
+                              </div>
+                            )}
+                            <button className="replies-toggle-btn" onClick={() => toggleExpandedReplies(origIdx)}>
+                              {isExpanded ? (
+                                <>
+                                  Скрыть ответы
+                                  <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="18 15 12 9 6 15"/>
+                                  </svg>
+                                </>
+                              ) : (
+                                <>
+                                  {replyCount} {replyWord(replyCount)}
+                                  <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="6 9 12 15 18 9"/>
+                                  </svg>
+                                </>
+                              )}
+                            </button>
                           </div>
                         )}
                         {isReplying && (

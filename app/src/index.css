@@ -5318,7 +5318,7 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
 
 .comment-item {
   display: flex; gap: 12px;
-  padding: 14px 24px; border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
 }
 .comment-item:last-child { border-bottom: none; }
 .c-avatar {
@@ -5348,25 +5348,33 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
 .c-reply-btn { font-size: 11px; font-family: var(--sans); letter-spacing: -0.01em; }
 .c-reply-btn:hover { color: var(--accent-green); }
 
-/* Comment wrap — replaces border on comment-item */
-.comment-wrap { border-bottom: 1px solid var(--border); }
-.comment-wrap:last-child { border-bottom: none; }
+/* Comment wrap — no border between comments */
+.comment-wrap { }
 .comment-wrap .comment-item { border-bottom: none; padding-bottom: 0; }
 
-/* Thread: indented area below parent comment */
+/* Thread: sits below parent comment, aligned with avatar left */
 .comment-thread {
-  margin-left: 66px; /* 24px pad + 30px avatar + 12px gap */
-  padding: 4px 24px 14px 0;
-  position: relative;
+  padding: 0 24px 12px 24px;
 }
-.comment-thread::before {
+
+/* thread-line: L-shape connector from parent avatar to toggle button */
+.thread-line {
+  margin-left: 15px; /* = avatar center (24px pad + 15px = 39px); 39-24=15 */
+  padding-left: 27px; /* so content starts at 15+27=42 from comment left = name start */
+  position: relative;
+  padding-bottom: 2px;
+}
+/* L-shape: vertical + turn to toggle button */
+.thread-line::before {
   content: '';
   position: absolute;
-  left: -27px; /* positions line at center of parent avatar */
-  top: 0; bottom: 0;
-  width: 2px;
-  background: var(--border);
-  border-radius: 2px;
+  left: 0;
+  top: 0;
+  bottom: 15px; /* ends at ~center of toggle button (30px tall / 2 = 15) */
+  width: 20px;
+  border-left: 2px solid var(--border);
+  border-bottom: 2px solid var(--border);
+  border-radius: 0 0 0 6px;
 }
 
 .replies-toggle-btn {
@@ -5378,13 +5386,12 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
 }
 .replies-toggle-btn:hover { color: var(--accent-green); }
 
-.replies-list { margin-top: 4px; }
+.replies-list { margin-bottom: 2px; }
 .reply-item {
   display: flex; gap: 12px;
-  padding: 10px 0 6px;
-  border-top: 1px solid var(--border);
+  padding: 10px 0 4px;
 }
-.reply-item:first-child { border-top: none; }
+.reply-item + .reply-item { border-top: 1px solid var(--border); }
 
 .reply-form {
   display: flex; gap: 10px; padding-top: 10px;
