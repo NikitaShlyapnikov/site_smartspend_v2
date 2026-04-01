@@ -498,7 +498,7 @@ export default function Account() {
   const [artCatFilter,  setArtCatFilter]  = useState(null)
   const [setTypeFilter, setSetTypeFilter] = useState(null)
   const [setCatFilter,  setSetCatFilter]  = useState(null)
-  const [achCatFilter,  setAchCatFilter]  = useState(null)
+
 
   const [toast, showToast] = useToast()
 
@@ -611,8 +611,7 @@ export default function Account() {
     { id: 'sets',         label: sets.length > 0 ? `Наборы · ${sets.length}` : 'Наборы' },
     { id: 'whispers',     label: whispers.length > 0 ? `Промо · ${whispers.length}` : 'Промо' },
     { id: 'subs',         label: subs.length > 0 ? `Мои подписки · ${subs.length}` : 'Мои подписки' },
-    { id: 'companies',    label: (() => { try { const n = JSON.parse(localStorage.getItem('ss_companies') || '[]').length; return n > 0 ? `Мои компании · ${n}` : 'Мои компании' } catch { return 'Мои компании' } })() },
-    { id: 'achievements', label: 'Рейтинг' },
+    { id: 'companies',    label: 'Мои компании' },
   ]
 
   return (
@@ -1004,8 +1003,8 @@ export default function Account() {
           <SubsTab subs={subs} onUnsub={handleUnsubscribe} navigate={navigate} />
         )}
 
-        {/* Achievements */}
-        {tab === 'achievements' && (() => {
+        {/* Achievements — removed */}
+        {false && (() => {
           return (
             <div className="acc-panel">
 
