@@ -780,7 +780,7 @@ export default function Article() {
 
         {/* Comments */}
         {article.pub !== false && (
-          <div className="section-card" ref={commentsRef}>
+          <div className="section-card" ref={commentsRef} style={{ overflow: 'visible' }}>
             <div className="sd-comments-header-row">
               <span className="sd-section-title">Комментарии</span>
               <span className="sd-comments-header-spacer" />

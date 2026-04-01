@@ -5391,7 +5391,7 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
   display: flex; gap: 12px;
   padding: 10px 0 4px;
 }
-.reply-item + .reply-item { border-top: 1px solid var(--border); }
+.reply-item + .reply-item { }
 
 .reply-form {
   display: flex; gap: 10px; padding-top: 10px;
