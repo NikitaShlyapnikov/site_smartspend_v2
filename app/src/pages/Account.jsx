@@ -44,7 +44,7 @@ function initProfile() {
   const saved = readLS('ss_account_profile', null)
   if (saved) return { followers: 0, avatar: '', ...saved }
   return {
-    displayName: regName, pseudonym: '', username: toLatinUsername(regName),
+    displayName: regName, username: toLatinUsername(regName),
     bio: '', followers: 0, avatar: '',
   }
 }
@@ -479,7 +479,7 @@ function SubsTab({ subs, onUnsub, navigate }) {
 export default function Account() {
   const navigate = useNavigate()
   const location = useLocation()
-  const [tab, setTab] = useState(location.state?.tab || 'achievements')
+  const [tab, setTab] = useState(location.state?.tab || 'articles')
   const [editing, setEditing] = useState(false)
   const [profile, setProfile] = useState(initProfile)
   const [draft, setDraft] = useState(initProfile)
@@ -607,10 +607,10 @@ export default function Account() {
   // ── Tabs ───────────────────────────────────────────────────────────────────
 
   const TABS = [
-    { id: 'articles',     label: `Статьи · ${articles.length}` },
-    { id: 'sets',         label: `Наборы · ${sets.length}` },
-    { id: 'whispers',     label: `Промо · ${whispers.length}` },
-    { id: 'subs',         label: `Мои подписки · ${subs.length}` },
+    { id: 'articles',     label: articles.length > 0 ? `Статьи · ${articles.length}` : 'Статьи' },
+    { id: 'sets',         label: sets.length > 0 ? `Наборы · ${sets.length}` : 'Наборы' },
+    { id: 'whispers',     label: whispers.length > 0 ? `Промо · ${whispers.length}` : 'Промо' },
+    { id: 'subs',         label: subs.length > 0 ? `Мои подписки · ${subs.length}` : 'Мои подписки' },
     { id: 'companies',    label: (() => { try { const n = JSON.parse(localStorage.getItem('ss_companies') || '[]').length; return n > 0 ? `Мои компании · ${n}` : 'Мои компании' } catch { return 'Мои компании' } })() },
     { id: 'achievements', label: 'Рейтинг' },
   ]
@@ -626,29 +626,6 @@ export default function Account() {
               Аккаунт
               <HelpButton seenKey="ss_spl_account" onOpen={() => setShowSpotlight(true)} />
             </div>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button id="sp-acc-edit" className={`btn-edit-mode${editing ? ' active' : ''}`} onClick={editing ? saveEdit : startEdit}>
-              {editing ? (
-                <>
-                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 6L9 17l-5-5" />
-                  </svg>
-                  Готово
-                </>
-              ) : (
-                <>
-                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                  Редактировать
-                </>
-              )}
-            </button>
-            {editing && (
-              <button className="btn-edit-mode" onClick={cancelEdit}>Отмена</button>
-            )}
           </div>
         </div>
 
@@ -691,6 +668,29 @@ export default function Account() {
                     placeholder="Имя и фамилия" />
                 : <span className="user-display-name">{profile.displayName || <span className="acc-placeholder acc-placeholder--name">Имя не указано</span>}</span>
               }
+              <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
+                <button id="sp-acc-edit" className={`btn-edit-mode${editing ? ' active' : ''}`} onClick={editing ? saveEdit : startEdit}>
+                  {editing ? (
+                    <>
+                      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 6L9 17l-5-5" />
+                      </svg>
+                      Готово
+                    </>
+                  ) : (
+                    <>
+                      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                      Редактировать
+                    </>
+                  )}
+                </button>
+                {editing && (
+                  <button className="btn-edit-mode" onClick={cancelEdit}>Отмена</button>
+                )}
+              </div>
             </div>
             <div className="user-nickname-line">
               {editing
@@ -978,12 +978,6 @@ export default function Account() {
           <div className="acc-panel">
             <div className="panel-header">
               <span className="panel-title">Скидки и промокоды, которые вы добавили</span>
-              <button className="acc-btn-primary" onClick={() => navigate('/create-whisper')}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 5v14M5 12h14"/>
-                </svg>
-                Создать купон
-              </button>
             </div>
 
             {whispers.length === 0 && (
@@ -1017,6 +1011,8 @@ export default function Account() {
 
               {/* Rating */}
               <div className="inv-filters-row" style={{ paddingTop: 14, paddingBottom: 8 }}>
+                <div className="inv-filter-group">
+                <span className="inv-filter-label">Категория</span>
                 <div className="inv-filter-chips">
                   {PA_CATEGORIES.map(cat => (
                     <button
@@ -1025,6 +1021,7 @@ export default function Account() {
                       onClick={() => setAchCatFilter(cat.id)}
                     >{cat.label}</button>
                   ))}
+                </div>
                 </div>
               </div>
               {(() => {
