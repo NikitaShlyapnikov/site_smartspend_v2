@@ -5565,7 +5565,7 @@ body.dark .note-display { background: #1E1C0A; border-color: #3A3820; }
 body.dark .note-display:hover { background: #252210; }
 
 .show-more-row {
-  padding: 11px 24px; border-top: 1px solid var(--border);
+  padding: 11px 24px;
   display: flex; align-items: center; justify-content: center;
 }
 .btn-show {
@@ -6853,7 +6853,7 @@ body.dark .sd-inline-input { background: var(--surface-3); color: var(--text); }
 
 /* Show more / less row */
 .sd-show-more-row {
-  padding: 11px 24px; border-top: 1px solid var(--border);
+  padding: 11px 24px;
   display: flex; align-items: center; justify-content: center;
 }
 .sd-btn-show {

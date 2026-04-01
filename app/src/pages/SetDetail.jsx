@@ -392,8 +392,20 @@ export default function SetDetail() {
   const [cmtExpanded, setCmtExpanded] = useState(false)
   const [cmtSort, setCmtSort]     = useState('popular')
   const [cmtText, setCmtText]     = useState('')
-  const [likes, setLikes]         = useState({})
-  const [dislikes, setDislikes]   = useState({})
+  const [likedComments, setLikedComments]   = useState(new Set())
+  const [dislikedComments, setDislikedComments] = useState(new Set())
+  const [expandedReplies, setExpandedReplies] = useState(new Set())
+  const [activeReplyInput, setActiveReplyInput] = useState(null)
+  const [activeSubReplyInput, setActiveSubReplyInput] = useState(null)
+  const [commentReplies, setCommentReplies] = useState(() => {
+    const init = {}
+    ;(detail?.comments || []).forEach((c, i) => { if (c.replies?.length) init[i] = [...c.replies] })
+    return init
+  })
+  const [replyInput, setReplyInput] = useState('')
+  const [subReplyInput, setSubReplyInput] = useState('')
+  const [likedReplies, setLikedReplies] = useState(new Set())
+  const [dislikedReplies, setDislikedReplies] = useState(new Set())
   const [bookmarked, setBookmarked] = useState(false)
   const [addToast, setAddToast] = useState(false)
   const addToastTimerRef = useRef(null)
@@ -405,6 +417,49 @@ export default function SetDetail() {
     setCmtText('')
     setCmtToast(true)
     setTimeout(() => setCmtToast(false), 2200)
+  }
+  function toggleCommentLike(idx) {
+    setLikedComments(prev => { const n = new Set(prev); n.has(idx) ? n.delete(idx) : n.add(idx); return n })
+    setDislikedComments(prev => { const n = new Set(prev); n.delete(idx); return n })
+  }
+  function toggleCommentDislike(idx) {
+    setDislikedComments(prev => { const n = new Set(prev); n.has(idx) ? n.delete(idx) : n.add(idx); return n })
+    setLikedComments(prev => { const n = new Set(prev); n.delete(idx); return n })
+  }
+  function toggleReplyLike(key) {
+    setLikedReplies(prev => { const n = new Set(prev); if (n.has(key)) n.delete(key); else { n.add(key); setDislikedReplies(d => { const dd = new Set(d); dd.delete(key); return dd }) } return n })
+  }
+  function toggleReplyDislike(key) {
+    setDislikedReplies(prev => { const n = new Set(prev); if (n.has(key)) n.delete(key); else { n.add(key); setLikedReplies(d => { const dd = new Set(d); dd.delete(key); return dd }) } return n })
+  }
+  function toggleExpandedReplies(origIdx) {
+    setExpandedReplies(prev => { const n = new Set(prev); n.has(origIdx) ? n.delete(origIdx) : n.add(origIdx); return n })
+  }
+  function handleSubmitReply(e, origIdx) {
+    e.preventDefault()
+    if (!replyInput.trim()) return
+    const username = localStorage.getItem('ss_username') || 'Я'
+    const ini = username[0]?.toUpperCase() || 'Я'
+    const reply = { ini, name: username, date: 'только что', likes: 0, text: replyInput.trim() }
+    setCommentReplies(prev => ({ ...prev, [origIdx]: [...(prev[origIdx] || []), reply] }))
+    setExpandedReplies(prev => { const n = new Set(prev); n.add(origIdx); return n })
+    setReplyInput('')
+    setActiveReplyInput(null)
+  }
+  function handleSubmitSubReply(e, origIdx, replyTo) {
+    e.preventDefault()
+    if (!subReplyInput.trim()) return
+    const username = localStorage.getItem('ss_username') || 'Я'
+    const ini = username[0]?.toUpperCase() || 'Я'
+    const reply = { ini, name: username, date: 'только что', likes: 0, text: subReplyInput.trim(), replyTo }
+    setCommentReplies(prev => ({ ...prev, [origIdx]: [...(prev[origIdx] || []), reply] }))
+    setSubReplyInput('')
+    setActiveSubReplyInput(null)
+  }
+  function replyWord(n) {
+    if (n % 10 === 1 && n % 100 !== 11) return 'ответ'
+    if (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) return 'ответа'
+    return 'ответов'
   }
   function addNote(e) {
     e.preventDefault()
@@ -715,7 +770,7 @@ export default function SetDetail() {
   const SHOW_ART = 9
   const SHOW_CMT = 2
 
-  const sortedComments = [...comments].sort(
+  const sortedComments = [...comments].map((c, i) => ({ ...c, _origIdx: i })).sort(
     cmtSort === 'popular' ? (a, b) => b.likes - a.likes : () => 0
   )
 
@@ -1162,7 +1217,6 @@ export default function SetDetail() {
         {/* ── COMMENTS ── */}
         {!isPersonal && comments.length > 0 && (
           <div id="sd-comments-section" className="sd-section-card">
-            {/* Single unified header row */}
             <div className="sd-comments-header-row">
               <span className="sd-section-title">Комментарии</span>
               <span className="sd-comments-header-spacer" />
@@ -1189,54 +1243,123 @@ export default function SetDetail() {
               <span className="sd-comments-header-spacer" />
               <div className="sd-csort" style={{ flexShrink: 0 }}>
                 {[['popular', 'Популярные'], ['new', 'Новые']].map(([k, l]) => (
-                  <button key={k} className={`sd-sort-btn${cmtSort === k ? ' active' : ''}`}
-                    onClick={() => setCmtSort(k)}>{l}</button>
+                  <button key={k} className={`sd-sort-btn${cmtSort === k ? ' active' : ''}`} onClick={() => setCmtSort(k)}>{l}</button>
                 ))}
               </div>
             </div>
-            <div className="sd-comments-list">
-              {(cmtExpanded ? sortedComments : sortedComments.slice(0, SHOW_CMT)).map((c, i) => (
-                <div key={i} className="sd-comment-item">
-                  <CommentItem name={c.name} ini={c.ini} navigate={navigate} avatarClass="sd-c-avatar" nameClass="sd-c-name sd-c-name--link" date={c.date}>
-                    <div className="sd-c-text">{c.text}</div>
-                    <div className="sd-c-actions">
-                      <button className={`sd-c-like${likes[i] ? ' liked' : ''}`} onClick={() => {
-                        setLikes(p => ({ ...p, [i]: !p[i] }))
-                        if (!likes[i]) setDislikes(p => ({ ...p, [i]: false }))
-                      }}>
-                        <svg width="12" height="12" fill={likes[i] ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
-                          <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
-                        </svg>
-                        {c.likes + (likes[i] ? 1 : 0)}
-                      </button>
-                      <button className={`sd-c-like sd-c-dislike${dislikes[i] ? ' disliked' : ''}`} onClick={() => {
-                        setDislikes(p => ({ ...p, [i]: !p[i] }))
-                        if (!dislikes[i]) setLikes(p => ({ ...p, [i]: false }))
-                      }}>
-                        <svg width="12" height="12" fill={dislikes[i] ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
-                          <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
-                        </svg>
-                        {(c.dislikes || 0) + (dislikes[i] ? 1 : 0)}
-                      </button>
+            <div className="comments-list">
+              {(cmtExpanded ? sortedComments : sortedComments.slice(0, SHOW_CMT)).map((c, i) => {
+                const origIdx = c._origIdx
+                const replies = commentReplies[origIdx] || []
+                const replyCount = replies.length
+                const isExpanded = expandedReplies.has(origIdx)
+                const isReplying = activeReplyInput === origIdx
+                return (
+                  <div key={i} className="comment-wrap">
+                    <div className="comment-item">
+                      <CommentItem name={c.name} ini={c.ini} navigate={navigate} avatarClass="c-avatar" nameClass="c-name" date={c.date}>
+                        <div className="c-text">{c.text}</div>
+                        <div className="c-actions">
+                          <button className={`c-like${likedComments.has(i) ? ' liked' : ''}`} onClick={() => toggleCommentLike(i)}>
+                            <svg width="11" height="11" fill={likedComments.has(i) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                              <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                            </svg>
+                            {c.likes + (likedComments.has(i) ? 1 : 0)}
+                          </button>
+                          <button className={`c-like c-dislike${dislikedComments.has(i) ? ' disliked' : ''}`} onClick={() => toggleCommentDislike(i)}>
+                            <svg width="11" height="11" fill={dislikedComments.has(i) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+                              <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                            </svg>
+                            {(c.dislikes || 0) + (dislikedComments.has(i) ? 1 : 0)}
+                          </button>
+                          <button className="c-like c-reply-btn" onClick={() => setActiveReplyInput(isReplying ? null : origIdx)}>
+                            Ответить
+                          </button>
+                        </div>
+                      </CommentItem>
                     </div>
-                  </CommentItem>
-                </div>
-              ))}
+                    {(replyCount > 0 || isReplying) && (
+                      <div className="comment-thread">
+                        {replyCount > 0 && (
+                          <div className="thread-line">
+                            {isExpanded && (
+                              <div className="replies-list">
+                                {replies.map((r, j) => {
+                                  const key = `${origIdx}-${j}`
+                                  const isSubReplying = activeSubReplyInput === key
+                                  return (
+                                    <div key={j} className="reply-item">
+                                      <CommentItem name={r.name} ini={r.ini} navigate={navigate} avatarClass="c-avatar" nameClass="c-name" date={r.date}>
+                                        <div className="c-text">
+                                          {r.replyTo && <span className="c-mention">@{r.replyTo} </span>}
+                                          {r.text}
+                                        </div>
+                                        <div className="c-actions">
+                                          <button className={`c-like${likedReplies.has(key) ? ' liked' : ''}`} onClick={() => toggleReplyLike(key)}>
+                                            <svg width="11" height="11" fill={likedReplies.has(key) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                                              <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                                            </svg>
+                                            {r.likes + (likedReplies.has(key) ? 1 : 0)}
+                                          </button>
+                                          <button className={`c-like c-dislike${dislikedReplies.has(key) ? ' disliked' : ''}`} onClick={() => toggleReplyDislike(key)}>
+                                            <svg width="11" height="11" fill={dislikedReplies.has(key) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                              <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+                                              <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                                            </svg>
+                                            {(r.dislikes || 0) + (dislikedReplies.has(key) ? 1 : 0)}
+                                          </button>
+                                          <button className="c-like c-reply-btn" onClick={() => { setActiveSubReplyInput(isSubReplying ? null : key); setSubReplyInput('') }}>
+                                            Ответить
+                                          </button>
+                                        </div>
+                                        {isSubReplying && (
+                                          <form className="sub-reply-form" onSubmit={e => handleSubmitSubReply(e, origIdx, r.name)}>
+                                            <input className="sub-reply-input" placeholder={`@${r.name}...`} value={subReplyInput} onChange={e => setSubReplyInput(e.target.value)} autoFocus />
+                                            <div className="sub-reply-actions">
+                                              <button type="button" className="sub-reply-cancel-btn" onClick={() => setActiveSubReplyInput(null)}>Отмена</button>
+                                              <button type="submit" className="sub-reply-send-btn">Отправить</button>
+                                            </div>
+                                          </form>
+                                        )}
+                                      </CommentItem>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            )}
+                            <button className="replies-toggle-btn" onClick={() => toggleExpandedReplies(origIdx)}>
+                              {isExpanded ? (<>Скрыть ответы <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg></>) : (<>{replyCount} {replyWord(replyCount)} <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg></>)}
+                            </button>
+                          </div>
+                        )}
+                        {isReplying && (
+                          <form className="sub-reply-form" style={{ padding: '0 0 10px' }} onSubmit={e => handleSubmitReply(e, origIdx)}>
+                            <input className="sub-reply-input" placeholder="Написать ответ..." value={replyInput} onChange={e => setReplyInput(e.target.value)} autoFocus />
+                            <div className="sub-reply-actions">
+                              <button type="button" className="sub-reply-cancel-btn" onClick={() => setActiveReplyInput(null)}>Отмена</button>
+                              <button type="submit" className="sub-reply-send-btn">Отправить</button>
+                            </div>
+                          </form>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
             {!cmtExpanded && comments.length > SHOW_CMT && (
-              <div className="sd-show-more-row">
-                <button className="sd-btn-show" onClick={() => setCmtExpanded(true)}>
+              <div className="show-more-row">
+                <button className="btn-show" onClick={() => setCmtExpanded(true)}>
                   Показать все комментарии ({comments.length})
-                  <svg className="sd-chev" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 9l-7 7-7-7"/></svg>
+                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
               </div>
             )}
             <form className="comments-input" onSubmit={handleSubmitCmt}>
-              <input className="c-input" placeholder="Написать комментарий…"
-                value={cmtText} onChange={e => setCmtText(e.target.value)} />
+              <input className="c-input" placeholder="Написать комментарий…" value={cmtText} onChange={e => setCmtText(e.target.value)} />
               <button type="submit" className="c-submit">Отправить</button>
             </form>
           </div>

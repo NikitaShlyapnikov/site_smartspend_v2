@@ -350,6 +350,7 @@ function PromoVoteButtons({ myVote, onVote, works, notWorks, worksAnim, notAnim,
 }
 
 function PromoInteractions({ displayHistory = [], initComments = [], showComments, setShowComments, myVote }) {
+  const navigate = useNavigate ? useNavigate() : null
   const [comments,        setComments]        = useState(initComments)
   const [commentText,     setCommentText]     = useState('')
   const [reactions,       setReactions]       = useState([])
@@ -360,6 +361,14 @@ function PromoInteractions({ displayHistory = [], initComments = [], showComment
   const [visibleCount,    setVisibleCount]    = useState(10)
   const [likedComments,   setLikedComments]   = useState(new Set())
   const [dislikedComments,setDislikedComments]= useState(new Set())
+  const [expandedReplies, setExpandedReplies] = useState(new Set())
+  const [activeReplyInput, setActiveReplyInput] = useState(null)
+  const [activeSubReplyInput, setActiveSubReplyInput] = useState(null)
+  const [commentReplies, setCommentReplies]   = useState({})
+  const [replyInput, setReplyInput]           = useState('')
+  const [subReplyInput, setSubReplyInput]     = useState('')
+  const [likedReplies, setLikedReplies]       = useState(new Set())
+  const [dislikedReplies, setDislikedReplies] = useState(new Set())
 
   function toggleReaction(emoji) {
     setMyReactions(prev => {
@@ -374,7 +383,6 @@ function PromoInteractions({ displayHistory = [], initComments = [], showComment
       return next
     })
   }
-
   function toggleCommentLike(i) {
     setLikedComments(prev => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n })
     setDislikedComments(prev => { const n = new Set(prev); n.delete(i); return n })
@@ -383,17 +391,47 @@ function PromoInteractions({ displayHistory = [], initComments = [], showComment
     setDislikedComments(prev => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n })
     setLikedComments(prev => { const n = new Set(prev); n.delete(i); return n })
   }
-
+  function toggleReplyLike(key) {
+    setLikedReplies(prev => { const n = new Set(prev); if (n.has(key)) n.delete(key); else { n.add(key); setDislikedReplies(d => { const dd = new Set(d); dd.delete(key); return dd }) } return n })
+  }
+  function toggleReplyDislike(key) {
+    setDislikedReplies(prev => { const n = new Set(prev); if (n.has(key)) n.delete(key); else { n.add(key); setLikedReplies(d => { const dd = new Set(d); dd.delete(key); return dd }) } return n })
+  }
+  function toggleExpandedReplies(origIdx) {
+    setExpandedReplies(prev => { const n = new Set(prev); n.has(origIdx) ? n.delete(origIdx) : n.add(origIdx); return n })
+  }
+  function replyWord(n) {
+    if (n % 10 === 1 && n % 100 !== 11) return 'ответ'
+    if (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) return 'ответа'
+    return 'ответов'
+  }
   function submitComment(e) {
     e?.preventDefault()
     if (!commentText.trim()) return
-    setComments(prev => [...prev, { author: 'вы', text: commentText.trim(), ts: Date.now(), likes: 0 }])
+    setComments(prev => [...prev, { name: localStorage.getItem('ss_username') || 'Я', ini: (localStorage.getItem('ss_username') || 'Я')[0]?.toUpperCase(), text: commentText.trim(), date: 'только что', likes: 0 }])
     setCommentText('')
+  }
+  function handleSubmitReply(e, origIdx) {
+    e.preventDefault()
+    if (!replyInput.trim()) return
+    const username = localStorage.getItem('ss_username') || 'Я'
+    const ini = username[0]?.toUpperCase() || 'Я'
+    setCommentReplies(prev => ({ ...prev, [origIdx]: [...(prev[origIdx] || []), { ini, name: username, date: 'только что', likes: 0, text: replyInput.trim() }] }))
+    setExpandedReplies(prev => { const n = new Set(prev); n.add(origIdx); return n })
+    setReplyInput(''); setActiveReplyInput(null)
+  }
+  function handleSubmitSubReply(e, origIdx, replyTo) {
+    e.preventDefault()
+    if (!subReplyInput.trim()) return
+    const username = localStorage.getItem('ss_username') || 'Я'
+    const ini = username[0]?.toUpperCase() || 'Я'
+    setCommentReplies(prev => ({ ...prev, [origIdx]: [...(prev[origIdx] || []), { ini, name: username, date: 'только что', likes: 0, text: subReplyInput.trim(), replyTo }] }))
+    setSubReplyInput(''); setActiveSubReplyInput(null)
   }
 
   const sorted = commentSort === 'top'
-    ? [...comments].sort((a, b) => (b.likes || 0) - (a.likes || 0))
-    : [...comments].reverse()
+    ? [...comments].map((c, i) => ({ ...c, _origIdx: i })).sort((a, b) => (b.likes || 0) - (a.likes || 0))
+    : [...comments].map((c, i) => ({ ...c, _origIdx: i })).reverse()
   const visible   = sorted.slice(0, visibleCount)
   const remaining = sorted.length - visibleCount
 
@@ -404,11 +442,7 @@ function PromoInteractions({ displayHistory = [], initComments = [], showComment
           {displayHistory.slice(-40).map((v, i, arr) => {
             const isMine = i === arr.length - 1 && !!myVote
             return (
-              <div
-                key={isMine ? `mine-${myVote}` : i}
-                className={`wvh-stripe${isMine ? ' wvh-mine' : ''}`}
-                style={{ background: v === 'w' ? '#5E9478' : '#B85555' }}
-              />
+              <div key={isMine ? `mine-${myVote}` : i} className={`wvh-stripe${isMine ? ' wvh-mine' : ''}`} style={{ background: v === 'w' ? '#5E9478' : '#B85555' }} />
             )
           })}
         </div>
@@ -430,10 +464,7 @@ function PromoInteractions({ displayHistory = [], initComments = [], showComment
                 </svg>
               </button>
               {showEmojiPicker && (
-                <WhisperEmojiPicker
-                  onPick={emoji => { toggleReaction(emoji); setJustAdded(emoji); setTimeout(() => setJustAdded(null), 700); setShowEmojiPicker(false) }}
-                  onClose={() => setShowEmojiPicker(false)}
-                />
+                <WhisperEmojiPicker onPick={emoji => { toggleReaction(emoji); setJustAdded(emoji); setTimeout(() => setJustAdded(null), 700); setShowEmojiPicker(false) }} onClose={() => setShowEmojiPicker(false)} />
               )}
             </div>
             <span className="sd-comments-header-spacer" />
@@ -442,48 +473,123 @@ function PromoInteractions({ displayHistory = [], initComments = [], showComment
               <button className={`c-sort-btn${commentSort === 'top' ? ' active' : ''}`} onClick={() => setCommentSort('top')}>Популярные</button>
             </div>
           </div>
-
           <div className="comments-list">
-            {visible.map((c, idx) => (
-              <div key={idx} className="comment-item">
-                <div className="c-avatar">{getIni(c.author || c.ini)}</div>
-                <div className="c-body">
-                  <div className="c-header">
-                    <span className="c-name">{c.name || `@${c.author || 'вы'}`}</span>
-                    <span className="c-date">{c.ts ? fmtCommentTime(c.ts) : (c.date || c.time || '')}</span>
+            {visible.map((c, i) => {
+              const origIdx = c._origIdx
+              const replies = commentReplies[origIdx] || []
+              const replyCount = replies.length
+              const isExpanded = expandedReplies.has(origIdx)
+              const isReplying = activeReplyInput === origIdx
+              return (
+                <div key={i} className="comment-wrap">
+                  <div className="comment-item">
+                    <div className="c-avatar">{getIni(c.author || c.ini)}</div>
+                    <div className="c-body">
+                      <div className="c-header">
+                        <span className="c-name">{c.name || `@${c.author || 'вы'}`}</span>
+                        <span className="c-date">{c.ts ? fmtCommentTime(c.ts) : (c.date || c.time || '')}</span>
+                      </div>
+                      <div className="c-text">{c.text}</div>
+                      <div className="c-actions">
+                        <button className={`c-like${likedComments.has(i) ? ' liked' : ''}`} onClick={() => toggleCommentLike(i)}>
+                          <svg width="11" height="11" fill={likedComments.has(i) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                            <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                          </svg>
+                          {(c.likes || 0) + (likedComments.has(i) ? 1 : 0)}
+                        </button>
+                        <button className={`c-like c-dislike${dislikedComments.has(i) ? ' disliked' : ''}`} onClick={() => toggleCommentDislike(i)}>
+                          <svg width="11" height="11" fill={dislikedComments.has(i) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+                            <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                          </svg>
+                          {(c.dislikes || 0) + (dislikedComments.has(i) ? 1 : 0)}
+                        </button>
+                        <button className="c-like c-reply-btn" onClick={() => setActiveReplyInput(isReplying ? null : origIdx)}>Ответить</button>
+                      </div>
+                    </div>
                   </div>
-                  <div className="c-text">{c.text}</div>
-                  <div className="c-actions">
-                    <button className={`c-like${likedComments.has(idx) ? ' liked' : ''}`} onClick={() => toggleCommentLike(idx)}>
-                      <svg width="11" height="11" fill={likedComments.has(idx) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
-                        <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
-                      </svg>
-                      {(c.likes || 0) + (likedComments.has(idx) ? 1 : 0)}
-                    </button>
-                    <button className={`c-like c-dislike${dislikedComments.has(idx) ? ' disliked' : ''}`} onClick={() => toggleCommentDislike(idx)}>
-                      <svg width="11" height="11" fill={dislikedComments.has(idx) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
-                        <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
-                      </svg>
-                      {(c.dislikes || 0) + (dislikedComments.has(idx) ? 1 : 0)}
-                    </button>
-                  </div>
+                  {(replyCount > 0 || isReplying) && (
+                    <div className="comment-thread">
+                      {replyCount > 0 && (
+                        <div className="thread-line">
+                          {isExpanded && (
+                            <div className="replies-list">
+                              {replies.map((r, j) => {
+                                const key = `${origIdx}-${j}`
+                                const isSubReplying = activeSubReplyInput === key
+                                return (
+                                  <div key={j} className="reply-item">
+                                    <div className="c-avatar">{r.ini}</div>
+                                    <div className="c-body">
+                                      <div className="c-header">
+                                        <span className="c-name">{r.name}</span>
+                                        <span className="c-date">{r.date}</span>
+                                      </div>
+                                      <div className="c-text">
+                                        {r.replyTo && <span className="c-mention">@{r.replyTo} </span>}
+                                        {r.text}
+                                      </div>
+                                      <div className="c-actions">
+                                        <button className={`c-like${likedReplies.has(key) ? ' liked' : ''}`} onClick={() => toggleReplyLike(key)}>
+                                          <svg width="11" height="11" fill={likedReplies.has(key) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                                            <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                                          </svg>
+                                          {r.likes + (likedReplies.has(key) ? 1 : 0)}
+                                        </button>
+                                        <button className={`c-like c-dislike${dislikedReplies.has(key) ? ' disliked' : ''}`} onClick={() => toggleReplyDislike(key)}>
+                                          <svg width="11" height="11" fill={dislikedReplies.has(key) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+                                            <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                                          </svg>
+                                          {(r.dislikes || 0) + (dislikedReplies.has(key) ? 1 : 0)}
+                                        </button>
+                                        <button className="c-like c-reply-btn" onClick={() => { setActiveSubReplyInput(isSubReplying ? null : key); setSubReplyInput('') }}>Ответить</button>
+                                      </div>
+                                      {isSubReplying && (
+                                        <form className="sub-reply-form" onSubmit={e => handleSubmitSubReply(e, origIdx, r.name)}>
+                                          <input className="sub-reply-input" placeholder={`@${r.name}...`} value={subReplyInput} onChange={e => setSubReplyInput(e.target.value)} autoFocus />
+                                          <div className="sub-reply-actions">
+                                            <button type="button" className="sub-reply-cancel-btn" onClick={() => setActiveSubReplyInput(null)}>Отмена</button>
+                                            <button type="submit" className="sub-reply-send-btn">Отправить</button>
+                                          </div>
+                                        </form>
+                                      )}
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                          <button className="replies-toggle-btn" onClick={() => toggleExpandedReplies(origIdx)}>
+                            {isExpanded ? (<>Скрыть ответы <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg></>) : (<>{replyCount} {replyWord(replyCount)} <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg></>)}
+                          </button>
+                        </div>
+                      )}
+                      {isReplying && (
+                        <form className="sub-reply-form" style={{ padding: '0 0 10px' }} onSubmit={e => handleSubmitReply(e, origIdx)}>
+                          <input className="sub-reply-input" placeholder="Написать ответ..." value={replyInput} onChange={e => setReplyInput(e.target.value)} autoFocus />
+                          <div className="sub-reply-actions">
+                            <button type="button" className="sub-reply-cancel-btn" onClick={() => setActiveReplyInput(null)}>Отмена</button>
+                            <button type="submit" className="sub-reply-send-btn">Отправить</button>
+                          </div>
+                        </form>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
             {remaining > 0 && (
               <div className="show-more-row">
                 <button className="btn-show" onClick={() => setVisibleCount(v => v + 20)}>
                   Показать ещё {Math.min(remaining, 20)}
-                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    <polyline points="6 9 12 15 18 9"/>
-                  </svg>
+                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
               </div>
             )}
           </div>
-
           <form className="comments-input" onSubmit={submitComment}>
             <input className="c-input" placeholder="Написать комментарий..." value={commentText} onChange={e => setCommentText(e.target.value)} />
             <button type="submit" className="c-submit">Отправить</button>
