@@ -2208,6 +2208,132 @@ body.dark .notif-item.unread { background: rgba(255,255,255,0.04); }
 .notif-empty-title { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
 .notif-empty-desc { font-size: 13px; color: var(--text-2); }
 
+/* ── REQUEST CARDS ── */
+.req-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 12px;
+  margin: 0 24px;
+}
+.req-card + .req-card { margin-top: 8px; }
+.req-card--closed { opacity: 0.7; }
+
+.req-card-header {
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.req-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.req-card-meta { flex: 1; min-width: 0; }
+.req-card-title { font-size: 13px; color: var(--text-2); line-height: 1.4; }
+.req-card-title strong { color: var(--text); font-weight: 600; }
+.req-card-set {
+  display: flex; align-items: center; gap: 5px;
+  margin-top: 3px; font-size: 12px; color: var(--text-3);
+}
+.req-set-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+.req-card-time { font-size: 11px; color: var(--text-3); flex-shrink: 0; margin-top: 1px; }
+
+.req-article-preview {
+  display: flex; align-items: flex-start; gap: 8px;
+  background: var(--surface-2); border-radius: var(--r-sm);
+  padding: 10px 12px;
+}
+.req-article-title { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.35; }
+.req-article-meta { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+.req-status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 20px;
+  font-size: 12px; font-weight: 500; align-self: flex-start;
+}
+.req-status-approved { background: rgba(78,130,104,0.12); color: var(--ok); }
+.req-status-rejected { background: rgba(184,85,85,0.1); color: var(--urgent); }
+.req-status-withdrawn { background: var(--surface-2); color: var(--text-3); }
+
+.req-actions-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.req-discuss-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 12px; border-radius: 20px;
+  font-size: 12px; font-weight: 500; font-family: var(--sans);
+  background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--text-2); cursor: pointer; transition: all 0.15s;
+}
+.req-discuss-btn:hover { color: var(--text); border-color: var(--text-3); }
+.req-discuss-btn.active { background: var(--text); color: var(--surface); border-color: var(--text); }
+.req-msg-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 16px; height: 16px; border-radius: 8px; padding: 0 4px;
+  background: var(--accent-green); color: #fff;
+  font-size: 9px; font-weight: 700; font-family: var(--mono); line-height: 1;
+}
+
+.req-action-btns { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.req-reject-btn {
+  padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border);
+  font-size: 12px; font-weight: 500; font-family: var(--sans);
+  background: none; color: var(--text-2); cursor: pointer; transition: all 0.15s;
+}
+.req-reject-btn:hover { border-color: var(--urgent); color: var(--urgent); }
+.req-approve-btn {
+  padding: 5px 14px; border-radius: 20px; border: none;
+  font-size: 12px; font-weight: 600; font-family: var(--sans);
+  background: var(--accent-green); color: #fff; cursor: pointer; transition: opacity 0.15s;
+}
+.req-approve-btn:hover { opacity: 0.88; }
+.req-withdraw-btn {
+  padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border);
+  font-size: 12px; font-weight: 500; font-family: var(--sans);
+  background: none; color: var(--text-3); cursor: pointer; transition: all 0.15s;
+}
+.req-withdraw-btn:hover { border-color: var(--text-3); color: var(--text-2); }
+
+.req-discuss {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.req-messages { display: flex; flex-direction: column; gap: 6px; }
+.req-msg { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
+.req-msg--mine { align-items: flex-end; }
+.req-msg-bubble {
+  max-width: 80%; padding: 7px 12px; border-radius: 12px;
+  font-size: 13px; line-height: 1.4;
+  background: var(--surface-2); color: var(--text);
+  border-bottom-left-radius: 4px;
+}
+.req-msg--mine .req-msg-bubble {
+  background: var(--accent-green); color: #fff;
+  border-bottom-left-radius: 12px; border-bottom-right-radius: 4px;
+}
+.req-msg-time { font-size: 10px; color: var(--text-3); padding: 0 4px; }
+
+.req-msg-input-row {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface-2); border-radius: var(--r-sm);
+  padding: 6px 6px 6px 12px;
+  border: 1px solid var(--border);
+}
+.req-msg-input {
+  flex: 1; border: none; background: none; outline: none;
+  font-size: 13px; color: var(--text); font-family: var(--sans);
+}
+.req-msg-input::placeholder { color: var(--text-3); }
+.req-msg-send-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 8px; border: none;
+  background: var(--accent-green); color: #fff; cursor: pointer;
+  flex-shrink: 0; transition: opacity 0.15s;
+}
+.req-msg-send-btn:hover { opacity: 0.85; }
+.req-msg-send-btn:disabled { opacity: 0.35; cursor: default; }
+
 /* ── NOTIFICATION BADGES (sidebar + mobile) ── */
 /* Bell icon: bright accent when there are unread notifications */
 .nav-item.has-unread .nav-icon {
@@ -8970,6 +9096,8 @@ body.dark .feed-section-card.active.promo    { background: #A86828; border-color
 .promo-company-info { flex: 1; min-width: 0; }
 .promo-company-name { font-size: 14px; font-weight: 600; color: var(--text); display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .promo-expires { font-size: 12px; color: var(--text-3); margin-top: 1px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.whisper-company-name { font-size: 14px; font-weight: 600; color: var(--text); display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.whisper-meta { font-size: 12px; color: var(--text-3); margin-top: 1px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .promo-type-badge {
   padding: 3px 9px; border-radius: 6px;
   font-size: 11px; font-weight: 600; flex-shrink: 0;

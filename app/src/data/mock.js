@@ -1316,6 +1316,66 @@ export const notifications = [
     time: 'только что' },
 ]
 
+export const articleRequests = [
+  {
+    id: 'req-1',
+    direction: 'incoming',
+    status: 'pending',
+    fromUser: { name: 'Анна Соколова', initials: 'АС', color: '#6888A0' },
+    article: { id: 'f2', title: 'Как я сократил расходы на 30% за полгода', readTime: '5 мин' },
+    set: { id: 's1', title: 'Базовый гардероб', color: '#4E8268' },
+    time: '2 ч назад',
+    messages: [
+      { from: 'other', text: 'Привет! Думаю, статья хорошо дополнит твой набор — там как раз про осознанные покупки', time: '2 ч назад' },
+    ],
+  },
+  {
+    id: 'req-2',
+    direction: 'outgoing',
+    status: 'pending',
+    toUser: { name: 'Михаил Сергеев', initials: 'МС', color: '#A08268' },
+    article: { id: 'f3', title: 'Правило 30 дней для крупных покупок', readTime: '4 мин' },
+    set: { id: 's3', title: 'Финансовые привычки', color: '#8268A0' },
+    time: '5 ч назад',
+    messages: [
+      { from: 'me',    text: 'Привет! Написал статью — думаю отлично впишется в раздел дополнений', time: '5 ч назад' },
+      { from: 'other', text: 'Спасибо, посмотрю в ближайшее время', time: '4 ч назад' },
+    ],
+  },
+  {
+    id: 'req-3',
+    direction: 'incoming',
+    status: 'approved',
+    fromUser: { name: 'Елена Козлова', initials: 'ЕК', color: '#688870' },
+    article: { id: 'f4', title: 'Инвентаризация: зачем считать вещи', readTime: '3 мин' },
+    set: { id: 's2', title: 'Минимализм в быту', color: '#A06870' },
+    time: '1 д назад',
+    messages: [],
+  },
+  {
+    id: 'req-4',
+    direction: 'outgoing',
+    status: 'rejected',
+    toUser: { name: 'Дмитрий Волков', initials: 'ДВ', color: '#A06870' },
+    article: { id: 'f5', title: 'Капсульный гардероб: с чего начать', readTime: '6 мин' },
+    set: { id: 's4', title: 'Осознанный гардероб', color: '#6888A0' },
+    time: '3 д назад',
+    messages: [
+      { from: 'other', text: 'Спасибо за предложение, но тематика немного не совпадает с концепцией набора', time: '3 д назад' },
+    ],
+  },
+  {
+    id: 'req-5',
+    direction: 'outgoing',
+    status: 'withdrawn',
+    toUser: { name: 'Ольга Петрова', initials: 'ОП', color: '#A08268' },
+    article: { id: 'f6', title: 'Как экономить на продуктах без потери качества', readTime: '7 мин' },
+    set: { id: 's5', title: 'Бюджетная кухня', color: '#4E8268' },
+    time: '5 д назад',
+    messages: [],
+  },
+]
+
 export const userData = {
   name: 'Никита Орлов',
   nickname: '@n.orlov',

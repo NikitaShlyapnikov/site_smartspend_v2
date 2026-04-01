@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
-import { notifications as INIT_NOTIFS } from '../data/mock'
+import { notifications as INIT_NOTIFS, articleRequests as INIT_REQUESTS } from '../data/mock'
 
 const NOTIF_SPOTLIGHT = [
   { targetId: 'sp-notif-header',  btnId: 'sp-notif-mark',   title: 'Заголовок',           desc: 'Кнопка «Прочитать все» отмечает все уведомления как прочитанные сразу.' },
@@ -51,6 +51,7 @@ const FILTERS = [
   { id: 'subs',      label: 'Подписки' },
   { id: 'replies',   label: 'Ответы' },
   { id: 'reminders', label: 'Напоминания' },
+  { id: 'requests',  label: 'Запросы' },
 ]
 
 function filterNotifs(list, tab) {
@@ -114,6 +115,9 @@ export default function Notifications() {
   const [showToast, setShowToast] = useState(false)
   const [deletedIds, setDeletedIds] = useState(new Set())
   const toastTimer = useRef(null)
+  const [requests, setRequests] = useState(() =>
+    INIT_REQUESTS.map(r => ({ ...r, messages: [...(r.messages || [])] }))
+  )
 
   function deleteNotif(id, e) {
     e.stopPropagation()
@@ -149,6 +153,20 @@ export default function Notifications() {
     setReadIds(next)
     saveRead(next)
   }
+
+  function updateRequest(id, patch) {
+    setRequests(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r))
+  }
+  function approveRequest(id) { updateRequest(id, { status: 'approved' }) }
+  function rejectRequest(id)  { updateRequest(id, { status: 'rejected' }) }
+  function withdrawRequest(id){ updateRequest(id, { status: 'withdrawn' }) }
+  function sendMessage(id, text) {
+    setRequests(prev => prev.map(r =>
+      r.id === id ? { ...r, messages: [...r.messages, { from: 'me', text, time: 'только что' }] } : r
+    ))
+  }
+
+  const pendingRequestsCount = requests.filter(r => r.status === 'pending').length
 
   const withRead = INIT_NOTIFS.map(n => ({ ...n, unread: n.unread && !readIds.has(n.id) }))
   const visible = withRead.filter(n => !deletedIds.has(n.id))
@@ -189,6 +207,9 @@ export default function Notifications() {
               onClick={() => setFilter(f.id)}
             >
               {f.label}
+              {f.id === 'requests' && pendingRequestsCount > 0 && (
+                <span className="notif-filter-badge">{pendingRequestsCount}</span>
+              )}
             </button>
           ))}
           {deletedIds.size > 0 && (
@@ -203,42 +224,224 @@ export default function Notifications() {
 
         {/* List */}
         <div id="sp-notif-list" className="notif-scroll">
-          {unreadFiltered.length > 0 && (
-            <>
-              <div className="notif-group-label">Новые</div>
-              {unreadFiltered.map(n => (
-                <NotifItem key={n.id} n={n} onRead={() => markRead(n.id)} onDelete={e => deleteNotif(n.id, e)} navigate={navigate} />
-              ))}
-            </>
-          )}
 
-          {readFiltered.length > 0 && (
+          {filter === 'requests' ? (
             <>
-              <div className="notif-group-label" style={{ marginTop: unreadFiltered.length > 0 ? 20 : 0 }}>
-                {unreadFiltered.length > 0 ? 'Ранее' : 'Прочитанные'}
-              </div>
-              {readFiltered.map(n => (
-                <NotifItem key={n.id} n={n} onRead={() => markRead(n.id)} onDelete={e => deleteNotif(n.id, e)} navigate={navigate} />
-              ))}
+              {requests.length === 0 ? (
+                <div className="notif-empty">
+                  <div className="notif-empty-icon">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 12h6m-3-3v6m-7 4h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                  </div>
+                  <div className="notif-empty-title">Нет запросов</div>
+                  <div className="notif-empty-desc">Здесь появятся запросы на добавление статей в разделы дополнений</div>
+                </div>
+              ) : (
+                <>
+                  {requests.filter(r => r.status === 'pending').length > 0 && (
+                    <>
+                      <div className="notif-group-label">Ожидают решения</div>
+                      {requests.filter(r => r.status === 'pending').map(r => (
+                        <RequestCard
+                          key={r.id} req={r}
+                          onApprove={() => approveRequest(r.id)}
+                          onReject={() => rejectRequest(r.id)}
+                          onWithdraw={() => withdrawRequest(r.id)}
+                          onSendMessage={text => sendMessage(r.id, text)}
+                        />
+                      ))}
+                    </>
+                  )}
+                  {requests.filter(r => r.status !== 'pending').length > 0 && (
+                    <>
+                      <div className="notif-group-label" style={{ marginTop: requests.some(r => r.status === 'pending') ? 20 : 0 }}>Завершённые</div>
+                      {requests.filter(r => r.status !== 'pending').map(r => (
+                        <RequestCard
+                          key={r.id} req={r}
+                          onApprove={() => approveRequest(r.id)}
+                          onReject={() => rejectRequest(r.id)}
+                          onWithdraw={() => withdrawRequest(r.id)}
+                          onSendMessage={text => sendMessage(r.id, text)}
+                        />
+                      ))}
+                    </>
+                  )}
+                </>
+              )}
             </>
-          )}
+          ) : (
+            <>
+              {unreadFiltered.length > 0 && (
+                <>
+                  <div className="notif-group-label">Новые</div>
+                  {unreadFiltered.map(n => (
+                    <NotifItem key={n.id} n={n} onRead={() => markRead(n.id)} onDelete={e => deleteNotif(n.id, e)} navigate={navigate} />
+                  ))}
+                </>
+              )}
 
-          {filtered.length === 0 && (
-            <div className="notif-empty">
-              <div className="notif-empty-icon">
-                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
-                </svg>
-              </div>
-              <div className="notif-empty-title">Нет уведомлений</div>
-              <div className="notif-empty-desc">В этой категории пока ничего нет</div>
-            </div>
+              {readFiltered.length > 0 && (
+                <>
+                  <div className="notif-group-label" style={{ marginTop: unreadFiltered.length > 0 ? 20 : 0 }}>
+                    {unreadFiltered.length > 0 ? 'Ранее' : 'Прочитанные'}
+                  </div>
+                  {readFiltered.map(n => (
+                    <NotifItem key={n.id} n={n} onRead={() => markRead(n.id)} onDelete={e => deleteNotif(n.id, e)} navigate={navigate} />
+                  ))}
+                </>
+              )}
+
+              {filtered.length === 0 && (
+                <div className="notif-empty">
+                  <div className="notif-empty-icon">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
+                    </svg>
+                  </div>
+                  <div className="notif-empty-title">Нет уведомлений</div>
+                  <div className="notif-empty-desc">В этой категории пока ничего нет</div>
+                </div>
+              )}
+            </>
           )}
         </div>
       {showSpotlight && <SpotlightTour steps={NOTIF_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
       {showToast && <div className="disco-toast">С первым уведомлением!</div>}
       </main>
     </Layout>
+  )
+}
+
+function RequestCard({ req, onApprove, onReject, onWithdraw, onSendMessage }) {
+  const [showDiscuss, setShowDiscuss] = useState(false)
+  const [msgInput, setMsgInput] = useState('')
+  const inputRef = useRef(null)
+
+  const isPending  = req.status === 'pending'
+  const isIncoming = req.direction === 'incoming'
+  const user = isIncoming ? req.fromUser : req.toUser
+
+  function handleSend() {
+    if (!msgInput.trim()) return
+    onSendMessage(msgInput.trim())
+    setMsgInput('')
+  }
+
+  function handleDiscussToggle() {
+    setShowDiscuss(v => {
+      if (!v) setTimeout(() => inputRef.current?.focus(), 80)
+      return !v
+    })
+  }
+
+  return (
+    <div className={`req-card${isPending ? '' : ' req-card--closed'}`}>
+      {/* Header */}
+      <div className="req-card-header">
+        <div className="req-avatar" style={{ background: user.color }}>{user.initials}</div>
+        <div className="req-card-meta">
+          <div className="req-card-title">
+            {isIncoming
+              ? <><strong>{user.name}</strong> предлагает статью для набора</>
+              : <>Запрос для <strong>{user.name}</strong></>
+            }
+          </div>
+          <div className="req-card-set">
+            <span className="req-set-dot" style={{ background: req.set.color }} />
+            {req.set.title}
+          </div>
+        </div>
+        <div className="req-card-time">{req.time}</div>
+      </div>
+
+      {/* Article preview */}
+      <div className="req-article-preview">
+        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.45 }}>
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+        </svg>
+        <div>
+          <div className="req-article-title">{req.article.title}</div>
+          <div className="req-article-meta">{req.article.readTime} чтения</div>
+        </div>
+      </div>
+
+      {/* Status badge */}
+      {!isPending && (
+        <div className={`req-status-badge req-status-${req.status}`}>
+          {req.status === 'approved'  && <>
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Добавлено в дополнения
+          </>}
+          {req.status === 'rejected'  && <>
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            Отклонено
+          </>}
+          {req.status === 'withdrawn' && <>
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 100-6"/></svg>
+            Запрос отозван
+          </>}
+        </div>
+      )}
+
+      {/* Actions row */}
+      <div className="req-actions-row">
+        <button
+          className={`req-discuss-btn${showDiscuss ? ' active' : ''}`}
+          onClick={handleDiscussToggle}
+        >
+          <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+          </svg>
+          Обсудить
+          {req.messages.length > 0 && <span className="req-msg-count">{req.messages.length}</span>}
+        </button>
+
+        {isPending && (
+          <div className="req-action-btns">
+            {isIncoming ? (
+              <>
+                <button className="req-reject-btn" onClick={onReject}>Отклонить</button>
+                <button className="req-approve-btn" onClick={onApprove}>Добавить в дополнения</button>
+              </>
+            ) : (
+              <button className="req-withdraw-btn" onClick={onWithdraw}>Отозвать запрос</button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Discussion thread */}
+      {showDiscuss && (
+        <div className="req-discuss">
+          {req.messages.length > 0 && (
+            <div className="req-messages">
+              {req.messages.map((m, i) => (
+                <div key={i} className={`req-msg${m.from === 'me' ? ' req-msg--mine' : ''}`}>
+                  <div className="req-msg-bubble">{m.text}</div>
+                  <div className="req-msg-time">{m.time}</div>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="req-msg-input-row">
+            <input
+              ref={inputRef}
+              className="req-msg-input"
+              placeholder="Написать сообщение..."
+              value={msgInput}
+              onChange={e => setMsgInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSend()}
+            />
+            <button className="req-msg-send-btn" onClick={handleSend} disabled={!msgInput.trim()}>
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
