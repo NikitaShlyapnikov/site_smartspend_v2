@@ -11080,7 +11080,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 
 .irow-name {
   flex: 1; min-width: 0;
-  font-size: 12px; font-weight: 400; color: var(--text);
+  font-size: 15px; font-weight: 400; color: var(--text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   font-family: var(--sans); letter-spacing: -0.01em;
 }
