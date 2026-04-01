@@ -293,6 +293,40 @@ function FilterChip({ label, active, onClick }) {
   )
 }
 
+function TermSelect({ value, options, onChange }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handler(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('pointerdown', handler)
+    return () => document.removeEventListener('pointerdown', handler)
+  }, [open])
+
+  return (
+    <div className="fsel-wrap" ref={ref}>
+      <button className={`fsel-btn${open ? ' open' : ''}`} onClick={() => setOpen(o => !o)}>
+        {fmtMonth(value)}
+        <svg className="fsel-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      {open && (
+        <div className="fsel-dropdown">
+          {options.map(m => (
+            <button
+              key={m}
+              className={`fsel-option${value === m ? ' active' : ''}`}
+              onClick={() => { onChange(m); setOpen(false) }}
+            >{fmtMonth(m)}</button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Deposits() {
   const navigate = useNavigate()
 
@@ -484,16 +518,11 @@ export default function Deposits() {
 
             <div className="dep-filter-group">
               <span className="dep-filter-label">Срок</span>
-              <div className="dep-sort-toggle" style={{ height: 'auto', flexWrap: 'wrap' }}>
-                {DESKTOP_MONTHS.filter(m => DEPOSITS.some(d => d.rates[m])).map(m => (
-                  <button
-                    key={m}
-                    className={`dep-sort-btn${selectedMonth === m ? ' active' : ''}`}
-                    style={{ padding: '7px 10px', fontSize: 12 }}
-                    onClick={() => { setSelectedMonth(m); setExpanded(null) }}
-                  >{fmtMonth(m)}</button>
-                ))}
-              </div>
+              <TermSelect
+                value={selectedMonth}
+                options={DESKTOP_MONTHS.filter(m => DEPOSITS.some(d => d.rates[m]))}
+                onChange={m => { setSelectedMonth(m); setExpanded(null) }}
+              />
             </div>
 
             <div className="dep-filter-group">
