@@ -305,21 +305,29 @@ function TermSelect({ value, options, onChange }) {
   }, [open])
 
   return (
-    <div className="fsel-wrap" ref={ref}>
-      <button className={`fsel-btn${open ? ' open' : ''}`} onClick={() => setOpen(o => !o)}>
-        {fmtMonth(value)}
-        <svg className="fsel-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <div className="ssel-wrap" ref={ref}>
+      <button className={`ssel-btn${open ? ' open' : ''} active`} onClick={() => setOpen(o => !o)}>
+        <span className="ssel-label">Срок</span>
+        <span className="ssel-value">{fmtMonth(value)}</span>
+        <svg className="ssel-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="6 9 12 15 18 9"/>
         </svg>
       </button>
       {open && (
-        <div className="fsel-dropdown">
+        <div className="ssel-panel">
           {options.map(m => (
             <button
               key={m}
-              className={`fsel-option${value === m ? ' active' : ''}`}
+              className={`ssel-option${value === m ? ' active' : ''}`}
               onClick={() => { onChange(m); setOpen(false) }}
-            >{fmtMonth(m)}</button>
+            >
+              {fmtMonth(m)}
+              {value === m && (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              )}
+            </button>
           ))}
         </div>
       )}
@@ -517,7 +525,6 @@ export default function Deposits() {
             </div>
 
             <div className="dep-filter-group">
-              <span className="dep-filter-label">Срок</span>
               <TermSelect
                 value={selectedMonth}
                 options={DESKTOP_MONTHS.filter(m => DEPOSITS.some(d => d.rates[m]))}

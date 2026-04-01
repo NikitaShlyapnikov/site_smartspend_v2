@@ -8252,7 +8252,7 @@ body.dark .dep-term-select { background: var(--surface-2); }
 .dep-pill {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 5px 10px; border-radius: 20px;
-  font-family: var(--mono); font-size: 12px; font-weight: 600;
+  font-family: var(--mono); font-size: 14px; font-weight: 600;
   border: 1px solid var(--border); white-space: nowrap;
 }
 .dep-pill-rate { color: var(--accent-green); background: var(--accent-green-light); border-color: var(--accent-green-border); }
