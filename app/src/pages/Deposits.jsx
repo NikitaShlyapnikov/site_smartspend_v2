@@ -306,8 +306,7 @@ function TermSelect({ value, options, onChange }) {
 
   return (
     <div className="ssel-wrap" ref={ref}>
-      <button className={`ssel-btn${open ? ' open' : ''} active`} onClick={() => setOpen(o => !o)}>
-        <span className="ssel-label">Срок</span>
+      <button className={`ssel-btn${open ? ' open' : ''}`} onClick={() => setOpen(o => !o)}>
         <span className="ssel-value">{fmtMonth(value)}</span>
         <svg className="ssel-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="6 9 12 15 18 9"/>
@@ -525,9 +524,10 @@ export default function Deposits() {
             </div>
 
             <div className="dep-filter-group">
+              <span className="dep-filter-label">Срок вклада</span>
               <TermSelect
                 value={selectedMonth}
-                options={DESKTOP_MONTHS.filter(m => DEPOSITS.some(d => d.rates[m]))}
+                options={monthRates.filter(r => r.rate > 0).map(r => r.month)}
                 onChange={m => { setSelectedMonth(m); setExpanded(null) }}
               />
             </div>
@@ -730,15 +730,7 @@ export default function Deposits() {
                       </div>
                     )}
 
-                    <button className="dep-cta-btn">
-                      Узнать подробнее
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
-                        <polyline points="15 3 21 3 21 9"/>
-                        <line x1="10" y1="14" x2="21" y2="3"/>
-                      </svg>
-                    </button>
+                    <span className="dep-cta-link">Узнать подробнее</span>
                   </div>
                   )
                 })()}
@@ -835,15 +827,7 @@ export default function Deposits() {
                       <p className="dep-acc-text">{sav.params}</p>
                     </Accordion>
 
-                    <button className="dep-cta-btn">
-                      Узнать подробнее
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
-                        <polyline points="15 3 21 3 21 9"/>
-                        <line x1="10" y1="14" x2="21" y2="3"/>
-                      </svg>
-                    </button>
+                    <span className="dep-cta-link">Узнать подробнее</span>
                   </div>
                 )}
               </div>

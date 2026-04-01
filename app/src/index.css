@@ -8148,7 +8148,7 @@ body.dark .inv-purchase-date { background: var(--surface); border-color: var(--b
   padding: 8px 12px; background: var(--surface-2);
   transition: border-color 0.15s;
 }
-.dep-amount-wrap:focus-within { border-color: var(--accent-green); }
+.dep-amount-wrap:focus-within { border-color: var(--border); }
 .dep-amount-input {
   background: none; border: none; outline: none;
   font-family: var(--mono); font-size: 14px; font-weight: 500;
@@ -8432,13 +8432,10 @@ body.dark .dep-tariff-link { color: #D4A847; }
 .dep-acc-text { font-size: 13px; color: var(--text-2); line-height: 1.6; margin: 0; }
 
 /* CTA */
-.dep-cta-btn {
-  display: flex; align-items: center; gap: 8px; justify-content: center;
-  width: 100%; padding: 12px; border-radius: var(--r-sm);
-  background: var(--accent-green); border: none; color: #fff;
-  font: 600 14px/1 var(--sans); cursor: pointer; transition: opacity 0.15s;
+.dep-cta-link {
+  font-size: 13px; color: var(--accent-green); cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px;
 }
-.dep-cta-btn:hover { opacity: 0.88; }
 
 /* Disclaimer */
 .dep-disclaimer {
@@ -8801,9 +8798,9 @@ body.dark .dep-modal-apply { background: #6AAF8E; }
   flex-shrink: 0; gap: 8px;
 }
 .crd-bank-logo {
-  width: 42px; height: 42px; border-radius: 10px;
+  width: 56px; height: 56px; border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 800;
+  font-size: 16px; font-weight: 800;
   letter-spacing: -0.02em; flex-shrink: 0;
 }
 .crd-expand-btn {
@@ -9021,7 +9018,7 @@ body.dark .dep-modal-apply { background: #6AAF8E; }
   background: var(--surface-2); border: 1.5px solid var(--border);
   border-radius: 8px; padding: 5px 8px; transition: border-color 0.13s;
 }
-.crd-spend-input-wrap:focus-within { border-color: var(--accent-green-border); }
+.crd-spend-input-wrap:focus-within { border-color: var(--border); }
 .crd-spend-input {
   width: 72px; background: none; border: none; outline: none;
   font-family: var(--mono); font-size: 13px; font-weight: 600;
@@ -9069,7 +9066,7 @@ body.dark .dep-modal-apply { background: #6AAF8E; }
   .crd-filter-btn { order: 1; margin-left: 0; }
   .crd-spend-btn { flex: 1; }
   .crd-card-main { padding: 12px; gap: 10px; }
-  .crd-bank-logo { width: 36px; height: 36px; font-size: 11px; }
+  .crd-bank-logo { width: 44px; height: 44px; font-size: 13px; border-radius: 10px; }
   .crd-card-name { font-size: 14px; }
   .crd-detail-grid { grid-template-columns: 1fr; }
   .crd-cashback-row { grid-template-columns: 20px 1fr auto auto; gap: 6px; }

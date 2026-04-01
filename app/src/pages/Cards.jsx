@@ -235,6 +235,23 @@ const CARDS = [
 
 const ALL_CARD_BANKS = [...new Set(CARDS.map(c => c.bank))]
 
+const COMPANY_TO_CARD_BANK = {
+  'c-tinkoff':    'Т-Банк',
+  'c-sber':       'Сбер',
+  'c-vtb':        'ВТБ',
+  'c-alfabank':   'Альфа-Банк',
+  'c-gazprombank':'Газпромбанк',
+  'c-rosbank':    'Росбанк',
+  'c-mts':        'МТС Банк',
+}
+
+function getMyCardBanks() {
+  try {
+    const ids = JSON.parse(localStorage.getItem('ss_companies') || '[]')
+    return ids.map(id => COMPANY_TO_CARD_BANK[id]).filter(Boolean).filter(b => ALL_CARD_BANKS.includes(b))
+  } catch { return [] }
+}
+
 // ── Subscriptions data ────────────────────────────────────────────────────────
 const SUBS = [
   {
@@ -345,6 +362,23 @@ function SpendModal({ spending, onChange, onClose }) {
     setLocal(prev => ({ ...prev, [catId]: isNaN(n) ? 0 : n }))
   }
 
+  function loadFromEnvelopes() {
+    try {
+      const envs = JSON.parse(localStorage.getItem('ss_envelopes') || '{}')
+      const result = { ...local }
+      SPEND_CATS.forEach(cat => {
+        if (cat.envKey && envs[cat.envKey]) {
+          result[cat.id] = envs[cat.envKey].reduce((s, e) => s + (e.amount || 0), 0)
+        }
+      })
+      setLocal(result)
+    } catch {}
+  }
+
+  const hasEnvelopes = (() => {
+    try { return !!localStorage.getItem('ss_envelopes') } catch { return false }
+  })()
+
   function handleSave() {
     localStorage.setItem('ss_card_spending', JSON.stringify(local))
     onChange(local)
@@ -373,7 +407,6 @@ function SpendModal({ spending, onChange, onClose }) {
           <div className="crd-spend-list">
             {SPEND_CATS.map(cat => (
               <div key={cat.id} className="crd-spend-row">
-                <span className="crd-spend-icon">{cat.icon}</span>
                 <span className="crd-spend-label">{cat.label}</span>
                 <div className="crd-spend-input-wrap">
                   <input
@@ -400,6 +433,11 @@ function SpendModal({ spending, onChange, onClose }) {
           <button className="crd-modal-reset" onClick={() => setLocal(Object.fromEntries(SPEND_CATS.map(c => [c.id, 0])))}>
             Сбросить
           </button>
+          {hasEnvelopes && (
+            <button className="crd-modal-reset" onClick={loadFromEnvelopes} title="Подставить суммы из конвертов профиля">
+              Из конвертов
+            </button>
+          )}
           <button className="crd-modal-apply" onClick={handleSave}>
             Применить
           </button>
@@ -484,7 +522,7 @@ function FilterModal({ filterBanks, setFilterBanks, filterType, setFilterType, f
           {/* Conditions */}
           <div className="crd-modal-section">
             <div className="crd-modal-section-hdr">
-              <span className="crd-modal-section-title">Специальные условия</span>
+              <span className="crd-modal-section-title">Дополнительные условия</span>
               {filterConds.size > 0 && (
                 <button className="crd-modal-section-reset" onClick={() => setFilterConds(new Set())}>Сбросить</button>
               )}
@@ -568,42 +606,66 @@ export default function Cards() {
         </div>
 
         {/* ── Controls row ── */}
-        <div className="crd-controls" id="sp-crd-spend">
-          {/* Spending button */}
-          <button className={`crd-spend-btn${hasSpending ? ' filled' : ''}`} onClick={() => setShowSpend(true)}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
-            </svg>
-            {hasSpending ? `Расходы: ${fmtRub(totalSpending)}/мес` : 'Укажи расходы'}
-          </button>
+        <div className="dep-filters-card">
+          <div className="dep-filters-row" id="sp-crd-spend">
 
-          {/* Sort */}
-          <div className="crd-sort-row" id="sp-crd-sort">
-            <button className={`crd-sort-btn${sortBy === 'total' ? ' active' : ''}`}
-              onClick={() => setSortBy('total')}>
-              Кешбэк + льгота
-            </button>
-            <button className={`crd-sort-btn${sortBy === 'bonus' ? ' active' : ''}`}
-              onClick={() => setSortBy('bonus')}>
-              Кешбэк
-            </button>
-            <button className={`crd-sort-btn${sortBy === 'grace' ? ' active' : ''}`}
-              onClick={() => setSortBy('grace')}>
-              Льготный период
-            </button>
+            {/* Spending button */}
+            <div className="dep-filter-group">
+              <span className="dep-filter-label">Мои расходы</span>
+              <button className={`crd-spend-btn${hasSpending ? ' filled' : ''}`} onClick={() => setShowSpend(true)}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+                </svg>
+                {hasSpending ? `${fmtRub(totalSpending)}/мес` : 'Указать'}
+              </button>
+            </div>
+
+            {/* Sort */}
+            <div className="dep-filter-group" id="sp-crd-sort">
+              <span className="dep-filter-label">Сортировка</span>
+              <div className="dep-sort-toggle">
+                <button className={`dep-sort-btn${sortBy === 'total' ? ' active' : ''}`}
+                  onClick={() => setSortBy('total')}>Кешбэк + Период</button>
+                <button className={`dep-sort-btn${sortBy === 'bonus' ? ' active' : ''}`}
+                  onClick={() => setSortBy('bonus')}>Кешбэк</button>
+                <button className={`dep-sort-btn${sortBy === 'grace' ? ' active' : ''}`}
+                  onClick={() => setSortBy('grace')}>Льготный период</button>
+              </div>
+            </div>
+
+            {/* My banks */}
+            {(() => {
+              const myBanks = getMyCardBanks()
+              if (myBanks.length === 0) return null
+              const myBanksSet = new Set(myBanks)
+              const isMyActive = myBanks.length === filterBanks.size && myBanks.every(b => filterBanks.has(b))
+              return (
+                <div className="dep-filter-group">
+                  <span className="dep-filter-label">Быстрый выбор</span>
+                  <button
+                    className={`dep-fchip${isMyActive ? ' active' : ''}`}
+                    onClick={() => setFilterBanks(isMyActive ? new Set() : myBanksSet)}
+                  >Мои банки</button>
+                </div>
+              )
+            })()}
+
+            {/* Filter */}
+            <div className="dep-filter-group">
+              <span className="dep-filter-label">Фильтры</span>
+              <button className={`dep-filter-toggle-btn${totalActiveFilters > 0 ? ' active' : ''}`}
+                onClick={() => setShowFilters(true)}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                </svg>
+                Фильтры
+                {totalActiveFilters > 0 && <span className="dep-filter-badge">{totalActiveFilters}</span>}
+              </button>
+            </div>
+
           </div>
-
-          {/* Filter */}
-          <button className={`crd-filter-btn${totalActiveFilters > 0 ? ' active' : ''}`}
-            onClick={() => setShowFilters(true)}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-            </svg>
-            Фильтры
-            {totalActiveFilters > 0 && <span className="crd-filter-badge">{totalActiveFilters}</span>}
-          </button>
         </div>
 
         {/* ── Card list ── */}
@@ -709,33 +771,6 @@ export default function Cards() {
                       </div>
                     </div>
 
-                    {/* Cashback breakdown by category */}
-                    {catBreakdown.length > 0 && (
-                      <div className="crd-cashback-section">
-                        <div className="crd-cashback-title">Кешбэк по вашим расходам</div>
-                        <div className="crd-cashback-rows">
-                          {catBreakdown.map(cat => (
-                            <div key={cat.id} className="crd-cashback-row">
-                              <span className="crd-cashback-icon">{cat.icon}</span>
-                              <span className="crd-cashback-cat">{cat.label}</span>
-                              <span className="crd-cashback-rate">{cat.rate}%</span>
-                              <span className="crd-cashback-amt">{fmtRub(cat.bonus)}</span>
-                            </div>
-                          ))}
-                          <div className="crd-cashback-total-row">
-                            <span className="crd-cashback-total-label">Итого в месяц</span>
-                            <span className="crd-cashback-total-val">{fmtRub(card.bonus)}</span>
-                          </div>
-                          {card.graceVal > 0 && (
-                            <div className="crd-cashback-grace-row">
-                              <span className="crd-cashback-total-label">Экономия от льготного периода</span>
-                              <span className="crd-cashback-total-val">{fmtRub(card.graceVal)}</span>
-                            </div>
-                          )}
-                        </div>
-                        <p className="crd-cashback-note">{card.cashbackNote}</p>
-                      </div>
-                    )}
 
                     {!hasSpending && (
                       <button className="crd-fill-spend-btn" onClick={() => setShowSpend(true)}>
