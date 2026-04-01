@@ -912,15 +912,18 @@ export default function Article() {
                           </div>
                         )}
                         {isReplying && (
-                          <form className="reply-form" onSubmit={handleSubmitReply}>
+                          <form className="sub-reply-form" style={{ padding: '0 0 10px' }} onSubmit={handleSubmitReply}>
                             <input
-                              className="c-input"
+                              className="sub-reply-input"
                               placeholder="Написать ответ..."
                               value={replyInput}
                               onChange={e => setReplyInput(e.target.value)}
                               autoFocus
                             />
-                            <button type="submit" className="c-submit">Отправить</button>
+                            <div className="sub-reply-actions">
+                              <button type="button" className="sub-reply-cancel-btn" onClick={() => setActiveReplyInput(null)}>Отмена</button>
+                              <button type="submit" className="sub-reply-send-btn">Отправить</button>
+                            </div>
                           </form>
                         )}
                       </div>
