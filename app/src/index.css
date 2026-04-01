@@ -2211,11 +2211,14 @@ body.dark .notif-item.unread { background: rgba(255,255,255,0.04); }
 /* ── REQUEST CARDS ── */
 .req-card {
   background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid transparent;
   border-radius: var(--r); padding: 16px 20px;
   display: flex; flex-direction: column; gap: 12px;
   margin: 0 24px;
 }
 .req-card + .req-card { margin-top: 8px; }
+.req-card--pending { border-left-color: var(--accent-green); background: var(--surface-2); }
+body.dark .req-card--pending { background: rgba(255,255,255,0.04); }
 .req-card--closed { opacity: 0.7; }
 
 .req-card-header {
@@ -2229,22 +2232,24 @@ body.dark .notif-item.unread { background: rgba(255,255,255,0.04); }
 .req-card-meta { flex: 1; min-width: 0; }
 .req-card-title { font-size: 13px; color: var(--text-2); line-height: 1.4; }
 .req-card-title strong { color: var(--text); font-weight: 600; }
-.req-card-set {
-  display: flex; align-items: center; gap: 5px;
-  margin-top: 3px; font-size: 12px; color: var(--text-3);
+.req-user-name-link {
+  font-weight: 600; color: var(--text); cursor: default;
 }
-.req-set-dot {
-  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
-}
+.req-card-set { margin-top: 3px; font-size: 12px; color: var(--text-3); }
 .req-card-time { font-size: 11px; color: var(--text-3); flex-shrink: 0; margin-top: 1px; }
 
 .req-article-preview {
-  display: flex; align-items: flex-start; gap: 8px;
   background: var(--surface-2); border-radius: var(--r-sm);
   padding: 10px 12px;
 }
-.req-article-title { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.35; }
-.req-article-meta { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.req-article-link {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font-size: 13px; font-weight: 600; color: var(--accent-green);
+  font-family: var(--sans); text-align: left; line-height: 1.35;
+  text-decoration: underline; text-decoration-color: transparent;
+  transition: text-decoration-color 0.15s;
+}
+.req-article-link:hover { text-decoration-color: var(--accent-green); }
 
 .req-status-badge {
   display: inline-flex; align-items: center; gap: 5px;
@@ -2324,6 +2329,7 @@ body.dark .notif-item.unread { background: rgba(255,255,255,0.04); }
   flex: 1; border: none; background: none; outline: none;
   font-size: 13px; color: var(--text); font-family: var(--sans);
 }
+.req-msg-input:focus-visible { outline: none; box-shadow: none; }
 .req-msg-input::placeholder { color: var(--text-3); }
 .req-msg-send-btn {
   display: flex; align-items: center; justify-content: center;
@@ -2333,6 +2339,60 @@ body.dark .notif-item.unread { background: rgba(255,255,255,0.04); }
 }
 .req-msg-send-btn:hover { opacity: 0.85; }
 .req-msg-send-btn:disabled { opacity: 0.35; cursor: default; }
+
+/* User popup */
+.req-user-popup {
+  position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 12px 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12); z-index: 200;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  min-width: 140px; pointer-events: none;
+  animation: apIn 0.12s ease;
+}
+.req-user-popup-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; color: #fff;
+}
+.req-user-popup-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; }
+.req-user-popup-nick { font-size: 11px; color: var(--text-3); white-space: nowrap; }
+
+/* Confirmation modal */
+.req-confirm-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 500; animation: apIn 0.15s ease;
+}
+.req-confirm-modal {
+  background: var(--surface); border-radius: var(--r);
+  padding: 28px 24px 20px; max-width: 340px; width: 90%;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+}
+.req-confirm-icon {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface-2); color: var(--text-2);
+  margin-bottom: 4px;
+}
+.req-confirm-title { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+.req-confirm-desc { font-size: 13px; color: var(--text-2); text-align: center; line-height: 1.5; }
+.req-confirm-desc strong { color: var(--text); }
+.req-confirm-btns { display: flex; gap: 8px; margin-top: 8px; width: 100%; }
+.req-confirm-cancel {
+  flex: 1; padding: 9px; border-radius: 10px; border: 1px solid var(--border);
+  font-size: 13px; font-weight: 500; font-family: var(--sans);
+  background: none; color: var(--text-2); cursor: pointer; transition: all 0.15s;
+}
+.req-confirm-cancel:hover { background: var(--surface-2); color: var(--text); }
+.req-confirm-ok {
+  flex: 1; padding: 9px; border-radius: 10px; border: none;
+  font-size: 13px; font-weight: 600; font-family: var(--sans);
+  background: var(--accent-green); color: #fff; cursor: pointer; transition: opacity 0.15s;
+}
+.req-confirm-ok:hover { opacity: 0.88; }
+.req-confirm-ok--reject { background: var(--urgent); }
 
 /* ── NOTIFICATION BADGES (sidebar + mobile) ── */
 /* Bell icon: bright accent when there are unread notifications */

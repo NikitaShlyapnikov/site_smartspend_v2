@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
@@ -313,9 +314,52 @@ export default function Notifications() {
   )
 }
 
+function UserPopup({ user }) {
+  return (
+    <div className="req-user-popup">
+      <div className="req-user-popup-avatar" style={{ background: user.color }}>{user.initials}</div>
+      <div className="req-user-popup-name">{user.name}</div>
+      <div className="req-user-popup-nick">@{user.name.toLowerCase().replace(/\s+/, '.')}</div>
+    </div>
+  )
+}
+
+function ConfirmModal({ type, setTitle, onConfirm, onCancel }) {
+  return createPortal(
+    <div className="req-confirm-overlay" onClick={onCancel}>
+      <div className="req-confirm-modal" onClick={e => e.stopPropagation()}>
+        <div className="req-confirm-icon">
+          {type === 'approve'
+            ? <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            : <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          }
+        </div>
+        <div className="req-confirm-title">
+          {type === 'approve' ? 'Одобрить статью?' : 'Отклонить статью?'}
+        </div>
+        <div className="req-confirm-desc">
+          {type === 'approve'
+            ? <>Статья будет добавлена в раздел дополнений набора <strong>«{setTitle}»</strong></>
+            : <>Запрос будет отклонён. Автор получит уведомление.</>
+          }
+        </div>
+        <div className="req-confirm-btns">
+          <button className="req-confirm-cancel" onClick={onCancel}>Отмена</button>
+          <button className={`req-confirm-ok${type === 'reject' ? ' req-confirm-ok--reject' : ''}`} onClick={onConfirm}>
+            {type === 'approve' ? 'Одобрить' : 'Отклонить'}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  )
+}
+
 function RequestCard({ req, onApprove, onReject, onWithdraw, onSendMessage }) {
   const [showDiscuss, setShowDiscuss] = useState(false)
   const [msgInput, setMsgInput] = useState('')
+  const [showUserPopup, setShowUserPopup] = useState(false)
+  const [confirm, setConfirm] = useState(null) // 'approve' | 'reject' | null
   const inputRef = useRef(null)
 
   const isPending  = req.status === 'pending'
@@ -335,35 +379,52 @@ function RequestCard({ req, onApprove, onReject, onWithdraw, onSendMessage }) {
     })
   }
 
+  function handleConfirm() {
+    if (confirm === 'approve') onApprove()
+    else if (confirm === 'reject') onReject()
+    setConfirm(null)
+  }
+
   return (
-    <div className={`req-card${isPending ? '' : ' req-card--closed'}`}>
+    <div className={`req-card${isPending ? ' req-card--pending' : ' req-card--closed'}`}>
+
       {/* Header */}
       <div className="req-card-header">
-        <div className="req-avatar" style={{ background: user.color }}>{user.initials}</div>
+        <div
+          className="req-avatar"
+          style={{ background: user.color, cursor: 'pointer', position: 'relative' }}
+          onMouseEnter={() => setShowUserPopup(true)}
+          onMouseLeave={() => setShowUserPopup(false)}
+        >
+          {user.initials}
+          {showUserPopup && <UserPopup user={user} />}
+        </div>
         <div className="req-card-meta">
           <div className="req-card-title">
-            {isIncoming
-              ? <><strong>{user.name}</strong> предлагает статью для набора</>
-              : <>Запрос для <strong>{user.name}</strong></>
-            }
+            {isIncoming ? (
+              <>
+                <span
+                  className="req-user-name-link"
+                  onMouseEnter={() => setShowUserPopup(true)}
+                  onMouseLeave={() => setShowUserPopup(false)}
+                  style={{ position: 'relative' }}
+                >
+                  {user.name}
+                </span>
+                {' '}предлагает статью для набора
+              </>
+            ) : (
+              <><strong>{user.name}</strong>. Отправлен запрос на добавление статьи к набору автора</>
+            )}
           </div>
-          <div className="req-card-set">
-            <span className="req-set-dot" style={{ background: req.set.color }} />
-            {req.set.title}
-          </div>
+          <div className="req-card-set">{req.set.title}</div>
         </div>
         <div className="req-card-time">{req.time}</div>
       </div>
 
-      {/* Article preview */}
+      {/* Article — just title as link */}
       <div className="req-article-preview">
-        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.45 }}>
-          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
-        </svg>
-        <div>
-          <div className="req-article-title">{req.article.title}</div>
-          <div className="req-article-meta">{req.article.readTime} чтения</div>
-        </div>
+        <button className="req-article-link">{req.article.title}</button>
       </div>
 
       {/* Status badge */}
@@ -371,7 +432,7 @@ function RequestCard({ req, onApprove, onReject, onWithdraw, onSendMessage }) {
         <div className={`req-status-badge req-status-${req.status}`}>
           {req.status === 'approved'  && <>
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            Добавлено в дополнения
+            Одобрено
           </>}
           {req.status === 'rejected'  && <>
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -401,8 +462,8 @@ function RequestCard({ req, onApprove, onReject, onWithdraw, onSendMessage }) {
           <div className="req-action-btns">
             {isIncoming ? (
               <>
-                <button className="req-reject-btn" onClick={onReject}>Отклонить</button>
-                <button className="req-approve-btn" onClick={onApprove}>Добавить в дополнения</button>
+                <button className="req-reject-btn" onClick={() => setConfirm('reject')}>Отклонить</button>
+                <button className="req-approve-btn" onClick={() => setConfirm('approve')}>Одобрить</button>
               </>
             ) : (
               <button className="req-withdraw-btn" onClick={onWithdraw}>Отозвать запрос</button>
@@ -440,6 +501,16 @@ function RequestCard({ req, onApprove, onReject, onWithdraw, onSendMessage }) {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Confirmation modal */}
+      {confirm && (
+        <ConfirmModal
+          type={confirm}
+          setTitle={req.set.title}
+          onConfirm={handleConfirm}
+          onCancel={() => setConfirm(null)}
+        />
       )}
     </div>
   )
