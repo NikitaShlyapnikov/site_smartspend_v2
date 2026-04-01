@@ -282,7 +282,6 @@ export default function CreateArticle() {
                               <div key={s.id}
                                 className={`set-picker-item${already ? ' set-picker-item--added' : ''}`}
                                 onClick={() => !already && selectSet(s)}>
-                                <div className="set-picker-dot" style={{ background: s.color }} />
                                 <div className="set-picker-info">
                                   <span className="set-picker-name">{s.name}</span>
                                   <span className="set-picker-meta">{s.amount} {s.period} · {s.tags.join(', ')}</span>

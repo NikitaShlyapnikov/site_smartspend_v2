@@ -112,7 +112,17 @@ export default function Notifications() {
   const [filter, setFilter] = useState('all')
   const [showSpotlight, setShowSpotlight] = useState(false)
   const [showToast, setShowToast] = useState(false)
+  const [deletedIds, setDeletedIds] = useState(new Set())
   const toastTimer = useRef(null)
+
+  function deleteNotif(id, e) {
+    e.stopPropagation()
+    setDeletedIds(prev => new Set([...prev, id]))
+  }
+
+  function restoreDeleted() {
+    setDeletedIds(new Set())
+  }
 
   function handleCubeClick() {
     clearTimeout(toastTimer.current)
@@ -141,10 +151,11 @@ export default function Notifications() {
   }
 
   const withRead = INIT_NOTIFS.map(n => ({ ...n, unread: n.unread && !readIds.has(n.id) }))
-  const filtered = filterNotifs(withRead, filter)
+  const visible = withRead.filter(n => !deletedIds.has(n.id))
+  const filtered = filterNotifs(visible, filter)
   const unreadFiltered = filtered.filter(n => n.unread)
   const readFiltered   = filtered.filter(n => !n.unread)
-  const totalUnread    = withRead.filter(n => n.unread).length
+  const totalUnread    = visible.filter(n => n.unread).length
 
   return (
     <Layout>
@@ -180,6 +191,14 @@ export default function Notifications() {
               {f.label}
             </button>
           ))}
+          {deletedIds.size > 0 && (
+            <button className="notif-deleted-pill" onClick={restoreDeleted}>
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+              </svg>
+              Удалено: {deletedIds.size}
+            </button>
+          )}
         </div>
 
         {/* List */}
@@ -188,7 +207,7 @@ export default function Notifications() {
             <>
               <div className="notif-group-label">Новые</div>
               {unreadFiltered.map(n => (
-                <NotifItem key={n.id} n={n} onRead={() => markRead(n.id)} navigate={navigate} />
+                <NotifItem key={n.id} n={n} onRead={() => markRead(n.id)} onDelete={e => deleteNotif(n.id, e)} navigate={navigate} />
               ))}
             </>
           )}
@@ -199,7 +218,7 @@ export default function Notifications() {
                 {unreadFiltered.length > 0 ? 'Ранее' : 'Прочитанные'}
               </div>
               {readFiltered.map(n => (
-                <NotifItem key={n.id} n={n} onRead={() => markRead(n.id)} navigate={navigate} />
+                <NotifItem key={n.id} n={n} onRead={() => markRead(n.id)} onDelete={e => deleteNotif(n.id, e)} navigate={navigate} />
               ))}
             </>
           )}
@@ -223,7 +242,7 @@ export default function Notifications() {
   )
 }
 
-function NotifItem({ n, onRead, navigate }) {
+function NotifItem({ n, onRead, onDelete, navigate }) {
   function handleClick() {
     if (n.unread) onRead()
     if (n.type === 'reminder') navigate('/inventory')
@@ -243,6 +262,11 @@ function NotifItem({ n, onRead, navigate }) {
         <div className="notif-time">{n.time}</div>
       </div>
       {n.unread && <div className="notif-dot" />}
+      <button className="notif-delete-btn" onClick={onDelete} title="Удалить">
+        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
     </div>
   )
 }

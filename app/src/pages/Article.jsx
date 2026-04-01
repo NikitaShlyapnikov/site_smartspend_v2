@@ -306,6 +306,18 @@ export default function Article() {
   const [toast, setToast] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [showAddToSet, setShowAddToSet] = useState(false)
+  const [replyView, setReplyView] = useState(null) // null or { origIdx, comment }
+  const [commentReplies, setCommentReplies] = useState(() => {
+    const a = articles.find(x => x.id === id)
+    const init = {}
+    ;(a?.comments || []).forEach((c, i) => {
+      if (c.replies?.length) init[i] = [...c.replies]
+    })
+    return init
+  })
+  const [replyInput, setReplyInput] = useState('')
+  const [likedReplies, setLikedReplies] = useState(new Set())
+  const [dislikedReplies, setDislikedReplies] = useState(new Set())
   const [myReactions, setMyReactions] = useState(new Set())
   const [showPicker, setShowPicker] = useState(false)
   const [justAdded, setJustAdded] = useState(null)
@@ -402,7 +414,7 @@ export default function Article() {
   const isFollowing = following
   const set = article.setLink
 
-  const sortedComments = [...(article.comments || [])].sort(
+  const sortedComments = [...(article.comments || [])].map((c, i) => ({ ...c, _origIdx: i })).sort(
     commentSort === 'top' ? (a, b) => b.likes - a.likes : () => 0
   )
   const displayComments = showAll ? sortedComments : sortedComments.slice(0, 2)
@@ -456,6 +468,37 @@ export default function Article() {
     if (!commentInput.trim()) return
     setCommentInput('')
     showToastMsg('Комментарий отправлен')
+  }
+
+  function handleSubmitReply(e) {
+    e.preventDefault()
+    if (!replyInput.trim() || replyView === null) return
+    const username = localStorage.getItem('ss_username') || 'Я'
+    const ini = username[0]?.toUpperCase() || 'Я'
+    const reply = { ini, name: username, date: 'только что', likes: 0, text: replyInput.trim() }
+    setCommentReplies(prev => ({
+      ...prev,
+      [replyView.origIdx]: [...(prev[replyView.origIdx] || []), reply]
+    }))
+    setReplyInput('')
+  }
+
+  function toggleReplyLike(key) {
+    setLikedReplies(prev => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else { next.add(key); setDislikedReplies(d => { const dd = new Set(d); dd.delete(key); return dd }) }
+      return next
+    })
+  }
+
+  function toggleReplyDislike(key) {
+    setDislikedReplies(prev => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else { next.add(key); setLikedReplies(d => { const dd = new Set(d); dd.delete(key); return dd }) }
+      return next
+    })
   }
 
   function handleEditArticle() {
@@ -636,38 +679,37 @@ export default function Article() {
               Набор, связанный с этой статьёй
             </div>
           <div className="catalog-card" onClick={() => navigate(`/set/${set.id}`)}>
-            <div className="card-accent-bar" style={{ background: set.color }} />
-            <div className="catalog-card" style={{ padding: '22px 24px 14px', borderRadius: 0, boxShadow: 'none' }}>
-              <div className="card-badges">
-                <span className={`source-badge ${set.source}`}>
-                  {set.source === 'ss' ? 'SmartSpend' : set.source === 'community' ? 'Сообщество' : 'Моё'}
-                </span>
-                <span className="base-badge">{set.type === 'base' ? 'Основа' : 'Дополнение'}</span>
-              </div>
+            <div className="card-body">
               <div className="card-title">{set.title}</div>
-              <div className="card-desc">{set.desc}</div>
+              {set.desc && <div className="card-desc">{set.desc}</div>}
             </div>
-            <div className="card-footer">
-              <div className="card-amount-left">
-                <div className="card-amount">{set.amount.toLocaleString('ru')}&thinsp;₽</div>
-                <div className="card-amount-label">{set.amountLabel}</div>
+            <div className="card-cost-row">
+              <div className="card-cost-item card-cost-monthly">
+                <div className="card-cost-val">{(set.amount || 0).toLocaleString('ru')} ₽</div>
+                <div className="card-cost-lbl">{set.amountLabel || 'в месяц'}</div>
               </div>
-              <div className="card-meta-right">
-                {set.users != null && (
-                  <div className="users-count">
-                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                      <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
-                    </svg>
-                    {fmtNum(set.users)}
-                  </div>
-                )}
-                {set.added && (
-                  <div className="card-date">
-                    с {new Date(set.added).toLocaleDateString('ru', { month: 'short', year: 'numeric' })}
-                  </div>
-                )}
+              {set.period && <>
+                <div className="card-cost-sep" />
+                <div className="card-cost-item">
+                  <div className="card-cost-val">{set.period}</div>
+                  <div className="card-cost-lbl">период</div>
+                </div>
+              </>}
+              {set.users != null && <>
+                <div className="card-cost-sep" />
+                <div className="card-cost-item">
+                  <div className="card-cost-val">{fmtNum(set.users)}</div>
+                  <div className="card-cost-lbl">подписчиков</div>
+                </div>
+              </>}
+            </div>
+            <div className="card-bottom" onClick={e => e.stopPropagation()}>
+              <div className="card-bottom-author">
+                {set.source === 'ss' && <span className="source-badge ss">SmartSpend</span>}
+                {set.source === 'community' && <span className="source-badge community">Сообщество</span>}
               </div>
+              <div className="fa-meta-actions" />
+              <div className="fa-meta-right" />
             </div>
           </div>
           </>
@@ -719,73 +761,154 @@ export default function Article() {
         {/* Comments */}
         {article.pub !== false && (
           <div className="section-card" ref={commentsRef}>
-            {/* Unified comments header row */}
-            <div className="sd-comments-header-row">
-              <span className="sd-section-title">Комментарии</span>
-              <span className="sd-comments-header-spacer" />
-              {reactions.map(r => (
-                <ReactionPill key={r.emoji} emoji={r.emoji} count={r.count} active={myReactions.has(r.emoji)} onToggle={toggleReaction} autoAnimate={justAdded === r.emoji} />
-              ))}
-              {reactions.length < 6 && (
-                <div style={{ position: 'relative' }}>
-                  <button className="ar-add-btn" onClick={() => setShowPicker(p => !p)} title="Добавить реакцию">
-                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+            {replyView === null ? (
+              <>
+                {/* Level 1: comment list */}
+                <div className="sd-comments-header-row">
+                  <span className="sd-section-title">Комментарии</span>
+                  <span className="sd-comments-header-spacer" />
+                  {reactions.map(r => (
+                    <ReactionPill key={r.emoji} emoji={r.emoji} count={r.count} active={myReactions.has(r.emoji)} onToggle={toggleReaction} autoAnimate={justAdded === r.emoji} />
+                  ))}
+                  {reactions.length < 6 && (
+                    <div style={{ position: 'relative' }}>
+                      <button className="ar-add-btn" onClick={() => setShowPicker(p => !p)} title="Добавить реакцию">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+                        </svg>
+                      </button>
+                      {showPicker && <EmojiPickerPopup onPick={emoji => { toggleReaction(emoji); setJustAdded(emoji); setTimeout(() => setJustAdded(null), 700); setShowPicker(false) }} onClose={() => setShowPicker(false)} />}
+                    </div>
+                  )}
+                  <span className="sd-comments-header-spacer" />
+                  <div className="csort" style={{ flexShrink: 0 }}>
+                    <button className={`c-sort-btn${commentSort === 'new' ? ' active' : ''}`} onClick={() => setCommentSort('new')}>Новые</button>
+                    <button className={`c-sort-btn${commentSort === 'top' ? ' active' : ''}`} onClick={() => setCommentSort('top')}>Популярные</button>
+                  </div>
+                </div>
+                <div className="comments-list">
+                  {displayComments.map((c, i) => {
+                    const replyCount = (commentReplies[c._origIdx] || []).length
+                    return (
+                      <div key={i} className="comment-item">
+                        <CommentItem name={c.name} ini={c.ini} navigate={navigate} avatarClass="c-avatar" nameClass="c-name" date={c.date}>
+                          <div className="c-text">{c.text}</div>
+                          <div className="c-actions">
+                            <button className={`c-like${likedComments.has(i) ? ' liked' : ''}`} onClick={() => toggleCommentLike(i)}>
+                              <svg width="11" height="11" fill={likedComments.has(i) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                                <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                              </svg>
+                              {c.likes + (likedComments.has(i) ? 1 : 0)}
+                            </button>
+                            <button className={`c-like c-dislike${dislikedComments.has(i) ? ' disliked' : ''}`} onClick={() => toggleCommentDislike(i)}>
+                              <svg width="11" height="11" fill={dislikedComments.has(i) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+                                <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                              </svg>
+                              {(c.dislikes || 0) + (dislikedComments.has(i) ? 1 : 0)}
+                            </button>
+                            <button className="c-like c-reply-btn" onClick={() => setReplyView({ origIdx: c._origIdx, comment: c })}>
+                              <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                              </svg>
+                              {replyCount > 0 && replyCount}
+                            </button>
+                          </div>
+                        </CommentItem>
+                      </div>
+                    )
+                  })}
+                </div>
+                {!showAll && article.comments.length > 2 && (
+                  <div className="show-more-row">
+                    <button className="btn-show" onClick={() => setShowAll(true)}>
+                      Показать все комментарии ({article.comments.length})
+                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
+                    </button>
+                  </div>
+                )}
+                <form className="comments-input" onSubmit={handleSubmitComment}>
+                  <input
+                    className="c-input"
+                    placeholder="Написать комментарий..."
+                    value={commentInput}
+                    onChange={e => setCommentInput(e.target.value)}
+                  />
+                  <button type="submit" className="c-submit">Отправить</button>
+                </form>
+              </>
+            ) : (
+              <>
+                {/* Level 2: reply view */}
+                <div className="sd-comments-header-row">
+                  <button className="c-back-btn" onClick={() => setReplyView(null)}>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 18 9 12 15 6"/>
                     </svg>
                   </button>
-                  {showPicker && <EmojiPickerPopup onPick={emoji => { toggleReaction(emoji); setJustAdded(emoji); setTimeout(() => setJustAdded(null), 700); setShowPicker(false) }} onClose={() => setShowPicker(false)} />}
+                  <span className="sd-section-title">Ответы</span>
                 </div>
-              )}
-              <span className="sd-comments-header-spacer" />
-              <div className="csort" style={{ flexShrink: 0 }}>
-                <button className={`c-sort-btn${commentSort === 'new' ? ' active' : ''}`} onClick={() => setCommentSort('new')}>Новые</button>
-                <button className={`c-sort-btn${commentSort === 'top' ? ' active' : ''}`} onClick={() => setCommentSort('top')}>Популярные</button>
-              </div>
-            </div>
-            <div className="comments-list">
-              {displayComments.map((c, i) => (
-                <div key={i} className="comment-item">
-                  <CommentItem name={c.name} ini={c.ini} navigate={navigate} avatarClass="c-avatar" nameClass="c-name" date={c.date}>
-                    <div className="c-text">{c.text}</div>
+                {/* Parent comment */}
+                <div className="comment-item comment-item--parent">
+                  <CommentItem name={replyView.comment.name} ini={replyView.comment.ini} navigate={navigate} avatarClass="c-avatar" nameClass="c-name" date={replyView.comment.date}>
+                    <div className="c-text">{replyView.comment.text}</div>
                     <div className="c-actions">
-                      <button className={`c-like${likedComments.has(i) ? ' liked' : ''}`} onClick={() => toggleCommentLike(i)}>
-                        <svg width="11" height="11" fill={likedComments.has(i) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <button className="c-like">
+                        <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
                           <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
                         </svg>
-                        {c.likes + (likedComments.has(i) ? 1 : 0)}
-                      </button>
-                      <button className={`c-like c-dislike${dislikedComments.has(i) ? ' disliked' : ''}`} onClick={() => toggleCommentDislike(i)}>
-                        <svg width="11" height="11" fill={dislikedComments.has(i) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
-                          <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
-                        </svg>
-                        {(c.dislikes || 0) + (dislikedComments.has(i) ? 1 : 0)}
+                        {replyView.comment.likes}
                       </button>
                     </div>
                   </CommentItem>
                 </div>
-              ))}
-            </div>
-            {!showAll && article.comments.length > 2 && (
-              <div className="show-more-row">
-                <button className="btn-show" onClick={() => setShowAll(true)}>
-                  Показать все комментарии ({article.comments.length})
-                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    <polyline points="6 9 12 15 18 9"/>
-                  </svg>
-                </button>
-              </div>
+                {/* Replies */}
+                <div className="replies-list">
+                  {(commentReplies[replyView.origIdx] || []).length === 0 && (
+                    <div className="comments-empty">Пока нет ответов</div>
+                  )}
+                  {(commentReplies[replyView.origIdx] || []).map((r, j) => {
+                    const key = `${replyView.origIdx}-${j}`
+                    return (
+                      <div key={j} className="comment-item reply-item">
+                        <CommentItem name={r.name} ini={r.ini} navigate={navigate} avatarClass="c-avatar" nameClass="c-name" date={r.date}>
+                          <div className="c-text">{r.text}</div>
+                          <div className="c-actions">
+                            <button className={`c-like${likedReplies.has(key) ? ' liked' : ''}`} onClick={() => toggleReplyLike(key)}>
+                              <svg width="11" height="11" fill={likedReplies.has(key) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                                <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                              </svg>
+                              {r.likes + (likedReplies.has(key) ? 1 : 0)}
+                            </button>
+                            <button className={`c-like c-dislike${dislikedReplies.has(key) ? ' disliked' : ''}`} onClick={() => toggleReplyDislike(key)}>
+                              <svg width="11" height="11" fill={dislikedReplies.has(key) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+                                <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                              </svg>
+                              {(r.dislikes || 0) + (dislikedReplies.has(key) ? 1 : 0)}
+                            </button>
+                          </div>
+                        </CommentItem>
+                      </div>
+                    )
+                  })}
+                </div>
+                <form className="comments-input" onSubmit={handleSubmitReply}>
+                  <input
+                    className="c-input"
+                    placeholder="Написать ответ..."
+                    value={replyInput}
+                    onChange={e => setReplyInput(e.target.value)}
+                  />
+                  <button type="submit" className="c-submit">Отправить</button>
+                </form>
+              </>
             )}
-            <form className="comments-input" onSubmit={handleSubmitComment}>
-              <input
-                className="c-input"
-                placeholder="Написать комментарий..."
-                value={commentInput}
-                onChange={e => setCommentInput(e.target.value)}
-              />
-              <button type="submit" className="c-submit">Отправить</button>
-            </form>
           </div>
         )}
 

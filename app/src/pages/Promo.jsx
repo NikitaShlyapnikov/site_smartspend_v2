@@ -48,8 +48,8 @@ const TYPE_CHIPS = [
 ]
 
 const SCOPE_OPTIONS = [
-  { id: 'mine', label: 'Мои компании' },
   { id: 'all',  label: 'Все компании' },
+  { id: 'mine', label: 'Мои компании' },
 ]
 
 function getSortKey(item) {
@@ -93,9 +93,9 @@ const PROMO_CATS_WITH_ITEMS = new Set([...promoItems.map(p => p.category), ...wh
 
 const PROMO_SORT_OPTIONS = [
   { group: 'Новизна',      id: 'newest',     label: 'Сначала новые' },
-  { group: 'По голосам',   id: 'votes_7d',   label: 'За 7 дней' },
-  { group: 'По голосам',   id: 'votes_30d',  label: 'За месяц' },
-  { group: 'По голосам',   id: 'votes_all',  label: 'За всё время' },
+  { group: 'По популярности',   id: 'votes_7d',   label: 'За 7 дней' },
+  { group: 'По популярности',   id: 'votes_30d',  label: 'За месяц' },
+  { group: 'По популярности',   id: 'votes_all',  label: 'За всё время' },
 ]
 
 function PromoSortDropdown({ sort, onSort }) {
@@ -115,8 +115,8 @@ function PromoSortDropdown({ sort, onSort }) {
 
   function pick(id) { onSort(id); setOpen(false) }
 
-  const btnLabel = current?.group === 'По голосам'
-    ? `По голосам ${current.label.toLowerCase()}`
+  const btnLabel = current?.group === 'По популярности'
+    ? `По популярности ${current.label.toLowerCase()}`
     : current?.label
 
   return (
@@ -546,7 +546,7 @@ function BroadcastCard({ item, onCategoryClick, onCompanyClick }) {
               Открыть
             </a>
           }
-          badge={<div className="promo-type-badge promo-type-badge--broadcast">Рассылка</div>}
+          badge={null}
         />
       </div>
     </div>
@@ -671,7 +671,7 @@ function PromoCard({ item, onCategoryClick, onCompanyClick, onSourceClick }) {
       <div className="pc-header">
         <div className="promo-co-btn">
           <div className="promo-logo" style={{ background: company?.color, cursor: 'pointer' }} onClick={() => onCompanyClick(item.companyId)}>{company?.abbr}</div>
-          <div className="whisper-company-info">
+          <div>
             <div className="whisper-company-name" style={{ cursor: 'pointer' }} onClick={() => onCompanyClick(item.companyId)}>
               {company?.name}
               {catLabel && catLabel !== 'Все' && (
@@ -1133,7 +1133,7 @@ export default function Promo() {
   const hasPromoSetup = !!localStorage.getItem('ss_promo_setup')
 
   const [typeFilter,   setTypeFilter]   = useState('all')
-  const [promoScope,   setPromoScope]   = useState('mine')
+  const [promoScope,   setPromoScope]   = useState('all')
   const [promoCat,     setPromoCat]     = useState(new Set())
   const [promoCompany, setPromoCompany] = useState(new Set())
   const [actsFilter,   setActsFilter]   = useState('all')
@@ -1241,11 +1241,11 @@ export default function Promo() {
   })
 
   const hasFilters = promoCat.size > 0 || promoCompany.size > 0 ||
-    promoScope !== 'mine' || actsFilter !== 'all'
+    promoScope !== 'all' || actsFilter !== 'all'
 
   function resetFilters() {
     setPromoCat(new Set()); setPromoCompany(new Set())
-    setPromoScope('mine'); setActsFilter('all')
+    setPromoScope('all'); setActsFilter('all')
   }
 
   // Broadcasts are always "regular", hide sub-filter for broadcast-only view
