@@ -7,6 +7,7 @@ import FeedEndBlock from '../components/FeedEndBlock'
 import { FilterIconBtn } from '../components/FilterDrawer'
 import ReactionPill from '../components/ReactionPill'
 import EmojiPickerPopup from '../components/EmojiPickerPopup'
+import CommentItem from '../components/CommentAuthorChip'
 import { companies, promoItems, whisperItems as whisperItemsMock } from '../data/mock'
 
 const WhisperReactionPill = (props) => <ReactionPill {...props} />
@@ -457,16 +458,18 @@ function PromoInteractions({ displayHistory = [], initComments = [], showComment
             {reactions.map(r => (
               <WhisperReactionPill key={r.emoji} emoji={r.emoji} count={r.count} active={myReactions.has(r.emoji)} onToggle={toggleReaction} autoAnimate={justAdded === r.emoji} />
             ))}
-            <div style={{ position: 'relative' }}>
-              <button className="ar-add-btn" onClick={() => setShowEmojiPicker(v => !v)} title="Добавить реакцию">
-                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
-                </svg>
-              </button>
-              {showEmojiPicker && (
-                <WhisperEmojiPicker onPick={emoji => { toggleReaction(emoji); setJustAdded(emoji); setTimeout(() => setJustAdded(null), 700); setShowEmojiPicker(false) }} onClose={() => setShowEmojiPicker(false)} />
-              )}
-            </div>
+            {reactions.length < 6 && (
+              <div style={{ position: 'relative' }}>
+                <button className="ar-add-btn" onClick={() => setShowEmojiPicker(v => !v)} title="Добавить реакцию">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+                  </svg>
+                </button>
+                {showEmojiPicker && (
+                  <WhisperEmojiPicker onPick={emoji => { toggleReaction(emoji); setJustAdded(emoji); setTimeout(() => setJustAdded(null), 700); setShowEmojiPicker(false) }} onClose={() => setShowEmojiPicker(false)} />
+                )}
+              </div>
+            )}
             <span className="sd-comments-header-spacer" />
             <div className="csort" style={{ flexShrink: 0 }}>
               <button className={`c-sort-btn${commentSort === 'new' ? ' active' : ''}`} onClick={() => setCommentSort('new')}>Новые</button>
@@ -483,12 +486,7 @@ function PromoInteractions({ displayHistory = [], initComments = [], showComment
               return (
                 <div key={i} className="comment-wrap">
                   <div className="comment-item">
-                    <div className="c-avatar">{getIni(c.author || c.ini)}</div>
-                    <div className="c-body">
-                      <div className="c-header">
-                        <span className="c-name">{c.name || `@${c.author || 'вы'}`}</span>
-                        <span className="c-date">{c.ts ? fmtCommentTime(c.ts) : (c.date || c.time || '')}</span>
-                      </div>
+                    <CommentItem name={c.name || `@${c.author || 'вы'}`} ini={getIni(c.author || c.ini)} navigate={navigate} avatarClass="c-avatar" nameClass="c-name" date={c.ts ? fmtCommentTime(c.ts) : (c.date || c.time || '')}>
                       <div className="c-text">{c.text}</div>
                       <div className="c-actions">
                         <button className={`c-like${likedComments.has(i) ? ' liked' : ''}`} onClick={() => toggleCommentLike(i)}>
@@ -507,7 +505,7 @@ function PromoInteractions({ displayHistory = [], initComments = [], showComment
                         </button>
                         <button className="c-like c-reply-btn" onClick={() => setActiveReplyInput(isReplying ? null : origIdx)}>Ответить</button>
                       </div>
-                    </div>
+                    </CommentItem>
                   </div>
                   {(replyCount > 0 || isReplying) && (
                     <div className="comment-thread">
@@ -520,12 +518,7 @@ function PromoInteractions({ displayHistory = [], initComments = [], showComment
                                 const isSubReplying = activeSubReplyInput === key
                                 return (
                                   <div key={j} className="reply-item">
-                                    <div className="c-avatar">{r.ini}</div>
-                                    <div className="c-body">
-                                      <div className="c-header">
-                                        <span className="c-name">{r.name}</span>
-                                        <span className="c-date">{r.date}</span>
-                                      </div>
+                                    <CommentItem name={r.name} ini={r.ini} navigate={navigate} avatarClass="c-avatar" nameClass="c-name" date={r.date}>
                                       <div className="c-text">
                                         {r.replyTo && <span className="c-mention">@{r.replyTo} </span>}
                                         {r.text}
@@ -556,7 +549,7 @@ function PromoInteractions({ displayHistory = [], initComments = [], showComment
                                           </div>
                                         </form>
                                       )}
-                                    </div>
+                                    </CommentItem>
                                   </div>
                                 )
                               })}

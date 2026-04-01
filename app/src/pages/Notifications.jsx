@@ -364,7 +364,7 @@ function ConfirmModal({ type, setTitle, onConfirm, onCancel }) {
           }
         </div>
         <div className="req-confirm-title">
-          {type === 'approve' ? 'Одобрить статью?' : 'Отклонить статью?'}
+          {type === 'approve' ? 'Добавить статью?' : 'Отклонить статью?'}
         </div>
         <div className="req-confirm-desc">
           {type === 'approve'
@@ -375,7 +375,7 @@ function ConfirmModal({ type, setTitle, onConfirm, onCancel }) {
         <div className="req-confirm-btns">
           <button className="req-confirm-cancel" onClick={onCancel}>Отмена</button>
           <button className={`req-confirm-ok${type === 'reject' ? ' req-confirm-ok--reject' : ''}`} onClick={onConfirm}>
-            {type === 'approve' ? 'Одобрить' : 'Отклонить'}
+            {type === 'approve' ? 'Добавить' : 'Отклонить'}
           </button>
         </div>
       </div>
@@ -458,7 +458,7 @@ function RequestCard({ req, onApprove, onReject, onWithdraw, onSendMessage, onDe
                 >
                   {user.name}
                 </span>
-                {' '}предлагает статью для набора
+                {' '}предлагает статью для вашего набора
               </>
             ) : (
               <><strong>{user.name}</strong>. Отправлен запрос на добавление статьи к набору автора</>
@@ -501,7 +501,7 @@ function RequestCard({ req, onApprove, onReject, onWithdraw, onSendMessage, onDe
             {isIncoming ? (
               <>
                 <button className="req-reject-btn" onClick={() => setConfirm('reject')}>Отклонить</button>
-                <button className="req-approve-btn" onClick={() => setConfirm('approve')}>Одобрить</button>
+                <button className="req-approve-btn" onClick={() => setConfirm('approve')}>Добавить</button>
               </>
             ) : (
               <button className="req-withdraw-btn" onClick={onWithdraw}>Отозвать запрос</button>

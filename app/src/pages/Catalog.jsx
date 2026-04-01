@@ -448,6 +448,7 @@ function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike
         </div>
         <div className="fa-meta-actions">
           <LikeBtn liked={isLiked} count={(set.likes || 0) + (isLiked ? 1 : 0)} onToggle={onLike} />
+          <DislikeBtn disliked={isDisliked} onToggle={onDislike} />
           {set.comments > 0 && (
             <button className="fa-action-stat fa-action-stat--btn" onClick={() => navigate(`/set/${set.id}`)}>
               <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -456,7 +457,6 @@ function CatalogCard({ set, isLiked, isDisliked, isBookmarked, onLike, onDislike
               {set.comments}
             </button>
           )}
-          <DislikeBtn disliked={isDisliked} onToggle={onDislike} />
           <BookmarkBtn bookmarked={isBookmarked} onToggle={onBookmark} />
         </div>
         <div className="fa-meta-right">

@@ -409,6 +409,7 @@ function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeTo
 
         <div className="fa-meta-actions">
           <LikeBtn liked={isLiked} count={item.likes + (isLiked ? 1 : 0)} onToggle={() => onLikeToggle(item.id)} />
+          <DislikeBtn disliked={isDisliked} onToggle={() => onDislikeToggle(item.id)} />
           {item.comments != null && (
             <div className="fa-action-stat">
               <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -417,7 +418,6 @@ function ArticleCard({ item, isRead, isLiked, isDisliked, isBookmarked, onLikeTo
               {item.comments}
             </div>
           )}
-          <DislikeBtn disliked={isDisliked} onToggle={() => onDislikeToggle(item.id)} />
           <BookmarkBtn bookmarked={isBookmarked} onToggle={() => onBookmarkToggle(item.id)} />
         </div>
 

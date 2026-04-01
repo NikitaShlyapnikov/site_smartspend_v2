@@ -159,7 +159,7 @@ const SAVINGS = [
     color: '#FFDD2D', textColor: '#1A1A1A',
     rate: 17.0, rateBase: null, rateNote: 'постоянно',
     minAmount: 0, withdrawal: true, replenishment: true, asv: true,
-    tags: ['без условий', 'мгновенный доступ', 'ежемесячные %'],
+    tags: ['без условий', 'ежемесячные %'],
     conditionsText: 'Без условий и ограничений по сумме. Ставка не зависит от остатка.',
     params: 'Снятие: да. Пополнение: да. % начисляется ежедневно, выплата ежемесячно.',
   },
@@ -168,7 +168,7 @@ const SAVINGS = [
     color: '#EF3124', textColor: '#FFF',
     rate: 20.0, rateBase: 14.0, rateNote: 'первые 2 мес',
     minAmount: 0, withdrawal: true, replenishment: true, asv: true,
-    tags: ['акция для новых', 'мгновенный доступ', 'ежемесячные %'],
+    tags: ['акция для новых', 'ежемесячные %'],
     conditionsText: 'Повышенная ставка 20% — первые 2 месяца для новых клиентов Альфа-Банка. Далее — 14%.',
     params: 'Снятие: да. Пополнение: да. % начисляется ежемесячно.',
   },
@@ -177,7 +177,7 @@ const SAVINGS = [
     color: '#21A038', textColor: '#FFF',
     rate: 16.0, rateBase: null, rateNote: 'постоянно',
     minAmount: 0, withdrawal: true, replenishment: true, asv: true,
-    tags: ['без условий', 'мгновенный доступ', 'ежедневные %'],
+    tags: ['без условий', 'ежедневные %'],
     conditionsText: 'Для всех клиентов. Без минимального остатка. Начисление каждый день.',
     params: 'Снятие: да. Пополнение: да. % начисляется ежедневно, выплата ежемесячно.',
   },
@@ -186,7 +186,7 @@ const SAVINGS = [
     color: '#009FDF', textColor: '#FFF',
     rate: 17.5, rateBase: null, rateNote: 'постоянно',
     minAmount: 0, withdrawal: true, replenishment: true, asv: true,
-    tags: ['без условий', 'мгновенный доступ', 'ежедневные %'],
+    tags: ['без условий', 'ежедневные %'],
     conditionsText: 'Для всех клиентов. Без ограничений по остатку и операциям.',
     params: 'Снятие: да. Пополнение: да. % начисляется ежедневно.',
   },
@@ -195,13 +195,32 @@ const SAVINGS = [
     color: '#003087', textColor: '#FFF',
     rate: 18.5, rateBase: 15.0, rateNote: 'при тратах от 10\u00a0000\u00a0₽/мес',
     minAmount: 0, withdrawal: true, replenishment: true, asv: true,
-    tags: ['с условием трат', 'мгновенный доступ', 'ежемесячные %'],
+    tags: ['с условием трат', 'ежемесячные %'],
     conditionsText: 'Повышенная ставка при тратах по карте от 10 000 ₽/мес. Иначе — 15%.',
     params: 'Снятие: да. Пополнение: да. % начисляется ежемесячно.',
   },
 ]
 
 const ALL_BANKS = [...new Set(DEPOSITS.map(d => d.bank))]
+
+// Mapping from company id (ss_companies) to bank name in DEPOSITS
+const COMPANY_TO_BANK = {
+  'c-tinkoff':   'Т-Банк',
+  'c-sber':      'Сбер',
+  'c-vtb':       'ВТБ',
+  'c-alfabank':  'Альфа-Банк',
+  'c-gazprombank': 'Газпромбанк',
+  'c-rosbank':   'Росбанк',
+  'c-domrf':     'Банк Дом.РФ',
+  'c-mts':       'МТС Банк',
+}
+
+function getMyCompanyBanks() {
+  try {
+    const ids = JSON.parse(localStorage.getItem('ss_companies') || '[]')
+    return ids.map(id => COMPANY_TO_BANK[id]).filter(Boolean).filter(b => ALL_BANKS.includes(b))
+  } catch { return [] }
+}
 
 // ── Spotlight Tour ────────────────────────────────────────────────────────────
 const DEP_SPOTLIGHT = [
@@ -421,7 +440,7 @@ export default function Deposits() {
 
         {/* ── Chart card ── */}
         <div id="sp-dep-chart" className="dep-chart-card">
-          <div className="dep-chart-title">Максимальные ставки по срокам</div>
+          <div className="dep-chart-title">Максимальная эффективная ставка по срокам</div>
 
           <div className="dep-chart" ref={chartRef}
             onMouseDown={onChartMouseDown}
@@ -493,6 +512,24 @@ export default function Deposits() {
               </div>
             </div>
 
+            {(() => {
+              const myBanks = getMyCompanyBanks()
+              if (myBanks.length === 0) return null
+              const myBanksSet = new Set(myBanks)
+              const isMyActive = myBanks.length === filterBanks.size && myBanks.every(b => filterBanks.has(b))
+              return (
+                <div className="dep-filter-group">
+                  <span className="dep-filter-label">Быстрый выбор</span>
+                  <button
+                    className={`dep-fchip${isMyActive ? ' active' : ''}`}
+                    onClick={() => setFilterBanks(isMyActive ? new Set() : myBanksSet)}
+                  >
+                    Мои компании
+                  </button>
+                </div>
+              )
+            })()}
+
             <div className="dep-filter-group">
               <span className="dep-filter-label">Фильтры</span>
               <button className={`dep-filter-toggle-btn${totalActiveFilters > 0 ? ' active' : ''}`}
@@ -529,7 +566,6 @@ export default function Deposits() {
                   <div className="dep-card-body">
                     <div className="dep-card-names">
                       <span className="dep-bank-name">{dep.bank}</span>
-                      {isBest && <span className="dep-best-badge">лучшее</span>}
                     </div>
                     <div className="dep-dep-name">{dep.name}</div>
                     <div className="dep-tags">
