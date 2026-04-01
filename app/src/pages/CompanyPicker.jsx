@@ -285,7 +285,6 @@ function Summary({ selected, onFinish, onBack }) {
               <div className="cpicker-summary-cat-list">
                 {g.list.map(c => (
                   <div key={c.id} className="cpicker-summary-chip">
-                    <span className="cpicker-summary-dot" style={{ background: c.color }} />
                     {c.name}
                   </div>
                 ))}
