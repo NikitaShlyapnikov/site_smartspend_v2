@@ -2010,9 +2010,10 @@ body.dark .visibility-badge.public { background: #1A2820; color: #7AAF96; border
   background: rgba(78,130,104,0.06);
   border-radius: var(--r-sm);
   border-bottom: none !important;
+  margin: 0 -16px; padding: 14px 16px;
 }
 body.dark .popular-author-row--me { background: rgba(106,175,142,0.08); }
-.popular-author-row--me:hover { background: rgba(78,130,104,0.1) !important; }
+.popular-author-row--me:hover { background: rgba(78,130,104,0.1) !important; margin: 0 -16px; padding: 14px 16px; }
 .pa-me-badge {
   display: inline-flex; align-items: center;
   margin-left: 6px; padding: 1px 7px; border-radius: 20px;
@@ -2031,17 +2032,28 @@ body.dark .popular-author-row--me { background: rgba(106,175,142,0.08); }
   font-size: 16px; font-weight: 700; color: #fff; letter-spacing: -0.02em;
 }
 .pa-info { flex: 1; min-width: 0; }
+.pa-avatar--round { border-radius: 50%; }
 .pa-name { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
 .pa-handle { font-size: 11px; color: var(--text-3); font-family: var(--mono); margin-top: 1px; }
-.pa-bio { font-size: 12px; color: var(--text-2); margin-top: 4px; line-height: 1.4; }
 .pa-stats { display: flex; gap: 14px; flex-shrink: 0; }
+.pa-tier-badge {
+  display: inline-flex; align-items: center;
+  padding: 4px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; font-family: var(--mono);
+  background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--text-2); white-space: nowrap;
+}
+.popular-author-row--me .pa-tier-badge {
+  background: rgba(78,130,104,0.12); border-color: var(--accent-green-border);
+  color: var(--accent-green);
+}
 .pa-stat-row { display: flex; flex-direction: column; align-items: center; gap: 1px; }
 .pa-stat-val { font-size: 13px; font-weight: 700; font-family: var(--mono); color: var(--text); letter-spacing: -0.02em; }
 .pa-stat-lbl { font-size: 10px; color: var(--text-3); white-space: nowrap; }
-.pa-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+.pa-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; justify-content: center; }
 .pa-rating {
   display: flex; align-items: center; gap: 4px;
-  font-size: 14px; font-weight: 700; color: #B08840; font-family: var(--mono);
+  font-size: 14px; font-weight: 700; color: var(--text-2); font-family: var(--mono);
   font-family: var(--mono);
 }
 .pa-sub-btn { font-size: 11px !important; padding: 4px 12px !important; height: auto !important; }

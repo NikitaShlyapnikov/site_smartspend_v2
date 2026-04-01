@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate, useLocation } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
@@ -609,7 +610,7 @@ export default function Account() {
     { id: 'sets',         label: `Наборы · ${sets.length}` },
     { id: 'whispers',     label: `Промо · ${whispers.length}` },
     { id: 'subs',         label: `Мои подписки · ${subs.length}` },
-    { id: 'companies',    label: 'Мои компании' },
+    { id: 'companies',    label: (() => { try { const n = JSON.parse(localStorage.getItem('ss_companies') || '[]').length; return n > 0 ? `Мои компании · ${n}` : 'Мои компании' } catch { return 'Мои компании' } })() },
   ]
 
   return (
@@ -1026,29 +1027,88 @@ export default function Account() {
                 </div>
               </div>
               {(() => {
-                const MY_RANK = 844
                 const MY_HANDLE = '@n.orlov'
-                const subsSet = new Set(subs.map(s => s.handle))
+
+                // Simulated total user counts per category for tier calculation
+                const TOTAL_USERS = { food: 1200, cafe: 800, transport: 950, home: 600, clothes: 1100, leisure: 750, health: 500, education: 320, travel: 280, other: 1500 }
+                const DEFAULT_TOTAL = 500
+
+                function getTierLabel(rank, total) {
+                  const pct = rank / total
+                  if (total > 1000 && pct <= 0.01) return 'Топ 1%'
+                  if (total > 100  && pct <= 0.10) return 'Топ 10%'
+                  if (total > 30   && pct <= 0.03) return 'Топ 3%'
+                  if (pct <= 0.10) return 'Топ 10%'
+                  if (pct <= 0.30) return 'Топ 30%'
+                  if (pct <= 0.50) return 'Топ 50%'
+                  if (pct <= 0.90) return 'Топ 90%'
+                  return 'Топ 100%'
+                }
+
+                // My ratings per category (mock)
+                const MY_RATINGS = { food: 312, cafe: 89, transport: 201, home: 145, clothes: 430, leisure: 98, health: 67, education: 55, travel: 42, other: 844 }
+
                 const filteredAuthors = achCatFilter
                   ? POPULAR_AUTHORS.filter(a => a.category === achCatFilter)
                   : POPULAR_AUTHORS
                 const top10 = filteredAuthors.slice(0, 10)
                 const meInTop = top10.some(a => a.handle === MY_HANDLE)
 
-                function AuthorRow({ a, rank, isMe }) {
-                  const isSubscribed = subsSet.has(a.handle)
+                // Compute tier label for each author row
+                function getAuthorTier(a, idx, allInCat) {
+                  const total = TOTAL_USERS[a.category] || DEFAULT_TOTAL
+                  return getTierLabel(idx + 1, total)
+                }
+
+                function AuthorRow({ a, tierLabel, isMe }) {
+                  const [showPopup, setShowPopup] = useState(false)
+                  const [popPos, setPopPos]       = useState(null)
+                  const showTimer = useRef(null)
+                  const hideTimer = useRef(null)
+                  const avatarRef = useRef(null)
+                  const nameRef   = useRef(null)
+
+                  function onEnter(ref) {
+                    clearTimeout(hideTimer.current)
+                    showTimer.current = setTimeout(() => {
+                      const el = ref.current
+                      if (el) {
+                        const r = el.getBoundingClientRect()
+                        setPopPos({ top: r.bottom + 8, left: r.left })
+                      }
+                      setShowPopup(true)
+                    }, 280)
+                  }
+                  function onLeave() {
+                    clearTimeout(showTimer.current)
+                    hideTimer.current = setTimeout(() => setShowPopup(false), 160)
+                  }
+
+                  const authorObj = { name: a.name, initials: a.ini, color: a.color, handle: a.handle }
+
                   return (
-                    <div
-                      className={`popular-author-row${isMe ? ' popular-author-row--me' : ''}`}
+                    <div className={`popular-author-row${isMe ? ' popular-author-row--me' : ''}`}
                       onClick={() => !isMe && navigate('/author/' + a.handle.replace('@', ''), { state: a })}
                       style={isMe ? { cursor: 'default' } : {}}
                     >
-                      <div className={`pa-rank${isMe ? ' pa-rank--me' : ''}`}>{rank}</div>
-                      <div className="pa-avatar" style={{ background: a.color }}>{a.ini}</div>
+                      <div
+                        ref={avatarRef}
+                        className="pa-avatar pa-avatar--round"
+                        style={{ background: a.color, cursor: isMe ? 'default' : 'pointer' }}
+                        onMouseEnter={() => onEnter(avatarRef)}
+                        onMouseLeave={onLeave}
+                      >{a.ini}</div>
                       <div className="pa-info">
-                        <div className="pa-name">{a.name}{isMe && <span className="pa-me-badge">Вы</span>}</div>
+                        <div className="pa-name">
+                          <span
+                            ref={nameRef}
+                            style={{ cursor: isMe ? 'default' : 'pointer' }}
+                            onMouseEnter={() => onEnter(nameRef)}
+                            onMouseLeave={onLeave}
+                          >{a.name}</span>
+                          {isMe && <span className="pa-me-badge">Вы</span>}
+                        </div>
                         <div className="pa-handle">{a.handle}</div>
-                        <div className="pa-bio">{a.bio}</div>
                       </div>
                       <div className="pa-stats">
                         <div className="pa-stat-row">
@@ -1064,44 +1124,53 @@ export default function Account() {
                           <span className="pa-stat-lbl">наборов</span>
                         </div>
                       </div>
-                      <div className="pa-right" onClick={e => e.stopPropagation()}>
-                        <div className="pa-stat-row" style={{ alignItems: 'flex-end' }}>
-                          <div className="pa-rating">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                            </svg>
-                            {a.rating}
-                          </div>
-                          <div className="pa-stat-lbl">рейтинг</div>
-                        </div>
-                        {!isMe && (isSubscribed
-                          ? <button className="pa-sub-cta pa-sub-cta--active">Подписан</button>
-                          : <button className="pa-sub-cta">Подписаться</button>
-                        )}
+                      <div className="pa-right">
+                        <span className="pa-tier-badge">{tierLabel}</span>
                       </div>
+                      {showPopup && popPos && !isMe && createPortal(
+                        <div
+                          className="author-popover"
+                          style={{ position: 'fixed', top: popPos.top, left: popPos.left }}
+                          onMouseEnter={() => clearTimeout(hideTimer.current)}
+                          onMouseLeave={onLeave}
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <div className="ap-top">
+                            <div className="ap-avatar" style={{ background: a.color }}>{a.ini}</div>
+                          </div>
+                          <button className="ap-name" onClick={e => { e.stopPropagation(); navigate('/author/' + a.handle.replace('@',''), { state: a }) }}>{a.name}</button>
+                          <div className="ap-handle">{a.handle}</div>
+                        </div>,
+                        document.body
+                      )}
                     </div>
                   )
                 }
+
+                const allInCat = filteredAuthors
 
                 const ME_ROW = {
                   id: 'me', handle: MY_HANDLE,
                   name: profile.displayName || 'Вы',
                   ini: (profile.displayName || 'Я').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
                   color: '#4E8268',
-                  bio: profile.bio || '',
                   followers: 12, articles: userData.stats?.articles || 3,
-                  sets: userData.stats?.sets || 6, rating: 45,
+                  sets: userData.stats?.sets || 6,
+                  category: achCatFilter || 'other',
                 }
+                const myRank = MY_RATINGS[achCatFilter || 'other'] || 844
+                const myTotal = TOTAL_USERS[achCatFilter || 'other'] || DEFAULT_TOTAL
+                const myTier = getTierLabel(myRank, myTotal)
 
                 return (
                   <div className="popular-authors-list">
                     {top10.map((a, i) => (
-                      <AuthorRow key={a.id} a={a} rank={i + 1} isMe={a.handle === MY_HANDLE} />
+                      <AuthorRow key={a.id} a={a} tierLabel={getAuthorTier(a, i, allInCat)} isMe={false} />
                     ))}
                     {!meInTop && (
                       <>
                         <div className="pa-rank-gap">···</div>
-                        <AuthorRow a={ME_ROW} rank={MY_RANK} isMe={true} />
+                        <AuthorRow a={ME_ROW} tierLabel={myTier} isMe={true} />
                       </>
                     )}
                   </div>
@@ -1127,12 +1196,7 @@ export default function Account() {
 
           return (
             <div className="acc-panel">
-              <div className="panel-header">
-                <span className="panel-title">
-                  {selectedCompanies.length > 0
-                    ? `${selectedCompanies.length} компани${selectedCompanies.length === 1 ? 'я' : selectedCompanies.length < 5 ? 'и' : 'й'}`
-                    : 'Компании, чьи акции вы видите в ленте'}
-                </span>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: selectedCompanies.length > 0 ? 8 : 0 }}>
                 <button className="acc-btn-primary" onClick={() => navigate('/company-picker', { state: { edit: true } })}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
