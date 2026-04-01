@@ -396,19 +396,21 @@ function AccWhisperCard({ w, onDelete }) {
 
 // ── Popular authors mock data ─────────────────────────────────────────────────
 
+// influence = weighted score from likes/comments/emoji received (resets monthly)
+// contribution = followers on author + followers on sets (permanent)
 const POPULAR_AUTHORS = [
-  { id: 'pa1',  name: 'Алина Морозова',    handle: '@alina_m',      ini: 'АМ', color: '#4E8268', category: 'other',     bio: 'Рационализирую быт и бюджет. Веду учёт расходов уже 4 года.',              followers: 4812, articles: 38, sets: 12, rating: 98 },
-  { id: 'pa2',  name: 'Дмитрий Ковалёв',  handle: '@dm_kovalev',    ini: 'ДК', color: '#5B8FD4', category: 'other',     bio: 'Финансовый аналитик. Пишу про инвестиции и осознанные покупки.',          followers: 3240, articles: 55, sets: 8,  rating: 95 },
-  { id: 'pa3',  name: 'Мария Иванова',     handle: '@mari_smart',    ini: 'МИ', color: '#B08840', category: 'food',      bio: 'Составляю наборы для семейного бюджета и экономии на продуктах.',        followers: 2890, articles: 22, sets: 19, rating: 92 },
-  { id: 'pa4',  name: 'Сергей Попов',      handle: '@s_popov',       ini: 'СП', color: '#7B5EA7', category: 'clothes',   bio: 'Минимализм и осознанное потребление. Каталогизирую вещи и расходы.',     followers: 2150, articles: 17, sets: 31, rating: 89 },
-  { id: 'pa5',  name: 'Ольга Смирнова',    handle: '@olga_saves',    ini: 'ОС', color: '#B85555', category: 'education', bio: 'Мама троих детей. Делюсь лайфхаками по экономии и планированию.',       followers: 1920, articles: 41, sets: 14, rating: 86 },
-  { id: 'pa6',  name: 'Артём Зайцев',      handle: '@artem_z',       ini: 'АЗ', color: '#4E7090', category: 'leisure',   bio: 'IT-специалист. Автоматизирую личные финансы и делюсь инструментами.',   followers: 1680, articles: 29, sets: 7,  rating: 83 },
-  { id: 'pa7',  name: 'Наталья Фёдорова',  handle: '@natasha_food',  ini: 'НФ', color: '#C07840', category: 'food',      bio: 'Готовлю вкусно и экономно. Делюсь рецептами и списками покупок.',        followers: 1540, articles: 33, sets: 22, rating: 81 },
-  { id: 'pa8',  name: 'Павел Орлов',       handle: '@pavel_wear',    ini: 'ПО', color: '#6B8E6B', category: 'clothes',   bio: 'Мужской гардероб без переплат. Качественные базовые вещи надолго.',      followers: 1320, articles: 19, sets: 27, rating: 78 },
-  { id: 'pa9',  name: 'Екатерина Белова',  handle: '@kate_home',     ini: 'ЕБ', color: '#9E6B9E', category: 'home',      bio: 'Обустраиваю дом с умом. Сравниваю технику и товары для быта.',          followers: 1180, articles: 26, sets: 18, rating: 75 },
-  { id: 'pa10', name: 'Иван Соколов',      handle: '@ivan_travel',   ini: 'ИС', color: '#4E8AAA', category: 'travel',    bio: 'Путешествую бюджетно. Составляю наборы для поездок и отпусков.',        followers: 1050, articles: 14, sets: 11, rating: 72 },
-  { id: 'pa11', name: 'Юлия Николаева',    handle: '@julia_health',  ini: 'ЮН', color: '#A04868', category: 'health',    bio: 'Здоровый образ жизни без лишних трат. Спорт и питание в рамках бюджета.', followers: 980,  articles: 21, sets: 16, rating: 70 },
-  { id: 'pa12', name: 'Максим Козлов',     handle: '@max_finance',   ini: 'МК', color: '#557A55', category: 'other',     bio: 'Веду семейный бюджет 6 лет. Таблицы, приложения, лайфхаки экономии.',   followers: 870,  articles: 18, sets: 9,  rating: 67 },
+  { id: 'pa1',  name: 'Алина Морозова',    handle: '@alina_m',      ini: 'АМ', color: '#4E8268', category: 'other',     bio: 'Рационализирую быт и бюджет. Веду учёт расходов уже 4 года.',                followers: 4812, articles: 38, sets: 12, rating: 98,  influence: 9840, contribution: 4812 },
+  { id: 'pa2',  name: 'Дмитрий Ковалёв',  handle: '@dm_kovalev',    ini: 'ДК', color: '#5B8FD4', category: 'other',     bio: 'Финансовый аналитик. Пишу про инвестиции и осознанные покупки.',            followers: 3240, articles: 55, sets: 8,  rating: 95,  influence: 7210, contribution: 3240 },
+  { id: 'pa3',  name: 'Мария Иванова',     handle: '@mari_smart',    ini: 'МИ', color: '#B08840', category: 'food',      bio: 'Составляю наборы для семейного бюджета и экономии на продуктах.',          followers: 2890, articles: 22, sets: 19, rating: 92,  influence: 6450, contribution: 5310 },
+  { id: 'pa4',  name: 'Сергей Попов',      handle: '@s_popov',       ini: 'СП', color: '#7B5EA7', category: 'clothes',   bio: 'Минимализм и осознанное потребление. Каталогизирую вещи и расходы.',       followers: 2150, articles: 17, sets: 31, rating: 89,  influence: 4820, contribution: 6100 },
+  { id: 'pa5',  name: 'Ольга Смирнова',    handle: '@olga_saves',    ini: 'ОС', color: '#B85555', category: 'education', bio: 'Мама троих детей. Делюсь лайфхаками по экономии и планированию.',         followers: 1920, articles: 41, sets: 14, rating: 86,  influence: 3990, contribution: 2180 },
+  { id: 'pa6',  name: 'Артём Зайцев',      handle: '@artem_z',       ini: 'АЗ', color: '#4E7090', category: 'leisure',   bio: 'IT-специалист. Автоматизирую личные финансы и делюсь инструментами.',     followers: 1680, articles: 29, sets: 7,  rating: 83,  influence: 3120, contribution: 1740 },
+  { id: 'pa7',  name: 'Наталья Фёдорова',  handle: '@natasha_food',  ini: 'НФ', color: '#C07840', category: 'food',      bio: 'Готовлю вкусно и экономно. Делюсь рецептами и списками покупок.',          followers: 1540, articles: 33, sets: 22, rating: 81,  influence: 2870, contribution: 3920 },
+  { id: 'pa8',  name: 'Павел Орлов',       handle: '@pavel_wear',    ini: 'ПО', color: '#6B8E6B', category: 'clothes',   bio: 'Мужской гардероб без переплат. Качественные базовые вещи надолго.',       followers: 1320, articles: 19, sets: 27, rating: 78,  influence: 2340, contribution: 4810 },
+  { id: 'pa9',  name: 'Екатерина Белова',  handle: '@kate_home',     ini: 'ЕБ', color: '#9E6B9E', category: 'home',      bio: 'Обустраиваю дом с умом. Сравниваю технику и товары для быта.',            followers: 1180, articles: 26, sets: 18, rating: 75,  influence: 1980, contribution: 2640 },
+  { id: 'pa10', name: 'Иван Соколов',      handle: '@ivan_travel',   ini: 'ИС', color: '#4E8AAA', category: 'travel',    bio: 'Путешествую бюджетно. Составляю наборы для поездок и отпусков.',          followers: 1050, articles: 14, sets: 11, rating: 72,  influence: 1540, contribution: 1410 },
+  { id: 'pa11', name: 'Юлия Николаева',    handle: '@julia_health',  ini: 'ЮН', color: '#A04868', category: 'health',    bio: 'Здоровый образ жизни без лишних трат. Спорт и питание в рамках бюджета.', followers: 980,  articles: 21, sets: 16, rating: 70,  influence: 1210, contribution: 1180 },
+  { id: 'pa12', name: 'Максим Козлов',     handle: '@max_finance',   ini: 'МК', color: '#557A55', category: 'other',     bio: 'Веду семейный бюджет 6 лет. Таблицы, приложения, лайфхаки экономии.',    followers: 870,  articles: 18, sets: 9,  rating: 67,  influence: 890,  contribution: 960  },
 ]
 
 // Only categories that appear in POPULAR_AUTHORS, using SET_CATEGORIES labels
@@ -1123,6 +1125,18 @@ export default function Account() {
                           <span className="pa-stat-val">{a.sets}</span>
                           <span className="pa-stat-lbl">наборов</span>
                         </div>
+                        {a.influence != null && (
+                          <div className="pa-stat-row" title="Влияние — взвешенная сумма лайков, комментариев и эмодзи за текущий месяц. Сбрасывается 1 числа каждого месяца.">
+                            <span className="pa-stat-val pa-stat-val--influence">{fmtFollowers(a.influence)}</span>
+                            <span className="pa-stat-lbl">влияние</span>
+                          </div>
+                        )}
+                        {a.contribution != null && (
+                          <div className="pa-stat-row" title="Вклад — суммарные подписчики автора и его наборов. Продвигает контент в ленте, сохраняется навсегда.">
+                            <span className="pa-stat-val pa-stat-val--contribution">{fmtFollowers(a.contribution)}</span>
+                            <span className="pa-stat-lbl">вклад</span>
+                          </div>
+                        )}
                       </div>
                       <div className="pa-right">
                         <span className="pa-tier-badge">{tierLabel}</span>
@@ -1157,6 +1171,8 @@ export default function Account() {
                   followers: 12, articles: userData.stats?.articles || 3,
                   sets: userData.stats?.sets || 6,
                   category: achCatFilter || 'other',
+                  influence: 124,
+                  contribution: 18,
                 }
                 const myRank = MY_RATINGS[achCatFilter || 'other'] || 844
                 const myTotal = TOTAL_USERS[achCatFilter || 'other'] || DEFAULT_TOTAL

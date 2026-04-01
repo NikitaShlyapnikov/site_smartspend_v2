@@ -2036,6 +2036,9 @@ body.dark .popular-author-row--me { background: rgba(106,175,142,0.08); }
 .pa-name { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
 .pa-handle { font-size: 11px; color: var(--text-3); font-family: var(--mono); margin-top: 1px; }
 .pa-stats { display: flex; gap: 14px; flex-shrink: 0; }
+.pa-stat-val--influence { color: var(--accent-green); }
+.pa-stat-val--contribution { color: #5B8FD4; }
+body.dark .pa-stat-val--contribution { color: #7AABF0; }
 .pa-tier-badge {
   display: inline-flex; align-items: center;
   padding: 4px 10px; border-radius: 20px;
