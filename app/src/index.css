@@ -5345,27 +5345,49 @@ body.dark .product-tag { background: var(--surface-3); border-color: var(--borde
 .c-like.c-dislike:hover { color: #B85555; }
 .c-like.c-dislike.disliked { color: #B85555; }
 .c-like.c-dislike.disliked svg { fill: #B85555; stroke: #B85555; }
+.c-reply-btn { font-size: 11px; font-family: var(--sans); letter-spacing: -0.01em; }
 .c-reply-btn:hover { color: var(--accent-green); }
 
-.c-back-btn {
-  display: flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px; border-radius: 8px; border: none;
-  background: var(--surface-2); color: var(--text-2); cursor: pointer;
-  flex-shrink: 0; transition: background 0.12s, color 0.12s;
+/* Comment wrap — replaces border on comment-item */
+.comment-wrap { border-bottom: 1px solid var(--border); }
+.comment-wrap:last-child { border-bottom: none; }
+.comment-wrap .comment-item { border-bottom: none; padding-bottom: 0; }
+
+/* Thread: indented area below parent comment */
+.comment-thread {
+  margin-left: 66px; /* 24px pad + 30px avatar + 12px gap */
+  padding: 4px 24px 14px 0;
+  position: relative;
 }
-.c-back-btn:hover { background: var(--border); color: var(--text); }
-
-.comment-item--parent {
-  border-bottom: 2px solid var(--border);
-  background: var(--surface-2);
+.comment-thread::before {
+  content: '';
+  position: absolute;
+  left: -27px; /* positions line at center of parent avatar */
+  top: 0; bottom: 0;
+  width: 2px;
+  background: var(--border);
+  border-radius: 2px;
 }
 
-.replies-list { }
-.reply-item { padding-left: 42px; }
+.replies-toggle-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 500; color: var(--text-2);
+  background: none; border: none; cursor: pointer;
+  padding: 6px 0; font-family: var(--sans);
+  letter-spacing: -0.01em; transition: color 0.12s;
+}
+.replies-toggle-btn:hover { color: var(--accent-green); }
 
-.comments-empty {
-  padding: 20px 24px;
-  font-size: 13px; color: var(--text-3); text-align: center;
+.replies-list { margin-top: 4px; }
+.reply-item {
+  display: flex; gap: 12px;
+  padding: 10px 0 6px;
+  border-top: 1px solid var(--border);
+}
+.reply-item:first-child { border-top: none; }
+
+.reply-form {
+  display: flex; gap: 10px; padding-top: 10px;
 }
 
 .comments-input {
