@@ -3717,8 +3717,8 @@ body.dark .inv-gallery-card-set { color: #7AABDF; background: #1A2535; border-co
   padding: 13px 16px; cursor: pointer; user-select: none;
 }
 .inv-item-right { text-align: right; flex-shrink: 0; }
-.inv-amount-val { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text); }
-.inv-amount-lbl { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+.inv-amount-val { font-family: var(--mono); font-size: 16px; font-weight: 600; color: var(--text); }
+.inv-amount-lbl { font-size: 13px; color: var(--text-3); margin-top: 2px; }
 .inv-chevron { color: var(--text-3); transition: transform 0.2s; flex-shrink: 0; }
 .inv-chevron.open { transform: rotate(180deg); }
 
@@ -3744,18 +3744,18 @@ body.dark .inv-gallery-card-set { color: #7AABDF; background: #1A2535; border-co
 
 /* Inv info */
 .inv-info { flex: 1; min-width: 0; }
-.inv-name { font-size: 14px; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: baseline; gap: 6px; }
+.inv-name { font-size: 18px; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: baseline; gap: 6px; }
 .inv-set-tag {
   font-size: 10px; font-weight: 500; color: var(--text-3);
   background: var(--surface-3); border: 1px solid var(--border);
   padding: 1px 6px; border-radius: 4px; white-space: nowrap; flex-shrink: 0;
   letter-spacing: 0;
 }
-.inv-remainder { font-size: 12px; color: var(--text-3); letter-spacing: -0.01em; margin-top: 2px; }
+.inv-remainder { font-size: 15px; color: var(--text-3); letter-spacing: -0.01em; margin-top: 2px; }
 .inv-remainder.urgent { color: var(--status-urgent); font-weight: 600; }
 .inv-remainder.soon { color: var(--status-soon); font-weight: 500; }
 .inv-remainder.overexploit { color: var(--status-over); font-weight: 600; }
-.inv-date { font-size: 11px; color: var(--text-3); margin-top: 3px; }
+.inv-date { font-size: 14px; color: var(--text-3); margin-top: 3px; }
 
 /* ── EXPANDED ITEM (CSS-animated) ── */
 .inv-expanded {
