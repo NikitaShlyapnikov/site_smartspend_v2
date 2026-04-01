@@ -2005,6 +2005,26 @@ body.dark .visibility-badge.public { background: #1A2820; color: #7AAF96; border
   font-size: 13px; font-weight: 700; color: var(--text-3); font-family: var(--mono);
 }
 .pa-rank:nth-child(1) { color: #B08840; }
+.pa-rank--me { color: var(--accent-green); }
+.popular-author-row--me {
+  background: rgba(78,130,104,0.06);
+  border-radius: var(--r-sm);
+  border-bottom: none !important;
+}
+body.dark .popular-author-row--me { background: rgba(106,175,142,0.08); }
+.popular-author-row--me:hover { background: rgba(78,130,104,0.1) !important; }
+.pa-me-badge {
+  display: inline-flex; align-items: center;
+  margin-left: 6px; padding: 1px 7px; border-radius: 20px;
+  font-size: 10px; font-weight: 600;
+  background: var(--accent-green); color: #fff;
+  vertical-align: middle;
+}
+.pa-rank-gap {
+  text-align: center; padding: 6px 0;
+  font-size: 14px; color: var(--text-3); letter-spacing: 2px;
+  font-family: var(--mono);
+}
 .pa-avatar {
   width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
