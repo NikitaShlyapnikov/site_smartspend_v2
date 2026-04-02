@@ -6,12 +6,12 @@ import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 // ── Spending categories (mapped to envelopes where possible) ─────────────────
 const SPEND_CATS = [
   { id: 'food',      label: 'Еда и супермаркеты',  icon: '🛒', envKey: 'food' },
-  { id: 'cafe',      label: 'Кафе и рестораны',     icon: '☕', envKey: null },
   { id: 'transport', label: 'Транспорт',             icon: '🚗', envKey: 'transport' },
-  { id: 'home',      label: 'Дом и техника',         icon: '🏠', envKey: 'home' },
-  { id: 'clothes',   label: 'Одежда и обувь',        icon: '👕', envKey: 'clothes' },
+  { id: 'cafe',      label: 'Кафе и рестораны',     icon: '☕', envKey: null },
   { id: 'health',    label: 'Красота и здоровье',    icon: '💊', envKey: 'health' },
   { id: 'leisure',   label: 'Развлечения',            icon: '🎭', envKey: 'leisure' },
+  { id: 'home',      label: 'Дом и техника',         icon: '🏠', envKey: 'home' },
+  { id: 'clothes',   label: 'Одежда и обувь',        icon: '👕', envKey: 'clothes' },
   { id: 'travel',    label: 'Путешествия',            icon: '✈', envKey: null },
 ]
 
@@ -479,6 +479,27 @@ function FilterModal({ filterBanks, setFilterBanks, filterType, setFilterType, f
         </div>
 
         <div className="crd-modal-body">
+          {/* My banks quick pick */}
+          {(() => {
+            const myBanks = getMyCardBanks()
+            if (myBanks.length === 0) return null
+            const myBanksSet = new Set(myBanks)
+            const isMyActive = myBanks.length === filterBanks.size && myBanks.every(b => filterBanks.has(b))
+            return (
+              <div className="crd-modal-section">
+                <div className="crd-modal-section-hdr">
+                  <span className="crd-modal-section-title">Быстрый выбор</span>
+                </div>
+                <div className="crd-fchips">
+                  <button
+                    className={`crd-fchip${isMyActive ? ' active' : ''}`}
+                    onClick={() => setFilterBanks(isMyActive ? new Set() : myBanksSet)}
+                  >Мои банки</button>
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Banks */}
           <div className="crd-modal-section">
             <div className="crd-modal-section-hdr">
@@ -634,23 +655,6 @@ export default function Cards() {
               </div>
             </div>
 
-            {/* My banks */}
-            {(() => {
-              const myBanks = getMyCardBanks()
-              if (myBanks.length === 0) return null
-              const myBanksSet = new Set(myBanks)
-              const isMyActive = myBanks.length === filterBanks.size && myBanks.every(b => filterBanks.has(b))
-              return (
-                <div className="dep-filter-group">
-                  <span className="dep-filter-label">Быстрый выбор</span>
-                  <button
-                    className={`dep-fchip${isMyActive ? ' active' : ''}`}
-                    onClick={() => setFilterBanks(isMyActive ? new Set() : myBanksSet)}
-                  >Мои банки</button>
-                </div>
-              )
-            })()}
-
             {/* Filter */}
             <div className="dep-filter-group">
               <span className="dep-filter-label">Фильтры</span>
@@ -790,14 +794,8 @@ export default function Cards() {
                       <p className="crd-acc-text">{card.feeDesc}</p>
                     </CrdAccordion>
 
-                    <a className="crd-cta-btn" href={card.url} target="_blank" rel="noopener noreferrer">
-                      Узнать подробнее на сайте банка
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
-                        <polyline points="15 3 21 3 21 9"/>
-                        <line x1="10" y1="14" x2="21" y2="3"/>
-                      </svg>
+                    <a className="dep-cta-link" href={card.url} target="_blank" rel="noopener noreferrer">
+                      Узнать подробнее
                     </a>
                   </div>
                 )}

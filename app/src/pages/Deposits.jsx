@@ -542,24 +542,6 @@ export default function Deposits() {
               </div>
             </div>
 
-            {(() => {
-              const myBanks = getMyCompanyBanks()
-              if (myBanks.length === 0) return null
-              const myBanksSet = new Set(myBanks)
-              const isMyActive = myBanks.length === filterBanks.size && myBanks.every(b => filterBanks.has(b))
-              return (
-                <div className="dep-filter-group">
-                  <span className="dep-filter-label">Быстрый выбор</span>
-                  <button
-                    className={`dep-fchip${isMyActive ? ' active' : ''}`}
-                    onClick={() => setFilterBanks(isMyActive ? new Set() : myBanksSet)}
-                  >
-                    Мои компании
-                  </button>
-                </div>
-              )
-            })()}
-
             <div className="dep-filter-group">
               <span className="dep-filter-label">Фильтры</span>
               <button className={`dep-filter-toggle-btn${totalActiveFilters > 0 ? ' active' : ''}`}
@@ -868,6 +850,25 @@ export default function Deposits() {
             </div>
 
             <div className="dep-modal-body">
+              {/* My companies quick pick */}
+              {(() => {
+                const myBanks = getMyCompanyBanks()
+                if (myBanks.length === 0) return null
+                const myBanksSet = new Set(myBanks)
+                const isMyActive = myBanks.length === filterBanks.size && myBanks.every(b => filterBanks.has(b))
+                return (
+                  <div className="dep-modal-section">
+                    <div className="dep-modal-section-hdr">
+                      <span className="dep-modal-section-title">Быстрый выбор</span>
+                    </div>
+                    <div className="dep-fchips">
+                      <FilterChip label="Мои компании" active={isMyActive}
+                        onClick={() => setFilterBanks(isMyActive ? new Set() : myBanksSet)} />
+                    </div>
+                  </div>
+                )
+              })()}
+
               {/* Banks */}
               <div className="dep-modal-section">
                 <div className="dep-modal-section-hdr">
