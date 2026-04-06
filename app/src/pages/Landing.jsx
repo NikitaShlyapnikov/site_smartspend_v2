@@ -268,35 +268,10 @@ export default function Landing() {
 
   return (
     <>
-      {/* ── NAV ── */}
-      <nav className="landing-nav">
-        <div className="landing-nav-container">
-          <div className="landing-logo">
-            <div className="landing-logo-mark">
-              <svg viewBox="0 0 80 80" fill="none" width="28" height="28">
-                <rect width="80" height="80" rx="18" fill="var(--logo-bg)"/>
-                <rect x="14" y="14" width="52" height="52" rx="10" fill="var(--logo-fg)"/>
-              </svg>
-            </div>
-            <span>SmartSpend</span>
-          </div>
-          <div className="landing-nav-links">
-            <a className="landing-nav-link" href="#ld-paths">Для кого</a>
-            <a className="landing-nav-link" href="#ld-features">Возможности</a>
-            <a className="landing-nav-link" href="#ld-cta">Начать</a>
-          </div>
-          <div className="landing-nav-actions">
-            <button className="nav-btn-ghost" onClick={openLogin}>Войти</button>
-            <button className="nav-btn-primary" onClick={openRegister}>Создать аккаунт</button>
-          </div>
-        </div>
-      </nav>
-
       {/* ── HERO ── */}
       <section className="ld-hero">
         <div className="ld-container ld-hero-inner">
           <div className="ld-hero-text">
-            <div className="ld-badge">Осознанное потребление</div>
             <h1 className="ld-h1">Система<br/>экономии и<br/><em>планирования</em></h1>
             <p className="ld-hero-sub">Планируй покупки заранее, веди инвентарь, сравнивай вклады и карты. Всё — в одном месте, без лишних усилий.</p>
             <div className="ld-hero-actions">
@@ -335,7 +310,6 @@ export default function Landing() {
           <div className="ld-paths-grid">
             <div className="ld-path-card ld-path-good">
               <div className="ld-path-head">
-                <div className="ld-path-icon">🎯</div>
                 <div className="ld-path-title">Осознанный путь</div>
                 <div className="ld-path-badge ld-path-badge--good">Капитал за 10 лет</div>
               </div>
@@ -349,7 +323,6 @@ export default function Landing() {
             </div>
             <div className="ld-path-card ld-path-bad">
               <div className="ld-path-head">
-                <div className="ld-path-icon">🔄</div>
                 <div className="ld-path-title">Обычный путь</div>
                 <div className="ld-path-badge ld-path-badge--bad">Капитал за 30 лет</div>
               </div>
@@ -382,7 +355,7 @@ export default function Landing() {
                     <div><div className="ld-quote-name">Даниэль Канеман</div><div className="ld-quote-role">Нобелевский лауреат по экономике · «Думай медленно, решай быстро»</div></div>
                   </div>
                 </div>
-                <p className="ld-feature-desc">Поэтому мы создали <strong>Наборы</strong> — готовые подборки товаров с расчётом амортизации. Добавь набор и SmartSpend покажет: на что уйдут деньги через месяц, год, пять лет — без единой импульсивной покупки.</p>
+                <p className="ld-feature-desc">SmartSpend не спрашивает «куда делись деньги». Он спрашивает: <strong>что тебе понадобится через 3 месяца?</strong> Наборы — готовые подборки товаров с расчётом амортизации. Добавляешь набор — и видишь бюджет на год вперёд: без сюрпризов, без импульсивных решений в магазине.</p>
               </div>
               <div className="ld-mockup ld-mockup--tilt-left">
                 <div className="ld-mockup-topbar">
@@ -392,7 +365,7 @@ export default function Landing() {
                 <div className="ld-mockup-body">
                   <div className="ld-mk-hero">
                     <div className="ld-mk-hero-tag">Гаджеты и техника</div>
-                    <div className="ld-mk-hero-title">🖥 Рабочее место 2026</div>
+                    <div className="ld-mk-hero-title">Рабочее место 2026</div>
                     <div className="ld-mk-stats">
                       <div className="ld-mk-stat"><div className="ld-mk-stat-val">78 000 ₽</div><div className="ld-mk-stat-lbl">Бюджет</div></div>
                       <div className="ld-mk-stat"><div className="ld-mk-stat-val" style={{color:'var(--accent-green)'}}>1 300 ₽/мес</div><div className="ld-mk-stat-lbl">Амортизация</div></div>
@@ -427,7 +400,7 @@ export default function Landing() {
                     <div><div className="ld-quote-name">Ричард Талер</div><div className="ld-quote-role">Нобелевский лауреат по экономике · Теория ментального учёта</div></div>
                   </div>
                 </div>
-                <p className="ld-feature-desc">Поэтому в SmartSpend есть <strong>Конверты</strong> — распредели доход по категориям раз в месяц. В любой момент видно: сколько осталось на еду, досуг или транспорт. Больше никаких «куда делись деньги?»</p>
+                <p className="ld-feature-desc">Распредели доход по <strong>Конвертам</strong> один раз в начале месяца — и больше не думай о деньгах. Видно сколько осталось на еду, на досуг, на транспорт. Когда конверт пустой — стоп. Вопрос «куда делись деньги?» просто перестаёт существовать.</p>
               </div>
               <div className="ld-mockup ld-mockup--tilt-right">
                 <div className="ld-mockup-topbar">
@@ -466,7 +439,7 @@ export default function Landing() {
                     <div><div className="ld-quote-name">Гэри Беккер</div><div className="ld-quote-role">Нобелевский лауреат по экономике · Теория человеческого капитала</div></div>
                   </div>
                 </div>
-                <p className="ld-feature-desc">Поэтому в SmartSpend есть <strong>Лента и Каталог</strong> — готовые наборы и статьи от сообщества по питанию, технике, здоровью, одежде. Не изобретай велосипед — перенимай опыт тех, кто уже разобрался.</p>
+                <p className="ld-feature-desc">Не начинай с нуля. В <strong>Ленте и Каталоге</strong> — готовые наборы и статьи от сообщества: питание, техника, здоровье, одежда. Кто-то уже потратил годы на то, чтобы разобраться — возьми их протокол и адаптируй под себя за один клик.</p>
               </div>
               <div className="ld-mockup ld-mockup--tilt-left">
                 <div className="ld-mockup-topbar">
@@ -490,7 +463,7 @@ export default function Landing() {
                       </div>
                       <div className="ld-mk-feed-title">Северная диета: 11 000 ₽ в месяц на всё</div>
                       <div className="ld-mk-feed-preview">Как есть рыбу, крупы и овощи, не переплачивать и чувствовать себя хорошо — протокол за 3 года.</div>
-                      <div className="ld-mk-feed-actions"><span>♥ 124</span><span>💬 18</span></div>
+                      <div className="ld-mk-feed-actions"><span>♥ 124</span><span>18 отв.</span></div>
                     </div>
                     <div className="ld-mk-feed-item">
                       <div className="ld-mk-feed-meta">
@@ -501,7 +474,7 @@ export default function Landing() {
                       </div>
                       <div className="ld-mk-feed-title">Смартфон до 30 000 ₽: что брать в 2026</div>
                       <div className="ld-mk-feed-preview">Сравнила 8 моделей по камере, батарее и стоимости владения — итоговая таблица.</div>
-                      <div className="ld-mk-feed-actions"><span>♥ 89</span><span>💬 31</span></div>
+                      <div className="ld-mk-feed-actions"><span>♥ 89</span><span>31 отв.</span></div>
                     </div>
                   </div>
                 </div>
@@ -524,7 +497,7 @@ export default function Landing() {
                     <div><div className="ld-quote-name">Чарльз Мангер</div><div className="ld-quote-role">Инвестор · Партнёр Уоррена Баффета · Berkshire Hathaway</div></div>
                   </div>
                 </div>
-                <p className="ld-feature-desc"><strong>Вклады</strong> — найди максимальную ставку среди банков. <strong>Карты</strong> — подбери лучший кешбэк под свои расходы. <strong>Промо</strong> — купоны и акции от сообщества. Всё в одном месте.</p>
+                <p className="ld-feature-desc">Вклад под 5% вместо 21% — это 16 000 ₽ в год мимо. Карта без кешбэка — ещё 2 000 ₽ в месяц. <strong>Вклады</strong> — лучшие ставки среди банков. <strong>Карты</strong> — кешбэк под твои расходы. <strong>Промо</strong> — купоны от сообщества. Каждый сэкономленный рубль — это уже заработанный рубль.</p>
               </div>
               <div className="ld-mockup ld-mockup--tilt-right">
                 <div className="ld-mockup-topbar">
@@ -575,7 +548,7 @@ export default function Landing() {
                     <div><div className="ld-quote-name">Джон Т. Рид</div><div className="ld-quote-role">Автор книг по инвестициям и финансовой независимости</div></div>
                   </div>
                 </div>
-                <p className="ld-feature-desc">SmartSpend — это не трекер расходов. Это <strong>система планирования будущих покупок</strong>. Инвентарь показывает: что скоро закончится, что нужно купить, сколько это обойдётся в месяц. Ни одной неожиданности.</p>
+                <p className="ld-feature-desc">Большинство приложений покажут, сколько ты уже потратил. SmartSpend показывает, <strong>сколько потратишь в следующем месяце</strong> — ещё до первой покупки. Инвентарь следит за сроком службы вещей и предупреждает заранее: зубная щётка закончится через 10 дней, кроссовки — через 3 месяца. Ноль сюрпризов.</p>
               </div>
               <div className="ld-mockup ld-mockup--tilt-left">
                 <div className="ld-mockup-topbar">
@@ -595,6 +568,97 @@ export default function Landing() {
                     <div className="ld-mk-inv-item ld-mk-inv-ok"><span>Кроссовки</span><span className="ld-mk-inv-date">3 мес</span><span className="ld-mk-inv-price">6 000 ₽</span></div>
                     <div className="ld-mk-inv-item ld-mk-inv-ok"><span>Netflix</span><span className="ld-mk-inv-date">1 мес</span><span className="ld-mk-inv-price">799 ₽</span></div>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 6. EmoSpend */}
+        <section className="ld-section ld-section--alt">
+          <div className="ld-container">
+            <div className="ld-feature ld-feature--reverse">
+              <div className="ld-feature-text">
+                <div className="ld-section-label">Профиль · EmoSpend</div>
+                <h2 className="ld-h2">БАЛУЙ СЕБЯ — <span className="ld-h2-pill">БЕЗ ВИНЫ</span></h2>
+                <div className="ld-quote-block">
+                  <div className="ld-quote-text">«Мы покупаем новый телефон в ожидании долгого счастья. Но уровень радости возвращается к базовому очень быстро. Нам нужно больше и лучше — снова и снова.»</div>
+                  <div className="ld-quote-author">
+                    <div><div className="ld-quote-name">Гедонистическая адаптация</div><div className="ld-quote-role">Психологический феномен · Брикман и Кэмпбелл, 1971</div></div>
+                  </div>
+                </div>
+                <p className="ld-feature-desc">Импульсивные покупки — не слабость характера. Это физиология. Поэтому в SmartSpend есть <strong>EmoSpend</strong> — выделенный бюджет на эмоциональные радости вне всяких наборов и конвертов. Трать на что хочешь, без чувства вины: деньги на это уже отложены. И чем больше растёт твой капитал — тем больше растёт EmoSpend.</p>
+              </div>
+              <div className="ld-mockup ld-mockup--tilt-right">
+                <div className="ld-mockup-topbar">
+                  <div className="ld-mockup-dots"><span/><span/><span/></div>
+                  <span className="ld-mockup-title">Профиль · EmoSpend</span>
+                </div>
+                <div className="ld-mockup-body">
+                  <div className="ld-mk-emo-header">
+                    <div className="ld-mk-emo-title">EmoSpend</div>
+                    <div className="ld-mk-emo-sub">4% от капитала · ежегодный рост</div>
+                  </div>
+                  <div className="ld-mk-emo-rows">
+                    <div className="ld-mk-emo-row ld-mk-emo-row--header">
+                      <span>Год</span><span>в месяц</span><span>в год</span>
+                    </div>
+                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2026</span><span>621 ₽</span><span className="ld-mk-emo-val">7 452 ₽</span></div>
+                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2027</span><span>3 733 ₽</span><span className="ld-mk-emo-val">44 796 ₽</span></div>
+                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2028</span><span>6 846 ₽</span><span className="ld-mk-emo-val">82 152 ₽</span></div>
+                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2029</span><span>9 958 ₽</span><span className="ld-mk-emo-val">119 496 ₽</span></div>
+                    <div className="ld-mk-emo-row ld-mk-emo-row--future"><span className="ld-mk-emo-year">2031</span><span>16 182 ₽</span><span className="ld-mk-emo-val">194 184 ₽</span></div>
+                  </div>
+                  <div className="ld-mk-emo-note">Чем больше капитал — тем выше EmoSpend</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 7. Баффет — планирование */}
+        <section className="ld-section">
+          <div className="ld-container">
+            <div className="ld-feature">
+              <div className="ld-feature-text">
+                <div className="ld-section-label">Планирование · 10 лет</div>
+                <h2 className="ld-h2">ЕСТЬ ПЛАН — <span className="ld-h2-pill">ДЕРЖИСЬ ПЛАНА</span></h2>
+                <div className="ld-quote-block">
+                  <div className="ld-quote-text">«Никто не любит богатеть медленно. Но это единственный путь, доступный каждому.»</div>
+                  <div className="ld-quote-author">
+                    <img className="ld-quote-avatar" src="/authors/bafet.png" alt="Уоррен Баффет"/>
+                    <div><div className="ld-quote-name">Уоррен Баффет</div><div className="ld-quote-role">Инвестор · Berkshire Hathaway · Состояние $150 млрд</div></div>
+                  </div>
+                </div>
+                <p className="ld-feature-desc">Большинство людей переоценивают, что сделают за год, и недооценивают, что сделают за десять. SmartSpend показывает не только текущий бюджет — но и <strong>прогноз роста капитала на 10 лет вперёд</strong>. Цифра мотивирует сильнее любых советов.</p>
+              </div>
+              <div className="ld-mockup ld-mockup--tilt-left">
+                <div className="ld-mockup-topbar">
+                  <div className="ld-mockup-dots"><span/><span/><span/></div>
+                  <span className="ld-mockup-title">Планирование · прогноз капитала</span>
+                </div>
+                <div className="ld-mockup-body">
+                  <div className="ld-mk-plan-capital">
+                    <div className="ld-mk-plan-lbl">Текущий капитал</div>
+                    <div className="ld-mk-plan-amt">186 400 ₽</div>
+                  </div>
+                  <div className="ld-mk-plan-rows">
+                    {[
+                      { year: '2027', pct: 12, val: '1 120 048 ₽' },
+                      { year: '2028', pct: 22, val: '2 053 696 ₽' },
+                      { year: '2029', pct: 31, val: '2 987 344 ₽' },
+                      { year: '2031', pct: 51, val: '4 854 640 ₽' },
+                      { year: '2033', pct: 71, val: '6 721 936 ₽' },
+                      { year: '2036', pct: 100, val: '9 522 880 ₽' },
+                    ].map(r => (
+                      <div key={r.year} className="ld-mk-plan-row">
+                        <span className="ld-mk-plan-year">{r.year}</span>
+                        <div className="ld-mk-plan-track"><div className="ld-mk-plan-fill" style={{width:`${r.pct}%`}}/></div>
+                        <span className="ld-mk-plan-val">{r.val}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="ld-mk-plan-note">Предел накоплений — через 21 год · 19.8 млн ₽</div>
                 </div>
               </div>
             </div>

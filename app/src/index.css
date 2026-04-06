@@ -11702,6 +11702,32 @@ body.dark .ipanel-date-input { color-scheme: dark; }
 .ld-mk-inv-ok { color: var(--text-2); }
 .ld-mk-inv-ok .ld-mk-inv-price { color: var(--text); }
 
+/* Mockup: EmoSpend */
+.ld-mk-emo-header { background: var(--surface-2); border-radius: var(--r-sm); padding: 12px 14px; margin-bottom: 4px; }
+.ld-mk-emo-title { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+.ld-mk-emo-sub { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+.ld-mk-emo-rows { display: flex; flex-direction: column; }
+.ld-mk-emo-row { display: grid; grid-template-columns: 52px 1fr 80px; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text-2); align-items: center; }
+.ld-mk-emo-row:last-child { border-bottom: none; }
+.ld-mk-emo-row--header { font-size: 10px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 6px; border-bottom: 2px solid var(--border); }
+.ld-mk-emo-row--future { opacity: 0.6; }
+.ld-mk-emo-year { font-weight: 700; color: var(--text); }
+.ld-mk-emo-val { font-weight: 700; color: var(--accent-green); text-align: right; }
+.ld-mk-emo-note { margin-top: 8px; padding: 8px 12px; background: var(--accent-green-light); border-radius: var(--r-sm); font-size: 11px; font-weight: 600; color: var(--accent-green); text-align: center; }
+
+/* Mockup: Buffett plan */
+.ld-mk-plan-capital { background: var(--surface-2); border-radius: var(--r-sm); padding: 12px 14px; text-align: center; margin-bottom: 8px; }
+.ld-mk-plan-lbl { font-size: 10px; color: var(--text-3); margin-bottom: 4px; }
+.ld-mk-plan-amt { font-size: 22px; font-weight: 800; letter-spacing: -0.03em; color: var(--text); }
+.ld-mk-plan-rows { display: flex; flex-direction: column; gap: 0; }
+.ld-mk-plan-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+.ld-mk-plan-row:last-child { border-bottom: none; }
+.ld-mk-plan-year { font-size: 11px; font-weight: 600; color: var(--text); width: 34px; flex-shrink: 0; }
+.ld-mk-plan-track { flex: 1; height: 6px; background: var(--border); border-radius: 10px; overflow: hidden; }
+.ld-mk-plan-fill { height: 100%; background: var(--accent-green); border-radius: 10px; }
+.ld-mk-plan-val { font-size: 11px; font-weight: 600; color: var(--text); text-align: right; min-width: 80px; }
+.ld-mk-plan-note { margin-top: 8px; font-size: 10px; color: var(--text-3); text-align: center; padding-top: 8px; border-top: 1px solid var(--border); }
+
 /* CTA section */
 .ld-cta { padding: 96px 32px; text-align: center; background: var(--text); }
 .ld-cta-inner { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 16px; }
