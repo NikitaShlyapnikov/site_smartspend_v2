@@ -218,12 +218,12 @@ export default function Landing() {
   const cubeIdx = useRef(0)
   const [cubeSlide, setCubeSlide] = useState(0)
   const CUBE_PHRASES = [
-    { brand: true, text: 'SMART\nSPEND' },
+    { brand: true },
     { text: 'Планируй\nпокупки' },
-    { text: 'Экономь\nс умом' },
+    { text: 'Выбирай\nлучшее' },
     { text: 'Плати\nменьше' },
-    { text: 'Знай\nсвой бюджет' },
-    { text: 'Расти\nфинансово' },
+    { text: 'Собери\nбазу знаний' },
+    { smile: true },
   ]
 
   useEffect(() => {
@@ -272,7 +272,8 @@ export default function Landing() {
       <section className="ld-hero">
         <div className="ld-container ld-hero-inner">
           <div className="ld-hero-text">
-            <h1 className="ld-h1">Система<br/><em>планирования</em><br/>расходов</h1>
+            <h1 className="ld-h1">Твои деньги<br/>заслуживают<br/><em>системы</em></h1>
+            <p className="ld-hero-label">SmartSpend — Система планирования расходов</p>
             <p className="ld-hero-sub">Большинство людей не знают, сколько потратят в следующем месяце. SmartSpend знает.</p>
             <div className="ld-hero-actions">
               <button className="landing-btn-primary" onClick={openRegister}>Начать →</button>
@@ -290,6 +291,12 @@ export default function Landing() {
                 <div className="ld-cube-screen">
                   {cur.brand ? (
                     <div className="ld-cube-brand">SMART<br/>SPEND</div>
+                  ) : cur.smile ? (
+                    <svg width="100" height="100" viewBox="0 0 80 80" fill="none">
+                      <path d="M26 36 Q29 32 32 36" stroke="var(--text)" strokeWidth="3" strokeLinecap="round" fill="none"/>
+                      <path d="M48 36 Q51 32 54 36" stroke="var(--text)" strokeWidth="3" strokeLinecap="round" fill="none"/>
+                      <path d="M30 48 Q40 58 50 48" stroke="var(--text)" strokeWidth="3" strokeLinecap="round" fill="none"/>
+                    </svg>
                   ) : (
                     <div className="ld-cube-phrase">{cur.text.split('\n')[0]}<br/><em>{cur.text.split('\n')[1]}</em></div>
                   )}
@@ -500,40 +507,39 @@ export default function Landing() {
                 <p className="ld-feature-desc">Вклад под 5% вместо 15% — это <strong>10 000 ₽ в год мимо</strong> с каждых 100 000 рублей. Карта без кешбэка — ещё <strong>1 500 ₽ в месяц</strong> мимо. Купоны и скидки, которые проходят незамеченными — <strong>ещё 3 000 ₽ в месяц</strong>. Мы собрали всё в одном месте: лучшие ставки по вкладам, карты с кешбэком под твои расходы и купоны от сообщества. Каждый сэкономленный рубль — это уже заработанный рубль.</p>
               </div>
               <div className="ld-winstack">
-                {/* Окно 3 — Купоны (сзади) */}
-                <div className="ld-winstack-win ld-winstack-win--3">
+                {/* Окно 1 — Купоны (самый верх, задний план) */}
+                <div className="ld-winstack-win ld-winstack-win--1">
                   <div className="ld-winstack-bar">
                     <div className="ld-mockup-dots"><span/><span/><span/></div>
                     <span className="ld-mockup-title">Промо · Купоны</span>
                   </div>
-                  <div className="ld-winstack-body">
-                    <div className="ld-wk-row"><span>Супермаркеты</span><span className="ld-wk-badge" style={{background:'#B08840'}}>−15%</span></div>
-                    <div className="ld-wk-row"><span>Аптеки</span><span className="ld-wk-badge" style={{background:'#5E9478'}}>−30%</span></div>
-                    <div className="ld-wk-row"><span>Одежда и обувь</span><span className="ld-wk-badge" style={{background:'#7B5EA7'}}>−20%</span></div>
-                  </div>
                 </div>
-                {/* Окно 2 — Карты (посередине) */}
+                {/* Окно 2 — Карты (середина) */}
                 <div className="ld-winstack-win ld-winstack-win--2">
                   <div className="ld-winstack-bar">
                     <div className="ld-mockup-dots"><span/><span/><span/></div>
                     <span className="ld-mockup-title">Банковские карты</span>
                   </div>
-                  <div className="ld-winstack-body">
-                    <div className="ld-wk-row"><span>Продукты и кафе</span><span className="ld-wk-rate">5%</span></div>
-                    <div className="ld-wk-row"><span>Транспорт</span><span className="ld-wk-rate">3%</span></div>
-                    <div className="ld-wk-row"><span>Всё остальное</span><span className="ld-wk-rate">1%</span></div>
-                  </div>
                 </div>
-                {/* Окно 1 — Вклады (спереди) */}
-                <div className="ld-winstack-win ld-winstack-win--1">
+                {/* Окно 3 — Вклады (внизу, передний план, раскрытое) */}
+                <div className="ld-winstack-win ld-winstack-win--3">
                   <div className="ld-winstack-bar">
                     <div className="ld-mockup-dots"><span/><span/><span/></div>
                     <span className="ld-mockup-title">Вклады · ставки по срокам</span>
                   </div>
                   <div className="ld-winstack-body">
-                    <div className="ld-wk-row"><span>3 месяца</span><span className="ld-wk-rate">21%</span></div>
-                    <div className="ld-wk-row"><span>6 месяцев</span><span className="ld-wk-rate">20%</span></div>
-                    <div className="ld-wk-row"><span>1 год</span><span className="ld-wk-rate">19%</span></div>
+                    <div className="ld-mk-dep-chart">
+                      <div className="ld-mk-bars">
+                        <div className="ld-mk-bar" style={{height:'36px'}}><div className="ld-mk-bar-lbl">19%</div></div>
+                        <div className="ld-mk-bar" style={{height:'50px'}}><div className="ld-mk-bar-lbl">21%</div></div>
+                        <div className="ld-mk-bar" style={{height:'44px'}}><div className="ld-mk-bar-lbl">20%</div></div>
+                        <div className="ld-mk-bar" style={{height:'40px'}}><div className="ld-mk-bar-lbl">19%</div></div>
+                        <div className="ld-mk-bar" style={{height:'32px'}}><div className="ld-mk-bar-lbl">18%</div></div>
+                      </div>
+                      <div className="ld-mk-bar-labels">
+                        {['1 мес','3 мес','6 мес','1 год','2 года'].map(l => <span key={l}>{l}</span>)}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
