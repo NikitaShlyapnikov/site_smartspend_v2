@@ -377,8 +377,10 @@ export default function Landing() {
                 <h2 className="ld-h2">ПЛАНИРУЙ ПОКУПКИ <span className="ld-h2-pill">НА ГОДЫ ВПЕРЁД</span></h2>
                 <div className="ld-quote-block">
                   <div className="ld-quote-text">«Когда вы устали или голодны — вы не просто принимаете плохие решения. Вы позволяете импульсивной системе диктовать правила.»</div>
-                  <div className="ld-quote-name">Даниэль Канеман</div>
-                  <div className="ld-quote-role">Нобелевский лауреат по экономике · «Думай медленно, решай быстро»</div>
+                  <div className="ld-quote-author">
+                    <img className="ld-quote-avatar" src="/authors/kaneman.png" alt="Даниэль Канеман"/>
+                    <div><div className="ld-quote-name">Даниэль Канеман</div><div className="ld-quote-role">Нобелевский лауреат по экономике · «Думай медленно, решай быстро»</div></div>
+                  </div>
                 </div>
                 <p className="ld-feature-desc">Поэтому мы создали <strong>Наборы</strong> — готовые подборки товаров с расчётом амортизации. Добавь набор и SmartSpend покажет: на что уйдут деньги через месяц, год, пять лет — без единой импульсивной покупки.</p>
               </div>
@@ -420,8 +422,10 @@ export default function Landing() {
                 <h2 className="ld-h2">РАЗЛОЖИ ДЕНЬГИ <span className="ld-h2-pill">ПО КОНВЕРТАМ</span></h2>
                 <div className="ld-quote-block">
                   <div className="ld-quote-text">«Наш мозг раскладывает деньги по виртуальным конвертам. Это не слабость — это природа. Используй её, а не борись с ней.»</div>
-                  <div className="ld-quote-name">Ричард Талер</div>
-                  <div className="ld-quote-role">Нобелевский лауреат по экономике · Теория ментального учёта</div>
+                  <div className="ld-quote-author">
+                    <img className="ld-quote-avatar" src="/authors/taler.png" alt="Ричард Талер"/>
+                    <div><div className="ld-quote-name">Ричард Талер</div><div className="ld-quote-role">Нобелевский лауреат по экономике · Теория ментального учёта</div></div>
+                  </div>
                 </div>
                 <p className="ld-feature-desc">Поэтому в SmartSpend есть <strong>Конверты</strong> — распредели доход по категориям раз в месяц. В любой момент видно: сколько осталось на еду, досуг или транспорт. Больше никаких «куда делись деньги?»</p>
               </div>
@@ -457,8 +461,10 @@ export default function Landing() {
                 <h2 className="ld-h2">УЧИСЬ НА <span className="ld-h2-pill">ГОТОВЫХ ПРОТОКОЛАХ</span></h2>
                 <div className="ld-quote-block">
                   <div className="ld-quote-text">«Экономический подход не предполагает, что люди не совершают ошибок. Он предполагает, что люди делают лучший выбор из доступных им знаний.»</div>
-                  <div className="ld-quote-name">Гэри Беккер</div>
-                  <div className="ld-quote-role">Нобелевский лауреат по экономике · Теория человеческого капитала</div>
+                  <div className="ld-quote-author">
+                    <img className="ld-quote-avatar" src="/authors/beker.png" alt="Гэри Беккер"/>
+                    <div><div className="ld-quote-name">Гэри Беккер</div><div className="ld-quote-role">Нобелевский лауреат по экономике · Теория человеческого капитала</div></div>
+                  </div>
                 </div>
                 <p className="ld-feature-desc">Поэтому в SmartSpend есть <strong>Лента и Каталог</strong> — готовые наборы и статьи от сообщества по питанию, технике, здоровью, одежде. Не изобретай велосипед — перенимай опыт тех, кто уже разобрался.</p>
               </div>
@@ -513,8 +519,10 @@ export default function Landing() {
                 <h2 className="ld-h2">СЭКОНОМИЛ — <span className="ld-h2-pill">ЗНАЧИТ ЗАРАБОТАЛ</span></h2>
                 <div className="ld-quote-block">
                   <div className="ld-quote-text">«Первый капитал — самый сложный. Он требует навыков и дисциплины, которых у вас ещё нет.»</div>
-                  <div className="ld-quote-name">Чарльз Мангер</div>
-                  <div className="ld-quote-role">Инвестор · Партнёр Уоррена Баффета · Berkshire Hathaway</div>
+                  <div className="ld-quote-author">
+                    <img className="ld-quote-avatar" src="/authors/manger.png" alt="Чарльз Мангер"/>
+                    <div><div className="ld-quote-name">Чарльз Мангер</div><div className="ld-quote-role">Инвестор · Партнёр Уоррена Баффета · Berkshire Hathaway</div></div>
+                  </div>
                 </div>
                 <p className="ld-feature-desc"><strong>Вклады</strong> — найди максимальную ставку среди банков. <strong>Карты</strong> — подбери лучший кешбэк под свои расходы. <strong>Промо</strong> — купоны и акции от сообщества. Всё в одном месте.</p>
               </div>
@@ -562,8 +570,10 @@ export default function Landing() {
                 <h2 className="ld-h2">МЫ СМОТРИМ <span className="ld-h2-pill">ВПЕРЁД, НЕ НАЗАД</span></h2>
                 <div className="ld-quote-block">
                   <div className="ld-quote-text">«Зачем вести учёт того, на что потратили деньги в прошлом — куда лучше думать о том, куда собираетесь их потратить в будущем.»</div>
-                  <div className="ld-quote-name">Джон Т. Рид</div>
-                  <div className="ld-quote-role">Автор книг по инвестициям и финансовой независимости</div>
+                  <div className="ld-quote-author">
+                    <img className="ld-quote-avatar" src="/authors/reed.png" alt="Джон Т. Рид"/>
+                    <div><div className="ld-quote-name">Джон Т. Рид</div><div className="ld-quote-role">Автор книг по инвестициям и финансовой независимости</div></div>
+                  </div>
                 </div>
                 <p className="ld-feature-desc">SmartSpend — это не трекер расходов. Это <strong>система планирования будущих покупок</strong>. Инвентарь показывает: что скоро закончится, что нужно купить, сколько это обойдётся в месяц. Ни одной неожиданности.</p>
               </div>
