@@ -327,7 +327,7 @@ export default function Landing() {
                     <div><div className="ld-quote-name">Джон Т. Рид</div><div className="ld-quote-role">Автор книг по инвестициям и финансовой независимости</div></div>
                   </div>
                 </div>
-                <p className="ld-feature-desc">Приложения по учёту финансов показывают прошлое — мы показываем будущее. SmartSpend не спрашивает куда делись деньги. Он показывает, <strong>сколько потратишь в следующем месяце</strong> — ещё до первой покупки. Инвентарь следит за сроком службы вещей и предупреждает заранее: зубная щётка закончится через 10 дней, кроссовки — через 3 месяца. Ноль сюрпризов.</p>
+                <p className="ld-feature-desc">Приложения по учёту финансов показывают прошлое — мы показываем будущее. SmartSpend не спрашивает куда делись деньги. Он показывает, <strong>сколько потратишь в следующем месяце</strong> — ещё до первой покупки. Инвентарь следит за сроком службы вещей и предупреждает заранее: зубная щётка ожидает обновления, кроссовки — через 3 месяца. Ноль сюрпризов.</p>
               </div>
               <div className="ld-mockup ld-mockup--tilt-right">
                 <div className="ld-mockup-topbar">
@@ -379,14 +379,15 @@ export default function Landing() {
                     <div className="ld-mk-hero-tag">Гаджеты и техника</div>
                     <div className="ld-mk-hero-title">Рабочее место 2026</div>
                     <div className="ld-mk-stats">
-                      <div className="ld-mk-stat"><div className="ld-mk-stat-val">103 000 ₽</div><div className="ld-mk-stat-lbl">Бюджет</div></div>
-                      <div className="ld-mk-stat"><div className="ld-mk-stat-val" style={{color:'var(--accent-green)'}}>1 144 ₽/мес</div><div className="ld-mk-stat-lbl">Амортизация</div></div>
+                      <div className="ld-mk-stat"><div className="ld-mk-stat-val">106 000 ₽</div><div className="ld-mk-stat-lbl">Бюджет</div></div>
+                      <div className="ld-mk-stat"><div className="ld-mk-stat-val" style={{color:'var(--accent-green)'}}>1 169 ₽/мес</div><div className="ld-mk-stat-lbl">Амортизация</div></div>
                     </div>
                   </div>
                   <div className="ld-mk-items">
                     <div className="ld-mk-item"><span>MacBook Air M2</span><span className="ld-mk-item-term">84 мес</span><span className="ld-mk-item-price">80 000 ₽</span><span className="ld-mk-item-amort">952 ₽/мес</span></div>
                     <div className="ld-mk-item"><span>Монитор 27"</span><span className="ld-mk-item-term">120 мес</span><span className="ld-mk-item-price">18 000 ₽</span><span className="ld-mk-item-amort">150 ₽/мес</span></div>
                     <div className="ld-mk-item"><span>Клавиатура + мышь</span><span className="ld-mk-item-term">120 мес</span><span className="ld-mk-item-price">5 000 ₽</span><span className="ld-mk-item-amort">42 ₽/мес</span></div>
+                    <div className="ld-mk-item"><span>Кронштейн (экран + ноут)</span><span className="ld-mk-item-term">120 мес</span><span className="ld-mk-item-price">3 000 ₽</span><span className="ld-mk-item-amort">25 ₽/мес</span></div>
                   </div>
                   <div className="ld-mk-articles">
                     <div className="ld-mk-art">MacBook M2 или M3: стоит ли переплачивать в 2026?</div>
@@ -426,10 +427,20 @@ export default function Landing() {
                     <div className="ld-mk-income-row" style={{fontSize:'10px',opacity:0.6,marginTop:4}}><span>Доход: 60 000 ₽</span><span>Конверты: 18 000 ₽</span></div>
                   </div>
                   <div className="ld-mk-envs">
-                    <div className="ld-mk-env ld-mk-env--expanded"><div className="ld-mk-env-dot" style={{background:'#5E9478'}}></div><div className="ld-mk-env-name"><div>Еда и Супермаркеты</div><div className="ld-mk-env-sub">осталось 18 дней</div><div className="ld-mk-env-sets"><div className="ld-mk-env-set"><span className="ld-mk-env-set-name">Северная диета</span><span className="ld-mk-env-set-meta">14 поз.</span><span className="ld-mk-env-set-amt">11 000 ₽/мес</span></div><div className="ld-mk-env-set"><span className="ld-mk-env-set-name">Вкусняшки и снеки</span><span className="ld-mk-env-set-meta">4 поз.</span><span className="ld-mk-env-set-amt">3 000 ₽/мес</span></div></div></div><div className="ld-mk-env-amt" style={{color:'#5E9478'}}>14 000 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
-                    <div className="ld-mk-env"><div className="ld-mk-env-dot" style={{background:'#4E8268'}}></div><div className="ld-mk-env-name"><div>Одежда и Обувь</div><div className="ld-mk-env-sub">в норме</div></div><div className="ld-mk-env-amt" style={{color:'#4E8268'}}>3 000 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
-                    <div className="ld-mk-env"><div className="ld-mk-env-dot" style={{background:'#B08840'}}></div><div className="ld-mk-env-name"><div>Дом и Техника</div><div className="ld-mk-env-sub">7 дней до покупки</div></div><div className="ld-mk-env-amt" style={{color:'#B08840'}}>2 000 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
-                    <div className="ld-mk-env"><div className="ld-mk-env-dot" style={{background:'#B85555'}}></div><div className="ld-mk-env-name"><div>Красота и Здоровье</div><div className="ld-mk-env-sub">скоро закончится</div></div><div className="ld-mk-env-amt" style={{color:'#B85555'}}>2 000 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
+                    <div className="ld-mk-env ld-mk-env--expanded">
+                      <div className="ld-mk-env-name">
+                        <div>Еда и Супермаркеты</div>
+                        <div className="ld-mk-env-sub">осталось 18 дней</div>
+                        <div className="ld-mk-env-sets">
+                          <div className="ld-mk-env-set-card"><span className="ld-mk-env-set-name">Северная диета</span><span className="ld-mk-env-set-meta">14 поз.</span><span className="ld-mk-env-set-amt">11 000 ₽/мес</span></div>
+                          <div className="ld-mk-env-set-card"><span className="ld-mk-env-set-name">Вкусняшки и снеки</span><span className="ld-mk-env-set-meta">4 поз.</span><span className="ld-mk-env-set-amt">3 000 ₽/мес</span></div>
+                        </div>
+                      </div>
+                      <div className="ld-mk-env-amt" style={{color:'#5E9478'}}>14 000 ₽<div className="ld-mk-env-sub">/мес</div></div>
+                    </div>
+                    <div className="ld-mk-env"><div className="ld-mk-env-name"><div>Одежда и Обувь</div><div className="ld-mk-env-sub">в норме</div></div><div className="ld-mk-env-amt" style={{color:'#4E8268'}}>3 000 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
+                    <div className="ld-mk-env"><div className="ld-mk-env-name"><div>Дом и Техника</div><div className="ld-mk-env-sub">7 дней до покупки</div></div><div className="ld-mk-env-amt" style={{color:'#B08840'}}>2 000 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
+                    <div className="ld-mk-env"><div className="ld-mk-env-name"><div>Красота и Здоровье</div><div className="ld-mk-env-sub">скоро закончится</div></div><div className="ld-mk-env-amt" style={{color:'#B85555'}}>2 000 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
                   </div>
                 </div>
               </div>
@@ -770,7 +781,7 @@ export default function Landing() {
       {/* ── COOKIE BANNER ── */}
       {!cookieAccepted && (
         <div className="cookie-banner">
-          <p className="cookie-text">Мы используем куки для аналитики и улучшения сервиса. <a href="#" className="cookie-link">Подробнее</a></p>
+          <p className="cookie-text">Мы используем куки для аналитики и улучшения сервиса. <a href="#/privacy" className="cookie-link">Подробнее</a></p>
           <div className="cookie-actions">
             <button className="cookie-btn cookie-btn--accept" onClick={() => { localStorage.setItem('ss_cookie_ok', '1'); setCookieAccepted(true) }}>Принять</button>
             <button className="cookie-btn cookie-btn--decline" onClick={() => setCookieAccepted(true)}>Отклонить</button>
