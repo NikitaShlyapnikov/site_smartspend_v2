@@ -275,8 +275,7 @@ export default function Landing() {
         <div className="ld-container ld-hero-inner">
           <div className="ld-hero-text">
             <h1 className="ld-h1">Твои деньги<br/>заслуживают<br/><em>системы</em></h1>
-            <p className="ld-hero-sub">Большинство людей не знают, сколько потратят в следующем месяце. SmartSpend знает.</p>
-            <p className="ld-hero-label">SmartSpend — Система планирования расходов</p>
+            <p className="ld-hero-sub">Большинство людей не знают, сколько потратят в следующем месяце. SmartSpend знает. SmartSpend — Система планирования расходов</p>
             <div className="ld-hero-actions">
               <button className="landing-btn-primary" onClick={openRegister}>Начать →</button>
               <button className="landing-btn-ghost" onClick={openLogin}>Войти</button>
@@ -307,6 +306,11 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── GREAT IDEAS BANNER ── */}
+      <div className="ld-ideas-banner">
+        <div className="ld-ideas-text">ОСНОВАНО НА ВЕЛИКИХ ИДЕЯХ</div>
+      </div>
+
       {/* ── FEATURES ── */}
       <div id="ld-features">
 
@@ -316,9 +320,9 @@ export default function Landing() {
             <div className="ld-feature">
               <div className="ld-feature-text">
                 <div className="ld-section-label">Инвентарь и Наборы</div>
-                <h2 className="ld-h2">ПЛАНИРУЙ ПОКУПКИ <span className="ld-h2-pill">НА ГОДЫ ВПЕРЁД</span></h2>
+                <h2 className="ld-h2"><span className="ld-h2-pill">ПЛАНИРУЙ ПОКУПКИ</span> НА ГОДЫ ВПЕРЁД</h2>
                 <div className="ld-quote-block">
-                  <div className="ld-quote-text">Канеман описал два режима мышления: быстрый — импульсивный, и медленный — рациональный. В усталости, голоде или стрессе мы переключаемся на быстрый режим и принимаем решения, о которых потом жалеем.</div>
+                  <div className="ld-quote-text">«Когда вы устали или голодны, вы не просто принимаете плохие решения — вы позволяете своей интуитивной системе диктовать правила, потому что самоконтроль требует огромных усилий.»</div>
                   <div className="ld-quote-author">
                     <img className="ld-quote-avatar" src="/authors/kaneman.png" alt="Даниэль Канеман"/>
                     <div><div className="ld-quote-name">Даниэль Канеман</div><div className="ld-quote-role">Нобелевский лауреат по экономике · «Думай медленно, решай быстро»</div></div>
@@ -363,7 +367,7 @@ export default function Landing() {
                 <div className="ld-section-label">Профиль · Конверты</div>
                 <h2 className="ld-h2">РАЗЛОЖИ ДЕНЬГИ <span className="ld-h2-pill">ПО КОНВЕРТАМ</span></h2>
                 <div className="ld-quote-block">
-                  <div className="ld-quote-text">Талер описал ментальный учёт: наш мозг сам распределяет деньги по категориям. Это не слабость — встроенный механизм. Конверты используют эту особенность, а не борются с ней.</div>
+                  <div className="ld-quote-text">«Наш мозг раскладывает деньги по «виртуальным конвертам». Вы можете жалеть 100 рублей на платную парковку (конверт «текущие расходы»), но легко потратить 5000 рублей на ужин в ресторане (конверт «развлечения»).»</div>
                   <div className="ld-quote-author">
                     <img className="ld-quote-avatar" src="/authors/taler.png" alt="Ричард Талер"/>
                     <div><div className="ld-quote-name">Ричард Талер</div><div className="ld-quote-role">Нобелевский лауреат по экономике · Теория ментального учёта</div></div>
@@ -400,9 +404,9 @@ export default function Landing() {
             <div className="ld-feature">
               <div className="ld-feature-text">
                 <div className="ld-section-label">Лента · Каталог</div>
-                <h2 className="ld-h2">УЧИСЬ НА <span className="ld-h2-pill">ГОТОВЫХ ПРОТОКОЛАХ</span></h2>
+                <h2 className="ld-h2"><span className="ld-h2-pill">УЧИСЬ</span> НА ГОТОВЫХ ПРОТОКОЛАХ</h2>
                 <div className="ld-quote-block">
-                  <div className="ld-quote-text">Беккер показал: люди принимают не плохие решения, а лучшие из тех, что доступны им с имеющимися знаниями. Чем лучше информация — тем лучше выбор.</div>
+                  <div className="ld-quote-text">«Экономический подход не предполагает, что люди не совершают ошибок. Он предполагает, что люди делают лучший выбор из доступных им знаний.»</div>
                   <div className="ld-quote-author">
                     <img className="ld-quote-avatar" src="/authors/beker.png" alt="Гэри Беккер"/>
                     <div><div className="ld-quote-name">Гэри Беккер</div><div className="ld-quote-role">Нобелевский лауреат по экономике · Теория человеческого капитала</div></div>
@@ -458,9 +462,9 @@ export default function Landing() {
             <div className="ld-feature ld-feature--reverse">
               <div className="ld-feature-text">
                 <div className="ld-section-label">Вклады · Карты · Промо</div>
-                <h2 className="ld-h2">СЭКОНОМИЛ — <span className="ld-h2-pill">ЗНАЧИТ ЗАРАБОТАЛ</span></h2>
+                <h2 className="ld-h2"><span className="ld-h2-pill">СЭКОНОМИЛ</span> — ЗНАЧИТ ЗАРАБОТАЛ</h2>
                 <div className="ld-quote-block">
-                  <div className="ld-quote-text">Мангер считал накопление первого капитала самым сложным этапом — не потому что мало денег, а потому что каждый сэкономленный рубль требует осознанного решения. Со временем это становится привычкой.</div>
+                  <div className="ld-quote-text">«Первый капитал — самый сложный. Он требует навыков и дисциплины, которых у вас еще нет.»</div>
                   <div className="ld-quote-author">
                     <img className="ld-quote-avatar" src="/authors/manger.png" alt="Чарльз Мангер"/>
                     <div><div className="ld-quote-name">Чарльз Мангер</div><div className="ld-quote-role">Инвестор · Партнёр Уоррена Баффета · Berkshire Hathaway</div></div>
@@ -468,6 +472,7 @@ export default function Landing() {
                 </div>
                 <p className="ld-feature-desc">Вклад под 5% вместо 15% — это <strong>10 000 ₽ в год мимо</strong> с каждых 100 000 рублей. Карта без кешбэка — ещё <strong>1 500 ₽ в месяц</strong> мимо. Купоны и скидки, которые проходят незамеченными — <strong>ещё 3 000 ₽ в месяц</strong>. Мы собрали всё в одном месте: лучшие ставки по вкладам, карты с кешбэком под твои расходы и купоны от сообщества. Каждый сэкономленный рубль — это уже заработанный рубль.</p>
               </div>
+              <div className="ld-mockup ld-mockup--tilt-right ld-winstack-outer">
               <div className="ld-winstack">
                 {/* Окно 1 — Вклады (верх, задний план) */}
                 <div className="ld-winstack-win ld-winstack-win--1">
@@ -534,6 +539,7 @@ export default function Landing() {
                   </div>
                 </div>
               </div>
+              </div>
             </div>
           </div>
         </section>
@@ -546,7 +552,7 @@ export default function Landing() {
                 <div className="ld-section-label">Инвентарь</div>
                 <h2 className="ld-h2">МЫ СМОТРИМ <span className="ld-h2-pill">ВПЕРЁД, НЕ НАЗАД</span></h2>
                 <div className="ld-quote-block">
-                  <div className="ld-quote-text">Рид писал: смотреть на прошлые расходы — значит управлять финансами в зеркало заднего вида. Рациональный человек принимает решения глядя вперёд, а не назад.</div>
+                  <div className="ld-quote-text">«Рациональный человек принимает решения, глядя только вперёд. То, что вы потратили вчера, уже ушло, и это не должно влиять на то, стоит ли вам тратить завтра.»</div>
                   <div className="ld-quote-author">
                     <img className="ld-quote-avatar" src="/authors/reed.png" alt="Джон Т. Рид"/>
                     <div><div className="ld-quote-name">Джон Т. Рид</div><div className="ld-quote-role">Автор книг по инвестициям и финансовой независимости</div></div>
@@ -584,9 +590,9 @@ export default function Landing() {
             <div className="ld-feature ld-feature--reverse">
               <div className="ld-feature-text">
                 <div className="ld-section-label">Профиль · EmoSpend</div>
-                <h2 className="ld-h2">БАЛУЙ СЕБЯ — <span className="ld-h2-pill">БЕЗ ВИНЫ</span></h2>
+                <h2 className="ld-h2"><span className="ld-h2-pill">БАЛУЙ СЕБЯ</span> — БЕЗ ВИНЫ</h2>
                 <div className="ld-quote-block">
-                  <div className="ld-quote-text">Брикман и Кэмпбелл описали гедонистическую адаптацию: мы покупаем новую вещь в ожидании долгого счастья, но уровень радости быстро возвращается к прежнему. Это не слабость — это норма. Важно заложить это в систему заранее.</div>
+                  <div className="ld-quote-text">«Мы покупаем новую вещь (телефон, машину), ожидая долгого счастья. Но наш уровень радости возвращается к базовому очень быстро.»</div>
                   <div className="ld-quote-author">
                     <div><div className="ld-quote-name">Гедонистическая адаптация</div><div className="ld-quote-role">Психологический феномен · Брикман и Кэмпбелл, 1971</div></div>
                   </div>
@@ -607,11 +613,11 @@ export default function Landing() {
                     <div className="ld-mk-emo-row ld-mk-emo-row--header">
                       <span>Год</span><span>в месяц</span><span style={{textAlign:'right'}}>в год</span>
                     </div>
-                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">'26</span><span>621 ₽</span><span className="ld-mk-emo-val">7 452 ₽</span></div>
-                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">'27</span><span>3 733 ₽</span><span className="ld-mk-emo-val">44 796 ₽</span></div>
-                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">'28</span><span>6 846 ₽</span><span className="ld-mk-emo-val">82 152 ₽</span></div>
-                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">'31</span><span>16 182 ₽</span><span className="ld-mk-emo-val">194 184 ₽</span></div>
-                    <div className="ld-mk-emo-row ld-mk-emo-row--future"><span className="ld-mk-emo-year">'36</span><span>31 743 ₽</span><span className="ld-mk-emo-val">380 916 ₽</span></div>
+                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2026</span><span>621 ₽</span><span className="ld-mk-emo-val">7 452 ₽</span></div>
+                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2027</span><span>3 733 ₽</span><span className="ld-mk-emo-val">44 796 ₽</span></div>
+                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2028</span><span>6 846 ₽</span><span className="ld-mk-emo-val">82 152 ₽</span></div>
+                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2031</span><span>16 182 ₽</span><span className="ld-mk-emo-val">194 184 ₽</span></div>
+                    <div className="ld-mk-emo-row ld-mk-emo-row--future"><span className="ld-mk-emo-year">2036</span><span>31 743 ₽</span><span className="ld-mk-emo-val">380 916 ₽</span></div>
                   </div>
                   <div className="ld-mk-emo-note">Чем больше капитал — тем выше EmoSpend</div>
                 </div>
@@ -626,9 +632,9 @@ export default function Landing() {
             <div className="ld-feature">
               <div className="ld-feature-text">
                 <div className="ld-section-label">Планирование · 10 лет</div>
-                <h2 className="ld-h2">ЕСТЬ ПЛАН — <span className="ld-h2-pill">ДЕРЖИСЬ ПЛАНА</span></h2>
+                <h2 className="ld-h2"><span className="ld-h2-pill">ЕСТЬ ПЛАН</span> — ДЕРЖИСЬ ПЛАНА</h2>
                 <div className="ld-quote-block">
-                  <div className="ld-quote-text">Баффет всегда настаивал: медленный и системный рост — единственный надёжный путь к капиталу, доступный каждому. Не нужно быть гением. Нужен план и дисциплина его придерживаться.</div>
+                  <div className="ld-quote-text">«Никто не любит богатеть медленно. Но это единственный путь, доступный каждому.»</div>
                   <div className="ld-quote-author">
                     <img className="ld-quote-avatar" src="/authors/bafet.png" alt="Уоррен Баффет"/>
                     <div><div className="ld-quote-name">Уоррен Баффет</div><div className="ld-quote-role">Инвестор · Berkshire Hathaway · Состояние $150 млрд</div></div>
@@ -663,7 +669,7 @@ export default function Landing() {
                         { year: '2033', nominal: 6721936, yrs: 7 },
                         { year: '2036', nominal: 9522880, yrs: 10 },
                       ]
-                      const adj = (nom, yrs) => Math.round(nom / Math.pow(1 + planInflation / 100, yrs))
+                      const adj = (nom, yrs) => Math.round(nom * Math.pow(1 + planInflation / 100, yrs))
                       const maxVal = adj(9522880, 10)
                       return rows.map(r => {
                         const val = adj(r.nominal, r.yrs)
@@ -679,7 +685,7 @@ export default function Landing() {
                     })()}
                   </div>
                   <div className="ld-mk-plan-note">
-                    {planInflation === 0 ? 'Предел накоплений — через 21 год · 19.8 млн ₽' : `В реальных ценах с инфляцией ${planInflation}% — покупательная способность снижается`}
+                    {planInflation === 0 ? 'Предел накоплений — через 21 год · 19.8 млн ₽' : `При инфляции ${planInflation}% — зарплаты и ставки по вкладам растут вместе с ценами`}
                   </div>
                 </div>
               </div>
@@ -699,7 +705,7 @@ export default function Landing() {
           <div className="ld-paths-grid">
             <div className="ld-path-card ld-path-good">
               <div className="ld-path-head">
-                <div className="ld-path-title">Осознанный путь</div>
+                <div className="ld-path-title">SmartSpend</div>
                 <div className="ld-path-badge ld-path-badge--good">Капитал за 10 лет</div>
               </div>
               <div className="ld-path-items">
@@ -731,10 +737,9 @@ export default function Landing() {
       <section id="ld-cta" className="ld-cta">
         <div className="ld-cta-inner">
           <div className="ld-section-label" style={{color:'var(--accent-green)'}}>Начни прямо сейчас</div>
-          <h2 className="ld-cta-title">Твои деньги заслуживают системы</h2>
+          <h2 className="ld-cta-title">Хватит считать прошлое — начни управлять будущим</h2>
           <p className="ld-cta-sub">Подбери компании, создай инвентарь, распредели бюджет по конвертам — бесплатно.</p>
           <button className="landing-btn-primary" onClick={openRegister}>Начать →</button>
-          <p className="ld-cta-note">Без подписки · Данные хранятся у тебя</p>
         </div>
       </section>
 
@@ -757,11 +762,7 @@ export default function Landing() {
             <a href="#">Политика конфиденциальности</a>
             <a href="#">Пользовательское соглашение</a>
           </div>
-          <div className="landing-footer-right">
-            <a href="#" className="landing-social-link" aria-label="Telegram">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-            </a>
-          </div>
+
         </div>
       </footer>
 
