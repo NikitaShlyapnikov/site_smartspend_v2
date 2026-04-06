@@ -11584,7 +11584,7 @@ body.dark .ipanel-date-input { color-scheme: dark; }
 .ld-cube-smile { display: flex; flex-direction: column; align-items: center; gap: 12px; animation: ldFadeIn 0.4s ease; }
 .ld-cube-smile-text { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; color: var(--text); }
 @keyframes ldCubeBob { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(0.8deg); } }
-@keyframes ldFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes ldFadeIn { from { opacity: 0; transform: translateY(12px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
 /* Two Paths */
 .ld-paths-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }

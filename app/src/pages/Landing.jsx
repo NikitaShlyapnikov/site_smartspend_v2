@@ -275,7 +275,7 @@ export default function Landing() {
         <div className="ld-container ld-hero-inner">
           <div className="ld-hero-text">
             <h1 className="ld-h1">Твои деньги<br/>заслуживают<br/><em>системы</em></h1>
-            <p className="ld-hero-sub">Большинство людей не знают, сколько потратят в следующем месяце. SmartSpend знает. SmartSpend — Система планирования расходов</p>
+            <p className="ld-hero-sub">Большинство людей не знают, сколько потратят в следующем месяце. SmartSpend знает. SmartSpend — Система планирования расходов.</p>
             <div className="ld-hero-actions">
               <button className="landing-btn-primary" onClick={openRegister}>Начать →</button>
               <button className="landing-btn-ghost" onClick={openLogin}>Войти</button>
@@ -286,9 +286,9 @@ export default function Landing() {
               <div className="ld-cube-frame">
                 <div className="ld-cube-screen">
                   {cur.brand ? (
-                    <div className="ld-cube-brand">SMART<br/>SPEND</div>
+                    <div key={cubeSlide} className="ld-cube-brand">SMART<br/>SPEND</div>
                   ) : cur.smile ? (
-                    <div className="ld-cube-smile">
+                    <div key={cubeSlide} className="ld-cube-smile">
                       <svg width="110" height="110" viewBox="0 0 80 80" fill="none">
                         <path d="M26 36 Q29 32 32 36" stroke="var(--text)" strokeWidth="3" strokeLinecap="round" fill="none"/>
                         <path d="M48 36 Q51 32 54 36" stroke="var(--text)" strokeWidth="3" strokeLinecap="round" fill="none"/>
@@ -297,7 +297,7 @@ export default function Landing() {
                       <div className="ld-cube-smile-text">Начни сегодня</div>
                     </div>
                   ) : (
-                    <div className="ld-cube-phrase">{cur.text.split('\n')[0]}<br/><em>{cur.text.split('\n')[1]}</em></div>
+                    <div key={cubeSlide} className="ld-cube-phrase">{cur.text.split('\n')[0]}<br/><em>{cur.text.split('\n')[1]}</em></div>
                   )}
                 </div>
               </div>
@@ -314,10 +314,50 @@ export default function Landing() {
       {/* ── FEATURES ── */}
       <div id="ld-features">
 
-        {/* 1. Наборы (Канеман) */}
+        {/* 1. Инвентарь (Рид) */}
         <section className="ld-section">
           <div className="ld-container">
             <div className="ld-feature">
+              <div className="ld-feature-text">
+                <div className="ld-section-label">Инвентарь</div>
+                <h2 className="ld-h2">МЫ СМОТРИМ <span className="ld-h2-pill">ВПЕРЁД, НЕ НАЗАД</span></h2>
+                <div className="ld-quote-block">
+                  <div className="ld-quote-text">«Рациональный человек принимает решения, глядя только вперёд. То, что вы потратили вчера, уже ушло, и это не должно влиять на то, стоит ли вам тратить завтра.»</div>
+                  <div className="ld-quote-author">
+                    <img className="ld-quote-avatar" src="/authors/reed.png" alt="Джон Т. Рид"/>
+                    <div><div className="ld-quote-name">Джон Т. Рид</div><div className="ld-quote-role">Автор книг по инвестициям и финансовой независимости</div></div>
+                  </div>
+                </div>
+                <p className="ld-feature-desc">Приложения по учёту финансов показывают прошлое — мы показываем будущее. SmartSpend не спрашивает куда делись деньги. Он показывает, <strong>сколько потратишь в следующем месяце</strong> — ещё до первой покупки. Инвентарь следит за сроком службы вещей и предупреждает заранее: зубная щётка закончится через 10 дней, кроссовки — через 3 месяца. Ноль сюрпризов.</p>
+              </div>
+              <div className="ld-mockup ld-mockup--tilt-right">
+                <div className="ld-mockup-topbar">
+                  <div className="ld-mockup-dots"><span/><span/><span/></div>
+                  <span className="ld-mockup-title">Инвентарь · 9 200 ₽/мес</span>
+                </div>
+                <div className="ld-mockup-body">
+                  <div className="ld-mk-inv-group">
+                    <div className="ld-mk-inv-group-lbl">Ожидает покупки</div>
+                    <div className="ld-mk-inv-item ld-mk-inv-urgent"><span>Зубная щётка</span><span className="ld-mk-inv-date">сегодня</span><span className="ld-mk-inv-price">250 ₽</span></div>
+                    <div className="ld-mk-inv-item ld-mk-inv-soon"><span>Дезодорант</span><span className="ld-mk-inv-date">3 дня</span><span className="ld-mk-inv-price">300 ₽</span></div>
+                    <div className="ld-mk-inv-item ld-mk-inv-soon"><span>Крем для лица</span><span className="ld-mk-inv-date">7 дней</span><span className="ld-mk-inv-price">600 ₽</span></div>
+                  </div>
+                  <div className="ld-mk-inv-group">
+                    <div className="ld-mk-inv-group-lbl">Планируется</div>
+                    <div className="ld-mk-inv-item ld-mk-inv-ok"><span>Толстовка</span><span className="ld-mk-inv-date">2 мес</span><span className="ld-mk-inv-price">4 000 ₽</span></div>
+                    <div className="ld-mk-inv-item ld-mk-inv-ok"><span>Кроссовки</span><span className="ld-mk-inv-date">3 мес</span><span className="ld-mk-inv-price">6 000 ₽</span></div>
+                    <div className="ld-mk-inv-item ld-mk-inv-ok"><span>Музыка</span><span className="ld-mk-inv-date">1 мес</span><span className="ld-mk-inv-price">399 ₽</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 2. Наборы (Канеман) */}
+        <section className="ld-section ld-section--alt">
+          <div className="ld-container">
+            <div className="ld-feature ld-feature--reverse">
               <div className="ld-feature-text">
                 <div className="ld-section-label">Инвентарь и Наборы</div>
                 <h2 className="ld-h2"><span className="ld-h2-pill">ПЛАНИРУЙ ПОКУПКИ</span> НА ГОДЫ ВПЕРЁД</h2>
@@ -330,7 +370,7 @@ export default function Landing() {
                 </div>
                 <p className="ld-feature-desc">Трекеры расходов отвечают на вопрос «куда делись деньги?» — но деньги уже потрачены, и этот ответ ничего не меняет. SmartSpend задаёт другой вопрос: <strong>что тебе понадобится через месяц, через год?</strong> Наборы — готовые подборки товаров с расчётом амортизации. Ты не реагируешь на уже случившееся — ты управляешь тем, что будет.</p>
               </div>
-              <div className="ld-mockup ld-mockup--tilt-right">
+              <div className="ld-mockup ld-mockup--tilt-left">
                 <div className="ld-mockup-topbar">
                   <div className="ld-mockup-dots"><span/><span/><span/></div>
                   <span className="ld-mockup-title">Набор · Рабочее место 2026</span>
@@ -359,13 +399,13 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* 2. Конверты (Талер) */}
-        <section className="ld-section ld-section--alt">
+        {/* 3. Конверты (Талер) */}
+        <section className="ld-section">
           <div className="ld-container">
-            <div className="ld-feature ld-feature--reverse">
+            <div className="ld-feature">
               <div className="ld-feature-text">
                 <div className="ld-section-label">Профиль · Конверты</div>
-                <h2 className="ld-h2">РАЗЛОЖИ ДЕНЬГИ <span className="ld-h2-pill">ПО КОНВЕРТАМ</span></h2>
+                <h2 className="ld-h2"><span className="ld-h2-pill">РАЗЛОЖИ ДЕНЬГИ</span> ПО КОНВЕРТАМ</h2>
                 <div className="ld-quote-block">
                   <div className="ld-quote-text">«Наш мозг раскладывает деньги по «виртуальным конвертам». Вы можете жалеть 100 рублей на платную парковку (конверт «текущие расходы»), но легко потратить 5000 рублей на ужин в ресторане (конверт «развлечения»).»</div>
                   <div className="ld-quote-author">
@@ -375,7 +415,7 @@ export default function Landing() {
                 </div>
                 <p className="ld-feature-desc">Распредели доход по <strong>Конвертам</strong> один раз в начале месяца — и больше не думай о деньгах. Видно сколько осталось на еду, на досуг, на транспорт. Когда конверт пустой — стоп. Вопрос «куда делись деньги?» просто перестаёт существовать.</p>
               </div>
-              <div className="ld-mockup ld-mockup--tilt-left">
+              <div className="ld-mockup ld-mockup--tilt-right">
                 <div className="ld-mockup-topbar">
                   <div className="ld-mockup-dots"><span/><span/><span/></div>
                   <span className="ld-mockup-title">Профиль · Конверты</span>
@@ -398,7 +438,49 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* 3. Лента (Беккер) */}
+        {/* 4. EmoSpend */}
+        <section className="ld-section ld-section--alt">
+          <div className="ld-container">
+            <div className="ld-feature ld-feature--reverse">
+              <div className="ld-feature-text">
+                <div className="ld-section-label">Профиль · EmoSpend</div>
+                <h2 className="ld-h2"><span className="ld-h2-pill">БАЛУЙ СЕБЯ</span> — БЕЗ ВИНЫ</h2>
+                <div className="ld-quote-block">
+                  <div className="ld-quote-text">«Мы покупаем новую вещь (телефон, машину), ожидая долгого счастья. Но наш уровень радости возвращается к базовому очень быстро.»</div>
+                  <div className="ld-quote-author">
+                    <div><div className="ld-quote-name">Гедонистическая адаптация</div><div className="ld-quote-role">Психологический феномен · Брикман и Кэмпбелл, 1971</div></div>
+                  </div>
+                </div>
+                <p className="ld-feature-desc">Импульсивные покупки — не слабость характера. Это физиология. Поэтому в SmartSpend есть <strong>EmoSpend</strong> — выделенный бюджет на эмоциональные радости вне всяких наборов и конвертов. Трать на что хочешь, без чувства вины: деньги на это уже отложены. И чем больше растёт твой капитал — тем больше растёт EmoSpend.</p>
+              </div>
+              <div className="ld-mockup ld-mockup--tilt-left">
+                <div className="ld-mockup-topbar">
+                  <div className="ld-mockup-dots"><span/><span/><span/></div>
+                  <span className="ld-mockup-title">Профиль · EmoSpend</span>
+                </div>
+                <div className="ld-mockup-body">
+                  <div className="ld-mk-emo-header">
+                    <div className="ld-mk-emo-title">EmoSpend</div>
+                    <div className="ld-mk-emo-sub">4% от капитала · ежегодный рост</div>
+                  </div>
+                  <div className="ld-mk-emo-rows">
+                    <div className="ld-mk-emo-row ld-mk-emo-row--header">
+                      <span>Год</span><span>в месяц</span><span style={{textAlign:'right'}}>в год</span>
+                    </div>
+                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2026</span><span>621 ₽</span><span className="ld-mk-emo-val">7 452 ₽</span></div>
+                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2027</span><span>3 733 ₽</span><span className="ld-mk-emo-val">44 796 ₽</span></div>
+                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2028</span><span>6 846 ₽</span><span className="ld-mk-emo-val">82 152 ₽</span></div>
+                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2031</span><span>16 182 ₽</span><span className="ld-mk-emo-val">194 184 ₽</span></div>
+                    <div className="ld-mk-emo-row ld-mk-emo-row--future"><span className="ld-mk-emo-year">2036</span><span>31 743 ₽</span><span className="ld-mk-emo-val">380 916 ₽</span></div>
+                  </div>
+                  <div className="ld-mk-emo-note">Чем больше капитал — тем выше EmoSpend</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 5. Лента (Беккер) */}
         <section className="ld-section">
           <div className="ld-container">
             <div className="ld-feature">
@@ -456,7 +538,7 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* 4. Вклады/Карты (Мангер) */}
+        {/* 6. Вклады/Карты/Промо (Мангер) */}
         <section className="ld-section ld-section--alt">
           <div className="ld-container">
             <div className="ld-feature ld-feature--reverse">
@@ -472,7 +554,7 @@ export default function Landing() {
                 </div>
                 <p className="ld-feature-desc">Вклад под 5% вместо 15% — это <strong>10 000 ₽ в год мимо</strong> с каждых 100 000 рублей. Карта без кешбэка — ещё <strong>1 500 ₽ в месяц</strong> мимо. Купоны и скидки, которые проходят незамеченными — <strong>ещё 3 000 ₽ в месяц</strong>. Мы собрали всё в одном месте: лучшие ставки по вкладам, карты с кешбэком под твои расходы и купоны от сообщества. Каждый сэкономленный рубль — это уже заработанный рубль.</p>
               </div>
-              <div className="ld-mockup ld-mockup--tilt-right ld-winstack-outer">
+              <div className="ld-mockup ld-mockup--tilt-left ld-winstack-outer">
               <div className="ld-winstack">
                 {/* Окно 1 — Вклады (верх, задний план) */}
                 <div className="ld-winstack-win ld-winstack-win--1">
@@ -539,88 +621,6 @@ export default function Landing() {
                   </div>
                 </div>
               </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 5. Инвентарь (Рид) */}
-        <section className="ld-section">
-          <div className="ld-container">
-            <div className="ld-feature">
-              <div className="ld-feature-text">
-                <div className="ld-section-label">Инвентарь</div>
-                <h2 className="ld-h2">МЫ СМОТРИМ <span className="ld-h2-pill">ВПЕРЁД, НЕ НАЗАД</span></h2>
-                <div className="ld-quote-block">
-                  <div className="ld-quote-text">«Рациональный человек принимает решения, глядя только вперёд. То, что вы потратили вчера, уже ушло, и это не должно влиять на то, стоит ли вам тратить завтра.»</div>
-                  <div className="ld-quote-author">
-                    <img className="ld-quote-avatar" src="/authors/reed.png" alt="Джон Т. Рид"/>
-                    <div><div className="ld-quote-name">Джон Т. Рид</div><div className="ld-quote-role">Автор книг по инвестициям и финансовой независимости</div></div>
-                  </div>
-                </div>
-                <p className="ld-feature-desc">Приложения по учёту финансов показывают прошлое — мы показываем будущее. SmartSpend не спрашивает куда делись деньги. Он показывает, <strong>сколько потратишь в следующем месяце</strong> — ещё до первой покупки. Инвентарь следит за сроком службы вещей и предупреждает заранее: зубная щётка закончится через 10 дней, кроссовки — через 3 месяца. Ноль сюрпризов.</p>
-              </div>
-              <div className="ld-mockup ld-mockup--tilt-right">
-                <div className="ld-mockup-topbar">
-                  <div className="ld-mockup-dots"><span/><span/><span/></div>
-                  <span className="ld-mockup-title">Инвентарь · 9 200 ₽/мес</span>
-                </div>
-                <div className="ld-mockup-body">
-                  <div className="ld-mk-inv-group">
-                    <div className="ld-mk-inv-group-lbl">Ожидает покупки</div>
-                    <div className="ld-mk-inv-item ld-mk-inv-urgent"><span>Зубная щётка</span><span className="ld-mk-inv-date">сегодня</span><span className="ld-mk-inv-price">250 ₽</span></div>
-                    <div className="ld-mk-inv-item ld-mk-inv-soon"><span>Дезодорант</span><span className="ld-mk-inv-date">3 дня</span><span className="ld-mk-inv-price">300 ₽</span></div>
-                    <div className="ld-mk-inv-item ld-mk-inv-soon"><span>Крем для лица</span><span className="ld-mk-inv-date">7 дней</span><span className="ld-mk-inv-price">600 ₽</span></div>
-                  </div>
-                  <div className="ld-mk-inv-group">
-                    <div className="ld-mk-inv-group-lbl">Планируется</div>
-                    <div className="ld-mk-inv-item ld-mk-inv-ok"><span>Толстовка</span><span className="ld-mk-inv-date">2 мес</span><span className="ld-mk-inv-price">4 000 ₽</span></div>
-                    <div className="ld-mk-inv-item ld-mk-inv-ok"><span>Кроссовки</span><span className="ld-mk-inv-date">3 мес</span><span className="ld-mk-inv-price">6 000 ₽</span></div>
-                    <div className="ld-mk-inv-item ld-mk-inv-ok"><span>Музыка</span><span className="ld-mk-inv-date">1 мес</span><span className="ld-mk-inv-price">399 ₽</span></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 6. EmoSpend */}
-        <section className="ld-section ld-section--alt">
-          <div className="ld-container">
-            <div className="ld-feature ld-feature--reverse">
-              <div className="ld-feature-text">
-                <div className="ld-section-label">Профиль · EmoSpend</div>
-                <h2 className="ld-h2"><span className="ld-h2-pill">БАЛУЙ СЕБЯ</span> — БЕЗ ВИНЫ</h2>
-                <div className="ld-quote-block">
-                  <div className="ld-quote-text">«Мы покупаем новую вещь (телефон, машину), ожидая долгого счастья. Но наш уровень радости возвращается к базовому очень быстро.»</div>
-                  <div className="ld-quote-author">
-                    <div><div className="ld-quote-name">Гедонистическая адаптация</div><div className="ld-quote-role">Психологический феномен · Брикман и Кэмпбелл, 1971</div></div>
-                  </div>
-                </div>
-                <p className="ld-feature-desc">Импульсивные покупки — не слабость характера. Это физиология. Поэтому в SmartSpend есть <strong>EmoSpend</strong> — выделенный бюджет на эмоциональные радости вне всяких наборов и конвертов. Трать на что хочешь, без чувства вины: деньги на это уже отложены. И чем больше растёт твой капитал — тем больше растёт EmoSpend.</p>
-              </div>
-              <div className="ld-mockup ld-mockup--tilt-left">
-                <div className="ld-mockup-topbar">
-                  <div className="ld-mockup-dots"><span/><span/><span/></div>
-                  <span className="ld-mockup-title">Профиль · EmoSpend</span>
-                </div>
-                <div className="ld-mockup-body">
-                  <div className="ld-mk-emo-header">
-                    <div className="ld-mk-emo-title">EmoSpend</div>
-                    <div className="ld-mk-emo-sub">4% от капитала · ежегодный рост</div>
-                  </div>
-                  <div className="ld-mk-emo-rows">
-                    <div className="ld-mk-emo-row ld-mk-emo-row--header">
-                      <span>Год</span><span>в месяц</span><span style={{textAlign:'right'}}>в год</span>
-                    </div>
-                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2026</span><span>621 ₽</span><span className="ld-mk-emo-val">7 452 ₽</span></div>
-                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2027</span><span>3 733 ₽</span><span className="ld-mk-emo-val">44 796 ₽</span></div>
-                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2028</span><span>6 846 ₽</span><span className="ld-mk-emo-val">82 152 ₽</span></div>
-                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2031</span><span>16 182 ₽</span><span className="ld-mk-emo-val">194 184 ₽</span></div>
-                    <div className="ld-mk-emo-row ld-mk-emo-row--future"><span className="ld-mk-emo-year">2036</span><span>31 743 ₽</span><span className="ld-mk-emo-val">380 916 ₽</span></div>
-                  </div>
-                  <div className="ld-mk-emo-note">Чем больше капитал — тем выше EmoSpend</div>
-                </div>
               </div>
             </div>
           </div>
