@@ -273,9 +273,9 @@ export default function Landing() {
         <div className="ld-container ld-hero-inner">
           <div className="ld-hero-text">
             <h1 className="ld-h1">Система<br/><em>планирования</em><br/>расходов</h1>
-            <p className="ld-hero-sub">Большинство людей не знают, сколько потратят в следующем месяце — до первой покупки. SmartSpend знает.</p>
+            <p className="ld-hero-sub">Большинство людей не знают, сколько потратят в следующем месяце. SmartSpend знает.</p>
             <div className="ld-hero-actions">
-              <button className="landing-btn-primary" onClick={openRegister}>Начать бесплатно →</button>
+              <button className="landing-btn-primary" onClick={openRegister}>Начать →</button>
               <button className="landing-btn-ghost" onClick={openLogin}>Войти</button>
             </div>
             <div className="ld-stats-row">
@@ -357,7 +357,7 @@ export default function Landing() {
                 </div>
                 <p className="ld-feature-desc">Трекеры расходов отвечают на вопрос «куда делись деньги?» — но деньги уже потрачены, и этот ответ ничего не меняет. SmartSpend задаёт другой вопрос: <strong>что тебе понадобится через месяц, через год?</strong> Наборы — готовые подборки товаров с расчётом амортизации. Ты не реагируешь на уже случившееся — ты управляешь тем, что будет.</p>
               </div>
-              <div className="ld-mockup ld-mockup--tilt-left">
+              <div className="ld-mockup ld-mockup--tilt-right">
                 <div className="ld-mockup-topbar">
                   <div className="ld-mockup-dots"><span/><span/><span/></div>
                   <span className="ld-mockup-title">Набор · Рабочее место 2026</span>
@@ -402,7 +402,7 @@ export default function Landing() {
                 </div>
                 <p className="ld-feature-desc">Распредели доход по <strong>Конвертам</strong> один раз в начале месяца — и больше не думай о деньгах. Видно сколько осталось на еду, на досуг, на транспорт. Когда конверт пустой — стоп. Вопрос «куда делись деньги?» просто перестаёт существовать.</p>
               </div>
-              <div className="ld-mockup ld-mockup--tilt-right">
+              <div className="ld-mockup ld-mockup--tilt-left">
                 <div className="ld-mockup-topbar">
                   <div className="ld-mockup-dots"><span/><span/><span/></div>
                   <span className="ld-mockup-title">Профиль · Конверты</span>
@@ -441,7 +441,7 @@ export default function Landing() {
                 </div>
                 <p className="ld-feature-desc">Не начинай с нуля. В <strong>Ленте и Каталоге</strong> — готовые наборы и статьи от сообщества: питание, техника, здоровье, одежда. Кто-то уже потратил годы на то, чтобы разобраться — возьми их протокол и адаптируй под себя за один клик.</p>
               </div>
-              <div className="ld-mockup ld-mockup--tilt-left">
+              <div className="ld-mockup ld-mockup--tilt-right">
                 <div className="ld-mockup-topbar">
                   <div className="ld-mockup-dots"><span/><span/><span/></div>
                   <span className="ld-mockup-title">Лента</span>
@@ -499,37 +499,41 @@ export default function Landing() {
                 </div>
                 <p className="ld-feature-desc">Вклад под 5% вместо 15% — это <strong>10 000 ₽ в год мимо</strong> с каждых 100 000 рублей. Карта без кешбэка — ещё <strong>1 500 ₽ в месяц</strong> мимо. Купоны и скидки, которые проходят незамеченными — <strong>ещё 3 000 ₽ в месяц</strong>. Мы собрали всё в одном месте: лучшие ставки по вкладам, карты с кешбэком под твои расходы и купоны от сообщества. Каждый сэкономленный рубль — это уже заработанный рубль.</p>
               </div>
-              <div className="ld-mockup ld-mockup--tilt-right">
-                <div className="ld-mockup-topbar">
-                  <div className="ld-mockup-dots"><span/><span/><span/></div>
-                  <span className="ld-mockup-title">Вклады</span>
-                </div>
-                <div className="ld-mockup-body">
-                  <div className="ld-mk-trio">
-                    <div className="ld-mk-trio-card">
-                      <div className="ld-mk-trio-icon" style={{background:'#4E8268'}}>%</div>
-                      <div className="ld-mk-trio-title">Вклады</div>
-                      <div className="ld-mk-trio-val">до 21%</div>
-                      <div className="ld-mk-trio-sub">сравни ставки банков</div>
-                    </div>
-                    <div className="ld-mk-trio-plus">+</div>
-                    <div className="ld-mk-trio-card">
-                      <div className="ld-mk-trio-icon" style={{background:'#7B5EA7'}}>♣</div>
-                      <div className="ld-mk-trio-title">Карты</div>
-                      <div className="ld-mk-trio-val">до 5%</div>
-                      <div className="ld-mk-trio-sub">кешбэк на расходы</div>
-                    </div>
-                    <div className="ld-mk-trio-plus">+</div>
-                    <div className="ld-mk-trio-card">
-                      <div className="ld-mk-trio-icon" style={{background:'#B08840'}}>🏷</div>
-                      <div className="ld-mk-trio-title">Купоны</div>
-                      <div className="ld-mk-trio-val">−10–40%</div>
-                      <div className="ld-mk-trio-sub">акции от сообщества</div>
-                    </div>
+              <div className="ld-winstack">
+                {/* Окно 3 — Купоны (сзади) */}
+                <div className="ld-winstack-win ld-winstack-win--3">
+                  <div className="ld-winstack-bar">
+                    <div className="ld-mockup-dots"><span/><span/><span/></div>
+                    <span className="ld-mockup-title">Промо · Купоны</span>
                   </div>
-                  <div className="ld-mk-trio-result">
-                    <div className="ld-mk-trio-result-lbl">Итого экономия в год</div>
-                    <div className="ld-mk-trio-result-val">+38 000 ₽</div>
+                  <div className="ld-winstack-body">
+                    <div className="ld-wk-row"><span>Супермаркеты</span><span className="ld-wk-badge" style={{background:'#B08840'}}>−15%</span></div>
+                    <div className="ld-wk-row"><span>Аптеки</span><span className="ld-wk-badge" style={{background:'#5E9478'}}>−30%</span></div>
+                    <div className="ld-wk-row"><span>Одежда и обувь</span><span className="ld-wk-badge" style={{background:'#7B5EA7'}}>−20%</span></div>
+                  </div>
+                </div>
+                {/* Окно 2 — Карты (посередине) */}
+                <div className="ld-winstack-win ld-winstack-win--2">
+                  <div className="ld-winstack-bar">
+                    <div className="ld-mockup-dots"><span/><span/><span/></div>
+                    <span className="ld-mockup-title">Банковские карты</span>
+                  </div>
+                  <div className="ld-winstack-body">
+                    <div className="ld-wk-row"><span>Продукты и кафе</span><span className="ld-wk-rate">5%</span></div>
+                    <div className="ld-wk-row"><span>Транспорт</span><span className="ld-wk-rate">3%</span></div>
+                    <div className="ld-wk-row"><span>Всё остальное</span><span className="ld-wk-rate">1%</span></div>
+                  </div>
+                </div>
+                {/* Окно 1 — Вклады (спереди) */}
+                <div className="ld-winstack-win ld-winstack-win--1">
+                  <div className="ld-winstack-bar">
+                    <div className="ld-mockup-dots"><span/><span/><span/></div>
+                    <span className="ld-mockup-title">Вклады · ставки по срокам</span>
+                  </div>
+                  <div className="ld-winstack-body">
+                    <div className="ld-wk-row"><span>3 месяца</span><span className="ld-wk-rate">21%</span></div>
+                    <div className="ld-wk-row"><span>6 месяцев</span><span className="ld-wk-rate">20%</span></div>
+                    <div className="ld-wk-row"><span>1 год</span><span className="ld-wk-rate">19%</span></div>
                   </div>
                 </div>
               </div>
@@ -553,7 +557,7 @@ export default function Landing() {
                 </div>
                 <p className="ld-feature-desc">Приложения по учёту финансов показывают прошлое — мы показываем будущее. SmartSpend не спрашивает куда делись деньги. Он показывает, <strong>сколько потратишь в следующем месяце</strong> — ещё до первой покупки. Инвентарь следит за сроком службы вещей и предупреждает заранее: зубная щётка закончится через 10 дней, кроссовки — через 3 месяца. Ноль сюрпризов.</p>
               </div>
-              <div className="ld-mockup ld-mockup--tilt-left">
+              <div className="ld-mockup ld-mockup--tilt-right">
                 <div className="ld-mockup-topbar">
                   <div className="ld-mockup-dots"><span/><span/><span/></div>
                   <span className="ld-mockup-title">Инвентарь · 9 200 ₽/мес</span>
@@ -592,7 +596,7 @@ export default function Landing() {
                 </div>
                 <p className="ld-feature-desc">Импульсивные покупки — не слабость характера. Это физиология. Поэтому в SmartSpend есть <strong>EmoSpend</strong> — выделенный бюджет на эмоциональные радости вне всяких наборов и конвертов. Трать на что хочешь, без чувства вины: деньги на это уже отложены. И чем больше растёт твой капитал — тем больше растёт EmoSpend.</p>
               </div>
-              <div className="ld-mockup ld-mockup--tilt-right">
+              <div className="ld-mockup ld-mockup--tilt-left">
                 <div className="ld-mockup-topbar">
                   <div className="ld-mockup-dots"><span/><span/><span/></div>
                   <span className="ld-mockup-title">Профиль · EmoSpend</span>
@@ -635,7 +639,7 @@ export default function Landing() {
                 </div>
                 <p className="ld-feature-desc">Большинство людей переоценивают, что сделают за год, и недооценивают, что сделают за десять. SmartSpend показывает не только текущий бюджет — но и <strong>прогноз роста капитала на 10 лет вперёд</strong>. Цифра мотивирует сильнее любых советов.</p>
               </div>
-              <div className="ld-mockup ld-mockup--tilt-left">
+              <div className="ld-mockup ld-mockup--tilt-right">
                 <div className="ld-mockup-topbar">
                   <div className="ld-mockup-dots"><span/><span/><span/></div>
                   <span className="ld-mockup-title">Планирование · прогноз капитала</span>
@@ -676,7 +680,7 @@ export default function Landing() {
           <div className="ld-section-label" style={{color:'var(--accent-green)'}}>Начни прямо сейчас</div>
           <h2 className="ld-cta-title">Твои деньги заслуживают системы</h2>
           <p className="ld-cta-sub">Подбери компании, создай инвентарь, распредели бюджет по конвертам — бесплатно.</p>
-          <button className="landing-btn-primary" onClick={openRegister}>Начать бесплатно →</button>
+          <button className="landing-btn-primary" onClick={openRegister}>Начать →</button>
           <p className="ld-cta-note">Без подписки · Данные хранятся у тебя</p>
         </div>
       </section>
