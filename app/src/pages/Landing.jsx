@@ -213,6 +213,8 @@ export default function Landing() {
   const [searchParams] = useSearchParams()
   const [authOpen, setAuthOpen] = useState(false)
   const [authTab, setAuthTab] = useState('login')
+  const [planInflation, setPlanInflation] = useState(0)
+  const [cookieAccepted, setCookieAccepted] = useState(() => !!localStorage.getItem('ss_cookie_ok'))
 
   // Hero cube rotation
   const cubeIdx = useRef(0)
@@ -279,11 +281,6 @@ export default function Landing() {
               <button className="landing-btn-primary" onClick={openRegister}>Начать →</button>
               <button className="landing-btn-ghost" onClick={openLogin}>Войти</button>
             </div>
-            <div className="ld-stats-row">
-              <div className="ld-stat"><div className="ld-stat-val">10+</div><div className="ld-stat-lbl">категорий планирования</div></div>
-              <div className="ld-stat"><div className="ld-stat-val">500+</div><div className="ld-stat-lbl">компаний и акций</div></div>
-              <div className="ld-stat"><div className="ld-stat-val">∞</div><div className="ld-stat-lbl">статей сообщества</div></div>
-            </div>
           </div>
           <div className="ld-hero-visual">
             <div className="ld-cube-wrap">
@@ -293,7 +290,7 @@ export default function Landing() {
                     <div className="ld-cube-brand">SMART<br/>SPEND</div>
                   ) : cur.smile ? (
                     <div className="ld-cube-smile">
-                      <svg width="72" height="72" viewBox="0 0 80 80" fill="none">
+                      <svg width="110" height="110" viewBox="0 0 80 80" fill="none">
                         <path d="M26 36 Q29 32 32 36" stroke="var(--text)" strokeWidth="3" strokeLinecap="round" fill="none"/>
                         <path d="M48 36 Q51 32 54 36" stroke="var(--text)" strokeWidth="3" strokeLinecap="round" fill="none"/>
                         <path d="M30 48 Q40 58 50 48" stroke="var(--text)" strokeWidth="3" strokeLinecap="round" fill="none"/>
@@ -472,32 +469,8 @@ export default function Landing() {
                 <p className="ld-feature-desc">Вклад под 5% вместо 15% — это <strong>10 000 ₽ в год мимо</strong> с каждых 100 000 рублей. Карта без кешбэка — ещё <strong>1 500 ₽ в месяц</strong> мимо. Купоны и скидки, которые проходят незамеченными — <strong>ещё 3 000 ₽ в месяц</strong>. Мы собрали всё в одном месте: лучшие ставки по вкладам, карты с кешбэком под твои расходы и купоны от сообщества. Каждый сэкономленный рубль — это уже заработанный рубль.</p>
               </div>
               <div className="ld-winstack">
-                {/* Окно 1 — Купоны (самый верх, задний план) */}
+                {/* Окно 1 — Вклады (верх, задний план) */}
                 <div className="ld-winstack-win ld-winstack-win--1">
-                  <div className="ld-winstack-bar">
-                    <div className="ld-mockup-dots"><span/><span/><span/></div>
-                    <span className="ld-mockup-title">Промо · Купоны</span>
-                  </div>
-                  <div className="ld-winstack-body">
-                    <div className="ld-wk-row"><span>Супермаркеты</span><span className="ld-wk-badge" style={{background:'#B08840'}}>−15%</span></div>
-                    <div className="ld-wk-row"><span>Аптеки</span><span className="ld-wk-badge" style={{background:'#5E9478'}}>−30%</span></div>
-                    <div className="ld-wk-row"><span>Одежда и обувь</span><span className="ld-wk-badge" style={{background:'#7B5EA7'}}>−20%</span></div>
-                  </div>
-                </div>
-                {/* Окно 2 — Карты (середина) */}
-                <div className="ld-winstack-win ld-winstack-win--2">
-                  <div className="ld-winstack-bar">
-                    <div className="ld-mockup-dots"><span/><span/><span/></div>
-                    <span className="ld-mockup-title">Банковские карты</span>
-                  </div>
-                  <div className="ld-winstack-body">
-                    <div className="ld-wk-row"><span>Продукты и кафе</span><span className="ld-wk-rate">5%</span></div>
-                    <div className="ld-wk-row"><span>Транспорт</span><span className="ld-wk-rate">3%</span></div>
-                    <div className="ld-wk-row"><span>Всё остальное</span><span className="ld-wk-rate">1%</span></div>
-                  </div>
-                </div>
-                {/* Окно 3 — Вклады (внизу, передний план, раскрытое) */}
-                <div className="ld-winstack-win ld-winstack-win--3">
                   <div className="ld-winstack-bar">
                     <div className="ld-mockup-dots"><span/><span/><span/></div>
                     <span className="ld-mockup-title">Вклады · ставки по срокам</span>
@@ -515,6 +488,49 @@ export default function Landing() {
                         {['1 мес','3 мес','6 мес','1 год','2 года'].map(l => <span key={l}>{l}</span>)}
                       </div>
                     </div>
+                    <div className="ld-wk-dep-card">
+                      <div className="ld-wk-dep-dot" style={{background:'#4E8268'}}/>
+                      <div className="ld-wk-dep-info"><div className="ld-wk-dep-name">Вклад · 3 мес · выплата в конце</div><div className="ld-wk-dep-sub">от 10 000 ₽</div></div>
+                      <div className="ld-wk-dep-right"><div className="ld-wk-rate">21%</div><div className="ld-wk-dep-sub">+13 125 ₽/год</div></div>
+                    </div>
+                    <div className="ld-wk-dep-card">
+                      <div className="ld-wk-dep-dot" style={{background:'#5E7A9A'}}/>
+                      <div className="ld-wk-dep-info"><div className="ld-wk-dep-name">Вклад · 1 год · выплата ежемесячно</div><div className="ld-wk-dep-sub">от 50 000 ₽</div></div>
+                      <div className="ld-wk-dep-right"><div className="ld-wk-rate">19%</div><div className="ld-wk-dep-sub">+11 875 ₽/год</div></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Окно 2 — Карты (середина) */}
+                <div className="ld-winstack-win ld-winstack-win--2">
+                  <div className="ld-winstack-bar">
+                    <div className="ld-mockup-dots"><span/><span/><span/></div>
+                    <span className="ld-mockup-title">Банковские карты</span>
+                  </div>
+                  <div className="ld-winstack-body">
+                    <div className="ld-wk-dep-card">
+                      <div className="ld-wk-dep-dot" style={{background:'#7B5EA7'}}/>
+                      <div className="ld-wk-dep-info"><div className="ld-wk-dep-name">Дебетовая · кешбэк на продукты</div><div className="ld-wk-dep-sub">до 2 500 ₽/мес</div></div>
+                      <div className="ld-wk-dep-right"><div className="ld-wk-rate">5%</div><div className="ld-wk-dep-sub">кешбэк</div></div>
+                    </div>
+                    <div className="ld-wk-dep-card">
+                      <div className="ld-wk-dep-dot" style={{background:'#B08840'}}/>
+                      <div className="ld-wk-dep-info"><div className="ld-wk-dep-name">Кредитная · кешбэк повсюду</div><div className="ld-wk-dep-sub">льготный период 120 дней</div></div>
+                      <div className="ld-wk-dep-right"><div className="ld-wk-rate">3%</div><div className="ld-wk-dep-sub">кешбэк</div></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Окно 3 — Промо (низ, передний план) */}
+                <div className="ld-winstack-win ld-winstack-win--3">
+                  <div className="ld-winstack-bar">
+                    <div className="ld-mockup-dots"><span/><span/><span/></div>
+                    <span className="ld-mockup-title">Промо · Купоны</span>
+                  </div>
+                  <div className="ld-winstack-body">
+                    <div className="ld-wk-promo"><div className="ld-wk-promo-cat">Супермаркеты</div><div className="ld-wk-promo-desc">Скидка на первый заказ</div><div className="ld-wk-badge" style={{background:'#B08840'}}>−15%</div></div>
+                    <div className="ld-wk-promo"><div className="ld-wk-promo-cat">Аптеки</div><div className="ld-wk-promo-desc">На весь ассортимент</div><div className="ld-wk-badge" style={{background:'#5E9478'}}>−30%</div></div>
+                    <div className="ld-wk-promo"><div className="ld-wk-promo-cat">Одежда и обувь</div><div className="ld-wk-promo-desc">Промокод на новую коллекцию</div><div className="ld-wk-badge" style={{background:'#7B5EA7'}}>−20%</div></div>
                   </div>
                 </div>
               </div>
@@ -589,13 +605,13 @@ export default function Landing() {
                   </div>
                   <div className="ld-mk-emo-rows">
                     <div className="ld-mk-emo-row ld-mk-emo-row--header">
-                      <span>Год</span><span>в месяц</span><span>в год</span>
+                      <span>Год</span><span>в месяц</span><span style={{textAlign:'right'}}>в год</span>
                     </div>
-                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2026</span><span>621 ₽</span><span className="ld-mk-emo-val">7 452 ₽</span></div>
-                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2027</span><span>3 733 ₽</span><span className="ld-mk-emo-val">44 796 ₽</span></div>
-                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2028</span><span>6 846 ₽</span><span className="ld-mk-emo-val">82 152 ₽</span></div>
-                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">2029</span><span>9 958 ₽</span><span className="ld-mk-emo-val">119 496 ₽</span></div>
-                    <div className="ld-mk-emo-row ld-mk-emo-row--future"><span className="ld-mk-emo-year">2031</span><span>16 182 ₽</span><span className="ld-mk-emo-val">194 184 ₽</span></div>
+                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">'26</span><span>621 ₽</span><span className="ld-mk-emo-val">7 452 ₽</span></div>
+                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">'27</span><span>3 733 ₽</span><span className="ld-mk-emo-val">44 796 ₽</span></div>
+                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">'28</span><span>6 846 ₽</span><span className="ld-mk-emo-val">82 152 ₽</span></div>
+                    <div className="ld-mk-emo-row"><span className="ld-mk-emo-year">'31</span><span>16 182 ₽</span><span className="ld-mk-emo-val">194 184 ₽</span></div>
+                    <div className="ld-mk-emo-row ld-mk-emo-row--future"><span className="ld-mk-emo-year">'36</span><span>31 743 ₽</span><span className="ld-mk-emo-val">380 916 ₽</span></div>
                   </div>
                   <div className="ld-mk-emo-note">Чем больше капитал — тем выше EmoSpend</div>
                 </div>
@@ -630,23 +646,41 @@ export default function Landing() {
                     <div className="ld-mk-plan-lbl">Текущий капитал</div>
                     <div className="ld-mk-plan-amt">186 400 ₽</div>
                   </div>
-                  <div className="ld-mk-plan-rows">
-                    {[
-                      { year: '2027', pct: 12, val: '1 120 048 ₽' },
-                      { year: '2028', pct: 22, val: '2 053 696 ₽' },
-                      { year: '2029', pct: 31, val: '2 987 344 ₽' },
-                      { year: '2031', pct: 51, val: '4 854 640 ₽' },
-                      { year: '2033', pct: 71, val: '6 721 936 ₽' },
-                      { year: '2036', pct: 100, val: '9 522 880 ₽' },
-                    ].map(r => (
-                      <div key={r.year} className="ld-mk-plan-row">
-                        <span className="ld-mk-plan-year">{r.year}</span>
-                        <div className="ld-mk-plan-track"><div className="ld-mk-plan-fill" style={{width:`${r.pct}%`}}/></div>
-                        <span className="ld-mk-plan-val">{r.val}</span>
-                      </div>
+                  <div className="ld-mk-plan-inf-btns">
+                    {[0, 5, 15].map(r => (
+                      <button key={r} className={`ld-mk-plan-inf-btn${planInflation === r ? ' active' : ''}`} onClick={() => setPlanInflation(r)}>
+                        инфляция {r}%
+                      </button>
                     ))}
                   </div>
-                  <div className="ld-mk-plan-note">Предел накоплений — через 21 год · 19.8 млн ₽</div>
+                  <div className="ld-mk-plan-rows">
+                    {(() => {
+                      const rows = [
+                        { year: '2027', nominal: 1120048, yrs: 1 },
+                        { year: '2028', nominal: 2053696, yrs: 2 },
+                        { year: '2029', nominal: 2987344, yrs: 3 },
+                        { year: '2031', nominal: 4854640, yrs: 5 },
+                        { year: '2033', nominal: 6721936, yrs: 7 },
+                        { year: '2036', nominal: 9522880, yrs: 10 },
+                      ]
+                      const adj = (nom, yrs) => Math.round(nom / Math.pow(1 + planInflation / 100, yrs))
+                      const maxVal = adj(9522880, 10)
+                      return rows.map(r => {
+                        const val = adj(r.nominal, r.yrs)
+                        const pct = Math.round(val / maxVal * 100)
+                        return (
+                          <div key={r.year} className="ld-mk-plan-row">
+                            <span className="ld-mk-plan-year">{r.year}</span>
+                            <div className="ld-mk-plan-track"><div className="ld-mk-plan-fill" style={{width:`${pct}%`}}/></div>
+                            <span className="ld-mk-plan-val">{val.toLocaleString('ru-RU')} ₽</span>
+                          </div>
+                        )
+                      })
+                    })()}
+                  </div>
+                  <div className="ld-mk-plan-note">
+                    {planInflation === 0 ? 'Предел накоплений — через 21 год · 19.8 млн ₽' : `В реальных ценах с инфляцией ${planInflation}% — покупательная способность снижается`}
+                  </div>
                 </div>
               </div>
             </div>
@@ -732,6 +766,17 @@ export default function Landing() {
       </footer>
 
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onAuth={handleAuth} defaultTab={authTab} />
+
+      {/* ── COOKIE BANNER ── */}
+      {!cookieAccepted && (
+        <div className="cookie-banner">
+          <p className="cookie-text">Мы используем куки для аналитики и улучшения сервиса. <a href="#" className="cookie-link">Подробнее</a></p>
+          <div className="cookie-actions">
+            <button className="cookie-btn cookie-btn--accept" onClick={() => { localStorage.setItem('ss_cookie_ok', '1'); setCookieAccepted(true) }}>Принять</button>
+            <button className="cookie-btn cookie-btn--decline" onClick={() => setCookieAccepted(true)}>Отклонить</button>
+          </div>
+        </div>
+      )}
     </>
   )
 }
