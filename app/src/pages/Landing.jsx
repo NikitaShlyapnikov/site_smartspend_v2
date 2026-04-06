@@ -274,7 +274,8 @@ export default function Landing() {
         <div className="ld-container ld-hero-inner">
           <div className="ld-hero-text">
             <h1 className="ld-h1">Твои деньги<br/>заслуживают<br/><em>системы</em></h1>
-            <p className="ld-hero-sub">Большинство людей не знают, сколько потратят в следующем месяце. SmartSpend знает. SmartSpend — Система планирования расходов.</p>
+            <p className="ld-hero-sub">Большинство людей не знают, сколько потратят в следующем месяце. SmartSpend знает.</p>
+            <p className="ld-hero-label">SmartSpend — Система планирования расходов</p>
             <div className="ld-hero-actions">
               <button className="landing-btn-primary" onClick={openRegister}>Начать →</button>
               <button className="landing-btn-ghost" onClick={openLogin}>Войти</button>
@@ -304,11 +305,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
-      {/* ── GREAT IDEAS BANNER ── */}
-      <div className="ld-ideas-banner">
-        <div className="ld-ideas-text">ОСНОВАНО НА ВЕЛИКИХ ИДЕЯХ</div>
-      </div>
 
       {/* ── FEATURES ── */}
       <div id="ld-features">
@@ -556,7 +552,7 @@ export default function Landing() {
                 <div className="ld-section-label">Вклады · Карты · Промо</div>
                 <h2 className="ld-h2"><span className="ld-h2-pill">СЭКОНОМИЛ</span> — ЗНАЧИТ ЗАРАБОТАЛ</h2>
                 <div className="ld-quote-block">
-                  <div className="ld-quote-text">«Первый капитал — самый сложный. Он требует навыков и дисциплины, которых у вас еще нет.»</div>
+                  <div className="ld-quote-text">«Первые 100 000 долларов — это сущий ад, но вы обязаны это сделать. Мне плевать, как вы это сделаете: будете ли вы ходить везде пешком или питаться по купонам. Найдите способ получить в руки эти деньги.»</div>
                   <div className="ld-quote-author">
                     <img className="ld-quote-avatar" src="/authors/manger.png" alt="Чарльз Мангер"/>
                     <div><div className="ld-quote-name">Чарльз Мангер</div><div className="ld-quote-role">Инвестор · Партнёр Уоррена Баффета · Berkshire Hathaway</div></div>
@@ -716,7 +712,6 @@ export default function Landing() {
             <div className="ld-path-card ld-path-good">
               <div className="ld-path-head">
                 <div className="ld-path-title">SmartSpend</div>
-                <div className="ld-path-badge ld-path-badge--good">Капитал за 10 лет</div>
               </div>
               <div className="ld-path-items">
                 <div className="ld-path-item"><strong>Системный инвентарь.</strong> Ты точно знаешь, что есть, что скоро закончится — покупки спланированы заранее.</div>
@@ -725,11 +720,11 @@ export default function Landing() {
                 <div className="ld-path-item"><strong>Конверты.</strong> Деньги распределены. В любой момент видно, сколько осталось — нет «куда делись деньги?»</div>
                 <div className="ld-path-item"><strong>И место для радостей.</strong> Бюджет на импульсивные покупки выделен заранее — наслаждайся без вины.</div>
               </div>
+              <div className="ld-path-result ld-path-result--good">Капитал за 10 лет</div>
             </div>
             <div className="ld-path-card ld-path-bad">
               <div className="ld-path-head">
                 <div className="ld-path-title">Обычный путь</div>
-                <div className="ld-path-badge ld-path-badge--bad">Капитал за 30 лет</div>
               </div>
               <div className="ld-path-items">
                 <div className="ld-path-item"><strong>Дофаминовая петля.</strong> Покупка ради короткой радости. Через неделю снова хочется что-то новее и дороже.</div>
@@ -738,6 +733,7 @@ export default function Landing() {
                 <div className="ld-path-item"><strong>Двойные покупки.</strong> Купил похожее, потому что забыл, что уже есть. Переплатил — не сравнил.</div>
                 <div className="ld-path-item"><strong>«Потом разберусь».</strong> Вклад под 5%, хотя рядом есть под 21%. Карта без кешбэка — 2 000 ₽ в месяц мимо.</div>
               </div>
+              <div className="ld-path-result ld-path-result--bad">Капитал за 30 лет</div>
             </div>
           </div>
         </div>
