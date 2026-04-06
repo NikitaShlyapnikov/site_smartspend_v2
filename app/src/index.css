@@ -11609,7 +11609,7 @@ body.dark .ipanel-date-input { color-scheme: dark; }
 
 /* Quote block */
 .ld-quote-block { background: var(--surface-2); border-left: 3px solid var(--accent-green); border-radius: 0 var(--r-sm) var(--r-sm) 0; padding: 16px 20px; }
-.ld-quote-text { font-size: 14px; line-height: 1.6; color: var(--text-2); font-style: italic; margin-bottom: 12px; }
+.ld-quote-text { font-size: 14px; line-height: 1.6; color: var(--text-2); margin-bottom: 12px; }
 .ld-quote-author { display: flex; align-items: center; gap: 10px; }
 .ld-quote-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; object-position: top; flex-shrink: 0; border: 2px solid var(--border); filter: grayscale(20%); }
 .ld-quote-name { font-size: 13px; font-weight: 700; color: var(--text); }
@@ -11714,6 +11714,18 @@ body.dark .ipanel-date-input { color-scheme: dark; }
 .ld-mk-emo-year { font-weight: 700; color: var(--text); }
 .ld-mk-emo-val { font-weight: 700; color: var(--accent-green); text-align: right; }
 .ld-mk-emo-note { margin-top: 8px; padding: 8px 12px; background: var(--accent-green-light); border-radius: var(--r-sm); font-size: 11px; font-weight: 600; color: var(--accent-green); text-align: center; }
+
+/* Mockup: Trio (Deposits + Cards + Coupons) */
+.ld-mk-trio { display: flex; align-items: center; gap: 6px; }
+.ld-mk-trio-card { flex: 1; background: var(--surface-2); border-radius: 10px; padding: 10px 8px; display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center; }
+.ld-mk-trio-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.ld-mk-trio-title { font-size: 11px; font-weight: 600; color: var(--text); }
+.ld-mk-trio-val { font-size: 14px; font-weight: 800; color: var(--accent-green); letter-spacing: -0.02em; }
+.ld-mk-trio-sub { font-size: 9px; color: var(--text-3); line-height: 1.3; }
+.ld-mk-trio-plus { font-size: 18px; font-weight: 700; color: var(--accent-green); flex-shrink: 0; }
+.ld-mk-trio-result { margin-top: 10px; background: var(--accent-green-light); border: 1px solid var(--accent-green-border); border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; }
+.ld-mk-trio-result-lbl { font-size: 11px; color: var(--accent-green); font-weight: 500; }
+.ld-mk-trio-result-val { font-size: 16px; font-weight: 800; color: var(--accent-green); letter-spacing: -0.02em; }
 
 /* Mockup: Buffett plan */
 .ld-mk-plan-capital { background: var(--surface-2); border-radius: var(--r-sm); padding: 12px 14px; text-align: center; margin-bottom: 8px; }

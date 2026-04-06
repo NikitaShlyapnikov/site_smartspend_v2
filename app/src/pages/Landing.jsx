@@ -272,8 +272,8 @@ export default function Landing() {
       <section className="ld-hero">
         <div className="ld-container ld-hero-inner">
           <div className="ld-hero-text">
-            <h1 className="ld-h1">Система<br/>экономии и<br/><em>планирования</em></h1>
-            <p className="ld-hero-sub">Планируй покупки заранее, веди инвентарь, сравнивай вклады и карты. Всё — в одном месте, без лишних усилий.</p>
+            <h1 className="ld-h1">Система<br/><em>планирования</em><br/>расходов</h1>
+            <p className="ld-hero-sub">Большинство людей не знают, сколько потратят в следующем месяце — до первой покупки. SmartSpend знает.</p>
             <div className="ld-hero-actions">
               <button className="landing-btn-primary" onClick={openRegister}>Начать бесплатно →</button>
               <button className="landing-btn-ghost" onClick={openLogin}>Войти</button>
@@ -349,13 +349,13 @@ export default function Landing() {
                 <div className="ld-section-label">Инвентарь и Наборы</div>
                 <h2 className="ld-h2">ПЛАНИРУЙ ПОКУПКИ <span className="ld-h2-pill">НА ГОДЫ ВПЕРЁД</span></h2>
                 <div className="ld-quote-block">
-                  <div className="ld-quote-text">«Когда вы устали или голодны — вы не просто принимаете плохие решения. Вы позволяете импульсивной системе диктовать правила.»</div>
+                  <div className="ld-quote-text">Канеман описал два режима мышления: быстрый — импульсивный, и медленный — рациональный. В усталости, голоде или стрессе мы переключаемся на быстрый режим и принимаем решения, о которых потом жалеем.</div>
                   <div className="ld-quote-author">
                     <img className="ld-quote-avatar" src="/authors/kaneman.png" alt="Даниэль Канеман"/>
                     <div><div className="ld-quote-name">Даниэль Канеман</div><div className="ld-quote-role">Нобелевский лауреат по экономике · «Думай медленно, решай быстро»</div></div>
                   </div>
                 </div>
-                <p className="ld-feature-desc">SmartSpend не спрашивает «куда делись деньги». Он спрашивает: <strong>что тебе понадобится через 3 месяца?</strong> Наборы — готовые подборки товаров с расчётом амортизации. Добавляешь набор — и видишь бюджет на год вперёд: без сюрпризов, без импульсивных решений в магазине.</p>
+                <p className="ld-feature-desc">Трекеры расходов отвечают на вопрос «куда делись деньги?» — но деньги уже потрачены, и этот ответ ничего не меняет. SmartSpend задаёт другой вопрос: <strong>что тебе понадобится через месяц, через год?</strong> Наборы — готовые подборки товаров с расчётом амортизации. Ты не реагируешь на уже случившееся — ты управляешь тем, что будет.</p>
               </div>
               <div className="ld-mockup ld-mockup--tilt-left">
                 <div className="ld-mockup-topbar">
@@ -367,14 +367,14 @@ export default function Landing() {
                     <div className="ld-mk-hero-tag">Гаджеты и техника</div>
                     <div className="ld-mk-hero-title">Рабочее место 2026</div>
                     <div className="ld-mk-stats">
-                      <div className="ld-mk-stat"><div className="ld-mk-stat-val">78 000 ₽</div><div className="ld-mk-stat-lbl">Бюджет</div></div>
-                      <div className="ld-mk-stat"><div className="ld-mk-stat-val" style={{color:'var(--accent-green)'}}>1 300 ₽/мес</div><div className="ld-mk-stat-lbl">Амортизация</div></div>
+                      <div className="ld-mk-stat"><div className="ld-mk-stat-val">103 000 ₽</div><div className="ld-mk-stat-lbl">Бюджет</div></div>
+                      <div className="ld-mk-stat"><div className="ld-mk-stat-val" style={{color:'var(--accent-green)'}}>1 144 ₽/мес</div><div className="ld-mk-stat-lbl">Амортизация</div></div>
                     </div>
                   </div>
                   <div className="ld-mk-items">
-                    <div className="ld-mk-item"><span>MacBook Air M2</span><span className="ld-mk-item-price">55 000 ₽</span><span className="ld-mk-item-amort">917 ₽/мес</span></div>
-                    <div className="ld-mk-item"><span>Монитор 27"</span><span className="ld-mk-item-price">18 000 ₽</span><span className="ld-mk-item-amort">250 ₽/мес</span></div>
-                    <div className="ld-mk-item"><span>Клавиатура + мышь</span><span className="ld-mk-item-price">5 000 ₽</span><span className="ld-mk-item-amort">139 ₽/мес</span></div>
+                    <div className="ld-mk-item"><span>MacBook Air M2</span><span className="ld-mk-item-price">80 000 ₽</span><span className="ld-mk-item-amort">952 ₽/мес</span></div>
+                    <div className="ld-mk-item"><span>Монитор 27"</span><span className="ld-mk-item-price">18 000 ₽</span><span className="ld-mk-item-amort">150 ₽/мес</span></div>
+                    <div className="ld-mk-item"><span>Клавиатура + мышь</span><span className="ld-mk-item-price">5 000 ₽</span><span className="ld-mk-item-amort">42 ₽/мес</span></div>
                   </div>
                   <div className="ld-mk-articles">
                     <div className="ld-mk-art">MacBook M2 или M3: стоит ли переплачивать в 2026?</div>
@@ -394,7 +394,7 @@ export default function Landing() {
                 <div className="ld-section-label">Профиль · Конверты</div>
                 <h2 className="ld-h2">РАЗЛОЖИ ДЕНЬГИ <span className="ld-h2-pill">ПО КОНВЕРТАМ</span></h2>
                 <div className="ld-quote-block">
-                  <div className="ld-quote-text">«Наш мозг раскладывает деньги по виртуальным конвертам. Это не слабость — это природа. Используй её, а не борись с ней.»</div>
+                  <div className="ld-quote-text">Талер описал ментальный учёт: наш мозг сам распределяет деньги по категориям. Это не слабость — встроенный механизм. Конверты используют эту особенность, а не борются с ней.</div>
                   <div className="ld-quote-author">
                     <img className="ld-quote-avatar" src="/authors/taler.png" alt="Ричард Талер"/>
                     <div><div className="ld-quote-name">Ричард Талер</div><div className="ld-quote-role">Нобелевский лауреат по экономике · Теория ментального учёта</div></div>
@@ -409,15 +409,15 @@ export default function Landing() {
                 </div>
                 <div className="ld-mockup-body">
                   <div className="ld-mk-income">
-                    <div className="ld-mk-income-row"><span style={{fontWeight:600}}>Доступно в этом месяце</span><span style={{fontWeight:700,color:'var(--accent-green)'}}>+8 908 ₽</span></div>
-                    <div className="ld-mk-bar-track"><div className="ld-mk-bar-fill" style={{width:'46%'}}></div></div>
-                    <div className="ld-mk-income-row" style={{fontSize:'10px',opacity:0.6,marginTop:4}}><span>Доход: 16 104 ₽</span><span>Конверты: 7 196 ₽</span></div>
+                    <div className="ld-mk-income-row"><span style={{fontWeight:600}}>Доступно в этом месяце</span><span style={{fontWeight:700,color:'var(--accent-green)'}}>+42 000 ₽</span></div>
+                    <div className="ld-mk-bar-track"><div className="ld-mk-bar-fill" style={{width:'30%'}}></div></div>
+                    <div className="ld-mk-income-row" style={{fontSize:'10px',opacity:0.6,marginTop:4}}><span>Доход: 60 000 ₽</span><span>Конверты: 18 000 ₽</span></div>
                   </div>
                   <div className="ld-mk-envs">
-                    <div className="ld-mk-env"><div className="ld-mk-env-dot" style={{background:'#5E9478'}}></div><div className="ld-mk-env-name"><div>Еда и Супермаркеты</div><div className="ld-mk-env-sub">осталось 18 дней</div></div><div className="ld-mk-env-amt" style={{color:'#5E9478'}}>4 785 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
-                    <div className="ld-mk-env"><div className="ld-mk-env-dot" style={{background:'#B08840'}}></div><div className="ld-mk-env-name"><div>Дом и Техника</div><div className="ld-mk-env-sub">7 дней до покупки</div></div><div className="ld-mk-env-amt" style={{color:'#B08840'}}>1 360 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
-                    <div className="ld-mk-env"><div className="ld-mk-env-dot" style={{background:'#4E8268'}}></div><div className="ld-mk-env-name"><div>Развлечения</div><div className="ld-mk-env-sub">в норме</div></div><div className="ld-mk-env-amt" style={{color:'#4E8268'}}>865 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
-                    <div className="ld-mk-env"><div className="ld-mk-env-dot" style={{background:'#B85555'}}></div><div className="ld-mk-env-name"><div>Красота и Здоровье</div><div className="ld-mk-env-sub">скоро закончится</div></div><div className="ld-mk-env-amt" style={{color:'#B85555'}}>186 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
+                    <div className="ld-mk-env"><div className="ld-mk-env-dot" style={{background:'#5E9478'}}></div><div className="ld-mk-env-name"><div>Еда и Супермаркеты</div><div className="ld-mk-env-sub">осталось 18 дней</div></div><div className="ld-mk-env-amt" style={{color:'#5E9478'}}>11 000 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
+                    <div className="ld-mk-env"><div className="ld-mk-env-dot" style={{background:'#4E8268'}}></div><div className="ld-mk-env-name"><div>Одежда и Обувь</div><div className="ld-mk-env-sub">в норме</div></div><div className="ld-mk-env-amt" style={{color:'#4E8268'}}>3 000 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
+                    <div className="ld-mk-env"><div className="ld-mk-env-dot" style={{background:'#B08840'}}></div><div className="ld-mk-env-name"><div>Дом и Техника</div><div className="ld-mk-env-sub">7 дней до покупки</div></div><div className="ld-mk-env-amt" style={{color:'#B08840'}}>2 000 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
+                    <div className="ld-mk-env"><div className="ld-mk-env-dot" style={{background:'#B85555'}}></div><div className="ld-mk-env-name"><div>Красота и Здоровье</div><div className="ld-mk-env-sub">скоро закончится</div></div><div className="ld-mk-env-amt" style={{color:'#B85555'}}>2 000 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
                   </div>
                 </div>
               </div>
@@ -433,7 +433,7 @@ export default function Landing() {
                 <div className="ld-section-label">Лента · Каталог</div>
                 <h2 className="ld-h2">УЧИСЬ НА <span className="ld-h2-pill">ГОТОВЫХ ПРОТОКОЛАХ</span></h2>
                 <div className="ld-quote-block">
-                  <div className="ld-quote-text">«Экономический подход не предполагает, что люди не совершают ошибок. Он предполагает, что люди делают лучший выбор из доступных им знаний.»</div>
+                  <div className="ld-quote-text">Беккер показал: люди принимают не плохие решения, а лучшие из тех, что доступны им с имеющимися знаниями. Чем лучше информация — тем лучше выбор.</div>
                   <div className="ld-quote-author">
                     <img className="ld-quote-avatar" src="/authors/beker.png" alt="Гэри Беккер"/>
                     <div><div className="ld-quote-name">Гэри Беккер</div><div className="ld-quote-role">Нобелевский лауреат по экономике · Теория человеческого капитала</div></div>
@@ -473,7 +473,7 @@ export default function Landing() {
                         <span className="ld-mk-feed-tag">Гаджеты</span>
                       </div>
                       <div className="ld-mk-feed-title">Смартфон до 30 000 ₽: что брать в 2026</div>
-                      <div className="ld-mk-feed-preview">Сравнила 8 моделей по камере, батарее и стоимости владения — итоговая таблица.</div>
+                      <div className="ld-mk-feed-preview">Сравнила восстановленные флагманы 2022 года и новые телефоны среднего сегмента — итоговая таблица по камере, батарее и стоимости владения.</div>
                       <div className="ld-mk-feed-actions"><span>♥ 89</span><span>31 отв.</span></div>
                     </div>
                   </div>
@@ -491,13 +491,13 @@ export default function Landing() {
                 <div className="ld-section-label">Вклады · Карты · Промо</div>
                 <h2 className="ld-h2">СЭКОНОМИЛ — <span className="ld-h2-pill">ЗНАЧИТ ЗАРАБОТАЛ</span></h2>
                 <div className="ld-quote-block">
-                  <div className="ld-quote-text">«Первый капитал — самый сложный. Он требует навыков и дисциплины, которых у вас ещё нет.»</div>
+                  <div className="ld-quote-text">Мангер считал накопление первого капитала самым сложным этапом — не потому что мало денег, а потому что каждый сэкономленный рубль требует осознанного решения. Со временем это становится привычкой.</div>
                   <div className="ld-quote-author">
                     <img className="ld-quote-avatar" src="/authors/manger.png" alt="Чарльз Мангер"/>
                     <div><div className="ld-quote-name">Чарльз Мангер</div><div className="ld-quote-role">Инвестор · Партнёр Уоррена Баффета · Berkshire Hathaway</div></div>
                   </div>
                 </div>
-                <p className="ld-feature-desc">Вклад под 5% вместо 21% — это 16 000 ₽ в год мимо. Карта без кешбэка — ещё 2 000 ₽ в месяц. <strong>Вклады</strong> — лучшие ставки среди банков. <strong>Карты</strong> — кешбэк под твои расходы. <strong>Промо</strong> — купоны от сообщества. Каждый сэкономленный рубль — это уже заработанный рубль.</p>
+                <p className="ld-feature-desc">Вклад под 5% вместо 15% — это <strong>10 000 ₽ в год мимо</strong> с каждых 100 000 рублей. Карта без кешбэка — ещё <strong>1 500 ₽ в месяц</strong> мимо. Купоны и скидки, которые проходят незамеченными — <strong>ещё 3 000 ₽ в месяц</strong>. Мы собрали всё в одном месте: лучшие ставки по вкладам, карты с кешбэком под твои расходы и купоны от сообщества. Каждый сэкономленный рубль — это уже заработанный рубль.</p>
               </div>
               <div className="ld-mockup ld-mockup--tilt-right">
                 <div className="ld-mockup-topbar">
@@ -505,28 +505,31 @@ export default function Landing() {
                   <span className="ld-mockup-title">Вклады</span>
                 </div>
                 <div className="ld-mockup-body">
-                  <div className="ld-mk-dep-chart">
-                    <div className="ld-mk-dep-chart-title">Максимальная ставка по срокам</div>
-                    <div className="ld-mk-bars">
-                      <div className="ld-mk-bar" style={{height:'42px'}}><div className="ld-mk-bar-lbl">19%</div></div>
-                      <div className="ld-mk-bar" style={{height:'52px'}}><div className="ld-mk-bar-lbl">21%</div></div>
-                      <div className="ld-mk-bar" style={{height:'48px'}}><div className="ld-mk-bar-lbl">20%</div></div>
-                      <div className="ld-mk-bar" style={{height:'44px'}}><div className="ld-mk-bar-lbl">19%</div></div>
-                      <div className="ld-mk-bar" style={{height:'36px'}}><div className="ld-mk-bar-lbl">18%</div></div>
+                  <div className="ld-mk-trio">
+                    <div className="ld-mk-trio-card">
+                      <div className="ld-mk-trio-icon" style={{background:'#4E8268'}}>%</div>
+                      <div className="ld-mk-trio-title">Вклады</div>
+                      <div className="ld-mk-trio-val">до 21%</div>
+                      <div className="ld-mk-trio-sub">сравни ставки банков</div>
                     </div>
-                    <div className="ld-mk-bar-labels">
-                      {['1 мес','3 мес','6 мес','1 год','2 года'].map(l => <span key={l}>{l}</span>)}
+                    <div className="ld-mk-trio-plus">+</div>
+                    <div className="ld-mk-trio-card">
+                      <div className="ld-mk-trio-icon" style={{background:'#7B5EA7'}}>♣</div>
+                      <div className="ld-mk-trio-title">Карты</div>
+                      <div className="ld-mk-trio-val">до 5%</div>
+                      <div className="ld-mk-trio-sub">кешбэк на расходы</div>
+                    </div>
+                    <div className="ld-mk-trio-plus">+</div>
+                    <div className="ld-mk-trio-card">
+                      <div className="ld-mk-trio-icon" style={{background:'#B08840'}}>🏷</div>
+                      <div className="ld-mk-trio-title">Купоны</div>
+                      <div className="ld-mk-trio-val">−10–40%</div>
+                      <div className="ld-mk-trio-sub">акции от сообщества</div>
                     </div>
                   </div>
-                  <div className="ld-mk-dep-card">
-                    <div className="ld-mk-dep-logo" style={{background:'#0057A8'}}>СБ</div>
-                    <div><div className="ld-mk-dep-name">Сбер · Выгодный</div><div className="ld-mk-dep-sub">6 мес · выплата в конце</div></div>
-                    <div style={{marginLeft:'auto',textAlign:'right'}}><div className="ld-mk-dep-rate">21%</div><div className="ld-mk-dep-sub">+13 540 ₽/год</div></div>
-                  </div>
-                  <div className="ld-mk-dep-card">
-                    <div className="ld-mk-dep-logo" style={{background:'#FF5722'}}>Т</div>
-                    <div><div className="ld-mk-dep-name">Т-Банк · Все включено</div><div className="ld-mk-dep-sub">кредитная · до 2 500 ₽/мес</div></div>
-                    <div style={{marginLeft:'auto',textAlign:'right'}}><div className="ld-mk-dep-rate">5%</div><div className="ld-mk-dep-sub">кешбэк</div></div>
+                  <div className="ld-mk-trio-result">
+                    <div className="ld-mk-trio-result-lbl">Итого экономия в год</div>
+                    <div className="ld-mk-trio-result-val">+38 000 ₽</div>
                   </div>
                 </div>
               </div>
@@ -542,13 +545,13 @@ export default function Landing() {
                 <div className="ld-section-label">Инвентарь</div>
                 <h2 className="ld-h2">МЫ СМОТРИМ <span className="ld-h2-pill">ВПЕРЁД, НЕ НАЗАД</span></h2>
                 <div className="ld-quote-block">
-                  <div className="ld-quote-text">«Зачем вести учёт того, на что потратили деньги в прошлом — куда лучше думать о том, куда собираетесь их потратить в будущем.»</div>
+                  <div className="ld-quote-text">Рид писал: смотреть на прошлые расходы — значит управлять финансами в зеркало заднего вида. Рациональный человек принимает решения глядя вперёд, а не назад.</div>
                   <div className="ld-quote-author">
                     <img className="ld-quote-avatar" src="/authors/reed.png" alt="Джон Т. Рид"/>
                     <div><div className="ld-quote-name">Джон Т. Рид</div><div className="ld-quote-role">Автор книг по инвестициям и финансовой независимости</div></div>
                   </div>
                 </div>
-                <p className="ld-feature-desc">Большинство приложений покажут, сколько ты уже потратил. SmartSpend показывает, <strong>сколько потратишь в следующем месяце</strong> — ещё до первой покупки. Инвентарь следит за сроком службы вещей и предупреждает заранее: зубная щётка закончится через 10 дней, кроссовки — через 3 месяца. Ноль сюрпризов.</p>
+                <p className="ld-feature-desc">Приложения по учёту финансов показывают прошлое — мы показываем будущее. SmartSpend не спрашивает куда делись деньги. Он показывает, <strong>сколько потратишь в следующем месяце</strong> — ещё до первой покупки. Инвентарь следит за сроком службы вещей и предупреждает заранее: зубная щётка закончится через 10 дней, кроссовки — через 3 месяца. Ноль сюрпризов.</p>
               </div>
               <div className="ld-mockup ld-mockup--tilt-left">
                 <div className="ld-mockup-topbar">
@@ -557,7 +560,7 @@ export default function Landing() {
                 </div>
                 <div className="ld-mockup-body">
                   <div className="ld-mk-inv-group">
-                    <div className="ld-mk-inv-group-lbl">Скоро купить</div>
+                    <div className="ld-mk-inv-group-lbl">Ожидает покупки</div>
                     <div className="ld-mk-inv-item ld-mk-inv-urgent"><span>Зубная щётка</span><span className="ld-mk-inv-date">сегодня</span><span className="ld-mk-inv-price">250 ₽</span></div>
                     <div className="ld-mk-inv-item ld-mk-inv-soon"><span>Дезодорант</span><span className="ld-mk-inv-date">3 дня</span><span className="ld-mk-inv-price">300 ₽</span></div>
                     <div className="ld-mk-inv-item ld-mk-inv-soon"><span>Крем для лица</span><span className="ld-mk-inv-date">7 дней</span><span className="ld-mk-inv-price">600 ₽</span></div>
@@ -566,7 +569,7 @@ export default function Landing() {
                     <div className="ld-mk-inv-group-lbl">Планируется</div>
                     <div className="ld-mk-inv-item ld-mk-inv-ok"><span>Толстовка</span><span className="ld-mk-inv-date">2 мес</span><span className="ld-mk-inv-price">4 000 ₽</span></div>
                     <div className="ld-mk-inv-item ld-mk-inv-ok"><span>Кроссовки</span><span className="ld-mk-inv-date">3 мес</span><span className="ld-mk-inv-price">6 000 ₽</span></div>
-                    <div className="ld-mk-inv-item ld-mk-inv-ok"><span>Netflix</span><span className="ld-mk-inv-date">1 мес</span><span className="ld-mk-inv-price">799 ₽</span></div>
+                    <div className="ld-mk-inv-item ld-mk-inv-ok"><span>Музыка</span><span className="ld-mk-inv-date">1 мес</span><span className="ld-mk-inv-price">399 ₽</span></div>
                   </div>
                 </div>
               </div>
@@ -582,7 +585,7 @@ export default function Landing() {
                 <div className="ld-section-label">Профиль · EmoSpend</div>
                 <h2 className="ld-h2">БАЛУЙ СЕБЯ — <span className="ld-h2-pill">БЕЗ ВИНЫ</span></h2>
                 <div className="ld-quote-block">
-                  <div className="ld-quote-text">«Мы покупаем новый телефон в ожидании долгого счастья. Но уровень радости возвращается к базовому очень быстро. Нам нужно больше и лучше — снова и снова.»</div>
+                  <div className="ld-quote-text">Брикман и Кэмпбелл описали гедонистическую адаптацию: мы покупаем новую вещь в ожидании долгого счастья, но уровень радости быстро возвращается к прежнему. Это не слабость — это норма. Важно заложить это в систему заранее.</div>
                   <div className="ld-quote-author">
                     <div><div className="ld-quote-name">Гедонистическая адаптация</div><div className="ld-quote-role">Психологический феномен · Брикман и Кэмпбелл, 1971</div></div>
                   </div>
@@ -624,7 +627,7 @@ export default function Landing() {
                 <div className="ld-section-label">Планирование · 10 лет</div>
                 <h2 className="ld-h2">ЕСТЬ ПЛАН — <span className="ld-h2-pill">ДЕРЖИСЬ ПЛАНА</span></h2>
                 <div className="ld-quote-block">
-                  <div className="ld-quote-text">«Никто не любит богатеть медленно. Но это единственный путь, доступный каждому.»</div>
+                  <div className="ld-quote-text">Баффет всегда настаивал: медленный и системный рост — единственный надёжный путь к капиталу, доступный каждому. Не нужно быть гением. Нужен план и дисциплина его придерживаться.</div>
                   <div className="ld-quote-author">
                     <img className="ld-quote-avatar" src="/authors/bafet.png" alt="Уоррен Баффет"/>
                     <div><div className="ld-quote-name">Уоррен Баффет</div><div className="ld-quote-role">Инвестор · Berkshire Hathaway · Состояние $150 млрд</div></div>
