@@ -83,7 +83,7 @@ function CompanyRow({ company, selected, active, onToggle, onActivate }) {
 
 // ── COMPANY DETAIL PANEL ───────────────────────────────────────────────────────
 
-function CompanyDetail({ company, selected, onToggle }) {
+function CompanyDetail({ company }) {
   if (!company) {
     return (
       <div className="cpicker-detail cpicker-detail--empty">
@@ -96,48 +96,18 @@ function CompanyDetail({ company, selected, onToggle }) {
     )
   }
 
-  const sample = promoItems.find(p => p.companyId === company.id && p.type !== 'broadcast')
-    || promoItems.find(p => p.companyId === company.id)
-
   return (
     <div className="cpicker-detail">
       <div className="cpicker-detail-header">
         <div className="cpicker-detail-logo" style={{ background: company.color }}>{company.abbr}</div>
         <div className="cpicker-detail-header-body">
           <div className="cpicker-detail-name">{company.name}</div>
-          {company.promoTypes?.length > 0 && (
-            <div className="cpicker-detail-types">
-              {company.promoTypes.map(t => (
-                <span key={t} className={`info-sheet-type info-sheet-type--${t}`}>
-                  {TYPE_META[t]?.icon}
-                  {TYPE_META[t]?.label}
-                </span>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
       {company.desc && (
         <p className="cpicker-detail-desc">{company.desc}</p>
       )}
-
-      {sample && (
-        <div className="cpicker-detail-sample">
-          <div className="cpicker-detail-sample-label">Пример акции</div>
-          <div className="cpicker-detail-sample-title">{sample.title}</div>
-          {sample.expires && (
-            <div className="cpicker-detail-sample-expires">до {sample.expires}</div>
-          )}
-        </div>
-      )}
-
-      <button
-        className={`cpicker-detail-action${selected ? ' remove' : ''}`}
-        onClick={() => onToggle(company.id)}
-      >
-        {selected ? 'Убрать из списка' : '+ Добавить в список'}
-      </button>
     </div>
   )
 }
@@ -230,27 +200,6 @@ export default function CompanyPicker() {
             )}
           </div>
 
-          {/* Two-column layout */}
-          <div key={step} className={`cpicker-two-col cpicker-step-anim cpicker-step-anim--${dir > 0 ? 'fwd' : 'back'}`}>
-            <div className="cpicker-list">
-              {catList.map(c => (
-                <CompanyRow
-                  key={c.id}
-                  company={c}
-                  selected={selected.has(c.id)}
-                  active={activeId === c.id || (!activeId && catList[0]?.id === c.id)}
-                  onToggle={toggle}
-                  onActivate={setActiveId}
-                />
-              ))}
-            </div>
-            <CompanyDetail
-              company={activeCompany}
-              selected={activeCompany ? selected.has(activeCompany.id) : false}
-              onToggle={toggle}
-            />
-          </div>
-
           {/* Actions */}
           <div id="sp-cpicker-actions" className="cpicker-actions cpicker-actions--new">
             <div className="cpicker-actions-left">
@@ -265,6 +214,23 @@ export default function CompanyPicker() {
                 <button className="cpicker-btn-next" onClick={goNext}>Далее →</button>
               )}
             </div>
+          </div>
+
+          {/* Two-column layout */}
+          <div key={step} className={`cpicker-two-col cpicker-step-anim cpicker-step-anim--${dir > 0 ? 'fwd' : 'back'}`}>
+            <div className="cpicker-list">
+              {catList.map(c => (
+                <CompanyRow
+                  key={c.id}
+                  company={c}
+                  selected={selected.has(c.id)}
+                  active={activeId === c.id || (!activeId && catList[0]?.id === c.id)}
+                  onToggle={toggle}
+                  onActivate={setActiveId}
+                />
+              ))}
+            </div>
+            <CompanyDetail company={activeCompany} />
           </div>
 
         </div>

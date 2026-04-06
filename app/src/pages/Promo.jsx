@@ -1349,10 +1349,18 @@ export default function Promo() {
     <Layout>
       <main className="feed-main">
         <div className="page-header">
-          <div className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            Промо
-            <HelpButton seenKey="ss_spl_promo" onOpen={() => setShowSpotlight(true)} />
-            {filtersHidden && <FilterIconBtn active={!!hasFilters} onClick={() => setShowFilterDrawer(v => !v)} />}
+          <div className="page-header-inner">
+            <div className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              Промо
+              <HelpButton seenKey="ss_spl_promo" onOpen={() => setShowSpotlight(true)} />
+              {filtersHidden && <FilterIconBtn active={!!hasFilters} onClick={() => setShowFilterDrawer(v => !v)} />}
+            </div>
+            <button className="btn-primary-action" onClick={() => navigate('/create-whisper')}>
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+              Поделиться промокодом
+            </button>
           </div>
           {filtersHidden && showFilterDrawer && (
             <div className="header-filter-panel">

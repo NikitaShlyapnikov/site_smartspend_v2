@@ -258,7 +258,7 @@ function AccSetCard({ s, onDelete, onEdit, navigate }) {
         )}
         <div className="f-spacer" />
         {!s.pub && !s.draft && (
-          <button className="fa-action-btn" onClick={e => { e.stopPropagation(); onEdit(s) }}>
+          <button className="acc-btn-edit" onClick={e => { e.stopPropagation(); onEdit(s) }}>
             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
               <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
             </svg>
@@ -462,7 +462,6 @@ function SubsTab({ subs, onUnsub, navigate }) {
                   {s.articles > 0 && <span>{s.articles} статей</span>}
                   {s.sets > 0 && <span>{s.sets} наборов</span>}
                 </div>
-                <button className="acc-btn-unsub" onClick={() => onUnsub(s)}>Отменить</button>
               </div>
             </div>
           ))}
