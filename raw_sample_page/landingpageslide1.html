@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSpend — Финансовый навигатор</title>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Unbounded:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #EEEDE9;
+      --ink: #0E0E0C;
+      --accent: #6A9E84;
+      --accent-light: #8BB89E;
+      --gray-light: #D5D4D0;
+      --gray-dark: #5A5955;
+    }
+
+    body {
+      font-family: 'Geist', sans-serif;
+      background-color: var(--bg);
+      color: var(--ink);
+      overflow-x: hidden;
+    }
+
+    /* === HEADER === */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 48px;
+      background-color: var(--bg);
+      position: relative;
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: 'Unbounded', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -1px;
+    }
+
+    .header-nav {
+      display: flex;
+      gap: 32px;
+      align-items: center;
+    }
+
+    .login-btn {
+      padding: 10px 24px;
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .login-btn:hover {
+      background-color: var(--accent-light);
+      transform: translateY(-2px);
+    }
+
+    /* === HERO SECTION === */
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      padding: 80px 48px;
+      align-items: center;
+      min-height: 100vh;
+      animation: fadeIn 0.8s ease;
+    }
+
+    .hero-left {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .hero-left h1 {
+      font-family: 'Unbounded', sans-serif;
+      font-size: 56px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      letter-spacing: -2px;
+    }
+
+    .hero-left p {
+      font-size: 18px;
+      color: var(--gray-dark);
+      line-height: 1.6;
+      max-width: 450px;
+    }
+
+    .hero-cta {
+      display: inline-block;
+      width: fit-content;
+      padding: 14px 32px;
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .hero-cta:hover {
+      background-color: var(--accent-light);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(106, 158, 132, 0.25);
+    }
+
+    /* === CUBE SECTION === */
+    .hero-right {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .cube-wrapper {
+      position: relative;
+      width: 350px;
+      height: 350px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 60px 40px rgba(0, 0, 0, 0.2));
+    }
+
+    .cube-frame {
+      width: 350px;
+      height: 350px;
+      background: var(--ink);
+      border-radius: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12), 0 40px 80px rgba(0, 0, 0, 0.15);
+      animation: cubeBob 3s ease-in-out infinite;
+      padding: 50px;
+    }
+
+    .cube-screen {
+      width: 100%;
+      height: 100%;
+      background: #EEEDE9;
+      border-radius: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .screen-content {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 24px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .screen-content.active {
+      opacity: 1;
+    }
+
+    .text-smartspend {
+      font-family: 'Unbounded', sans-serif;
+      font-size: 52px;
+      font-weight: 800;
+      color: var(--ink);
+      text-align: center;
+      line-height: 1.1;
+      letter-spacing: -2px;
+      position: relative;
+    }
+
+    .quote {
+      font-family: 'Unbounded', sans-serif;
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--ink);
+      text-align: center;
+      line-height: 1.3;
+      letter-spacing: -1px;
+      position: relative;
+    }
+
+    .cube-face-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      transform: scale(3);
+      transform-origin: center center;
+    }
+
+    .cube-face-done {
+      display: block;
+    }
+
+    .content-layer {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 24px;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .content-layer.base {
+      z-index: 1;
+    }
+
+    .content-layer.glitch {
+      opacity: 0;
+      z-index: 2;
+      clip-path: polygon(0 0, 100% 0, 100% 0%, 0 0%);
+      filter: drop-shadow(2px 0 #FF00FF) drop-shadow(-2px 0 #00FFFF);
+    }
+
+    .screen-content.active .content-layer.glitch {
+      animation: glitch-anim 0.4s linear alternate;
+    }
+
+    .cube-command {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--gray-dark);
+      letter-spacing: 0.5px;
+      z-index: 10;
+    }
+
+    .cube-command::before {
+      content: '> ';
+      color: var(--accent);
+    }
+
+    @keyframes glitch-anim {
+      0% {
+        clip-path: polygon(0 0, 100% 0, 100% 0%, 0 0%);
+        transform: translateX(-8px);
+        opacity: 0.8;
+      }
+      10% {
+        clip-path: polygon(0 15%, 100% 10%, 100% 40%, 0 35%);
+        transform: translateX(6px);
+        opacity: 0.9;
+      }
+      20% {
+        clip-path: polygon(0 40%, 100% 38%, 100% 75%, 0 70%);
+        transform: translateX(-12px);
+        opacity: 0.8;
+      }
+      30% {
+        clip-path: polygon(0 60%, 100% 55%, 100% 85%, 0 90%);
+        transform: translateX(10px);
+        opacity: 0.85;
+      }
+      40% {
+        clip-path: polygon(0 25%, 100% 20%, 100% 50%, 0 55%);
+        transform: translateX(-6px);
+        opacity: 0.9;
+      }
+      50% {
+        clip-path: polygon(0 0%, 100% 5%, 100% 30%, 0 25%);
+        transform: translateX(8px);
+        opacity: 0.8;
+      }
+      60% {
+        clip-path: polygon(0 50%, 100% 48%, 100% 100%, 0 100%);
+        transform: translateX(-10px);
+        opacity: 0.85;
+      }
+      70% {
+        clip-path: polygon(0 35%, 100% 30%, 100% 65%, 0 70%);
+        transform: translateX(7px);
+        opacity: 0.9;
+      }
+      80% {
+        clip-path: polygon(0 70%, 100% 68%, 100% 100%, 0 100%);
+        transform: translateX(-4px);
+        opacity: 0.8;
+      }
+      90% {
+        clip-path: polygon(0 10%, 100% 15%, 100% 45%, 0 40%);
+        transform: translateX(5px);
+        opacity: 0.85;
+      }
+      100% {
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes cubeBob {
+      0%, 100% {
+        transform: translateY(0) rotate(0deg);
+      }
+      50% {
+        transform: translateY(-12px) rotate(1deg);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 1024px) {
+      .hero {
+        grid-template-columns: 1fr;
+        padding: 60px 32px;
+        gap: 40px;
+        min-height: auto;
+      }
+
+      .hero-left h1 {
+        font-size: 44px;
+      }
+
+      .cube-wrapper,
+      .cube-frame {
+        width: 300px;
+        height: 300px;
+      }
+
+      .text-smartspend {
+        font-size: 42px;
+      }
+
+      .quote {
+        font-size: 28px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      header {
+        padding: 20px 24px;
+      }
+
+      .hero {
+        padding: 40px 24px;
+        gap: 30px;
+      }
+
+      .hero-left h1 {
+        font-size: 32px;
+      }
+
+      .hero-left p {
+        font-size: 16px;
+      }
+
+      .cube-wrapper,
+      .cube-frame {
+        width: 260px;
+        height: 260px;
+        padding: 32px;
+      }
+
+      .text-smartspend {
+        font-size: 32px;
+      }
+
+      .quote {
+        font-size: 22px;
+      }
+
+      .cube-face-container {
+        transform: scale(2);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HERO SECTION -->
+  <section class="hero">
+    <!-- LEFT SIDE - CUBE -->
+    <div class="hero-right">
+      <div class="cube-wrapper">
+        <div class="cube-frame">
+          <div class="cube-screen">
+            <!-- State 1: SMARTSPEND -->
+            <div class="screen-content active" data-state="1">
+              <div class="content-layer base"><div class="text-smartspend">SMART<br>SPEND</div></div>
+              <div class="content-layer glitch"><div class="text-smartspend">SMART<br>SPEND</div></div>
+            </div>
+
+            <!-- State 2: Планируй покупки -->
+            <div class="screen-content" data-state="2">
+              <div class="content-layer base"><div class="quote">Планируй<br>покупки</div></div>
+              <div class="content-layer glitch"><div class="quote">Планируй<br>покупки</div></div>
+            </div>
+
+            <!-- State 3: Выбирай лучшее -->
+            <div class="screen-content" data-state="3">
+              <div class="content-layer base"><div class="quote">Выбирай<br>лучшее</div></div>
+              <div class="content-layer glitch"><div class="quote">Выбирай<br>лучшее</div></div>
+            </div>
+
+            <!-- State 4: Плати меньше -->
+            <div class="screen-content" data-state="4">
+              <div class="content-layer base"><div class="quote">Плати<br>меньше</div></div>
+              <div class="content-layer glitch"><div class="quote">Плати<br>меньше</div></div>
+            </div>
+
+            <!-- State 5: Собери базу знаний -->
+            <div class="screen-content" data-state="5">
+              <div class="content-layer base"><div class="quote">Собери<br>базу знаний</div></div>
+              <div class="content-layer glitch"><div class="quote">Собери<br>базу знаний</div></div>
+            </div>
+
+            <!-- State 6: Смайлик -->
+            <div class="screen-content" data-state="6">
+              <div class="content-layer base">
+                <div class="cube-command">cube_run</div>
+                <div class="cube-face-container">
+                  <svg class="cube-face-done" width="80" height="80" viewBox="0 0 80 80" fill="none">
+                    <path d="M26 36 Q29 32 32 36" stroke="#0E0E0C" stroke-width="3" stroke-linecap="round" fill="none"/>
+                    <path d="M48 36 Q51 32 54 36" stroke="#0E0E0C" stroke-width="3" stroke-linecap="round" fill="none"/>
+                    <path d="M30 48 Q40 56 50 48" stroke="#0E0E0C" stroke-width="3" stroke-linecap="round" fill="none"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDE - TEXT -->
+    <div class="hero-left">
+      <h1>Система экономии и планирования</h1>
+      <p>SmartSpend — это умный путь к финансовой свободе. Наберись опыта экспертов и достигай целей без стресса.</p>
+      <button class="hero-cta">Войти</button>
+    </div>
+  </section>
+
+  <script>
+    let currentState = 1;
+    const totalStates = 6;
+    const baseInterval = 2500;
+    let autoRotateTimer;
+
+    function switchState(stateNum) {
+      document.querySelectorAll('.screen-content').forEach(el => el.classList.remove('active'));
+      const targetContent = document.querySelector(`[data-state="${stateNum}"]`);
+      if(targetContent) targetContent.classList.add('active');
+      currentState = stateNum;
+    }
+
+    function startAutoRotate() {
+      clearInterval(autoRotateTimer);
+      
+      autoRotateTimer = setInterval(() => {
+        let nextState = currentState % totalStates + 1;
+        switchState(nextState);
+        
+        if(nextState === 1) {
+          clearInterval(autoRotateTimer);
+          autoRotateTimer = setTimeout(() => {
+            startAutoRotate();
+          }, baseInterval * 2 - baseInterval);
+        }
+      }, baseInterval);
+    }
+
+    startAutoRotate();
+  </script>
+
+</body>
+</html>

@@ -1,31 +1,19 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { companies, promoItems } from '../data/mock'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
 
 const CPICKER_SPOTLIGHT = [
-  { targetId: 'sp-cpicker-step',     title: 'Выберите компании',  desc: 'Нажмите карточку — добавите компанию в список. Удержите — узнаете о ней подробнее: описание, типы акций и пример предложения.' },
+  { targetId: 'sp-cpicker-step',     title: 'Выберите компании',  desc: 'Нажмите на компанию в списке — добавите в выбранные. Справа сразу отображается карточка с описанием, типами акций и примером предложения.' },
   { targetId: 'sp-cpicker-progress', title: 'Категории',          desc: '10 категорий компаний: еда, кафе, транспорт, техника и другие. Выбирайте из каждой сколько нужно — или пропускайте целые категории.' },
-  { targetId: 'sp-cpicker-actions',  title: 'Навигация',          desc: '«Далее» переходит к следующей категории, «Назад» — возврат. На последнем шаге увидите итоговый список и сможете подтвердить выбор.' },
+  { targetId: 'sp-cpicker-actions',  title: 'Навигация',          desc: '«Далее» переходит к следующей категории, «Назад» — возврат. «Завершить» сохраняет выбор и возвращает в профиль.' },
 ]
 
 const CATEGORY_ORDER = [
   'food', 'cafe', 'transport', 'home', 'clothes',
   'leisure', 'health', 'education', 'travel', 'other',
 ]
-const HOLD_MS = 500
-
-
-function loadSelected() {
-  try { return new Set(JSON.parse(localStorage.getItem('ss_companies') || '[]')) }
-  catch { return new Set() }
-}
-function saveSelected(set) {
-  localStorage.setItem('ss_companies', JSON.stringify([...set]))
-}
-
-// ── PROMO TYPE META ────────────────────────────────────────────────────────────
 
 const TYPE_META = {
   coupons: {
@@ -56,262 +44,102 @@ const TYPE_META = {
   },
 }
 
-// ── COMPANY INFO SHEET ─────────────────────────────────────────────────────────
-
-function CompanyInfoSheet({ company, selected, onToggle, onClose }) {
-  const sample = promoItems.find(p => p.companyId === company.id && p.type !== 'broadcast')
-    || promoItems.find(p => p.companyId === company.id)
-
-  useEffect(() => {
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev }
-  }, [])
-
-  return (
-    <div className="info-sheet-overlay" onPointerDown={onClose}>
-      <div className="info-sheet" onPointerDown={e => e.stopPropagation()}>
-        <button className="info-sheet-close" onClick={onClose} aria-label="Закрыть">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/>
-          </svg>
-        </button>
-
-        <div className="info-sheet-header">
-          <div className="info-sheet-logo" style={{ background: company.color }}>
-            {company.abbr}
-          </div>
-          <div>
-            <div className="info-sheet-name">{company.name}</div>
-            {company.promoTypes?.length > 0 && (
-              <div className="info-sheet-types">
-                {company.promoTypes.map(t => (
-                  <span key={t} className={`info-sheet-type info-sheet-type--${t}`}>
-                    {TYPE_META[t]?.icon}
-                    {TYPE_META[t]?.label}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {company.desc && (
-          <p className="info-sheet-desc">{company.desc}</p>
-        )}
-
-        {sample && (
-          <div className="info-sheet-sample">
-            <div className="info-sheet-sample-label">Пример акции</div>
-            <div className="info-sheet-sample-title">{sample.title}</div>
-            {sample.expires && (
-              <div className="info-sheet-sample-expires">до {sample.expires}</div>
-            )}
-          </div>
-        )}
-
-        <button
-          className={`info-sheet-action${selected ? ' info-sheet-action--remove' : ''}`}
-          onClick={() => { onToggle(company.id); onClose() }}
-        >
-          {selected ? 'Убрать из списка' : '+ Добавить в список'}
-        </button>
-      </div>
-    </div>
-  )
+function loadSelected() {
+  try { return new Set(JSON.parse(localStorage.getItem('ss_companies') || '[]')) }
+  catch { return new Set() }
 }
-
-// ── COMPANY CARD ──────────────────────────────────────────────────────────────
-
-function CompanyCard({ company, selected, onToggle, onInfo }) {
-  const [holding, setHolding] = useState(false)
-  const [bouncing, setBouncing] = useState(false)
-  const holdTimer = useRef(null)
-  const firedRef  = useRef(false)
-  const startPos  = useRef(null)
-
-  function clearAll() {
-    clearTimeout(holdTimer.current)
-  }
-
-  function handlePointerDown(e) {
-    if (e.button !== undefined && e.button !== 0) return
-    e.currentTarget.setPointerCapture(e.pointerId)
-    firedRef.current = false
-    startPos.current = { x: e.clientX, y: e.clientY }
-    setHolding(true)
-    holdTimer.current = setTimeout(() => {
-      firedRef.current = true
-      setHolding(false)
-      if (navigator.vibrate) navigator.vibrate(30)
-      onInfo(company)
-    }, HOLD_MS)
-  }
-
-  function handlePointerMove(e) {
-    if (!startPos.current) return
-    const dx = e.clientX - startPos.current.x
-    const dy = e.clientY - startPos.current.y
-    if (Math.sqrt(dx * dx + dy * dy) > 8) {
-      clearAll()
-      setHolding(false)
-    }
-  }
-
-  function handlePointerUp() {
-    clearAll()
-    setHolding(false)
-  }
-
-  function handlePointerCancel() {
-    clearAll()
-    setHolding(false)
-  }
-
-  function handleClick() {
-    if (firedRef.current) { firedRef.current = false; return }
-    onToggle(company.id)
-    setBouncing(true)
-  }
-
-  return (
-    <button
-      className={`cpicker-company${selected ? ' selected' : ''}${holding ? ' holding' : ''}${bouncing ? ' bouncing' : ''}`}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerCancel}
-      onClick={handleClick}
-      onAnimationEnd={e => { if (e.animationName === 'cardBounce') setBouncing(false) }}
-      style={{ touchAction: 'none' }}
-    >
-      <div className="cpicker-logo" style={{ background: company.color }}>
-        {company.abbr}
-      </div>
-      <span className="cpicker-name">{company.name}</span>
-
-      {selected && (
-        <div className="cpicker-check">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12" className="cpicker-check-path"/>
-          </svg>
-        </div>
-      )}
-
-    </button>
-  )
+function saveSelected(set) {
+  localStorage.setItem('ss_companies', JSON.stringify([...set]))
 }
-
-// ── WIZARD STEP ───────────────────────────────────────────────────────────────
-
-function WizardStep({ catKey, selected, onToggle, onInfo, onReset }) {
-  const [confirmReset, setConfirmReset] = useState(false)
-  const cat = companies[catKey]
-  if (!cat) return null
-
-  function handleReset() {
-    onReset()
-    setConfirmReset(false)
-  }
-
-  return (
-    <div id="sp-cpicker-step" className="cpicker-step">
-      <div className="cpicker-step-label">Шаг</div>
-      <div className="cpicker-step-title">{cat.label}</div>
-      <div className="cpicker-grid">
-        {cat.list.map(c => (
-          <CompanyCard
-            key={c.id}
-            company={c}
-            selected={selected.has(c.id)}
-            onToggle={onToggle}
-            onInfo={onInfo}
-          />
-        ))}
-      </div>
-      {selected.size > 0 && (
-        <div className="cpicker-reset-row">
-          {confirmReset ? (
-            <>
-              <span className="cpicker-reset-confirm-text">Сбросить все {selected.size} {cNoun(selected.size)}?</span>
-              <div className="cpicker-reset-confirm-btns">
-                <button className="cpicker-reset-btn cpicker-reset-btn--cancel" onClick={() => setConfirmReset(false)}>Отмена</button>
-                <button className="cpicker-reset-btn cpicker-reset-btn--danger" onClick={handleReset}>Да, сбросить</button>
-              </div>
-            </>
-          ) : (
-            <>
-              <span>Выбрано {selected.size} {cNoun(selected.size)}</span>
-              <button className="cpicker-reset-btn" onClick={() => setConfirmReset(true)}>Начать с начала</button>
-            </>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── SUMMARY ───────────────────────────────────────────────────────────────────
-
-function Summary({ selected, onFinish, onBack }) {
-  const allCompanies = CATEGORY_ORDER.flatMap(k => companies[k]?.list || [])
-  const selectedCompanies = allCompanies.filter(c => selected.has(c.id))
-
-  const byCat = CATEGORY_ORDER.map(k => ({
-    key: k,
-    label: companies[k]?.label,
-    list: (companies[k]?.list || []).filter(c => selected.has(c.id)),
-  })).filter(g => g.list.length > 0)
-
-  return (
-    <div className="cpicker-summary">
-      <div className="cpicker-summary-icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-          <polyline points="22 4 12 14.01 9 11.01"/>
-        </svg>
-      </div>
-      <div className="cpicker-summary-title">Готово!</div>
-      <div className="cpicker-summary-desc">
-        Выбрано <strong>{selectedCompanies.length}</strong> {cNoun(selectedCompanies.length)} из{' '}
-        {CATEGORY_ORDER.reduce((n, k) => n + (companies[k]?.list.length || 0), 0)} доступных
-      </div>
-
-      {byCat.length > 0 ? (
-        <div className="cpicker-summary-cats">
-          {byCat.map(g => (
-            <div key={g.key} className="cpicker-summary-cat">
-              <div className="cpicker-summary-cat-label">{g.label}</div>
-              <div className="cpicker-summary-cat-list">
-                {g.list.map(c => (
-                  <div key={c.id} className="cpicker-summary-chip">
-                    {c.name}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="cpicker-summary-empty">
-          Вы не выбрали ни одной компании. Промо-лента будет пустой — вы сможете изменить выбор позже.
-        </div>
-      )}
-
-      <div className="cpicker-actions">
-        <button className="cpicker-btn-back" onClick={onBack}>Назад</button>
-        <button className="cpicker-btn-next" onClick={onFinish}>В промо</button>
-      </div>
-    </div>
-  )
-}
-
 function cNoun(n) {
   const m = n % 10, c = n % 100
   if (c >= 11 && c <= 14) return 'компаний'
   if (m === 1) return 'компания'
   if (m >= 2 && m <= 4) return 'компании'
   return 'компаний'
+}
+
+// ── COMPANY ROW ────────────────────────────────────────────────────────────────
+
+function CompanyRow({ company, selected, active, onToggle, onActivate }) {
+  return (
+    <div
+      className={`cpicker-row${selected ? ' selected' : ''}${active ? ' active' : ''}`}
+      onClick={() => onToggle(company.id)}
+      onMouseEnter={() => onActivate(company.id)}
+    >
+      <div className="cpicker-row-logo" style={{ background: company.color }}>{company.abbr}</div>
+      <span className="cpicker-row-name">{company.name}</span>
+      {selected && (
+        <div className="cpicker-row-check">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── COMPANY DETAIL PANEL ───────────────────────────────────────────────────────
+
+function CompanyDetail({ company, selected, onToggle }) {
+  if (!company) {
+    return (
+      <div className="cpicker-detail cpicker-detail--empty">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        <span>Наведите на компанию чтобы увидеть подробности</span>
+      </div>
+    )
+  }
+
+  const sample = promoItems.find(p => p.companyId === company.id && p.type !== 'broadcast')
+    || promoItems.find(p => p.companyId === company.id)
+
+  return (
+    <div className="cpicker-detail">
+      <div className="cpicker-detail-header">
+        <div className="cpicker-detail-logo" style={{ background: company.color }}>{company.abbr}</div>
+        <div className="cpicker-detail-header-body">
+          <div className="cpicker-detail-name">{company.name}</div>
+          {company.promoTypes?.length > 0 && (
+            <div className="cpicker-detail-types">
+              {company.promoTypes.map(t => (
+                <span key={t} className={`info-sheet-type info-sheet-type--${t}`}>
+                  {TYPE_META[t]?.icon}
+                  {TYPE_META[t]?.label}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {company.desc && (
+        <p className="cpicker-detail-desc">{company.desc}</p>
+      )}
+
+      {sample && (
+        <div className="cpicker-detail-sample">
+          <div className="cpicker-detail-sample-label">Пример акции</div>
+          <div className="cpicker-detail-sample-title">{sample.title}</div>
+          {sample.expires && (
+            <div className="cpicker-detail-sample-expires">до {sample.expires}</div>
+          )}
+        </div>
+      )}
+
+      <button
+        className={`cpicker-detail-action${selected ? ' remove' : ''}`}
+        onClick={() => onToggle(company.id)}
+      >
+        {selected ? 'Убрать из списка' : '+ Добавить в список'}
+      </button>
+    </div>
+  )
 }
 
 // ── PAGE ──────────────────────────────────────────────────────────────────────
@@ -322,12 +150,20 @@ export default function CompanyPicker() {
   const [step, setStep]         = useState(0)
   const [dir, setDir]           = useState(1)
   const [selected, setSelected] = useState(loadSelected)
-  const [infoCompany, setInfoCompany] = useState(null)
+  const [activeId, setActiveId] = useState(null)
   const [showSpotlight, setShowSpotlight] = useState(false)
 
   const totalSteps = CATEGORY_ORDER.length
-  const isLastStep = step === totalSteps - 1
-  const isSummary  = step === totalSteps
+  const catKey     = CATEGORY_ORDER[step]
+  const cat        = companies[catKey]
+  const catList    = cat?.list || []
+
+  // Default active to first company in category when step changes
+  useEffect(() => {
+    setActiveId(catList[0]?.id || null)
+  }, [step]) // eslint-disable-line
+
+  const activeCompany = catList.find(c => c.id === activeId) || catList[0] || null
 
   function toggle(id) {
     setSelected(prev => {
@@ -338,29 +174,31 @@ export default function CompanyPicker() {
   }
 
   function goNext() {
-    setDir(1)
-    if (isLastStep) { setStep(totalSteps); return }
-    setStep(s => s + 1)
+    if (step < totalSteps - 1) { setDir(1); setStep(s => s + 1) }
   }
 
   function goBack() {
     setDir(-1)
     if (step === 0) { navigate(-1); return }
-    if (isSummary) { setStep(totalSteps - 1); return }
     setStep(s => s - 1)
   }
 
-  function resetAll() {
-    setSelected(new Set())
+  function resetCategory() {
+    setSelected(prev => {
+      const next = new Set(prev)
+      catList.forEach(c => next.delete(c.id))
+      return next
+    })
   }
 
   function finish() {
     saveSelected(selected)
     localStorage.setItem('ss_promo_setup', '1')
-    navigate('/promo')
+    navigate('/account', { state: { tab: 'companies' } })
   }
 
-  const progress = Math.round(((step + 1) / totalSteps) * 100)
+  const progress      = Math.round(((step + 1) / totalSteps) * 100)
+  const catSelectedN  = catList.filter(c => selected.has(c.id)).length
 
   return (
     <Layout>
@@ -373,58 +211,66 @@ export default function CompanyPicker() {
               <span className="breadcrumb-current">Подбор компаний</span>
               <HelpButton seenKey="ss_spl_cpicker" onOpen={() => setShowSpotlight(true)} />
             </div>
-            {!isSummary && (
-              <div className="cpicker-step-counter">{step + 1} / {totalSteps}</div>
-            )}
+            <div className="cpicker-header-right">
+              <span className="cpicker-selected-total">Выбрано {selected.size} {cNoun(selected.size)}</span>
+              <span className="cpicker-step-counter">{step + 1} / {totalSteps}</span>
+            </div>
           </div>
 
           {/* Progress bar */}
-          {!isSummary && (
-            <div id="sp-cpicker-progress" className="cpicker-progress-wrap">
-              <div className="cpicker-progress-bar" style={{ width: `${progress}%` }} />
-            </div>
-          )}
+          <div id="sp-cpicker-progress" className="cpicker-progress-wrap">
+            <div className="cpicker-progress-bar" style={{ width: `${progress}%` }} />
+          </div>
 
-          {/* Content */}
-          <div className="cpicker-content">
-            {isSummary ? (
-              <div key="summary" className="cpicker-step-anim cpicker-step-anim--fwd">
-                <Summary selected={selected} onFinish={finish} onBack={goBack} />
-              </div>
-            ) : (
-              <div key={step} className={`cpicker-step-anim cpicker-step-anim--${dir > 0 ? 'fwd' : 'back'}`}>
-                <WizardStep
-                  catKey={CATEGORY_ORDER[step]}
-                  selected={selected}
-                  onToggle={toggle}
-                  onInfo={setInfoCompany}
-                  onReset={resetAll}
-                />
-                <div id="sp-cpicker-actions" className="cpicker-actions">
-                  <button className="cpicker-btn-back" onClick={goBack}>← Назад</button>
-                  <button className="cpicker-btn-next" onClick={goNext}>
-                    {isLastStep ? 'Готово' : 'Далее →'}
-                  </button>
-                </div>
-              </div>
+          {/* Category title */}
+          <div id="sp-cpicker-step" className="cpicker-cat-header">
+            <span className="cpicker-cat-title">{cat?.label}</span>
+            {catSelectedN > 0 && (
+              <span className="cpicker-cat-count">{catSelectedN} выбрано</span>
             )}
+          </div>
+
+          {/* Two-column layout */}
+          <div key={step} className={`cpicker-two-col cpicker-step-anim cpicker-step-anim--${dir > 0 ? 'fwd' : 'back'}`}>
+            <div className="cpicker-list">
+              {catList.map(c => (
+                <CompanyRow
+                  key={c.id}
+                  company={c}
+                  selected={selected.has(c.id)}
+                  active={activeId === c.id || (!activeId && catList[0]?.id === c.id)}
+                  onToggle={toggle}
+                  onActivate={setActiveId}
+                />
+              ))}
+            </div>
+            <CompanyDetail
+              company={activeCompany}
+              selected={activeCompany ? selected.has(activeCompany.id) : false}
+              onToggle={toggle}
+            />
+          </div>
+
+          {/* Actions */}
+          <div id="sp-cpicker-actions" className="cpicker-actions cpicker-actions--new">
+            <div className="cpicker-actions-left">
+              <button className="cpicker-btn-back" onClick={goBack}>← Назад</button>
+              {catSelectedN > 0 && (
+                <button className="cpicker-btn-reset" onClick={resetCategory}>Сбросить</button>
+              )}
+            </div>
+            <div className="cpicker-actions-right">
+              <button className="cpicker-btn-finish" onClick={finish}>Готово</button>
+              {step < totalSteps - 1 && (
+                <button className="cpicker-btn-next" onClick={goNext}>Далее →</button>
+              )}
+            </div>
           </div>
 
         </div>
       </main>
 
-      {/* Spotlight */}
       {showSpotlight && <SpotlightTour steps={CPICKER_SPOTLIGHT} onClose={() => setShowSpotlight(false)} />}
-
-      {/* Info sheet */}
-      {infoCompany && (
-        <CompanyInfoSheet
-          company={infoCompany}
-          selected={selected.has(infoCompany.id)}
-          onToggle={toggle}
-          onClose={() => setInfoCompany(null)}
-        />
-      )}
     </Layout>
   )
 }

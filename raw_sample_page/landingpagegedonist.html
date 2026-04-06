@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гедонистическая адаптация | Рост EmoSpend</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #ffffff;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 48px 40px;
+            color: #111111;
+            overflow-x: hidden;
+        }
+
+        .main-header {
+            max-width: 1400px;
+            margin: 0 auto 48px auto;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 52px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #000000;
+            text-transform: uppercase;
+        }
+
+        .page-title span {
+            background: #000000;
+            color: white;
+            padding: 4px 20px;
+            border-radius: 60px;
+            font-size: 48px;
+        }
+
+        .page-sub {
+            font-size: 18px;
+            font-weight: 500;
+            color: #3a3a3a;
+            margin-top: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .page {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 56px;
+            align-items: flex-start;
+            perspective: 1000px;
+        }
+
+        /* ========= ЛЕВАЯ СТОРОНА ========= */
+        .left {
+            flex: 1;
+            min-width: 300px;
+            transform-style: preserve-3d;
+        }
+
+        .floating-card {
+            background: #ffffff;
+            border-radius: 48px;
+            box-shadow: 0 25px 45px -18px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.03);
+            overflow: hidden;
+            transition: all 0.4s ease;
+            transform: rotateY(10deg) translateZ(10px);
+        }
+
+        .left:hover .floating-card {
+            transform: rotateY(7deg) translateZ(15px);
+            box-shadow: 0 30px 55px -20px rgba(0, 0, 0, 0.18);
+        }
+
+        .photo {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: #f2f2f4;
+            background-image: url('https://placehold.co/740x740/f5f5f7/1a1a1a?text=HEDONIC+ADAPTATION');
+            background-size: cover;
+            background-position: center;
+            filter: grayscale(100%) contrast(1.05);
+        }
+
+        .info {
+            padding: 32px 28px 38px 28px;
+            background: #ffffff;
+        }
+
+        .name {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+            color: #000000;
+            line-height: 1.2;
+        }
+
+        .quote {
+            font-size: 18px;
+            line-height: 1.45;
+            font-weight: 450;
+            color: #2c2c2c;
+            border-left: 3px solid #d0d0d0;
+            padding-left: 20px;
+            margin-bottom: 28px;
+        }
+
+        .knowledge-text {
+            font-size: 16px;
+            font-weight: 500;
+            background: #f8f8f8;
+            padding: 18px 22px;
+            border-radius: 28px;
+            color: #000000;
+            margin-bottom: 24px;
+        }
+
+        /* ========= ПРАВАЯ СТОРОНА ========= */
+        .right {
+            flex: 1.2;
+            min-width: 560px;
+        }
+
+        .theory-logic {
+            background: #fafafc;
+            padding: 28px 32px;
+            border-radius: 40px;
+            margin-bottom: 32px;
+            border-left: 6px solid #6A9E84;
+        }
+
+        .insight {
+            font-size: 18px;
+            font-weight: 500;
+            line-height: 1.45;
+            color: #1a1a1a;
+        }
+
+        .insight strong {
+            font-weight: 800;
+            background: #e8e8e8;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .conclusion {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 20px;
+            color: #000000;
+        }
+
+        .expert-action {
+            font-size: 22px;
+            font-weight: 800;
+            margin: 24px 0 16px 0;
+            letter-spacing: -0.3px;
+            line-height: 1.3;
+        }
+
+        /* БЛОК С РОСТОМ EMOSPEND */
+        .growth-card {
+            background: #ffffff;
+            border-radius: 32px;
+            padding: 28px;
+            margin-bottom: 28px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.02);
+        }
+
+        .growth-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .growth-subtitle {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 28px;
+        }
+
+        /* таблица роста */
+        .growth-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .growth-table th {
+            text-align: left;
+            padding: 12px 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #888;
+            border-bottom: 2px solid #e8e8ec;
+        }
+
+        .growth-table th:last-child,
+        .growth-table th:nth-child(2) {
+            text-align: right;
+        }
+
+        .growth-table td {
+            padding: 14px 8px;
+            font-size: 15px;
+            font-weight: 500;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .growth-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .growth-table td:last-child,
+        .growth-table td:nth-child(2) {
+            text-align: right;
+        }
+
+        .growth-year {
+            font-weight: 700;
+            color: #000;
+        }
+
+        .growth-amount-month {
+            font-weight: 700;
+            color: #000;
+        }
+
+        .growth-amount-year {
+            font-weight: 800;
+            color: #6A9E84;
+        }
+
+        .growth-note {
+            margin-top: 24px;
+            padding: 16px;
+            background: #f8f8fa;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .growth-note-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+
+        .growth-note-text strong {
+            color: #6A9E84;
+        }
+
+        .build-footer {
+            text-align: center;
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 14px;
+            color: #666;
+        }
+
+        @media (max-width: 1100px) {
+            .floating-card { transform: rotateY(5deg) translateZ(5px); }
+            .page-title { font-size: 44px; }
+            .page-title span { font-size: 40px; }
+        }
+
+        @media (max-width: 950px) {
+            .page { flex-direction: column; }
+            .floating-card { transform: rotateY(0deg); }
+            .right { min-width: auto; }
+        }
+
+        @media (max-width: 700px) {
+            body { padding: 30px 20px; }
+            .page-title { font-size: 32px; }
+            .page-title span { font-size: 28px; }
+            .growth-table th, .growth-table td { font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-header">
+        <div class="page-title">
+            ГЕДОНИСТИЧЕСКАЯ <span>АДАПТАЦИЯ</span>
+        </div>
+        <div class="page-sub">
+            Это главная ловушка рационального потребления
+        </div>
+    </div>
+
+    <div class="page">
+        <!-- ЛЕВАЯ СТОРОНА -->
+        <div class="left">
+            <div class="floating-card">
+                <div class="photo"></div>
+                <div class="info">
+                    <div class="name">Гедонистическая адаптация</div>
+                    <div class="quote">
+                        Мы покупаем новую вещь (телефон, машину), ожидая долгого счастья. Но наш уровень радости возвращается к базовому очень быстро.
+                    </div>
+                    <div class="knowledge-text">
+                        Мы привыкаем к комфорту и нам нужно «больше и лучше», чтобы снова почувствовать кайф.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ПРАВАЯ СТОРОНА -->
+        <div class="right">
+            <div class="theory-logic">
+                <div class="insight">
+                    <strong>Главная ловушка потребления:</strong><br>
+                    Мы привыкаем к новому быстро, и радость от покупки уходит.
+                </div>
+                <div class="conclusion">
+                    → EmoSpend растёт ежегодно, каждый год появляются новые возможности.<br>
+                    <strong>Гарантированно будет больше и лучше — гедонистической адаптации не будет</strong>
+                </div>
+            </div>
+
+            <div class="expert-action">
+                КАЖДЫЙ ГОД — НОВЫЕ ВОЗМОЖНОСТИ<br>
+                EmoSpend РАСТЁТ ВМЕСТЕ С КАПИТАЛОМ
+            </div>
+
+            <!-- БЛОК С РОСТОМ EMOSPEND ПО ГОДАМ -->
+            <div class="growth-card">
+                <div class="growth-title">Рост EmoSpend</div>
+                <div class="growth-subtitle">ежегодное увеличение бюджета на эмоциональные покупки</div>
+
+                <table class="growth-table">
+                    <thead>
+                        <tr>
+                            <th>Год</th>
+                            <th>EmoSpend в месяц</th>
+                            <th>EmoSpend в год</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="growth-year">2026</td><td class="growth-amount-month">621 ₽</td><td class="growth-amount-year">7 452 ₽</td></tr>
+                        <tr><td class="growth-year">2027</td><td class="growth-amount-month">3 733 ₽</td><td class="growth-amount-year">44 796 ₽</td></tr>
+                        <tr><td class="growth-year">2028</td><td class="growth-amount-month">6 846 ₽</td><td class="growth-amount-year">82 152 ₽</td></tr>
+                        <tr><td class="growth-year">2029</td><td class="growth-amount-month">9 958 ₽</td><td class="growth-amount-year">119 496 ₽</td></tr>
+                        <tr><td class="growth-year">2030</td><td class="growth-amount-month">13 070 ₽</td><td class="growth-amount-year">156 840 ₽</td></tr>
+                        <tr><td class="growth-year">2031</td><td class="growth-amount-month">16 182 ₽</td><td class="growth-amount-year">194 184 ₽</td></tr>
+                        <tr><td class="growth-year">2032</td><td class="growth-amount-month">19 294 ₽</td><td class="growth-amount-year">231 528 ₽</td></tr>
+                        <tr><td class="growth-year">2033</td><td class="growth-amount-month">22 406 ₽</td><td class="growth-amount-year">268 872 ₽</td></tr>
+                        <tr><td class="growth-year">2034</td><td class="growth-amount-month">25 518 ₽</td><td class="growth-amount-year">306 216 ₽</td></tr>
+                        <tr><td class="growth-year">2035</td><td class="growth-amount-month">28 630 ₽</td><td class="growth-amount-year">343 560 ₽</td></tr>
+                        <tr><td class="growth-year">2036</td><td class="growth-amount-month">31 743 ₽</td><td class="growth-amount-year">380 916 ₽</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="growth-note">
+                    <div class="growth-note-text">
+                        <strong>Чем больше капитал — тем выше EmoSpend</strong><br>
+                        каждый год появляются новые возможности для эмоциональных трат
+                    </div>
+                </div>
+            </div>
+
+            <div class="build-footer">
+                балуй себя всё больше — твой капитал и EmoSpend растут вместе с тобой
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гэри Беккер | Собери базу знаний</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #ffffff;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 48px 40px;
+            color: #111111;
+            overflow-x: hidden;
+        }
+
+        /* ГЛАВНЫЙ ЗАГОЛОВОК СТРАНИЦЫ */
+        .main-header {
+            max-width: 1400px;
+            margin: 0 auto 48px auto;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 56px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #000000;
+            text-transform: uppercase;
+        }
+
+        .page-title span {
+            background: #000000;
+            color: white;
+            padding: 4px 20px;
+            border-radius: 60px;
+            font-size: 52px;
+        }
+
+        .page-sub {
+            font-size: 18px;
+            color: #666;
+            margin-top: 16px;
+            letter-spacing: 1px;
+        }
+
+        /* основной контейнер */
+        .page {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 56px;
+            align-items: flex-start;
+            perspective: 1000px;
+        }
+
+        /* ========= ЛЕВАЯ СТОРОНА — поворот 10% ========= */
+        .left {
+            flex: 1;
+            min-width: 300px;
+            transform-style: preserve-3d;
+        }
+
+        .floating-card {
+            background: #ffffff;
+            border-radius: 48px;
+            box-shadow: 0 25px 45px -18px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.03);
+            overflow: hidden;
+            transition: all 0.4s ease;
+            transform: rotateY(10deg) translateZ(10px);
+        }
+
+        .left:hover .floating-card {
+            transform: rotateY(7deg) translateZ(15px);
+            box-shadow: 0 30px 55px -20px rgba(0, 0, 0, 0.18);
+        }
+
+        .photo {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: #f2f2f4;
+            background-image: url('https://placehold.co/740x740/f5f5f7/1a1a1a?text=GARY+BECKER');
+            background-size: cover;
+            background-position: center;
+            filter: grayscale(100%) contrast(1.05);
+        }
+
+        .info {
+            padding: 32px 28px 38px 28px;
+            background: #ffffff;
+        }
+
+        .name {
+            font-size: 40px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+            color: #000000;
+        }
+
+        .quote {
+            font-size: 19px;
+            line-height: 1.45;
+            font-weight: 450;
+            color: #2c2c2c;
+            border-left: 3px solid #d0d0d0;
+            padding-left: 20px;
+            margin-bottom: 28px;
+        }
+
+        .knowledge-text {
+            font-size: 17px;
+            font-weight: 500;
+            background: #f8f8f8;
+            padding: 18px 22px;
+            border-radius: 28px;
+            color: #000000;
+            margin-bottom: 24px;
+        }
+
+        .nobel {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #111111;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 100px;
+            font-weight: 600;
+            font-size: 15px;
+            transition: 0.2s;
+        }
+
+        /* ========= ПРАВАЯ СТОРОНА ========= */
+        .right {
+            flex: 1.2;
+            min-width: 420px;
+        }
+
+        .beckers-logic {
+            background: #fafafc;
+            padding: 28px 32px;
+            border-radius: 40px;
+            margin-bottom: 32px;
+            border-left: 6px solid #6A9E84;
+        }
+
+        .insight {
+            font-size: 18px;
+            font-weight: 500;
+            line-height: 1.45;
+            color: #1a1a1a;
+        }
+
+        .insight strong {
+            font-weight: 800;
+            background: #e8e8e8;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .conclusion {
+            font-size: 22px;
+            font-weight: 700;
+            margin-top: 20px;
+            color: #000000;
+        }
+
+        .expert-action {
+            font-size: 24px;
+            font-weight: 800;
+            margin: 24px 0 16px 0;
+            letter-spacing: -0.3px;
+        }
+
+        .benefits {
+            margin: 20px 0 32px 0;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .benefits li {
+            font-size: 18px;
+            margin: 14px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .benefits li::before {
+            content: "✓";
+            font-weight: 800;
+            font-size: 22px;
+            color: #6A9E84;
+        }
+
+        /* карточки в стиле SmartSpend */
+        .cards-row {
+            display: flex;
+            gap: 28px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .expert-card {
+            flex: 1;
+            min-width: 300px;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .expert-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 28px 40px -16px rgba(0, 0, 0, 0.2), 0 0 0 2px #6A9E84;
+        }
+
+        .card-window {
+            background: #f8f8fa;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8e8ec;
+        }
+
+        .card-topbar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .card-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #d4d4d4;
+        }
+
+        .card-dot:nth-child(1) { background: #6A9E84; }
+        .card-dot:nth-child(2) { background: #c0c0c0; }
+        .card-dot:nth-child(3) { background: #a0a0a0; }
+
+        /* крупный заголовок диеты */
+        .diet-header {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #000000;
+            margin-top: 4px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .protocol-balance {
+            margin-bottom: 20px;
+        }
+
+        .balance-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .balance-num {
+            font-size: 28px;
+            font-weight: 800;
+            color: #000;
+            margin: 4px 0 8px;
+        }
+
+        .balance-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .tag-green {
+            background: #eaf6f0;
+            color: #6A9E84;
+        }
+
+        .tag-neutral {
+            background: #f0f0f0;
+            color: #444;
+        }
+
+        .envelopes {
+            margin: 20px 0;
+        }
+
+        .env-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .env-icon svg {
+            width: 14px;
+            height: 14px;
+            stroke: #6A9E84;
+        }
+
+        .env-name {
+            font-size: 14px;
+            font-weight: 600;
+            flex: 1;
+            margin-left: 10px;
+            color: #222;
+        }
+
+        .env-right {
+            text-align: right;
+        }
+
+        .env-amount {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .env-sub {
+            font-size: 10px;
+            color: #999;
+        }
+
+        .progress {
+            background: #efefef;
+            border-radius: 20px;
+            height: 6px;
+            margin: 8px 0 16px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: #6A9E84;
+            width: 0%;
+            height: 100%;
+            border-radius: 20px;
+            transition: width 0.3s;
+        }
+
+        .inventory {
+            margin: 20px 0 16px;
+        }
+
+        .inv-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .inv-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .inv-days {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .inv-urgent .inv-name {
+            color: #6A9E84;
+            font-weight: 700;
+        }
+
+        .card-badge {
+            background: #f8f8fa;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-top: 1px solid #e8e8ec;
+        }
+
+        .badge-icon svg {
+            width: 16px;
+            height: 16px;
+            stroke: #6A9E84;
+        }
+
+        .badge-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .badge-val {
+            font-size: 14px;
+            font-weight: 700;
+            color: #000;
+        }
+
+        .card-btn {
+            width: calc(100% - 40px);
+            margin: 0 20px 20px 20px;
+            background: transparent;
+            border: 1.5px solid #111;
+            border-radius: 60px;
+            padding: 10px 0;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .expert-card:hover .card-btn {
+            background: #111;
+            color: white;
+            border-color: #111;
+        }
+
+        .build-footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 14px;
+            color: #666;
+        }
+
+        @media (max-width: 1100px) {
+            .floating-card { transform: rotateY(5deg) translateZ(5px); }
+            .page-title { font-size: 44px; }
+            .page-title span { font-size: 40px; }
+        }
+
+        @media (max-width: 950px) {
+            .page { flex-direction: column; }
+            .floating-card { transform: rotateY(0deg); }
+            .page-title { font-size: 36px; }
+            .page-title span { font-size: 32px; }
+        }
+
+        @media (max-width: 700px) {
+            body { padding: 30px 20px; }
+            .cards-row { flex-direction: column; align-items: center; }
+            .expert-card { width: 100%; max-width: 380px; }
+            .expert-action { font-size: 20px; }
+            .page-title { font-size: 28px; }
+            .page-title span { font-size: 24px; }
+            .diet-header { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ГЛАВНЫЙ ЗАГОЛОВОК СТРАНИЦЫ В САМОМ ВЕРХУ -->
+    <div class="main-header">
+        <div class="page-title">
+            СОБЕРИ БАЗУ ЗНАНИЙ
+        </div>
+        <div class="page-sub">
+            готовые протоколы во всех сферах жизни
+        </div>
+    </div>
+
+    <div class="page">
+        <!-- ЛЕВАЯ СТОРОНА -->
+        <div class="left">
+            <div class="floating-card">
+                <div class="photo"></div>
+                <div class="info">
+                    <div class="name">Гэри Беккер</div>
+                    <div class="quote">
+                        Экономический подход не предполагает, что люди не совершают ошибок.<br>
+                        Он предполагает, что люди делают лучший выбор из доступных им знаний.
+                    </div>
+                    <div class="knowledge-text">
+                        Наличие знания снижает вероятность совершения ошибок.
+                    </div>
+                    <div class="nobel">
+                        Nobel Prize · Economics
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ПРАВАЯ СТОРОНА -->
+        <div class="right">
+            <div class="beckers-logic">
+                <div class="insight">
+                    <strong>Мы прислушались к совету Гэри Беккера:</strong><br>
+                    «Знания снижают вероятность ошибок».
+                </div>
+                <div class="conclusion">
+                    → Поэтому эксперты сообщества уже подготовили для тебя<br>
+                    <strong>готовые протоколы</strong>.
+                </div>
+            </div>
+
+            <div class="expert-action">
+                ТЫ НЕ ТРАТИШЬ ВРЕМЯ НА ПРОБЫ —<br>
+                ТЫ СРАЗУ ИДЁШЬ ПО ПУТИ ПРОФЕССИОНАЛОВ
+            </div>
+
+            <ul class="benefits">
+                <li>Учитывай свои <strong>предпочтения</strong> и <strong>финансовые возможности</strong></li>
+                <li><strong>Перенимай знания и опыт</strong> одним нажатием</li>
+            </ul>
+
+            <!-- КАРТОЧКИ ТОЛЬКО ДВЕ -->
+            <div class="cards-row">
+                
+                <!-- КАРТОЧКА 1: СЕВЕРНАЯ ДИЕТА -->
+                <div class="expert-card">
+                    <div class="card-window">
+                        <div class="card-topbar">
+                            <div class="card-dot"></div>
+                            <div class="card-dot"></div>
+                            <div class="card-dot"></div>
+                        </div>
+                        <div class="diet-header">СЕВЕРНАЯ ДИЕТА</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="protocol-balance">
+                            <div class="balance-label">Бюджет питания</div>
+                            <div class="balance-num">11 000 ₽</div>
+                            <div class="balance-row">
+                                <span class="tag tag-green">↑ -15% ошибок</span>
+                                <span class="tag tag-neutral">Эконом: 1 200 ₽</span>
+                            </div>
+                        </div>
+
+                        <div class="envelopes">
+                            <div class="env-row">
+                                <div class="env-icon"><svg viewBox="0 0 12 12" fill="none" stroke="#6A9E84" stroke-width="1.5"><path d="M1 3h10M1 6h6M1 9h4"></path></svg></div>
+                                <span class="env-name">Белки (рыба/мясо)</span>
+                                <div class="env-right"><div class="env-amount">4 500 ₽</div><div class="env-sub">норма</div></div>
+                            </div>
+                            <div class="progress"><div class="progress-fill" style="width: 100%;"></div></div>
+                            
+                            <div class="env-row">
+                                <div class="env-icon"><svg viewBox="0 0 12 12" fill="none" stroke="#6A9E84" stroke-width="1.5"><circle cx="6" cy="6" r="4.5"></circle><path d="M6 3.5v2.5l2 1"></path></svg></div>
+                                <span class="env-name">Жиры / Омега-3</span>
+                                <div class="env-right"><div class="env-amount">2 800 ₽</div><div class="env-sub">накоплено</div></div>
+                            </div>
+                            <div class="progress"><div class="progress-fill" style="width: 82%;"></div></div>
+                            
+                            <div class="env-row">
+                                <div class="env-icon"><svg viewBox="0 0 12 12" fill="none" stroke="#6A9E84" stroke-width="1.5"><polygon points="3,10 6,2 9,10"></polygon></svg></div>
+                                <span class="env-name">Клетчатка / овощи</span>
+                                <div class="env-right"><div class="env-amount">3 700 ₽</div><div class="env-sub">цель 4 000</div></div>
+                            </div>
+                            <div class="progress"><div class="progress-fill" style="width: 92%;"></div></div>
+                        </div>
+
+                        <div class="inventory">
+                            <div class="inv-item">
+                                <span class="inv-name">Сёмга (запас)</span>
+                                <span class="inv-days">5 дней</span>
+                            </div>
+                            <div class="inv-item inv-urgent">
+                                <span class="inv-name">Красная рыба</span>
+                                <span class="inv-days">2 дня</span>
+                            </div>
+                            <div class="inv-item">
+                                <span class="inv-name">Киноа / гречка</span>
+                                <span class="inv-days">12 дней</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-badge">
+                        <div class="badge-icon"><svg viewBox="0 0 14 14" fill="none" stroke="#6A9E84" stroke-width="1.5"><polyline points="2,9 5,5 8,7 12,3"></polyline></svg></div>
+                        <div><div class="badge-label">Экономия времени</div><div class="badge-val">−8 ч/нед на планирование</div></div>
+                    </div>
+
+                    <button class="card-btn">ДОБАВИТЬ В БАЗУ →</button>
+                </div>
+
+                <!-- КАРТОЧКА 2: ВЕГЕТАРИАНСТВО -->
+                <div class="expert-card">
+                    <div class="card-window">
+                        <div class="card-topbar">
+                            <div class="card-dot"></div>
+                            <div class="card-dot"></div>
+                            <div class="card-dot"></div>
+                        </div>
+                        <div class="diet-header">ВЕГЕТАРИАНСТВО</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="protocol-balance">
+                            <div class="balance-label">Бюджет питания</div>
+                            <div class="balance-num">15 000 ₽</div>
+                            <div class="balance-row">
+                                <span class="tag tag-green">↑ Рек. экспертов</span>
+                                <span class="tag tag-neutral">Растительный белок</span>
+                            </div>
+                        </div>
+
+                        <div class="envelopes">
+                            <div class="env-row">
+                                <div class="env-icon"><svg viewBox="0 0 12 12" fill="none" stroke="#6A9E84" stroke-width="1.5"><path d="M1 3h10M1 6h6M1 9h4"></path></svg></div>
+                                <span class="env-name">Бобовые / тофу</span>
+                                <div class="env-right"><div class="env-amount">5 000 ₽</div><div class="env-sub">норма</div></div>
+                            </div>
+                            <div class="progress"><div class="progress-fill" style="width: 100%;"></div></div>
+                            
+                            <div class="env-row">
+                                <div class="env-icon"><svg viewBox="0 0 12 12" fill="none" stroke="#6A9E84" stroke-width="1.5"><circle cx="6" cy="6" r="4.5"></circle><path d="M6 3.5v2.5l2 1"></path></svg></div>
+                                <span class="env-name">Орехи / семена</span>
+                                <div class="env-right"><div class="env-amount">4 000 ₽</div><div class="env-sub">накоплено</div></div>
+                            </div>
+                            <div class="progress"><div class="progress-fill" style="width: 88%;"></div></div>
+                            
+                            <div class="env-row">
+                                <div class="env-icon"><svg viewBox="0 0 12 12" fill="none" stroke="#6A9E84" stroke-width="1.5"><polygon points="3,10 6,2 9,10"></polygon></svg></div>
+                                <span class="env-name">Овощи / зелень</span>
+                                <div class="env-right"><div class="env-amount">6 000 ₽</div><div class="env-sub">цель 6 000</div></div>
+                            </div>
+                            <div class="progress"><div class="progress-fill" style="width: 100%;"></div></div>
+                        </div>
+
+                        <div class="inventory">
+                            <div class="inv-item">
+                                <span class="inv-name">Нут / чечевица</span>
+                                <span class="inv-days">10 дней</span>
+                            </div>
+                            <div class="inv-item inv-urgent">
+                                <span class="inv-name">Тофу / темпе</span>
+                                <span class="inv-days">3 дня</span>
+                            </div>
+                            <div class="inv-item">
+                                <span class="inv-name">Миндаль / грецкие</span>
+                                <span class="inv-days">14 дней</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-badge">
+                        <div class="badge-icon"><svg viewBox="0 0 14 14" fill="none" stroke="#6A9E84" stroke-width="1.5"><polyline points="2,9 5,5 8,7 12,3"></polyline></svg></div>
+                        <div><div class="badge-label">Экономия времени</div><div class="badge-val">−9 ч/нед на планирование</div></div>
+                    </div>
+
+                    <button class="card-btn">ДОБАВИТЬ В БАЗУ →</button>
+                </div>
+            </div>
+
+            <div class="build-footer">
+                собирай готовые протоколы экспертов — сокращай путь к здоровью без ошибок
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

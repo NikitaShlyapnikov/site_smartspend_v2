@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSpend — Умное потребление</title>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Unbounded:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #EEEDE9;
+      --surface: #FFFFFF;
+      --surface-2: #F5F4F0;
+      --ink: #0E0E0C;
+      --accent: #4E8268;
+      --accent-2: #6AAF8E;
+      --text-2: #5A5955;
+      --text-3: #9A9895;
+      --border: #D5D4D0;
+      --ok: #5E9478;
+      --soon: #B08840;
+      --urgent: #B85555;
+      --r: 14px;
+      --r-lg: 20px;
+      --r-xl: 28px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Geist', system-ui, sans-serif; background: var(--bg); color: var(--ink); overflow-x: hidden; }
+
+    /* ─── NAV ─────────────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 48px;
+      background: rgba(238,237,233,0.85); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { font-family: 'Unbounded', sans-serif; font-size: 17px; font-weight: 700; letter-spacing: -0.5px; color: var(--ink); }
+    .nav-links { display: flex; gap: 28px; align-items: center; }
+    .nav-link { font-size: 14px; color: var(--text-2); text-decoration: none; transition: color .15s; }
+    .nav-link:hover { color: var(--ink); }
+    .nav-cta { padding: 10px 22px; background: var(--ink); color: #fff; border-radius: 10px; font: 600 13px/1 'Geist',sans-serif; text-decoration: none; transition: opacity .15s; }
+    .nav-cta:hover { opacity: 0.8; }
+
+    /* ─── HERO ────────────────────────────────────────────────── */
+    .hero {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 60px;
+      align-items: center; min-height: 100vh;
+      padding: 80px 48px; max-width: 1280px; margin: 0 auto;
+    }
+    .hero-text { display: flex; flex-direction: column; gap: 28px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 20px;
+      background: rgba(78,130,104,0.1); color: var(--accent);
+      font-size: 12px; font-weight: 600; letter-spacing: 0.04em; width: fit-content;
+    }
+    .hero-badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+    .hero-h1 {
+      font-family: 'Unbounded', sans-serif;
+      font-size: 52px; font-weight: 800; line-height: 1.12; letter-spacing: -2px;
+    }
+    .hero-h1 em { font-style: normal; color: var(--accent); }
+    .hero-sub { font-size: 18px; color: var(--text-2); line-height: 1.6; max-width: 420px; }
+    .hero-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .btn-primary {
+      padding: 14px 32px; background: var(--accent); color: #fff;
+      border: none; border-radius: 12px; font: 600 15px/1 'Geist',sans-serif;
+      cursor: pointer; text-decoration: none; display: inline-block; transition: opacity .15s;
+    }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-ghost {
+      padding: 14px 24px; background: transparent; color: var(--text-2);
+      border: 1px solid var(--border); border-radius: 12px;
+      font: 500 15px/1 'Geist',sans-serif; cursor: pointer; text-decoration: none;
+      display: inline-block; transition: all .15s;
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .hero-stat-row { display: flex; gap: 24px; padding-top: 8px; }
+    .hero-stat { display: flex; flex-direction: column; gap: 2px; }
+    .hero-stat-val { font-size: 24px; font-weight: 700; font-family: 'Unbounded',sans-serif; letter-spacing: -1px; color: var(--ink); }
+    .hero-stat-lbl { font-size: 12px; color: var(--text-3); }
+
+    /* ─── HERO CUBE ───────────────────────────────────────────── */
+    .hero-visual { display: flex; justify-content: center; align-items: center; }
+    .cube-wrap { position: relative; width: 360px; height: 360px; filter: drop-shadow(0 40px 60px rgba(0,0,0,.18)); }
+    .cube-frame {
+      width: 100%; height: 100%; background: var(--ink);
+      border-radius: 52px; display: flex; align-items: center; justify-content: center;
+      animation: cubeBob 4s ease-in-out infinite; padding: 44px;
+    }
+    .cube-screen { width: 100%; height: 100%; background: var(--bg); border-radius: 28px; position: relative; overflow: hidden; }
+    .cube-slide {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+      padding: 32px; opacity: 0; transition: opacity .5s ease; text-align: center;
+    }
+    .cube-slide.active { opacity: 1; }
+    .cube-brand { font-family: 'Unbounded',sans-serif; font-size: 38px; font-weight: 800; line-height: 1.1; letter-spacing: -2px; color: var(--ink); }
+    .cube-phrase { font-family: 'Unbounded',sans-serif; font-size: 28px; font-weight: 700; line-height: 1.25; letter-spacing: -1px; color: var(--ink); }
+    .cube-phrase em { color: var(--accent); font-style: normal; }
+    @keyframes cubeBob {
+      0%,100% { transform: translateY(0) rotate(0); }
+      50% { transform: translateY(-10px) rotate(.8deg); }
+    }
+
+    /* ─── SECTION WRAPPER ─────────────────────────────────────── */
+    .section { padding: 100px 48px; max-width: 1280px; margin: 0 auto; }
+    .section-full { padding: 100px 48px; }
+    .section-full-inner { max-width: 1280px; margin: 0 auto; }
+
+    /* ─── TWO PATHS ───────────────────────────────────────────── */
+    .paths-header { text-align: center; margin-bottom: 60px; }
+    .paths-label { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); margin-bottom: 16px; }
+    .paths-title {
+      font-family: 'Unbounded', sans-serif;
+      font-size: 48px; font-weight: 800; line-height: 1.1; letter-spacing: -2px;
+    }
+    .paths-title span { background: var(--ink); color: #fff; padding: 4px 18px; border-radius: 40px; }
+    .paths-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .path-card {
+      background: var(--surface); border-radius: var(--r-xl);
+      padding: 36px; border: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    .path-card.good { border-color: rgba(78,130,104,.3); background: rgba(78,130,104,.04); }
+    .path-card.bad { border-color: rgba(184,85,85,.2); background: rgba(184,85,85,.02); }
+    .path-head { display: flex; align-items: center; gap: 12px; }
+    .path-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .good .path-icon { background: rgba(78,130,104,.12); }
+    .bad .path-icon { background: rgba(184,85,85,.08); }
+    .path-title { font-size: 20px; font-weight: 700; }
+    .path-timeline { font-size: 13px; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
+    .good .path-timeline { background: rgba(78,130,104,.12); color: var(--accent); }
+    .bad .path-timeline { background: rgba(184,85,85,.1); color: var(--urgent); }
+    .path-items { display: flex; flex-direction: column; gap: 10px; }
+    .path-item { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 1.5; color: var(--text-2); }
+    .path-item::before { content: ''; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 7px; }
+    .good .path-item::before { background: var(--accent); }
+    .bad .path-item::before { background: var(--urgent); }
+    .path-item strong { color: var(--ink); font-weight: 600; }
+
+    /* ─── FEATURE SECTION ─────────────────────────────────────── */
+    .feature { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    .feature.reverse { direction: rtl; }
+    .feature.reverse > * { direction: ltr; }
+    .feature-text { display: flex; flex-direction: column; gap: 24px; }
+    .feature-eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+    .feature-title {
+      font-family: 'Unbounded', sans-serif;
+      font-size: 36px; font-weight: 800; line-height: 1.15; letter-spacing: -1.5px;
+    }
+    .feature-title span { background: var(--ink); color: #fff; padding: 2px 14px; border-radius: 30px; }
+    .person-block {
+      background: var(--surface); border-radius: var(--r-lg); padding: 20px 22px;
+      border-left: 3px solid var(--accent); display: flex; flex-direction: column; gap: 10px;
+    }
+    .person-quote { font-size: 14px; color: var(--text-2); line-height: 1.6; font-style: italic; }
+    .person-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .person-desc { font-size: 11px; color: var(--text-3); margin-top: -6px; }
+    .feature-desc { font-size: 16px; color: var(--text-2); line-height: 1.7; }
+    .feature-desc strong { color: var(--ink); font-weight: 600; }
+
+    /* ─── MOCKUP FRAME ────────────────────────────────────────── */
+    .mockup-wrap {
+      background: var(--ink); border-radius: 36px; padding: 28px;
+      box-shadow: 0 24px 60px rgba(0,0,0,.18), 0 4px 12px rgba(0,0,0,.1);
+      transform: rotate(-1deg);
+      transition: transform .3s ease;
+    }
+    .mockup-wrap:hover { transform: rotate(0) scale(1.01); }
+    .mockup-wrap.right { transform: rotate(1deg); }
+    .mockup-wrap.right:hover { transform: rotate(0) scale(1.01); }
+    .mockup-screen {
+      background: var(--bg); border-radius: 18px; overflow: hidden;
+      font-size: 11px; line-height: 1.4; color: var(--ink);
+    }
+    /* mini topbar */
+    .m-topbar {
+      background: var(--surface); padding: 10px 14px;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid var(--border); font-size: 10px; font-weight: 600; color: var(--text-2);
+    }
+    .m-topbar-logo { width: 20px; height: 20px; background: var(--ink); border-radius: 6px; display:flex; align-items:center; justify-content:center; }
+    .m-topbar-logo svg { width:10px; height:10px; }
+    .m-sidebar {
+      display: grid; grid-template-columns: 48px 1fr; height: 340px;
+    }
+    .m-side { background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; padding: 10px 6px; }
+    .m-side-dot { width: 36px; height: 36px; border-radius: 10px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; }
+    .m-side-dot.active { background: rgba(78,130,104,.12); }
+    .m-side-dot svg { width: 14px; height: 14px; }
+    .m-content { overflow: hidden; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+
+    /* ─── MOCKUP 1: SET DETAIL ────────────────────────────────── */
+    .m-hero-card {
+      background: var(--surface); border-radius: 12px; padding: 14px;
+      border: 1px solid var(--border);
+    }
+    .m-hero-tag { font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
+    .m-hero-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+    .m-hero-desc { font-size: 10px; color: var(--text-2); margin-bottom: 10px; }
+    .m-stats-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .m-stat { background: var(--surface-2); border-radius: 8px; padding: 6px 10px; flex: 1; }
+    .m-stat-val { font-size: 12px; font-weight: 700; }
+    .m-stat-lbl { font-size: 9px; color: var(--text-3); }
+    .m-item-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--surface-2); }
+    .m-item-row:last-child { border-bottom: none; }
+    .m-item-name { flex: 1; font-size: 10px; }
+    .m-item-price { font-size: 10px; color: var(--text-3); }
+    .m-item-amort { font-size: 10px; font-weight: 600; color: var(--accent); }
+    .m-art-row { display: flex; gap: 6px; margin-top: 8px; }
+    .m-art-card { background: var(--surface-2); border-radius: 8px; padding: 8px; flex: 1; }
+    .m-art-title { font-size: 9px; font-weight: 600; color: var(--ink); line-height: 1.4; }
+
+    /* ─── MOCKUP 2: ENVELOPES ─────────────────────────────────── */
+    .m-env-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .m-env-title { font-size: 12px; font-weight: 700; }
+    .m-env-total { font-size: 10px; color: var(--text-3); }
+    .m-income-bar { background: var(--surface); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; border: 1px solid var(--border); }
+    .m-income-row { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-2); margin-bottom: 6px; }
+    .m-bar-track { height: 4px; background: var(--surface-2); border-radius: 2px; }
+    .m-bar-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+    .m-env-list { display: flex; flex-direction: column; gap: 4px; }
+    .m-env-item {
+      background: var(--surface); border-radius: 8px; padding: 7px 10px;
+      display: flex; align-items: center; gap: 8px; border: 1px solid var(--border);
+    }
+    .m-env-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+    .m-env-name { flex: 1; font-size: 10px; font-weight: 500; }
+    .m-env-amt { font-size: 10px; font-weight: 600; }
+    .m-env-sub { font-size: 9px; color: var(--text-3); }
+    .m-env-ok { color: var(--ok); }
+    .m-env-soon { color: var(--soon); }
+    .m-env-urgent { color: var(--urgent); }
+
+    /* ─── MOCKUP 3: CATALOG / FEED ────────────────────────────── */
+    .m-feed-item { background: var(--surface); border-radius: 10px; padding: 10px; margin-bottom: 6px; border: 1px solid var(--border); }
+    .m-feed-meta { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+    .m-feed-avatar { width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; color: #fff; }
+    .m-feed-author { font-size: 10px; font-weight: 600; }
+    .m-feed-date { font-size: 9px; color: var(--text-3); margin-left: auto; }
+    .m-feed-title { font-size: 11px; font-weight: 600; line-height: 1.4; margin-bottom: 4px; }
+    .m-feed-preview { font-size: 9px; color: var(--text-2); line-height: 1.4; }
+    .m-feed-actions { display: flex; gap: 10px; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--surface-2); }
+    .m-feed-action { font-size: 9px; color: var(--text-3); display: flex; align-items: center; gap: 3px; }
+    .m-feed-tag { font-size: 8px; font-weight: 600; padding: 2px 7px; border-radius: 10px; background: rgba(78,130,104,.1); color: var(--accent); margin-left: auto; }
+    .m-sets-row { display: flex; gap: 6px; margin-bottom: 8px; }
+    .m-set-chip { padding: 4px 10px; border-radius: 20px; font-size: 9px; font-weight: 600; border: 1px solid var(--border); background: var(--surface); }
+    .m-set-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* ─── MOCKUP 4: DEPOSITS ──────────────────────────────────── */
+    .m-dep-chart { background: var(--surface); border-radius: 10px; padding: 10px; border: 1px solid var(--border); margin-bottom: 6px; }
+    .m-dep-chart-title { font-size: 9px; color: var(--text-3); margin-bottom: 8px; font-weight: 600; }
+    .m-chart-bars { display: flex; gap: 4px; align-items: flex-end; height: 52px; }
+    .m-bar { flex: 1; border-radius: 3px 3px 0 0; background: linear-gradient(to top, var(--accent), var(--accent-2)); min-height: 6px; position: relative; }
+    .m-bar-lbl { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); font-size: 7px; color: var(--ink); font-weight: 600; white-space: nowrap; }
+    .m-chart-labels { display: flex; gap: 4px; margin-top: 4px; }
+    .m-chart-lbl { flex: 1; text-align: center; font-size: 8px; color: var(--text-3); }
+    .m-dep-card { background: var(--surface); border-radius: 10px; padding: 10px; border: 1px solid var(--border); display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .m-dep-logo { width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 7px; font-weight: 700; color: #fff; }
+    .m-dep-name { font-size: 10px; font-weight: 600; }
+    .m-dep-sub { font-size: 9px; color: var(--text-3); }
+    .m-dep-rate { font-size: 14px; font-weight: 700; color: var(--accent); margin-left: auto; }
+    .m-dep-rate-lbl { font-size: 8px; color: var(--text-3); text-align: right; }
+    .m-card-item { background: var(--surface); border-radius: 10px; padding: 10px; border: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+    .m-card-logo { width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 7px; font-weight: 700; color: #fff; }
+    .m-card-name { font-size: 10px; font-weight: 600; }
+    .m-card-sub { font-size: 9px; color: var(--text-3); }
+    .m-card-cb { font-size: 12px; font-weight: 700; color: var(--accent); margin-left: auto; }
+    .m-card-cb-lbl { font-size: 8px; color: var(--text-3); text-align: right; }
+
+    /* ─── MOCKUP 5: INVENTORY LIST ────────────────────────────── */
+    .m-inv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .m-inv-title { font-size: 12px; font-weight: 700; }
+    .m-inv-sum { font-size: 10px; font-weight: 600; color: var(--accent); }
+    .m-inv-group { margin-bottom: 8px; }
+    .m-inv-group-lbl { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .m-inv-group-lbl::before { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .m-inv-item {
+      background: var(--surface); border-radius: 8px; padding: 7px 10px;
+      display: flex; align-items: center; gap: 8px; margin-bottom: 3px;
+      border-left: 3px solid transparent;
+    }
+    .m-inv-item.ok { border-color: var(--ok); }
+    .m-inv-item.soon { border-color: var(--soon); }
+    .m-inv-item.urgent { border-color: var(--urgent); }
+    .m-inv-name { flex: 1; font-size: 10px; font-weight: 500; }
+    .m-inv-date { font-size: 9px; }
+    .m-inv-item.ok .m-inv-date { color: var(--ok); }
+    .m-inv-item.soon .m-inv-date { color: var(--soon); }
+    .m-inv-item.urgent .m-inv-date { color: var(--urgent); }
+    .m-inv-price { font-size: 10px; font-weight: 600; color: var(--text-3); }
+
+    /* ─── MOCKUP 6: EMOSPEND ──────────────────────────────────── */
+    .m-emo-card { background: var(--surface); border-radius: 10px; padding: 12px; border: 1px solid var(--border); margin-bottom: 6px; }
+    .m-emo-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .m-emo-icon { width: 28px; height: 28px; border-radius: 8px; background: rgba(78,130,104,.12); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .m-emo-title { font-size: 11px; font-weight: 700; }
+    .m-emo-sub { font-size: 9px; color: var(--text-3); }
+    .m-emo-amount { font-size: 24px; font-weight: 800; letter-spacing: -1px; color: var(--accent); margin-bottom: 4px; }
+    .m-emo-lbl { font-size: 9px; color: var(--text-3); margin-bottom: 10px; }
+    .m-emo-table { display: flex; flex-direction: column; gap: 4px; }
+    .m-emo-row { display: flex; justify-content: space-between; font-size: 9px; padding: 4px 0; border-bottom: 1px solid var(--surface-2); }
+    .m-emo-row:last-child { border-bottom: none; }
+    .m-emo-year { color: var(--text-3); }
+    .m-emo-val { font-weight: 600; }
+    .m-emo-grow { color: var(--accent); font-size: 8px; margin-left: 4px; }
+
+    /* ─── DIVIDER ─────────────────────────────────────────────── */
+    .section-divider { max-width: 1280px; margin: 0 auto; padding: 0 48px; }
+    .divider-line { border: none; border-top: 1px solid var(--border); }
+
+    /* ─── CTA SECTION ─────────────────────────────────────────── */
+    .cta-section {
+      background: var(--ink); color: #fff;
+      padding: 100px 48px; text-align: center;
+    }
+    .cta-inner { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+    .cta-label { font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-2); }
+    .cta-title { font-family: 'Unbounded', sans-serif; font-size: 44px; font-weight: 800; line-height: 1.1; letter-spacing: -2px; }
+    .cta-sub { font-size: 17px; color: rgba(255,255,255,0.6); line-height: 1.6; }
+    .cta-btn { padding: 16px 40px; background: var(--accent); color: #fff; border: none; border-radius: 14px; font: 700 16px/1 'Geist',sans-serif; cursor: pointer; text-decoration: none; display: inline-block; transition: opacity .15s; }
+    .cta-btn:hover { opacity: 0.88; }
+    .cta-note { font-size: 13px; color: rgba(255,255,255,.4); }
+
+    /* ─── FOOTER ──────────────────────────────────────────────── */
+    footer { padding: 32px 48px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .footer-logo { font-family: 'Unbounded', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: -.5px; }
+    .footer-copy { font-size: 13px; color: var(--text-3); }
+
+    /* ─── RESPONSIVE ──────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      nav { padding: 14px 24px; }
+      .nav-links { display: none; }
+      .hero { grid-template-columns: 1fr; padding: 60px 24px; gap: 40px; min-height: auto; }
+      .hero-h1 { font-size: 36px; }
+      .cube-wrap { width: 280px; height: 280px; }
+      .cube-brand { font-size: 28px; }
+      .cube-phrase { font-size: 22px; }
+      .section { padding: 60px 24px; }
+      .section-full { padding: 60px 24px; }
+      .feature, .feature.reverse { grid-template-columns: 1fr; direction: ltr; gap: 40px; }
+      .feature-title { font-size: 28px; }
+      .paths-grid { grid-template-columns: 1fr; }
+      .paths-title { font-size: 36px; }
+      .cta-section { padding: 60px 24px; }
+      .cta-title { font-size: 32px; }
+      footer { flex-direction: column; gap: 8px; text-align: center; padding: 24px; }
+      .section-divider { padding: 0 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════ NAV ══════════ -->
+<nav>
+  <div class="nav-logo">SmartSpend</div>
+  <div class="nav-links">
+    <a href="#paths" class="nav-link">Для кого</a>
+    <a href="#features" class="nav-link">Возможности</a>
+    <a href="#cta" class="nav-link">Начать</a>
+  </div>
+  <a href="#cta" class="nav-cta">Войти →</a>
+</nav>
+
+<!-- ══════════ HERO ══════════ -->
+<div class="section" style="padding-top:60px; padding-bottom:60px;">
+  <div class="hero" style="padding:0; max-width:100%;">
+    <div class="hero-text">
+      <div class="hero-badge">Осознанное потребление</div>
+      <h1 class="hero-h1">Система<br>экономии и<br><em>планирования</em></h1>
+      <p class="hero-sub">Планируй покупки заранее, веди инвентарь, сравнивай вклады и карты. Всё — в одном месте, без лишних усилий.</p>
+      <div class="hero-actions">
+        <a href="#cta" class="btn-primary">Начать бесплатно</a>
+        <a href="#features" class="btn-ghost">Как это работает</a>
+      </div>
+      <div class="hero-stat-row">
+        <div class="hero-stat">
+          <div class="hero-stat-val">10+</div>
+          <div class="hero-stat-lbl">категорий планирования</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val">500+</div>
+          <div class="hero-stat-lbl">компаний и акций</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val">∞</div>
+          <div class="hero-stat-lbl">статей сообщества</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="cube-wrap">
+        <div class="cube-frame">
+          <div class="cube-screen">
+            <div class="cube-slide active" data-idx="0">
+              <div class="cube-brand">SMART<br>SPEND</div>
+            </div>
+            <div class="cube-slide" data-idx="1">
+              <div class="cube-phrase">Планируй<br><em>покупки</em></div>
+            </div>
+            <div class="cube-slide" data-idx="2">
+              <div class="cube-phrase">Экономь<br><em>с умом</em></div>
+            </div>
+            <div class="cube-slide" data-idx="3">
+              <div class="cube-phrase">Плати<br><em>меньше</em></div>
+            </div>
+            <div class="cube-slide" data-idx="4">
+              <div class="cube-phrase">Знай<br><em>свой бюджет</em></div>
+            </div>
+            <div class="cube-slide" data-idx="5">
+              <div class="cube-phrase">Расти<br><em>финансово</em></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ TWO PATHS ══════════ -->
+<div id="paths" class="section-full" style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="section-full-inner">
+    <div class="paths-header">
+      <div class="paths-label">С чего всё начинается</div>
+      <div class="paths-title">Выбери <span>свой путь</span></div>
+    </div>
+    <div class="paths-grid">
+      <div class="path-card good">
+        <div class="path-head">
+          <div class="path-icon">🎯</div>
+          <div>
+            <div class="path-title">Осознанный путь</div>
+          </div>
+          <div class="path-timeline">Капитал за 10 лет</div>
+        </div>
+        <div class="path-items">
+          <div class="path-item"><strong>Системный инвентарь.</strong> Ты точно знаешь, что есть, что скоро закончится и сколько это обойдётся — покупки спланированы заранее.</div>
+          <div class="path-item"><strong>Умный выбор.</strong> Цена / качество / срок службы. Вещь за 5 000 ₽, которая прослужит 5 лет — выгоднее вещи за 2 000 ₽, которая сломается через год.</div>
+          <div class="path-item"><strong>База знаний.</strong> Не изобретаешь велосипед — берёшь готовые протоколы: питание, гаджеты, здоровье, техника.</div>
+          <div class="path-item"><strong>Конверты.</strong> Деньги распределены по категориям. В любой момент видно, сколько осталось — нет «куда делись деньги?»</div>
+          <div class="path-item"><strong>И место для радостей.</strong> Бюджет на импульсивные покупки выделен заранее. Получаешь удовольствие без вины и без вреда бюджету.</div>
+        </div>
+      </div>
+      <div class="path-card bad">
+        <div class="path-head">
+          <div class="path-icon">🔄</div>
+          <div>
+            <div class="path-title">Обычный путь</div>
+          </div>
+          <div class="path-timeline">Капитал за 30 лет</div>
+        </div>
+        <div class="path-items">
+          <div class="path-item"><strong>Дофаминовая петля.</strong> Покупка ради короткой радости. Через неделю — снова хочется что-то новое, дороже и ярче.</div>
+          <div class="path-item"><strong>Инфляция потребления.</strong> Зарплата выросла — расходы выросли ещё быстрее. Свободных денег по-прежнему нет.</div>
+          <div class="path-item"><strong>Хаос в расходах.</strong> Сломался зуб или холодильник — выбивает почву из-под ног, потому что подушки нет.</div>
+          <div class="path-item"><strong>Лишние траты.</strong> Купил похожее, потому что забыл, что уже есть. Переплатил, потому что не сравнил предложения.</div>
+          <div class="path-item"><strong>«Потом разберусь».</strong> Вклад под 5%, хотя рядом есть под 22%. Карта без кешбэка, хотя можно получать 2 000 ₽ в месяц назад.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ FEATURES ══════════ -->
+<div id="features">
+
+<!-- ── 1. ИНВЕНТАРЬ (Канеман) ── -->
+<div class="section">
+  <div class="feature">
+    <div class="feature-text">
+      <div class="feature-eyebrow">Инвентарь и Наборы</div>
+      <div class="feature-title">ПЛАНИРУЙ ПОКУПКИ <span>НА ГОДЫ ВПЕРЁД</span></div>
+      <div class="person-block">
+        <div class="person-quote">«Когда вы устали или голодны — вы не просто принимаете плохие решения. Вы позволяете импульсивной системе диктовать правила, потому что самоконтроль требует огромных усилий.»</div>
+        <div class="person-name">Даниэль Канеман</div>
+        <div class="person-desc">Нобелевский лауреат по экономике, автор «Думай медленно, решай быстро»</div>
+      </div>
+      <p class="feature-desc">
+        Поэтому мы создали <strong>Наборы и Инвентарь</strong> — чтобы решения были приняты заранее, в спокойном состоянии.<br><br>
+        Добавь готовый набор под свои нужды, и SmartSpend покажет: на что уйдут деньги через месяц, год, пять лет — без единой импульсивной покупки.
+      </p>
+    </div>
+    <div class="mockup-wrap">
+      <div class="mockup-screen">
+        <div class="m-topbar">
+          <div class="m-topbar-logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+          Каталог наборов
+        </div>
+        <div class="m-sidebar">
+          <div class="m-side">
+            <div class="m-side-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
+            <div class="m-side-dot active"><svg viewBox="0 0 24 24" fill="none" stroke="#4E8268" stroke-width="2"><rect x="2" y="3" width="9" height="9" rx="1"/><rect x="13" y="3" width="9" height="9" rx="1"/><rect x="2" y="13" width="9" height="9" rx="1"/><rect x="13" y="13" width="9" height="9" rx="1"/></svg></div>
+            <div class="m-side-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></div>
+          </div>
+          <div class="m-content">
+            <div class="m-hero-card">
+              <div class="m-hero-tag">Набор · Гаджеты и техника</div>
+              <div class="m-hero-title">🖥 Рабочее место 2026</div>
+              <div class="m-hero-desc">Ноутбук, монитор, аксессуары для комфортной работы</div>
+              <div class="m-stats-row">
+                <div class="m-stat">
+                  <div class="m-stat-val">78 000 ₽</div>
+                  <div class="m-stat-lbl">Общий бюджет</div>
+                </div>
+                <div class="m-stat">
+                  <div class="m-stat-val" style="color:var(--accent)">1 300 ₽/мес</div>
+                  <div class="m-stat-lbl">Амортизация</div>
+                </div>
+              </div>
+              <div class="m-item-row">
+                <div class="m-item-name">MacBook Air M2</div>
+                <div class="m-item-price">55 000 ₽</div>
+                <div class="m-item-amort">917 ₽/мес</div>
+              </div>
+              <div class="m-item-row">
+                <div class="m-item-name">Монитор 27"</div>
+                <div class="m-item-price">18 000 ₽</div>
+                <div class="m-item-amort">250 ₽/мес</div>
+              </div>
+              <div class="m-item-row">
+                <div class="m-item-name">Клавиатура + мышь</div>
+                <div class="m-item-price">5 000 ₽</div>
+                <div class="m-item-amort">139 ₽/мес</div>
+              </div>
+            </div>
+            <div class="m-art-row">
+              <div class="m-art-card">
+                <div class="m-art-title">MacBook M2 или M3: стоит ли переплачивать?</div>
+              </div>
+              <div class="m-art-card">
+                <div class="m-art-title">Мониторы до 20 000 ₽: полный разбор 2026</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"><hr class="divider-line"></div>
+
+<!-- ── 2. КОНВЕРТЫ (Талер) ── -->
+<div class="section">
+  <div class="feature reverse">
+    <div class="feature-text">
+      <div class="feature-eyebrow">Профиль · Конверты</div>
+      <div class="feature-title">РАЗЛОЖИ ДЕНЬГИ <span>ПО КОНВЕРТАМ</span></div>
+      <div class="person-block">
+        <div class="person-quote">«Наш мозг раскладывает деньги по виртуальным конвертам. Это не слабость — это природа. Используй её, а не борись с ней.»</div>
+        <div class="person-name">Ричард Талер</div>
+        <div class="person-desc">Нобелевский лауреат по экономике, автор теории ментального учёта</div>
+      </div>
+      <p class="feature-desc">
+        Поэтому в SmartSpend есть <strong>Конверты</strong> — распредели доход по категориям раз в месяц, и в любой момент видь: сколько осталось на еду, досуг или транспорт.<br><br>
+        Больше никаких «куда делись деньги» в конце месяца.
+      </p>
+    </div>
+    <div class="mockup-wrap right">
+      <div class="mockup-screen">
+        <div class="m-topbar">
+          <div class="m-topbar-logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></div>
+          Профиль · Конверты
+        </div>
+        <div class="m-sidebar">
+          <div class="m-side">
+            <div class="m-side-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
+            <div class="m-side-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="9" height="9" rx="1"/><rect x="13" y="3" width="9" height="9" rx="1"/><rect x="2" y="13" width="9" height="9" rx="1"/><rect x="13" y="13" width="9" height="9" rx="1"/></svg></div>
+            <div class="m-side-dot active"><svg viewBox="0 0 24 24" fill="none" stroke="#4E8268" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></div>
+          </div>
+          <div class="m-content">
+            <div class="m-income-bar">
+              <div class="m-income-row">
+                <span style="font-weight:600">Доступно в этом месяце</span>
+                <span style="font-weight:700; color:var(--accent)">+8 908 ₽</span>
+              </div>
+              <div class="m-bar-track"><div class="m-bar-fill" style="width:46%"></div></div>
+              <div class="m-income-row" style="margin-top:4px; font-size:8px;">
+                <span>Доход: 16 104 ₽</span>
+                <span>Конверты: 7 196 ₽</span>
+              </div>
+            </div>
+            <div class="m-env-list">
+              <div class="m-env-item">
+                <div class="m-env-dot" style="background:#5E9478"></div>
+                <div>
+                  <div class="m-env-name">Еда и Супермаркеты</div>
+                  <div class="m-env-sub">осталось 18 дней</div>
+                </div>
+                <div>
+                  <div class="m-env-amt m-env-ok">4 785 ₽</div>
+                  <div class="m-env-sub" style="text-align:right">/мес</div>
+                </div>
+              </div>
+              <div class="m-env-item">
+                <div class="m-env-dot" style="background:#B08840"></div>
+                <div>
+                  <div class="m-env-name">Дом и Техника</div>
+                  <div class="m-env-sub">7 дней до покупки</div>
+                </div>
+                <div>
+                  <div class="m-env-amt m-env-soon">1 360 ₽</div>
+                  <div class="m-env-sub" style="text-align:right">/мес</div>
+                </div>
+              </div>
+              <div class="m-env-item">
+                <div class="m-env-dot" style="background:#4E8268"></div>
+                <div>
+                  <div class="m-env-name">Развлечения</div>
+                  <div class="m-env-sub">в норме</div>
+                </div>
+                <div>
+                  <div class="m-env-amt m-env-ok">865 ₽</div>
+                  <div class="m-env-sub" style="text-align:right">/мес</div>
+                </div>
+              </div>
+              <div class="m-env-item">
+                <div class="m-env-dot" style="background:#B85555"></div>
+                <div>
+                  <div class="m-env-name">Красота и Здоровье</div>
+                  <div class="m-env-sub">скоро закончится</div>
+                </div>
+                <div>
+                  <div class="m-env-amt m-env-urgent">186 ₽</div>
+                  <div class="m-env-sub" style="text-align:right">/мес</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"><hr class="divider-line"></div>
+
+<!-- ── 3. БАЗА ЗНАНИЙ (Беккер) ── -->
+<div class="section">
+  <div class="feature">
+    <div class="feature-text">
+      <div class="feature-eyebrow">Лента · Каталог</div>
+      <div class="feature-title">УЧИСЬ НА <span>ГОТОВЫХ ПРОТОКОЛАХ</span></div>
+      <div class="person-block">
+        <div class="person-quote">«Экономический подход не предполагает, что люди не совершают ошибок. Он предполагает, что люди делают лучший выбор из доступных им знаний.»</div>
+        <div class="person-name">Гэри Беккер</div>
+        <div class="person-desc">Нобелевский лауреат по экономике, автор теории человеческого капитала</div>
+      </div>
+      <p class="feature-desc">
+        Поэтому в SmartSpend есть <strong>Лента и Каталог</strong> — готовые наборы и статьи от сообщества по питанию, технике, здоровью, одежде.<br><br>
+        Не изобретай велосипед — перенимай опыт тех, кто уже разобрался.
+      </p>
+    </div>
+    <div class="mockup-wrap">
+      <div class="mockup-screen">
+        <div class="m-topbar">
+          <div class="m-topbar-logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M4 11a9 9 0 0114 0"/><path d="M4 11V4h5"/><path d="M20 11V4h-5"/></svg></div>
+          Лента
+        </div>
+        <div class="m-sidebar">
+          <div class="m-side">
+            <div class="m-side-dot active"><svg viewBox="0 0 24 24" fill="none" stroke="#4E8268" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/></svg></div>
+            <div class="m-side-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="9" height="9" rx="1"/><rect x="13" y="3" width="9" height="9" rx="1"/><rect x="2" y="13" width="9" height="9" rx="1"/><rect x="13" y="13" width="9" height="9" rx="1"/></svg></div>
+            <div class="m-side-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></div>
+          </div>
+          <div class="m-content">
+            <div style="display:flex;gap:4px;margin-bottom:4px;">
+              <div class="m-set-chip active">Все</div>
+              <div class="m-set-chip">Питание</div>
+              <div class="m-set-chip">Гаджеты</div>
+              <div class="m-set-chip">Здоровье</div>
+            </div>
+            <div class="m-feed-item">
+              <div class="m-feed-meta">
+                <div class="m-feed-avatar" style="background:#5E7A6A">АК</div>
+                <div class="m-feed-author">Алексей К.</div>
+                <div class="m-feed-date">2 дня назад</div>
+                <div class="m-feed-tag">Питание</div>
+              </div>
+              <div class="m-feed-title">Северная диета: 11 000 ₽ в месяц на всё</div>
+              <div class="m-feed-preview">Как есть рыбу, крупы и овощи, не переплачивать и чувствовать себя хорошо — личный протокол за 3 года.</div>
+              <div class="m-feed-actions">
+                <div class="m-feed-action">♥ 124</div>
+                <div class="m-feed-action">💬 18</div>
+                <div class="m-feed-action">↗ поделиться</div>
+              </div>
+            </div>
+            <div class="m-feed-item">
+              <div class="m-feed-meta">
+                <div class="m-feed-avatar" style="background:#7A5E8A">МП</div>
+                <div class="m-feed-author">Мария П.</div>
+                <div class="m-feed-date">5 дней назад</div>
+                <div class="m-feed-tag">Гаджеты</div>
+              </div>
+              <div class="m-feed-title">Смартфон до 30 000 ₽: что брать в 2026</div>
+              <div class="m-feed-preview">Сравнила 8 моделей по камере, батарее и стоимости владения — вот финальная таблица.</div>
+              <div class="m-feed-actions">
+                <div class="m-feed-action">♥ 89</div>
+                <div class="m-feed-action">💬 31</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"><hr class="divider-line"></div>
+
+<!-- ── 4. ЭКОНОМИЯ (Мангер) ── -->
+<div class="section">
+  <div class="feature reverse">
+    <div class="feature-text">
+      <div class="feature-eyebrow">Вклады · Карты · Промо</div>
+      <div class="feature-title">СЭКОНОМИЛ — <span>ЗНАЧИТ ЗАРАБОТАЛ</span></div>
+      <div class="person-block">
+        <div class="person-quote">«Первый капитал — самый сложный. Он требует навыков и дисциплины, которых у вас ещё нет.»</div>
+        <div class="person-name">Чарльз Мангер</div>
+        <div class="person-desc">Инвестор, партнёр Уоррена Баффета, вице-председатель Berkshire Hathaway</div>
+      </div>
+      <p class="feature-desc">
+        Поэтому SmartSpend собрал инструменты экономии в одном месте.<br><br>
+        <strong>Вклады</strong> — найди максимальную ставку среди банков. <strong>Карты</strong> — подбери лучший кешбэк под свои расходы. <strong>Промо</strong> — купоны и акции от сообщества.
+      </p>
+    </div>
+    <div class="mockup-wrap right">
+      <div class="mockup-screen">
+        <div class="m-topbar">
+          <div class="m-topbar-logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+          Вклады и Карты
+        </div>
+        <div class="m-sidebar">
+          <div class="m-side">
+            <div class="m-side-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
+            <div class="m-side-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/></svg></div>
+            <div class="m-side-dot active"><svg viewBox="0 0 24 24" fill="none" stroke="#4E8268" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+          </div>
+          <div class="m-content">
+            <div class="m-dep-chart">
+              <div class="m-dep-chart-title">Максимальная ставка по срокам</div>
+              <div class="m-chart-bars">
+                <div class="m-bar" style="height:42px"><div class="m-bar-lbl">19%</div></div>
+                <div class="m-bar" style="height:52px"><div class="m-bar-lbl">21%</div></div>
+                <div class="m-bar" style="height:48px"><div class="m-bar-lbl">20%</div></div>
+                <div class="m-bar" style="height:44px"><div class="m-bar-lbl">19%</div></div>
+                <div class="m-bar" style="height:36px"><div class="m-bar-lbl">18%</div></div>
+              </div>
+              <div class="m-chart-labels">
+                <div class="m-chart-lbl">1 мес</div>
+                <div class="m-chart-lbl">3 мес</div>
+                <div class="m-chart-lbl">6 мес</div>
+                <div class="m-chart-lbl">1 год</div>
+                <div class="m-chart-lbl">2 года</div>
+              </div>
+            </div>
+            <div class="m-dep-card">
+              <div class="m-dep-logo" style="background:#0057A8">СБ</div>
+              <div>
+                <div class="m-dep-name">Сбер · Выгодный</div>
+                <div class="m-dep-sub">6 мес · выплата в конце</div>
+              </div>
+              <div>
+                <div class="m-dep-rate">21%</div>
+                <div class="m-dep-rate-lbl">+13 540 ₽/год</div>
+              </div>
+            </div>
+            <div class="m-card-item">
+              <div class="m-card-logo" style="background:#FF5722">Т</div>
+              <div>
+                <div class="m-card-name">Т-Банк · Все включено</div>
+                <div class="m-card-sub">кредитная · до 2 500 ₽/мес</div>
+              </div>
+              <div>
+                <div class="m-card-cb">5%</div>
+                <div class="m-card-cb-lbl">кешбэк</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"><hr class="divider-line"></div>
+
+<!-- ── 5. БУДУЩЕЕ (Рид) ── -->
+<div class="section">
+  <div class="feature">
+    <div class="feature-text">
+      <div class="feature-eyebrow">Инвентарь</div>
+      <div class="feature-title">МЫ СМОТРИМ <span>ВПЕРЁД, НЕ НАЗАД</span></div>
+      <div class="person-block">
+        <div class="person-quote">«Зачем вести учёт того, на что вы потратили деньги в прошлом месяце — куда лучше думать о том, куда вы собираетесь их потратить в будущем.»</div>
+        <div class="person-name">Джон Т. Рид</div>
+        <div class="person-desc">Автор книг по инвестициям и финансовой независимости</div>
+      </div>
+      <p class="feature-desc">
+        SmartSpend — это не трекер расходов. Это <strong>система планирования будущих покупок</strong>.<br><br>
+        Инвентарь показывает: что скоро закончится, что нужно купить, сколько это обойдётся в месяц. Ни одной неожиданности.
+      </p>
+    </div>
+    <div class="mockup-wrap">
+      <div class="mockup-screen">
+        <div class="m-topbar">
+          <div class="m-topbar-logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></div>
+          Инвентарь · 9 200 ₽/мес
+        </div>
+        <div class="m-sidebar">
+          <div class="m-side">
+            <div class="m-side-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
+            <div class="m-side-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/></svg></div>
+            <div class="m-side-dot active"><svg viewBox="0 0 24 24" fill="none" stroke="#4E8268" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></div>
+          </div>
+          <div class="m-content">
+            <div class="m-inv-group">
+              <div class="m-inv-group-lbl">Скоро купить</div>
+              <div class="m-inv-item urgent">
+                <div class="m-inv-name">Зубная щётка</div>
+                <div class="m-inv-date">сегодня</div>
+                <div class="m-inv-price">250 ₽</div>
+              </div>
+              <div class="m-inv-item soon">
+                <div class="m-inv-name">Дезодорант</div>
+                <div class="m-inv-date">3 дня</div>
+                <div class="m-inv-price">300 ₽</div>
+              </div>
+              <div class="m-inv-item soon">
+                <div class="m-inv-name">Крем для лица</div>
+                <div class="m-inv-date">7 дней</div>
+                <div class="m-inv-price">600 ₽</div>
+              </div>
+            </div>
+            <div class="m-inv-group">
+              <div class="m-inv-group-lbl">Планируется</div>
+              <div class="m-inv-item ok">
+                <div class="m-inv-name">Толстовка / свитшот</div>
+                <div class="m-inv-date">через 2 мес</div>
+                <div class="m-inv-price">4 000 ₽</div>
+              </div>
+              <div class="m-inv-item ok">
+                <div class="m-inv-name">Кроссовки</div>
+                <div class="m-inv-date">через 3 мес</div>
+                <div class="m-inv-price">6 000 ₽</div>
+              </div>
+              <div class="m-inv-item ok">
+                <div class="m-inv-name">Netflix</div>
+                <div class="m-inv-date">1 мес</div>
+                <div class="m-inv-price">799 ₽</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"><hr class="divider-line"></div>
+
+<!-- ── 6. EMOSPEND (Гиперболическое/Гедонизм) ── -->
+<div class="section">
+  <div class="feature reverse">
+    <div class="feature-text">
+      <div class="feature-eyebrow">EmoSpend · Для радостей</div>
+      <div class="feature-title">И МЕСТО <span>ДЛЯ УДОВОЛЬСТВИЙ</span></div>
+      <div class="person-block">
+        <div class="person-quote">«Наш мозг ценит "сейчас" гораздо выше, чем "потом". Рациональный я-завтрашний хочет быть здоровым, но иррациональный я-сегодняшний хочет пиццу. Оба правы.»</div>
+        <div class="person-name">Теория гиперболического дисконтирования</div>
+        <div class="person-desc">Ричард Талер · Дэниел Канеман · поведенческая экономика</div>
+      </div>
+      <p class="feature-desc">
+        SmartSpend не требует превращаться в робота. <strong>EmoSpend</strong> — личный бюджет на эмоциональные покупки, который растёт вместе с твоим капиталом.<br><br>
+        Выдели себе 4% в год — и трать без вины. Это не слабость, это часть стратегии.
+      </p>
+    </div>
+    <div class="mockup-wrap right">
+      <div class="mockup-screen">
+        <div class="m-topbar">
+          <div class="m-topbar-logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></div>
+          Профиль · EmoSpend
+        </div>
+        <div class="m-sidebar">
+          <div class="m-side">
+            <div class="m-side-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
+            <div class="m-side-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/></svg></div>
+            <div class="m-side-dot active"><svg viewBox="0 0 24 24" fill="none" stroke="#4E8268" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></div>
+          </div>
+          <div class="m-content">
+            <div class="m-emo-card">
+              <div class="m-emo-header">
+                <div class="m-emo-icon">🎉</div>
+                <div>
+                  <div class="m-emo-title">EmoSpend</div>
+                  <div class="m-emo-sub">бюджет на эмоциональные покупки</div>
+                </div>
+              </div>
+              <div class="m-emo-amount">621 ₽</div>
+              <div class="m-emo-lbl">можно потратить в этом месяце</div>
+              <div class="m-emo-table">
+                <div class="m-emo-row">
+                  <span class="m-emo-year">2026</span>
+                  <span><span class="m-emo-val">621 ₽</span><span class="m-emo-grow">/мес</span></span>
+                </div>
+                <div class="m-emo-row">
+                  <span class="m-emo-year">2027</span>
+                  <span><span class="m-emo-val">3 733 ₽</span><span class="m-emo-grow">↑×6</span></span>
+                </div>
+                <div class="m-emo-row">
+                  <span class="m-emo-year">2028</span>
+                  <span><span class="m-emo-val">6 846 ₽</span><span class="m-emo-grow">↑×11</span></span>
+                </div>
+                <div class="m-emo-row">
+                  <span class="m-emo-year">2030</span>
+                  <span><span class="m-emo-val">13 070 ₽</span><span class="m-emo-grow">↑×21</span></span>
+                </div>
+              </div>
+            </div>
+            <div style="background:rgba(78,130,104,.08);border-radius:8px;padding:8px 10px;font-size:9px;color:var(--text-2);line-height:1.5;">
+              Гарантированно будет больше и лучше — гедонистической адаптации не будет, потому что бюджет растёт вместе с тобой.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /features -->
+
+<!-- ══════════ CTA ══════════ -->
+<div id="cta" class="cta-section">
+  <div class="cta-inner">
+    <div class="cta-label">Начни прямо сейчас</div>
+    <div class="cta-title">Твои деньги заслуживают системы</div>
+    <p class="cta-sub">Подбери компании, создай инвентарь, распредели бюджет по конвертам — бесплатно и без регистрации.</p>
+    <a href="#" class="cta-btn">Войти в SmartSpend →</a>
+    <p class="cta-note">Без подписки · Данные хранятся у тебя</p>
+  </div>
+</div>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer>
+  <div class="footer-logo">SmartSpend</div>
+  <div class="footer-copy">Осознанное потребление · 2026</div>
+</footer>
+
+<script>
+  // Hero cube rotation
+  const slides = document.querySelectorAll('.cube-slide');
+  let cur = 0;
+  setInterval(() => {
+    slides[cur].classList.remove('active');
+    cur = (cur + 1) % slides.length;
+    slides[cur].classList.add('active');
+  }, 2600);
+</script>
+</body>
+</html>

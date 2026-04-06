@@ -1109,12 +1109,7 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
                 <div className="comments-list">
                   {visibleC.map((c, idx) => (
                     <div key={idx} className="comment-item">
-                      <div className="c-avatar">{getIni(c.author)}</div>
-                      <div className="c-body">
-                        <div className="c-header">
-                          <span className="c-name">@{c.author || 'вы'}</span>
-                          <span className="c-date">{c.ts ? fmtCommentTime(c.ts) : c.time}</span>
-                        </div>
+                      <CommentItem name={c.name || `@${c.author || 'вы'}`} ini={getIni(c.author || c.ini)} navigate={navigate} avatarClass="c-avatar" nameClass="c-name" date={c.ts ? fmtCommentTime(c.ts) : (c.date || c.time || '')}>
                         <div className="c-text">{c.text}</div>
                         <div className="c-actions">
                           <button className={`c-like${likedComments.has(idx) ? ' liked' : ''}`} onClick={() => toggleCommentLike(idx)}>
@@ -1132,7 +1127,7 @@ function WhisperCard({ item, myVote, onVote, navigate, onCategoryClick, onCompan
                             {(c.dislikes || 0) + (dislikedComments.has(idx) ? 1 : 0)}
                           </button>
                         </div>
-                      </div>
+                      </CommentItem>
                     </div>
                   ))}
                 </div>

@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чарльз Мангер | Сэкономили — значит заработали</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #ffffff;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 48px 40px;
+            color: #111111;
+            overflow-x: hidden;
+        }
+
+        .main-header {
+            max-width: 1400px;
+            margin: 0 auto 48px auto;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 52px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #000000;
+            text-transform: uppercase;
+        }
+
+        .page-title span {
+            background: #000000;
+            color: white;
+            padding: 4px 20px;
+            border-radius: 60px;
+            font-size: 48px;
+        }
+
+        .page-sub {
+            font-size: 18px;
+            font-weight: 500;
+            color: #3a3a3a;
+            margin-top: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .page {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 56px;
+            align-items: flex-start;
+            perspective: 1000px;
+        }
+
+        /* ========= ЛЕВАЯ СТОРОНА ========= */
+        .left {
+            flex: 1;
+            min-width: 300px;
+            transform-style: preserve-3d;
+        }
+
+        .floating-card {
+            background: #ffffff;
+            border-radius: 48px;
+            box-shadow: 0 25px 45px -18px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.03);
+            overflow: hidden;
+            transition: all 0.4s ease;
+            transform: rotateY(10deg) translateZ(10px);
+        }
+
+        .left:hover .floating-card {
+            transform: rotateY(7deg) translateZ(15px);
+            box-shadow: 0 30px 55px -20px rgba(0, 0, 0, 0.18);
+        }
+
+        .photo {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: #f2f2f4;
+            background-image: url('https://placehold.co/740x740/f5f5f7/1a1a1a?text=CHARLES+MUNGER');
+            background-size: cover;
+            background-position: center;
+            filter: grayscale(100%) contrast(1.05);
+        }
+
+        .info {
+            padding: 32px 28px 38px 28px;
+            background: #ffffff;
+        }
+
+        .name {
+            font-size: 40px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+            color: #000000;
+        }
+
+        .quote {
+            font-size: 18px;
+            line-height: 1.45;
+            font-weight: 450;
+            color: #2c2c2c;
+            border-left: 3px solid #d0d0d0;
+            padding-left: 20px;
+            margin-bottom: 28px;
+        }
+
+        .knowledge-text {
+            font-size: 16px;
+            font-weight: 500;
+            background: #f8f8f8;
+            padding: 18px 22px;
+            border-radius: 28px;
+            color: #000000;
+            margin-bottom: 24px;
+        }
+
+        /* ========= ПРАВАЯ СТОРОНА ========= */
+        .right {
+            flex: 1.2;
+            min-width: 420px;
+        }
+
+        .munger-logic {
+            background: #fafafc;
+            padding: 28px 32px;
+            border-radius: 40px;
+            margin-bottom: 32px;
+            border-left: 6px solid #6A9E84;
+        }
+
+        .insight {
+            font-size: 18px;
+            font-weight: 500;
+            line-height: 1.45;
+            color: #1a1a1a;
+        }
+
+        .insight strong {
+            font-weight: 800;
+            background: #e8e8e8;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .conclusion {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 20px;
+            color: #000000;
+        }
+
+        .expert-action {
+            font-size: 22px;
+            font-weight: 800;
+            margin: 24px 0 16px 0;
+            letter-spacing: -0.3px;
+            line-height: 1.3;
+        }
+
+        .benefits {
+            margin: 20px 0 32px 0;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .benefits li {
+            font-size: 16px;
+            margin: 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .benefits li::before {
+            content: "✓";
+            font-weight: 800;
+            font-size: 20px;
+            color: #6A9E84;
+        }
+
+        /* ТРИ БЛОКА ДРУГ ПОД ДРУГОМ */
+        .service-block {
+            background: #ffffff;
+            border-radius: 32px;
+            padding: 28px;
+            margin-bottom: 28px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.02);
+        }
+
+        .service-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #6A9E84;
+            display: inline-block;
+            color: #000;
+        }
+
+        /* ГРАФИК */
+        .dep-chart-card {
+            background: #f8f8fa;
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .dep-chart-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .dep-chart {
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .dep-bar-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .dep-bar-rate {
+            font-size: 12px;
+            font-weight: 700;
+            color: #6A9E84;
+        }
+
+        .dep-bar {
+            width: 100%;
+            background: #6A9E84;
+            border-radius: 8px 8px 4px 4px;
+            min-height: 4px;
+        }
+
+        .dep-bar-label {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .dep-bar-col.selected .dep-bar-rate {
+            color: #000;
+            font-weight: 800;
+        }
+
+        .dep-bar-col.selected .dep-bar {
+            background: #000;
+        }
+
+        /* карточка продукта */
+        .product-card {
+            background: #f8f8fa;
+            border-radius: 24px;
+            padding: 20px 24px;
+            margin-bottom: 16px;
+        }
+
+        .product-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .product-name {
+            font-size: 20px;
+            font-weight: 800;
+            color: #000;
+            margin-bottom: 8px;
+        }
+
+        .product-detail {
+            font-size: 15px;
+            color: #444;
+            margin: 6px 0;
+        }
+
+        .product-income {
+            font-size: 24px;
+            font-weight: 800;
+            color: #6A9E84;
+            margin-top: 12px;
+        }
+
+        /* карточка карты с бейджиком справа */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .badge {
+            font-size: 12px;
+            padding: 5px 14px;
+            background: #eaf6f0;
+            border-radius: 24px;
+            color: #6A9E84;
+            font-weight: 600;
+        }
+
+        .two-columns {
+            display: flex;
+            gap: 20px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .income-item {
+            flex: 1;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .income-label {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .income-value {
+            font-size: 20px;
+            font-weight: 800;
+            color: #000;
+        }
+
+        .promo-code {
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: 700;
+            background: #f0f0f0;
+            padding: 10px 18px;
+            border-radius: 32px;
+            display: inline-block;
+            margin-top: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .view-link {
+            font-size: 15px;
+            color: #6A9E84;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 16px;
+        }
+
+        .build-footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 14px;
+            color: #666;
+        }
+
+        @media (max-width: 1100px) {
+            .floating-card { transform: rotateY(5deg) translateZ(5px); }
+            .page-title { font-size: 44px; }
+            .page-title span { font-size: 40px; }
+        }
+
+        @media (max-width: 950px) {
+            .page { flex-direction: column; }
+            .floating-card { transform: rotateY(0deg); }
+            .right { min-width: auto; }
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 30px 20px; }
+            .page-title { font-size: 32px; }
+            .page-title span { font-size: 28px; }
+            .service-title { font-size: 24px; }
+            .product-name { font-size: 18px; }
+            .product-income { font-size: 20px; }
+            .income-value { font-size: 18px; }
+            .promo-code { font-size: 14px; }
+            .two-columns { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-header">
+        <div class="page-title">
+            СЭКОНОМИЛИ — <span>ЗНАЧИТ ЗАРАБОТАЛИ</span>
+        </div>
+        <div class="page-sub">
+            Сравнивайте вклады, подбирайте карты, экономьте с купонами. Все инструменты экономии под рукой
+        </div>
+    </div>
+
+    <div class="page">
+        <!-- ЛЕВАЯ СТОРОНА -->
+        <div class="left">
+            <div class="floating-card">
+                <div class="photo"></div>
+                <div class="info">
+                    <div class="name">Чарльз Мангер</div>
+                    <div class="quote">
+                        Первый капитал — самый сложный. Он требует навыков и дисциплины, которых у вас еще нет.
+                    </div>
+                    <div class="knowledge-text">
+                        Первые 100 000 долларов — это сущий ад, но вы обязаны это сделать. Мне плевать, как вы это сделаете: будете ли вы ходить везде пешком или питаться по купонам. Найдите способ получить в руки эти деньги.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ПРАВАЯ СТОРОНА — ТРИ БЛОКА ДРУГ ПОД ДРУГОМ -->
+        <div class="right">
+            <div class="munger-logic">
+                <div class="insight">
+                    <strong>Мы прислушались к совету Чарльза Мангера:</strong><br>
+                    «Первый капитал требует дисциплины и навыков».
+                </div>
+                <div class="conclusion">
+                    → Поэтому мы собрали все инструменты экономии в одном месте
+                </div>
+            </div>
+
+            <div class="expert-action">
+                КАЖДЫЙ СЭКОНОМЛЕННЫЙ РУБЛЬ — ЭТО ШАГ К ПЕРВОМУ КАПИТАЛУ
+            </div>
+
+            <ul class="benefits">
+                <li>Сравнивай <strong>вклады</strong> и выбирай максимальную ставку</li>
+                <li>Подбирай <strong>банковские карты</strong> с лучшим кешбэком</li>
+                <li>Экономь с <strong>купонами и промокодами</strong> от сообщества</li>
+            </ul>
+
+            <!-- БЛОК 1: ВКЛАДЫ -->
+            <div class="service-block">
+                <div class="service-title">Вклады</div>
+                
+                <!-- ГРАФИК -->
+                <div class="dep-chart-card">
+                    <div class="dep-chart-title">Максимальная ставка по срокам</div>
+                    <div class="dep-chart">
+                        <div class="dep-bar-col"><div class="dep-bar-rate">16%</div><div class="dep-bar" style="height: 50px;"></div><div class="dep-bar-label">1 мес</div></div>
+                        <div class="dep-bar-col"><div class="dep-bar-rate">17%</div><div class="dep-bar" style="height: 60px;"></div><div class="dep-bar-label">3 мес</div></div>
+                        <div class="dep-bar-col selected"><div class="dep-bar-rate">22%</div><div class="dep-bar" style="height: 120px;"></div><div class="dep-bar-label">6 мес</div></div>
+                        <div class="dep-bar-col"><div class="dep-bar-rate">19%</div><div class="dep-bar" style="height: 85px;"></div><div class="dep-bar-label">1 год</div></div>
+                        <div class="dep-bar-col"><div class="dep-bar-rate">15%</div><div class="dep-bar" style="height: 45px;"></div><div class="dep-bar-label">2 года</div></div>
+                    </div>
+                </div>
+
+                <!-- КАРТОЧКА ВКЛАДА -->
+                <div class="product-card">
+                    <div class="product-name">Вклад Высокий процент</div>
+                    <div class="product-detail">срок 6 месяцев · выплата в конце срока</div>
+                    <div class="product-income">доход + 13 540 ₽</div>
+                </div>
+
+                <a href="#" class="view-link">→ Смотреть все вклады</a>
+            </div>
+
+            <!-- БЛОК 2: БАНКОВСКИЕ КАРТЫ -->
+            <div class="service-block">
+                <div class="service-title">Банковские карты</div>
+                
+                <div class="product-card">
+                    <div class="card-header">
+                        <div class="product-name">Универсальная карта</div>
+                        <div class="badge">Кредитная</div>
+                    </div>
+                    <div class="two-columns">
+                        <div class="income-item">
+                            <div class="income-label">Программа лояльности</div>
+                            <div class="income-value">до 2 500 ₽/мес</div>
+                        </div>
+                        <div class="income-item">
+                            <div class="income-label">Выгода льготного периода</div>
+                            <div class="income-value">до 3 200 ₽</div>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="#" class="view-link">→ Смотреть все карты</a>
+            </div>
+
+            <!-- БЛОК 3: КУПОНЫ И СКИДКИ -->
+            <div class="service-block">
+                <div class="service-title">Купоны и скидки</div>
+                
+                <div class="product-card">
+                    <div class="product-name">Скидка 30%</div>
+                    <div class="promo-code">BEAUTY30</div>
+                </div>
+                
+                <div class="product-card">
+                    <div class="product-name">500 рублей на первый заказ</div>
+                    <div class="promo-code">WELCOME500</div>
+                </div>
+
+                <a href="#" class="view-link">→ Смотреть все акции</a>
+            </div>
+
+            <div class="build-footer">
+                каждый сэкономленный рубль работает на твой первый капитал
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

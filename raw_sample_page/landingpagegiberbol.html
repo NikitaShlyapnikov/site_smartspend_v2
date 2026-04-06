@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гиперболическое дисконтирование | EmoSpend</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #ffffff;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 48px 40px;
+            color: #111111;
+            overflow-x: hidden;
+        }
+
+        .main-header {
+            max-width: 1400px;
+            margin: 0 auto 48px auto;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 52px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #000000;
+            text-transform: uppercase;
+        }
+
+        .page-title span {
+            background: #000000;
+            color: white;
+            padding: 4px 20px;
+            border-radius: 60px;
+            font-size: 48px;
+        }
+
+        .page-sub {
+            font-size: 18px;
+            font-weight: 500;
+            color: #3a3a3a;
+            margin-top: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .page {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 56px;
+            align-items: flex-start;
+            perspective: 1000px;
+        }
+
+        /* ========= ЛЕВАЯ СТОРОНА ========= */
+        .left {
+            flex: 1;
+            min-width: 300px;
+            transform-style: preserve-3d;
+        }
+
+        .floating-card {
+            background: #ffffff;
+            border-radius: 48px;
+            box-shadow: 0 25px 45px -18px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.03);
+            overflow: hidden;
+            transition: all 0.4s ease;
+            transform: rotateY(10deg) translateZ(10px);
+        }
+
+        .left:hover .floating-card {
+            transform: rotateY(7deg) translateZ(15px);
+            box-shadow: 0 30px 55px -20px rgba(0, 0, 0, 0.18);
+        }
+
+        .photo {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: #f2f2f4;
+            background-image: url('https://placehold.co/740x740/f5f5f7/1a1a1a?text=HYPERBOLIC+DISCOUNTING');
+            background-size: cover;
+            background-position: center;
+            filter: grayscale(100%) contrast(1.05);
+        }
+
+        .info {
+            padding: 32px 28px 38px 28px;
+            background: #ffffff;
+        }
+
+        .name {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+            color: #000000;
+            line-height: 1.2;
+        }
+
+        .quote {
+            font-size: 18px;
+            line-height: 1.45;
+            font-weight: 450;
+            color: #2c2c2c;
+            border-left: 3px solid #d0d0d0;
+            padding-left: 20px;
+            margin-bottom: 28px;
+        }
+
+        .knowledge-text {
+            font-size: 16px;
+            font-weight: 500;
+            background: #f8f8f8;
+            padding: 18px 22px;
+            border-radius: 28px;
+            color: #000000;
+            margin-bottom: 24px;
+        }
+
+        /* ========= ПРАВАЯ СТОРОНА ========= */
+        .right {
+            flex: 1.2;
+            min-width: 480px;
+        }
+
+        .theory-logic {
+            background: #fafafc;
+            padding: 28px 32px;
+            border-radius: 40px;
+            margin-bottom: 32px;
+            border-left: 6px solid #6A9E84;
+        }
+
+        .insight {
+            font-size: 18px;
+            font-weight: 500;
+            line-height: 1.45;
+            color: #1a1a1a;
+        }
+
+        .insight strong {
+            font-weight: 800;
+            background: #e8e8e8;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .conclusion {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 20px;
+            color: #000000;
+        }
+
+        .expert-action {
+            font-size: 22px;
+            font-weight: 800;
+            margin: 24px 0 16px 0;
+            letter-spacing: -0.3px;
+            line-height: 1.3;
+        }
+
+        /* БЛОК EmoSpend */
+        .emo-card {
+            background: #ffffff;
+            border-radius: 32px;
+            padding: 28px;
+            margin-bottom: 28px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.02);
+        }
+
+        .emo-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .emo-subtitle {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 24px;
+        }
+
+        .emo-stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .emo-stat {
+            flex: 1;
+            background: #f8f8fa;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .emo-stat-num {
+            font-size: 32px;
+            font-weight: 800;
+            color: #000;
+        }
+
+        .emo-stat-label {
+            font-size: 13px;
+            color: #888;
+            margin-top: 8px;
+        }
+
+        .emo-slider-wrap {
+            margin-bottom: 28px;
+        }
+
+        .emo-slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #888;
+        }
+
+        .emo-slider-track {
+            position: relative;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 10px;
+        }
+
+        .emo-slider-fill {
+            position: absolute;
+            height: 100%;
+            background: #6A9E84;
+            border-radius: 10px;
+            width: 16%;
+        }
+
+        .emo-slider-thumb {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: #000;
+            border-radius: 50%;
+            top: 50%;
+            left: 16%;
+            transform: translate(-50%, -50%);
+        }
+
+        .emo-note {
+            text-align: center;
+            padding: 16px;
+            background: #f8f8fa;
+            border-radius: 20px;
+            margin-top: 8px;
+        }
+
+        .emo-note-text {
+            font-size: 15px;
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+
+        .emo-note-text strong {
+            color: #6A9E84;
+        }
+
+        .build-footer {
+            text-align: center;
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 14px;
+            color: #666;
+        }
+
+        @media (max-width: 1100px) {
+            .floating-card { transform: rotateY(5deg) translateZ(5px); }
+            .page-title { font-size: 44px; }
+            .page-title span { font-size: 40px; }
+        }
+
+        @media (max-width: 950px) {
+            .page { flex-direction: column; }
+            .floating-card { transform: rotateY(0deg); }
+            .right { min-width: auto; }
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 30px 20px; }
+            .page-title { font-size: 32px; }
+            .page-title span { font-size: 28px; }
+            .emo-stats { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-header">
+        <div class="page-title">
+            ТЕОРИЯ <span>ГИПЕРБОЛИЧЕСКОГО</span><br>
+            ДИСКОНТИРОВАНИЯ
+        </div>
+        <div class="page-sub">
+            Почему мы покупаем абонемент в спортзал, но идём за бургером?
+        </div>
+    </div>
+
+    <div class="page">
+        <!-- ЛЕВАЯ СТОРОНА -->
+        <div class="left">
+            <div class="floating-card">
+                <div class="photo"></div>
+                <div class="info">
+                    <div class="name">Гиперболическое дисконтирование</div>
+                    <div class="quote">
+                        Наш мозг ценит «сейчас» гораздо выше, чем «потом». Рациональный «Я-завтрашний» хочет быть стройным, но иррациональный «Я-сегодняшний» хочет пиццу.
+                    </div>
+                    <div class="knowledge-text">
+                        Поэтому люди выбирают иррациональную стратегию «Здесь и сейчас» или «Живём один раз», хотя жить придётся ещё долго.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ПРАВАЯ СТОРОНА -->
+        <div class="right">
+            <div class="theory-logic">
+                <div class="insight">
+                    <strong>Мы знаем, как работает наш мозг:</strong><br>
+                    «Сейчас» всегда важнее «потом». Мы обесцениваем будущее слишком сильно.
+                </div>
+                <div class="conclusion">
+                    → Копить важно для успешного будущего, но хочется и побаловать себя сейчас.<br>
+                    <strong>Выделите себе бюджет для эмоциональных покупок — EmoSpend</strong>
+                </div>
+            </div>
+
+            <div class="expert-action">
+                ТРАТЬТЕ НА ТО, ЧТО ХОЧЕТСЯ,<br>
+                А НЕ НА ТО, ЧТО НУЖНО
+            </div>
+
+            <!-- БЛОК EmoSpend -->
+            <div class="emo-card">
+                <div class="emo-title">EmoSpend</div>
+                <div class="emo-subtitle">бюджет на эмоциональные покупки</div>
+
+                <div class="emo-stats">
+                    <div class="emo-stat">
+                        <div class="emo-stat-num">186 400 ₽</div>
+                        <div class="emo-stat-label">текущий капитал</div>
+                    </div>
+                    <div class="emo-stat">
+                        <div class="emo-stat-num">4%</div>
+                        <div class="emo-stat-label">ставка EmoSpend</div>
+                    </div>
+                    <div class="emo-stat">
+                        <div class="emo-stat-num">621 ₽<span style="font-size: 14px;">/мес</span></div>
+                        <div class="emo-stat-label">можно тратить</div>
+                    </div>
+                </div>
+
+                <div class="emo-slider-wrap">
+                    <div class="emo-slider-labels">
+                        <span>0%</span>
+                        <span>10%</span>
+                        <span>25%</span>
+                    </div>
+                    <div class="emo-slider-track">
+                        <div class="emo-slider-fill"></div>
+                        <div class="emo-slider-thumb"></div>
+                    </div>
+                </div>
+
+                <div class="emo-note">
+                    <div class="emo-note-text">
+                        <strong>Выделите бюджет на иррациональные покупки (EmoSpend)</strong><br>
+                        чем больше капитал — тем больше денег можно тратить
+                    </div>
+                </div>
+            </div>
+
+            <div class="build-footer">
+                балуй себя сейчас, но в рамках бюджета — так ты не свернёшь с пути к большой цели
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

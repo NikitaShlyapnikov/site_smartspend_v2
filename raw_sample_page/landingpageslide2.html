@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SmartSpend — Выбери свой путь</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #ffffff;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            color: #111111;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 40px;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* ЗАГОЛОВОК СТРАНИЦЫ */
+        .page-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .page-title {
+            font-size: 56px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #000000;
+            text-transform: uppercase;
+        }
+
+        .page-title span {
+            background: #000000;
+            color: white;
+            padding: 4px 20px;
+            border-radius: 60px;
+            font-size: 52px;
+        }
+
+        /* ДВЕ КОЛОНКИ */
+        .two-columns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 60px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .maze-col {
+            flex: 1;
+            min-width: 380px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .cards-col {
+            flex: 1;
+            min-width: 380px;
+        }
+
+        /* ЛАБИРИНТ */
+        .cube-wrapper {
+            position: relative;
+            width: 420px;
+            height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 60px 40px rgba(0, 0, 0, 0.2));
+        }
+
+        .cube-frame {
+            width: 100%;
+            height: 100%;
+            background: #0E0E0C;
+            border-radius: 48px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 14px 42px rgba(0, 0, 0, 0.12), 0 28px 56px rgba(0, 0, 0, 0.15);
+            animation: cubeBob 3s ease-in-out infinite;
+            padding: 36px;
+        }
+
+        @keyframes cubeBob {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(1deg); }
+        }
+
+        .cube-screen {
+            width: 100%;
+            height: 100%;
+            background: #EEEDE9;
+            border-radius: 20px;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .screen-content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .content-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .content-layer.base { z-index: 1; }
+        
+        .content-layer.glitch {
+            opacity: 0;
+            z-index: 2;
+            clip-path: polygon(0 0, 100% 0, 100% 0%, 0 0%);
+            filter: drop-shadow(2px 0 #FF00FF) drop-shadow(-2px 0 #00FFFF);
+            pointer-events: none;
+        }
+
+        .screen-content.active .content-layer.glitch {
+            animation: glitch-anim 0.25s linear alternate forwards;
+        }
+
+        @keyframes glitch-anim {
+            0% { clip-path: polygon(0 0, 100% 0, 100% 0%, 0 0%); transform: translateX(-5px); opacity: 0.8; }
+            20% { clip-path: polygon(0 15%, 100% 10%, 100% 40%, 0 35%); transform: translateX(5px); }
+            40% { clip-path: polygon(0 60%, 100% 55%, 100% 85%, 0 90%); transform: translateX(-8px); }
+            60% { clip-path: polygon(0 0%, 100% 5%, 100% 30%, 0 25%); transform: translateX(8px); }
+            80% { clip-path: polygon(0 70%, 100% 68%, 100% 100%, 0 100%); transform: translateX(-3px); }
+            100% { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); transform: translateX(0); opacity: 1; }
+        }
+
+        .maze-container {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .maze {
+            width: 100%;
+            height: auto;
+            max-height: 100%;
+            display: block;
+        }
+
+        /* Анимации для лабиринта */
+        .fill-rect { fill: #6A9E84; opacity: 1; clip-path: inset(0 100% 0 0); }
+        .fill-rect-pink { fill: #D25290; opacity: 1; clip-path: inset(0 100% 0 0); }
+
+        @keyframes fillLtoR { 0% { clip-path: inset(0 100% 0 0); } 100% { clip-path: inset(0 0 0 0); } }
+        @keyframes fillRtoL { 0% { clip-path: inset(0 0 0 100%); } 100% { clip-path: inset(0 0 0 0); } }
+        @keyframes fillTtoB { 0% { clip-path: inset(0 0 100% 0); } 100% { clip-path: inset(0 0 0 0); } }
+        @keyframes fillBtoT { 0% { clip-path: inset(100% 0 0 0); } 100% { clip-path: inset(0 0 0 0); } }
+
+        .green-anim-0 { animation: fillLtoR 250ms ease-out 0ms forwards; }
+        .green-anim-1 { animation: fillRtoL 250ms ease-out 250ms forwards; }
+        .green-anim-2 { animation: fillBtoT 250ms ease-out 500ms forwards; }
+        .green-anim-3 { animation: fillLtoR 250ms ease-out 750ms forwards; }
+        .green-anim-4 { animation: fillLtoR 250ms ease-out 1000ms forwards; }
+        .green-anim-5 { animation: fillTtoB 250ms ease-out 1250ms forwards; }
+        .green-anim-6 { animation: fillLtoR 250ms ease-out 1500ms forwards; }
+        .green-anim-7 { animation: fillLtoR 250ms ease-out 1750ms forwards; }
+        .green-anim-8 { animation: fillTtoB 250ms ease-out 2000ms forwards; }
+
+        .anim-0 { animation: fillLtoR 250ms ease-out 0ms forwards; }
+        .anim-1 { animation: fillBtoT 250ms ease-out 250ms forwards; }
+        .anim-2 { animation: fillLtoR 250ms ease-out 500ms forwards; }
+        .anim-3 { animation: fillBtoT 250ms ease-out 750ms forwards; }
+        .anim-4 { animation: fillRtoL 250ms ease-out 1000ms forwards; }
+        .anim-5 { animation: fillBtoT 250ms ease-out 1250ms forwards; }
+        .anim-6 { animation: fillLtoR 250ms ease-out 1500ms forwards; }
+        .anim-7 { animation: fillBtoT 250ms ease-out 1750ms forwards; }
+        .anim-8 { animation: fillLtoR 250ms ease-out 2000ms forwards; }
+        .anim-9 { animation: fillTtoB 250ms ease-out 2250ms forwards; }
+        .anim-10 { animation: fillLtoR 250ms ease-out 2500ms forwards; }
+        .anim-11 { animation: fillTtoB 250ms ease-out 2750ms forwards; }
+        .anim-12 { animation: fillRtoL 250ms ease-out 3000ms forwards; }
+        .anim-13 { animation: fillTtoB 250ms ease-out 3250ms forwards; }
+        .anim-14 { animation: fillRtoL 250ms ease-out 3500ms forwards; }
+        .anim-15 { animation: fillTtoB 250ms ease-out 3750ms forwards; }
+        .anim-16 { animation: fillLtoR 250ms ease-out 4000ms forwards; }
+        .anim-17 { animation: fillBtoT 250ms ease-out 4250ms forwards; }
+        .anim-18 { animation: fillBtoT 250ms ease-out 4500ms forwards; }
+        .anim-19 { animation: fillLtoR 250ms ease-out 4750ms forwards; }
+        .anim-20 { animation: fillBtoT 250ms ease-out 5000ms forwards; }
+        .anim-21 { animation: fillRtoL 250ms ease-out 5250ms forwards; }
+        .anim-22 { animation: fillBtoT 250ms ease-out 5500ms forwards; }
+        .anim-23 { animation: fillLtoR 250ms ease-out 5750ms forwards; }
+        .anim-24 { animation: fillTtoB 250ms ease-out 6000ms forwards; }
+
+        /* КАРТОЧКА С ТАБАМИ */
+        .tabs-card {
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02);
+            overflow: hidden;
+        }
+
+        .tabs-header {
+            display: flex;
+            border-bottom: 1px solid #e8e8ec;
+            background: #fafafc;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 20px 16px;
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #888;
+        }
+
+        .tab-btn.active {
+            color: #000;
+            border-bottom: 3px solid #6A9E84;
+            background: #ffffff;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 32px 28px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .card-title.good {
+            color: #6A9E84;
+        }
+
+        .card-title.bad {
+            color: #c0a06b;
+        }
+
+        .card-sub {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 24px;
+            color: #555;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e8e8ec;
+        }
+
+        .card-content ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .card-content li {
+            margin: 14px 0;
+            padding-left: 24px;
+            position: relative;
+            font-size: 15px;
+            line-height: 1.5;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .card-content li.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card-content li strong {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .card-content li::before {
+            position: absolute;
+            left: 0;
+            font-weight: 700;
+        }
+
+        .good-list li::before {
+            content: "✓";
+            color: #6A9E84;
+        }
+
+        .bad-list li::before {
+            content: "✗";
+            color: #c0a06b;
+        }
+
+        @media (max-width: 1000px) {
+            .page-title {
+                font-size: 44px;
+            }
+            .page-title span {
+                font-size: 40px;
+            }
+            .cube-wrapper {
+                width: 360px;
+                height: 360px;
+            }
+            .card-title {
+                font-size: 24px;
+            }
+        }
+
+        @media (max-width: 550px) {
+            body {
+                padding: 30px 20px;
+            }
+            .page-title {
+                font-size: 32px;
+            }
+            .page-title span {
+                font-size: 28px;
+            }
+            .cube-wrapper {
+                width: 300px;
+                height: 300px;
+            }
+            .tab-btn {
+                font-size: 16px;
+                padding: 16px;
+            }
+            .tab-content {
+                padding: 24px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- ЗАГОЛОВОК СТРАНИЦЫ -->
+        <div class="page-header">
+            <div class="page-title">
+                ВЫБЕРИ <span>СВОЙ ПУТЬ</span>
+            </div>
+        </div>
+
+        <div class="two-columns">
+            <!-- ЛЕВАЯ КОЛОНКА: ЛАБИРИНТ -->
+            <div class="maze-col">
+                <div class="cube-wrapper">
+                    <div class="cube-frame">
+                        <div class="cube-screen">
+                            <div class="screen-content" id="screenContent">
+                                <div class="content-layer base" id="baseLayer">
+                                    <div class="maze-container" id="mazeContainer"></div>
+                                </div>
+                                <div class="content-layer glitch" id="glitchLayer"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ПРАВАЯ КОЛОНКА: КАРТОЧКА С ТАБАМИ -->
+            <div class="cards-col">
+                <div class="tabs-card">
+                    <div class="tabs-header">
+                        <button class="tab-btn active" data-tab="tab1">10 лет до капитала</button>
+                        <button class="tab-btn" data-tab="tab2">30 лет до капитала</button>
+                    </div>
+
+                    <!-- ТАБ 1: 10 лет -->
+                    <div class="tab-content active" id="tab1">
+                        <div class="card-title good">Первый путь</div>
+                        <div class="card-sub">Этот сценарий превращает любое количество денег в фундамент для свободы.</div>
+                        <div class="card-content">
+                            <ul class="good-list">
+                                <li><strong>Стратегия:</strong> Чёткое понимание: «Я отказываюсь от лишних кроссовок сегодня, чтобы через 5 лет иметь капитал, который позволит мне не работать».</li>
+                                <li><strong>Системная инвентаризация:</strong> Ты точно знаешь, что у тебя есть. Ты не купишь вторую одинаковую вещь и заранее планируешь замену старой техники, пока она ещё работает.</li>
+                                <li><strong>Умные покупки:</strong> Выбор по принципу «цена / качество / срок службы». Ты покупаешь вещь, которая прослужит 5 лет, а не 5 месяцев, экономя в долгосроке.</li>
+                                <li><strong>Создание базы знаний:</strong> Ты тратишь время на то, чтобы разобраться в налогах, инвестициях или технике. Знания помогают не переплачивать и не совершать глупых ошибок.</li>
+                                <li><strong>Управляемые радости:</strong> Ты не робот. У тебя есть выделенный бюджет на «глупости». Это позволяет получать удовольствие от жизни, не ломая общую финансовую стратегию.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- ТАБ 2: 30 лет -->
+                    <div class="tab-content" id="tab2">
+                        <div class="card-title bad">Второй путь</div>
+                        <div class="card-sub">Этот сценарий превращает даже высокий доход в ноль или долги.</div>
+                        <div class="card-content">
+                            <ul class="bad-list">
+                                <li><strong>Дофаминовая петля:</strong> Покупка ради короткого всплеска радости. Мозг привыкает к «шопинг-терапии», и чтобы снова почувствовать себя хорошо, нужно покупать всё чаще и дороже.</li>
+                                <li><strong>Инфляция потребления:</strong> Как только ты начинаешь зарабатывать больше, ты сразу переезжаешь в квартиру подороже и идёшь в рестораны получше. В итоге свободный остаток денег не растёт.</li>
+                                <li><strong>Демонстративное потребление:</strong> Покупки «для других». Ты тратишь ресурсы не на комфорт, а на то, чтобы окружающие считали тебя успешным.</li>
+                                <li><strong>Кредитная спираль:</strong> Берёшь один кредит, чтобы закрыть дыру, но проценты съедают доход, и приходится брать второй. Ты платишь банку за то, что не умеешь ждать.</li>
+                                <li><strong>Ловушка пассивов:</strong> Покупка вещей, которые «сосут» деньги после приобретения: старая иномарка в кредит (ремонт + проценты), огромный дом (налоги + отопление), куча подписок.</li>
+                                <li><strong>Хаос и форс-мажоры:</strong> Полное отсутствие заначки. Любое ЧП (сломался зуб или кран) выбивает почву из-под ног и заставляет снова лезть в долги.</li>
+                                <li><strong>Финансовая эрозия:</strong> Мелкие траты, которые ты не замечаешь. Кофе, такси, платные игры. Это как дырявое ведро: вода вроде льётся, но внутри ничего не остаётся.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== SVG ДЛЯ ЛАБИРИНТА ==========
+        const greenMazeHTML = `<svg class="maze" viewBox="0 0 683 682" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="13" y="495" width="151" height="91" fill="#6A9E84" class="fill-rect green-anim-0"/><rect x="22" y="428" width="151" height="91" fill="#6A9E84" class="fill-rect green-anim-1"/><rect x="22" y="109" width="66" height="333" fill="#6A9E84" class="fill-rect green-anim-2"/><rect x="55" y="88" width="194" height="91" fill="#6A9E84" class="fill-rect green-anim-3"/><path d="M185 18.5H426V109.5H185V18.5Z" fill="#6A9E84" class="fill-rect green-anim-4"/><rect x="419" y="22.5" width="84" height="142" fill="#6A9E84" class="fill-rect green-anim-5"/><rect x="485" y="98.5" width="87" height="65" fill="#6A9E84" class="fill-rect green-anim-6"/><rect x="517" y="15" width="154" height="91" fill="#6A9E84" class="fill-rect green-anim-7"/><rect x="582" y="73" width="89" height="91" fill="#6A9E84" class="fill-rect green-anim-8"/><path d="M681.381 8.00003C680.715 6.53336 678.848 4.13336 677.248 2.6667C674.315 2.94752e-05 672.448 2.93936e-05 341.115 1.49106e-05L7.91463 3.4596e-07L4.31463 3.73333L0.581299 7.33333L0.181288 257.067C-0.218722 486.267 -0.0853898 507.067 1.91461 510.8C3.24794 513.2 5.64794 515.733 7.38128 516.533C9.64794 517.467 25.3813 518 55.9146 518L100.981 518L105.115 514.533C110.181 510.4 111.648 503.867 108.848 498.4C104.715 490.667 105.248 490.667 65.3813 490L28.5813 489.333L28.1813 299.733L27.9146 110L104.315 110L180.848 110L185.381 106.933C191.381 102.933 193.381 95.8667 190.181 89.2C186.048 80.5333 187.248 80.6667 103.248 80.6667L27.9146 80.6667L28.1813 54.2667L28.5813 28L259.648 27.6L490.581 27.3334L490.581 62.5334C490.581 82.2667 491.115 99.3334 491.915 101.2C495.115 109.867 507.648 112.133 514.448 105.333L517.915 102L518.581 64.9334L519.248 28L586.581 28L653.915 28L654.581 66.4L655.248 104.933L658.981 108.133C665.781 114 676.981 111.867 681.115 103.733C682.848 100.267 683.115 12.2667 681.381 8.00003Z" fill="black"/><path d="M579.248 600.667L593 600.667L593 571.333L586.581 571.333L518.581 571.333L518.581 504L518.581 436.667L556.048 436.667L593.515 436.667L598.048 432.133C600.5 426 598.048 419.5 598.715 412.533L594.848 408.667L546.981 408.667C495.115 408.667 495.915 408.667 492.048 416.267C490.981 418.267 490.581 444.133 490.581 504L490.581 571.333L327 571.333L327 600.667L490.581 600.667L579.248 600.667Z" fill="black"/><path d="M437.248 499.067L437.248 518.667L408.581 518.667L331.248 518C288.715 517.6 255.648 516.667 254.315 516L254.315 490L341.248 490L428.181 490L432.715 494.534L437.248 499.067Z" fill="black"/><path d="M572 191C571.5 190 571.915 169.2 571.915 169.2C571.915 85.4668 571.781 86.9334 580.581 82.8001C582.981 81.6001 585.648 80.6668 586.581 80.6668C587.515 80.6668 590.181 81.6001 592.581 82.8001C600.715 86.6668 601.248 89.6001 601.248 128.533L601.248 163.333L636.581 163.333C658.848 163.333 672.981 163.867 674.981 164.8C676.715 165.6 679.115 167.867 680.315 169.733C682.315 173.067 682.448 192.267 682.181 423.6L681.915 674L678.181 677.6L674.581 681.333L341.248 681.333L7.91466 681.333L4.31466 677.6L0.581331 674L0.181333 628.667C-0.0853319 589.2 0.0480017 582.8 1.91467 579.2C6.048 571.333 5.648 571.333 88.5813 571.333L163.915 571.333L191.915 571.333L267.648 571.333L281.5 571.333L281.5 600.667L185.381 600.667L27.9147 600.667L28.1813 627.067L28.5813 653.333L218.581 653.333L408.581 653.333L437.5 653.733L545.648 653.733L653.915 653.333L654.315 627.067L654.581 600.667L637 600.667L637 571.333L654.581 571.333L654.315 545.067L653.915 518.667L616.981 518L616.812 517.997C580.314 517.333 580.043 517.329 576.715 514.133C572.315 510 571.115 503.467 573.648 498.4L573.811 498.095C577.774 490.667 577.779 490.658 617.115 490L653.915 489.333L653.915 340.667L653.915 192L627.648 191.6L601.248 191.333C601.248 191.333 572.5 192 572 191Z" fill="black"/><path d="M602.247 235L602.247 266.378C602.247 350.319 603 437 603 437L574.964 437C574.964 437 572.876 346.175 572.876 307.145L572.876 272.259L495.31 272.259L417.744 272.259L413.872 268.383C410.801 265.175 410 263.303 410 258.625C410 252.477 412.537 248.199 417.61 245.66C419.613 244.59 443.243 244.189 496.645 244.189L572.876 244.189L572.876 235C572.876 235 572.5 233 587.5 233C602.5 233 602.247 235 602.247 235Z" fill="black"/><path d="M408.581 600.656L408.581 586L408.581 571.5L437.248 571.5L437.248 576.533L437.248 600.656L408.581 600.656Z" fill="black"/><path d="M163.915 522.5L163.915 463.333L163.915 355.333L137.248 355.333L110.581 355.333L110.581 390C110.581 428.267 110.181 430.8 102.581 434.667C97.648 437.2 94.1813 437.2 89.1146 434.533C81.648 430.8 81.248 427.733 81.248 381.2C81.248 334.133 81.648 332 89.9146 328.133C93.5146 326.4 100.181 326 129.115 326L163.915 326L163.648 299.733L163.248 273.333L126.448 272.667C86.4481 272.004 86.4462 272 83.0497 263.897L82.9813 263.733C80.448 257.333 80.448 178.533 83.1146 172.133C87.1146 162.667 97.7813 160.267 105.515 167.2L109.915 171.067L110.315 207.867L110.715 244.667L146.715 244.667L182.848 244.667L187.381 249.2L191.915 253.733L191.915 331.2L191.915 408.667L269.115 408.667L346.315 408.667L350.315 412C355.381 416.267 356.715 421.6 354.048 427.733C350.315 436.933 352.715 436.667 267.915 436.667L191.915 436.667L191.915 504L191.915 522.5L163.915 522.5Z" fill="black"/><path d="M326.581 246.5C326.581 247.041 326.58 247.457 326.58 247.772C326.578 247.87 326.577 249.678 326.58 247.772C326.58 247.713 326.581 248.278 326.581 250.667L326.581 326L292.581 326C254.848 326 250.981 326.667 247.381 333.867C244.715 338.933 244.715 342.4 247.381 347.467C251.381 355.333 251.248 355.333 333.915 355.333L409.248 355.333L409.248 391.733C409.248 424.133 408.5 491 408.5 491L437.248 502.5L437.248 427.6L437.248 391.467L437.248 355.333L471.915 355.333C500.181 355.333 507.381 354.933 510.581 353.333C519.515 348.8 521.381 338.534 514.715 331.067L510.848 326.667L433.381 326.267L355.915 326L355.915 258.667L355.915 246.5L326.581 246.5Z" fill="black"/><path d="M326.677 191.333C326.858 164.588 326.267 165.87 327.5 163.5C327.5 163.5 328.048 163.333 423.648 163.333L510.848 163.333L514.715 167.2C517.781 170.4 518.581 172.267 518.581 176.933C518.581 183.067 516.048 187.333 510.981 189.867C508.981 190.933 485.381 191.333 432.048 191.333L355.915 191.333L326.677 191.333Z" fill="black"/><path d="M426.715 85.7334L422.848 81.3334L341.648 80.9334C285.248 80.6667 258.981 80.9333 255.514 82C252.181 82.9333 249.514 84.9333 247.914 87.7333C245.514 91.7333 245.248 94.6667 245.248 127.733L245.248 163.333L208.448 163.333L95.0002 163.333L93.5 167.2C89.2334 171.467 90.0899 185.067 92.8899 191.333C92.8899 191.333 171.381 191.333 209.915 191.333L245.248 191.333L245.248 226.8C245.248 250.267 245.781 263.2 246.714 265.067C249.248 270.133 253.514 272.667 259.648 272.667C264.314 272.667 266.181 271.867 269.381 268.8L273.248 264.933L273.248 187.467L273.248 110L347.781 109.733L422.448 109.333L426.448 105.467C432.181 100 432.315 91.8667 426.715 85.7334Z" fill="black"/><path d="M397.5 163.5V109H364V163.5H397.5Z" fill="black" stroke="black"/><path d="M457 245V191.5H482.5V245H457Z" fill="black" stroke="black"/><path d="M281 516V574H255V516H281Z" fill="black" stroke="black"/></svg>`;
+
+        const pinkMazeHTML = `<svg class="maze" viewBox="0 0 683 682" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="516" width="237" height="56" fill="#D25290" class="fill-rect-pink anim-0"/><rect x="192" y="436" width="65" height="87" fill="#D25290" class="fill-rect-pink anim-1"/><rect x="253" y="434" width="156" height="56" fill="#D25290" class="fill-rect-pink anim-2"/><rect x="349" y="350" width="61" height="124" fill="#D25290" class="fill-rect-pink anim-3"/><rect x="192" y="353" width="163" height="56" fill="#D25290" class="fill-rect-pink anim-4"/><rect x="192" y="265" width="70" height="90" fill="#D25290" class="fill-rect-pink anim-5"/><rect x="245" y="271" width="82" height="56" fill="#D25290" class="fill-rect-pink anim-6"/><rect x="268" y="192" width="66" height="83" fill="#D25290" class="fill-rect-pink anim-7"/><rect x="331" y="191" width="93" height="57" fill="#D25290" class="fill-rect-pink anim-8"/><rect x="355" y="237" width="63" height="90" fill="#D25290" class="fill-rect-pink anim-9"/><rect x="410" y="270" width="171" height="57" fill="#D25290" class="fill-rect-pink anim-10"/><rect x="513" y="312" width="63" height="104" fill="#D25290" class="fill-rect-pink anim-11"/><g class="fill-rect-pink anim-12"><rect x="519" y="353" width="63" height="82" transform="rotate(90 519 353)" fill="#D25290"/></g><rect x="437" y="414" width="63" height="160" fill="#D25290" class="fill-rect-pink anim-13"/><g class="fill-rect-pink anim-14"><rect x="441.536" y="514.301" width="59.7015" height="160.451" transform="rotate(90.5142 441.536 514.301)" fill="#D25290"/></g><rect x="278" y="571" width="63" height="90" fill="#D25290" class="fill-rect-pink anim-15"/><g class="fill-rect-pink anim-16"><rect x="334" y="661" width="63" height="309" transform="rotate(-90 334 661)" fill="#D25290"/></g><g class="fill-rect-pink anim-17"><rect x="587" y="601" width="85" height="56" transform="rotate(-90 587 601)" fill="#D25290"/></g><g class="fill-rect-pink anim-18"><rect x="519" y="560" width="135" height="80" transform="rotate(-90 519 571)" fill="#D25290"/></g><g class="fill-rect-pink anim-19"><rect x="581" y="495" width="59" height="83" transform="rotate(-90 581 495)" fill="#D25290"/></g><g class="fill-rect-pink anim-20"><rect x="596" y="436" width="245" height="68" transform="rotate(-90 596 436)" fill="#D25290"/></g><g class="fill-rect-pink anim-21"><rect x="510" y="238" width="46" height="89" transform="rotate(-90 510 238)" fill="#D25290"/></g><g class="fill-rect-pink anim-22"><rect x="510" y="194" width="168" height="68" transform="rotate(-90 510 194)" fill="#D25290"/></g><g class="fill-rect-pink anim-23"><rect x="578" y="83" width="60" height="81" transform="rotate(-90 578 86)" fill="#D25290"/></g><g class="fill-rect-pink anim-24"><rect x="596" y="165" width="84" height="67" transform="rotate(-90 596 165)" fill="#D25290"/></g><path d="M681.381 8.00003C680.715 6.53336 678.848 4.13336 677.248 2.6667C674.315 2.94752e-05 672.448 2.93936e-05 341.115 1.49106e-05L7.91463 3.4596e-07L4.31463 3.73333L0.581299 7.33333L0.181288 257.067C-0.218722 486.267 -0.0853898 507.067 1.91461 510.8C3.24794 513.2 5.64794 515.733 7.38128 516.533C9.64794 517.467 25.3813 518 55.9146 518L100.981 518L105.115 514.533C110.181 510.4 111.648 503.867 108.848 498.4C104.715 490.667 105.248 490.667 65.3813 490L28.5813 489.333L28.1813 299.733L27.9146 110L104.315 110L180.848 110L185.381 106.933C191.381 102.933 193.381 95.8667 190.181 89.2C186.048 80.5333 187.248 80.6667 103.248 80.6667L27.9146 80.6667L28.1813 54.2667L28.5813 28L259.648 27.6L490.581 27.3334L490.581 62.5334C490.581 82.2667 491.115 99.3334 491.915 101.2C495.115 109.867 507.648 112.133 514.448 105.333L517.915 102L518.581 64.9334L519.248 28L586.581 28L653.915 28L654.581 66.4L655.248 104.933L658.981 108.133C665.781 114 676.981 111.867 681.115 103.733C682.848 100.267 683.115 12.2667 681.381 8.00003Z" fill="black"/><path d="M579.248 600.667L593 600.667L593 571.333L586.581 571.333L518.581 571.333L518.581 504L518.581 436.667L556.048 436.667L593.515 436.667L598.048 432.133C600.5 426 598.048 419.5 598.715 412.533L594.848 408.667L546.981 408.667C495.115 408.667 495.915 408.667 492.048 416.267C490.981 418.267 490.581 444.133 490.581 504L490.581 571.333L327 571.333L327 600.667L490.581 600.667L579.248 600.667Z" fill="black"/><path d="M437.248 499.067L437.248 518.667L408.581 518.667L331.248 518C288.715 517.6 255.648 516.667 254.315 516L254.315 490L341.248 490L428.181 490L432.715 494.534L437.248 499.067Z" fill="black"/><path d="M572 191C571.5 190 571.915 169.2 571.915 169.2C571.915 85.4668 571.781 86.9334 580.581 82.8001C582.981 81.6001 585.648 80.6668 586.581 80.6668C587.515 80.6668 590.181 81.6001 592.581 82.8001C600.715 86.6668 601.248 89.6001 601.248 128.533L601.248 163.333L636.581 163.333C658.848 163.333 672.981 163.867 674.981 164.8C676.715 165.6 679.115 167.867 680.315 169.733C682.315 173.067 682.448 192.267 682.181 423.6L681.915 674L678.181 677.6L674.581 681.333L341.248 681.333L7.91466 681.333L4.31466 677.6L0.581331 674L0.181333 628.667C-0.0853319 589.2 0.0480017 582.8 1.91467 579.2C6.048 571.333 5.648 571.333 88.5813 571.333L163.915 571.333L191.915 571.333L267.648 571.333L281.5 571.333L281.5 600.667L185.381 600.667L27.9147 600.667L28.1813 627.067L28.5813 653.333L218.581 653.333L408.581 653.333L437.5 653.733L545.648 653.733L653.915 653.333L654.315 627.067L654.581 600.667L637 600.667L637 571.333L654.581 571.333L654.315 545.067L653.915 518.667L616.981 518L616.812 517.997C580.314 517.333 580.043 517.329 576.715 514.133C572.315 510 571.115 503.467 573.648 498.4L573.811 498.095C577.774 490.667 577.779 490.658 617.115 490L653.915 489.333L653.915 340.667L653.915 192L627.648 191.6L601.248 191.333C601.248 191.333 572.5 192 572 191Z" fill="black"/><path d="M602.247 235L602.247 266.378C602.247 350.319 603 437 603 437L574.964 437C574.964 437 572.876 346.175 572.876 307.145L572.876 272.259L495.31 272.259L417.744 272.259L413.872 268.383C410.801 265.175 410 263.303 410 258.625C410 252.477 412.537 248.199 417.61 245.66C419.613 244.59 443.243 244.189 496.645 244.189L572.876 244.189L572.876 235C572.876 235 572.5 233 587.5 233C602.5 233 602.247 235 602.247 235Z" fill="black"/><path d="M408.581 600.656L408.581 586L408.581 571.5L437.248 571.5L437.248 576.533L437.248 600.656L408.581 600.656Z" fill="black"/><path d="M163.915 522.5L163.915 463.333L163.915 355.333L137.248 355.333L110.581 355.333L110.581 390C110.581 428.267 110.181 430.8 102.581 434.667C97.648 437.2 94.1813 437.2 89.1146 434.533C81.648 430.8 81.248 427.733 81.248 381.2C81.248 334.133 81.648 332 89.9146 328.133C93.5146 326.4 100.181 326 129.115 326L163.915 326L163.648 299.733L163.248 273.333L126.448 272.667C86.4481 272.004 86.4462 272 83.0497 263.897L82.9813 263.733C80.448 257.333 80.448 178.533 83.1146 172.133C87.1146 162.667 97.7813 160.267 105.515 167.2L109.915 171.067L110.315 207.867L110.715 244.667L146.715 244.667L182.848 244.667L187.381 249.2L191.915 253.733L191.915 331.2L191.915 408.667L269.115 408.667L346.315 408.667L350.315 412C355.381 416.267 356.715 421.6 354.048 427.733C350.315 436.933 352.715 436.667 267.915 436.667L191.915 436.667L191.915 504L191.915 522.5L163.915 522.5Z" fill="black"/><path d="M326.581 246.5C326.581 247.041 326.58 247.457 326.58 247.772C326.578 247.87 326.577 249.678 326.58 247.772C326.58 247.713 326.581 248.278 326.581 250.667L326.581 326L292.581 326C254.848 326 250.981 326.667 247.381 333.867C244.715 338.933 244.715 342.4 247.381 347.467C251.381 355.333 251.248 355.333 333.915 355.333L409.248 355.333L409.248 391.733C409.248 424.133 408.5 491 408.5 491L437.248 502.5L437.248 427.6L437.248 391.467L437.248 355.333L471.915 355.333C500.181 355.333 507.381 354.933 510.581 353.333C519.515 348.8 521.381 338.534 514.715 331.067L510.848 326.667L433.381 326.267L355.915 326L355.915 258.667L355.915 246.5L326.581 246.5Z" fill="black"/><path d="M326.677 191.333C326.858 164.588 326.267 165.87 327.5 163.5C327.5 163.5 328.048 163.333 423.648 163.333L510.848 163.333L514.715 167.2C517.781 170.4 518.581 172.267 518.581 176.933C518.581 183.067 516.048 187.333 510.981 189.867C508.981 190.933 485.381 191.333 432.048 191.333L355.915 191.333L326.677 191.333Z" fill="black"/><path d="M426.715 85.7334L422.848 81.3334L341.648 80.9334C285.248 80.6667 258.981 80.9333 255.514 82C252.181 82.9333 249.514 84.9333 247.914 87.7333C245.514 91.7333 245.248 94.6667 245.248 127.733L245.248 163.333L208.448 163.333L95.0002 163.333L93.5 167.2C89.2334 171.467 90.0899 185.067 92.8899 191.333C92.8899 191.333 171.381 191.333 209.915 191.333L245.248 191.333L245.248 226.8C245.248 250.267 245.781 263.2 246.714 265.067C249.248 270.133 253.514 272.667 259.648 272.667C264.314 272.667 266.181 271.867 269.381 268.8L273.248 264.933L273.248 187.467L273.248 110L347.781 109.733L422.448 109.333L426.448 105.467C432.181 100 432.315 91.8667 426.715 85.7334Z" fill="black"/><path d="M397.5 163.5V109H364V163.5H397.5Z" fill="black" stroke="black"/><path d="M457 245V191.5H482.5V245H457Z" fill="black" stroke="black"/><path d="M281 516V574H255V516H281Z" fill="black" stroke="black"/></svg>`;
+
+        // DOM элементы
+        const screenContent = document.getElementById("screenContent");
+        const baseLayer = document.getElementById("baseLayer");
+        const glitchLayerDiv = document.getElementById("glitchLayer");
+        const mazeContainer = document.getElementById("mazeContainer");
+
+        let isGreen = true;
+        let isGlitching = false;
+
+        // ========== АНИМАЦИЯ ПОЯВЛЕНИЯ СТРОК В КАРТОЧКАХ ==========
+        let itemIntervalId = null;
+        let currentTabId = 'tab1';
+
+        function stopItemAnimation() {
+            if (itemIntervalId) {
+                clearInterval(itemIntervalId);
+                itemIntervalId = null;
+            }
+        }
+
+        function resetItemsVisibility(tabId) {
+            const tabContent = document.getElementById(tabId);
+            const listItems = tabContent.querySelectorAll('.card-content li');
+            listItems.forEach(el => el.classList.remove('visible'));
+        }
+
+        function startItemAnimation(tabId) {
+            stopItemAnimation();
+            
+            const tabContent = document.getElementById(tabId);
+            const listItems = tabContent.querySelectorAll('.card-content li');
+            
+            resetItemsVisibility(tabId);
+            
+            if (listItems.length === 0) return;
+            
+            // длительность показа одной карточки
+            const cardDuration = isGreen ? 2250 : 6250;
+            const appearanceDuration = cardDuration * 0.7;
+            const stepDelay = appearanceDuration / listItems.length;
+            
+            let currentIndex = 0;
+            
+            itemIntervalId = setInterval(() => {
+                if (currentIndex < listItems.length) {
+                    listItems[currentIndex].classList.add('visible');
+                    currentIndex++;
+                    
+                    if (currentIndex >= listItems.length) {
+                        stopItemAnimation();
+                    }
+                }
+            }, stepDelay);
+        }
+
+        // ========== ФУНКЦИИ ЛАБИРИНТА ==========
+        function updateGlitchContent() {
+            const clone = baseLayer.cloneNode(true);
+            clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+            glitchLayerDiv.innerHTML = '';
+            while (clone.firstChild) {
+                glitchLayerDiv.appendChild(clone.firstChild);
+            }
+        }
+
+        function restartMazeAnimations() {
+            const animatedElements = mazeContainer.querySelectorAll('[class*="anim-"], [class*="green-anim-"]');
+            animatedElements.forEach(el => {
+                const classes = el.className.baseVal.split(' ');
+                classes.forEach(cls => {
+                    if (cls.includes('anim-') || cls.includes('green-anim-')) {
+                        el.classList.remove(cls);
+                        void el.offsetWidth;
+                        el.classList.add(cls);
+                    }
+                });
+            });
+        }
+
+        function renderMaze() {
+            if (isGreen) {
+                mazeContainer.innerHTML = greenMazeHTML;
+            } else {
+                mazeContainer.innerHTML = pinkMazeHTML;
+            }
+            restartMazeAnimations();
+        }
+
+        function triggerTransition() {
+            if (isGlitching) return;
+            isGlitching = true;
+
+            updateGlitchContent();
+            screenContent.classList.add("active");
+
+            setTimeout(() => {
+                isGreen = !isGreen;
+                renderMaze();
+                // перезапускаем анимацию строк для текущего таба
+                startItemAnimation(currentTabId);
+            }, 125);
+
+            setTimeout(() => {
+                screenContent.classList.remove("active");
+                updateGlitchContent();
+                isGlitching = false;
+            }, 250);
+        }
+
+        // ========== ПЕРЕКЛЮЧЕНИЕ ТАБОВ ==========
+        function switchTab(tabId) {
+            if (currentTabId === tabId) return;
+            
+            // скрываем старый таб
+            document.getElementById(currentTabId).classList.remove('active');
+            document.querySelector(`.tab-btn[data-tab="${currentTabId}"]`).classList.remove('active');
+            
+            // показываем новый таб
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
+            
+            currentTabId = tabId;
+            
+            // меняем цвет лабиринта и запускаем анимацию
+            if (tabId === 'tab1') {
+                isGreen = true;
+            } else {
+                isGreen = false;
+            }
+            
+            renderMaze();
+            // запускаем анимацию появления строк для нового таба
+            startItemAnimation(currentTabId);
+        }
+
+        // обработчики табов
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.getAttribute('data-tab');
+                switchTab(tabId);
+            });
+        });
+
+        // Запуск
+        renderMaze();
+        updateGlitchContent();
+        startItemAnimation('tab1');
+    </script>
+</body>
+</html>

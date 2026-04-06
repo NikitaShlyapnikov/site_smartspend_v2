@@ -1,111 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { loadFullUserData, loadEmptyUserData, FULL_USER, EMPTY_USER } from '../data/demoUsers'
 
-// ── Quiz ──────────────────────────────────────────────────────────────────────
-
-const QUIZ_STEPS = [
-  {
-    q: 'Как часто вы покупаете вещи импульсивно?',
-    options: ['Почти никогда', 'Иногда, пару раз в месяц', 'Часто, почти каждую неделю', 'Постоянно, не могу остановиться'],
-  },
-  {
-    q: 'Ведёте ли вы учёт расходов?',
-    options: ['Да, регулярно', 'Иногда записываю', 'Нет, но хочу начать', 'Никогда не думал об этом'],
-  },
-  {
-    q: 'Какая категория расходов самая проблемная?',
-    options: ['Еда и рестораны', 'Одежда и шопинг', 'Развлечения и подписки', 'Техника и гаджеты'],
-  },
-  { q: 'Как вас зовут?', name: true },
-]
-
-function QuizModal({ open, onClose, onFinish }) {
-  const [step, setStep] = useState(0)
-  const [answers, setAnswers] = useState([])
-  const [selected, setSelected] = useState(null)
-  const [nameVal, setNameVal] = useState('')
-  const [done, setDone] = useState(false)
-
-  const current = QUIZ_STEPS[step]
-  const progress = ((step + 1) / QUIZ_STEPS.length) * 100
-
-  function next() {
-    if (current.name) {
-      if (!nameVal.trim()) return
-      setAnswers([...answers, nameVal.trim()])
-    } else {
-      if (selected === null) return
-      setAnswers([...answers, selected])
-      setSelected(null)
-    }
-    if (step < QUIZ_STEPS.length - 1) setStep(s => s + 1)
-    else setDone(true)
-  }
-
-  function skip() {
-    if (step < QUIZ_STEPS.length - 1) setStep(s => s + 1)
-    else setDone(true)
-  }
-
-  function handleFinish() {
-    const name = answers[answers.length - 1] || nameVal.trim() || 'Никита Орлов'
-    onFinish(name, 'default')
-  }
-
-  function handleClose() {
-    setStep(0); setAnswers([]); setSelected(null); setNameVal(''); setDone(false)
-    onClose()
-  }
-
-  if (!open) return null
-
-  return (
-    <div className={`quiz-overlay${open ? ' open' : ''}`} onClick={e => e.target === e.currentTarget && handleClose()}>
-      <div className="quiz-modal">
-        <div className="quiz-progress-bar" style={{ width: `${progress}%` }} />
-        <div className="quiz-inner">
-          {done ? (
-            <div className="quiz-result">
-              <div className="quiz-result-icon">🎉</div>
-              <div className="quiz-result-title">Вы готовы!</div>
-              <div className="quiz-result-desc">SmartSpend поможет вам тратить осознанно и достигать финансовых целей</div>
-              <button className="quiz-result-btn" onClick={handleFinish}>Войти в приложение →</button>
-            </div>
-          ) : (
-            <>
-              <div className="quiz-q">{current.q}</div>
-              {current.name ? (
-                <input className="quiz-name-input" placeholder="Ваше имя" value={nameVal}
-                  onChange={e => setNameVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && next()} autoFocus />
-              ) : (
-                <div className="quiz-options">
-                  {current.options.map((opt, i) => (
-                    <button key={i} className={`quiz-option${selected === i ? ' selected' : ''}`}
-                      onClick={() => setSelected(i)}>{opt}</button>
-                  ))}
-                </div>
-              )}
-              <div className="quiz-actions">
-                <button className="quiz-btn-skip" onClick={skip}>Пропустить</button>
-                <button className="quiz-btn-next" onClick={next}>
-                  {step < QUIZ_STEPS.length - 1 ? 'Далее →' : 'Завершить'}
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Auth Modal ────────────────────────────────────────────────────────────────
+// ── Auth Modal icons ──────────────────────────────────────────────────────────
 
 function IconYandex() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
       <path d="M2.04 12c0-5.523 4.476-10 10-10 5.522 0 10 4.477 10 10s-4.478 10-10 10c-5.524 0-10-4.477-10-10z" fill="#FC3F1D"/>
       <path d="M13.32 7.666h-.924c-1.694 0-2.585.858-2.585 2.123 0 1.43.616 2.1 1.881 2.959l1.045.704-3.003 4.487H7.49l2.695-4.014c-1.55-1.111-2.42-2.19-2.42-4.015 0-2.288 1.595-3.85 4.62-3.85h3.003v11.868H13.32V7.666z" fill="#fff"/>
     </svg>
@@ -129,6 +31,8 @@ function IconMail() {
     </svg>
   )
 }
+
+// ── Auth Modal ────────────────────────────────────────────────────────────────
 
 function AuthModal({ open, onClose, onAuth, defaultTab }) {
   const [tab, setTab] = useState(defaultTab || 'login')
@@ -185,11 +89,8 @@ function AuthModal({ open, onClose, onAuth, defaultTab }) {
   return (
     <div className="auth-overlay" onClick={e => e.target === e.currentTarget && handleClose()}>
       <div className="auth-modal">
-
-        {/* Header */}
         <button className="auth-close" onClick={handleClose} disabled={loading || !!loadingProvider}>
-          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"
-            strokeLinecap="round" strokeLinejoin="round">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
@@ -206,22 +107,14 @@ function AuthModal({ open, onClose, onAuth, defaultTab }) {
           <span className="auth-logo-text">SmartSpend</span>
         </div>
 
-        {/* Tabs */}
         <div className="auth-tabs">
           <button className={`auth-tab${tab === 'login' ? ' active' : ''}`} onClick={() => setTab('login')}>Войти</button>
           <button className={`auth-tab${tab === 'register' ? ' active' : ''}`} onClick={() => setTab('register')}>Регистрация</button>
         </div>
 
-        <div className="auth-title">
-          {tab === 'login' ? 'Добро пожаловать' : 'Создать аккаунт'}
-        </div>
-        <div className="auth-subtitle">
-          {tab === 'login'
-            ? 'Войдите, чтобы продолжить'
-            : 'Зарегистрируйтесь бесплатно'}
-        </div>
+        <div className="auth-title">{tab === 'login' ? 'Добро пожаловать' : 'Создать аккаунт'}</div>
+        <div className="auth-subtitle">{tab === 'login' ? 'Войдите, чтобы продолжить' : 'Зарегистрируйтесь бесплатно'}</div>
 
-        {/* Demo hint */}
         <div className="auth-demo-hint">
           <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
@@ -235,74 +128,45 @@ function AuthModal({ open, onClose, onAuth, defaultTab }) {
           </div>
         </div>
 
-        {/* Social buttons */}
         <div className="auth-socials">
-          <button
-            className={`auth-social-btn yandex${loadingProvider === 'yandex' ? ' loading' : ''}`}
-            onClick={() => handleSocial('yandex')}
-            disabled={!!loadingProvider || loading}
-          >
+          <button className={`auth-social-btn yandex${loadingProvider === 'yandex' ? ' loading' : ''}`}
+            onClick={() => handleSocial('yandex')} disabled={!!loadingProvider || loading}>
             <span className="auth-social-icon"><IconYandex /></span>
             <span>{loadingProvider === 'yandex' ? 'Подключение...' : (tab === 'login' ? 'Войти через Яндекс ID' : 'Яндекс ID')}</span>
           </button>
-          <button
-            className={`auth-social-btn vk${loadingProvider === 'vk' ? ' loading' : ''}`}
-            onClick={() => handleSocial('vk')}
-            disabled={!!loadingProvider || loading}
-          >
+          <button className={`auth-social-btn vk${loadingProvider === 'vk' ? ' loading' : ''}`}
+            onClick={() => handleSocial('vk')} disabled={!!loadingProvider || loading}>
             <span className="auth-social-icon"><IconVK /></span>
             <span>{loadingProvider === 'vk' ? 'Подключение...' : (tab === 'login' ? 'Войти через VK (Max)' : 'VK (Max)')}</span>
           </button>
         </div>
 
-        {/* Divider */}
         <div className="auth-divider"><span>или</span></div>
 
-        {/* Form */}
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
           {tab === 'register' && (
             <div className="auth-field">
               <label className="auth-label">Имя</label>
-              <input
-                className="auth-input"
-                type="text"
-                placeholder="Как вас зовут?"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                disabled={loading || !!loadingProvider}
-                autoComplete="name"
-              />
+              <input className="auth-input" type="text" placeholder="Как вас зовут?" value={name}
+                onChange={e => setName(e.target.value)} disabled={loading || !!loadingProvider} autoComplete="name" />
             </div>
           )}
-
           <div className="auth-field">
             <label className="auth-label">Email</label>
-            <input
-              className={`auth-input${emailError ? ' error' : ''}`}
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={e => { setEmail(e.target.value); setEmailError('') }}
-              disabled={loading || !!loadingProvider}
-              autoComplete="email"
-            />
+            <input className={`auth-input${emailError ? ' error' : ''}`} type="email" placeholder="your@email.com"
+              value={email} onChange={e => { setEmail(e.target.value); setEmailError('') }}
+              disabled={loading || !!loadingProvider} autoComplete="email" />
             {emailError && <div className="auth-field-error">{emailError}</div>}
           </div>
-
           <div className="auth-field">
             <label className="auth-label">Пароль</label>
             <div className="auth-pass-wrap">
-              <input
-                className="auth-input"
-                type={passVisible ? 'text' : 'password'}
+              <input className="auth-input" type={passVisible ? 'text' : 'password'}
                 placeholder={tab === 'register' ? 'Минимум 8 символов' : 'Введите пароль'}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
+                value={password} onChange={e => setPassword(e.target.value)}
                 disabled={loading || !!loadingProvider}
-                autoComplete={tab === 'register' ? 'new-password' : 'current-password'}
-              />
-              <button type="button" className="auth-pass-toggle" onClick={() => setPassVisible(v => !v)}
-                tabIndex={-1}>
+                autoComplete={tab === 'register' ? 'new-password' : 'current-password'} />
+              <button type="button" className="auth-pass-toggle" onClick={() => setPassVisible(v => !v)} tabIndex={-1}>
                 {passVisible ? (
                   <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>
@@ -315,30 +179,16 @@ function AuthModal({ open, onClose, onAuth, defaultTab }) {
               </button>
             </div>
           </div>
-
           {tab === 'login' && (
             <div className="auth-forgot">
               <button type="button" className="auth-forgot-link">Забыли пароль?</button>
             </div>
           )}
-
-          <button
-            type="submit"
-            className={`auth-submit${loading ? ' loading' : ''}`}
-            disabled={loading || !!loadingProvider}
-          >
-            {loading ? (
-              <span className="auth-spinner" />
-            ) : (
-              <>
-                <IconMail />
-                {tab === 'login' ? 'Войти по email' : 'Зарегистрироваться'}
-              </>
-            )}
+          <button type="submit" className={`auth-submit${loading ? ' loading' : ''}`} disabled={loading || !!loadingProvider}>
+            {loading ? <span className="auth-spinner" /> : <><IconMail />{tab === 'login' ? 'Войти по email' : 'Зарегистрироваться'}</>}
           </button>
         </form>
 
-        {/* Switch tab */}
         <div className="auth-switch">
           {tab === 'login' ? (
             <>Нет аккаунта?&nbsp;<button className="auth-switch-btn" onClick={() => setTab('register')}>Зарегистрироваться</button></>
@@ -361,9 +211,20 @@ export default function Landing() {
   const navigate = useNavigate()
   const { setUsername } = useApp()
   const [searchParams] = useSearchParams()
-  const [quizOpen, setQuizOpen] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
   const [authTab, setAuthTab] = useState('login')
+
+  // Hero cube rotation
+  const cubeIdx = useRef(0)
+  const [cubeSlide, setCubeSlide] = useState(0)
+  const CUBE_PHRASES = [
+    { brand: true, text: 'SMART\nSPEND' },
+    { text: 'Планируй\nпокупки' },
+    { text: 'Экономь\nс умом' },
+    { text: 'Плати\nменьше' },
+    { text: 'Знай\nсвой бюджет' },
+    { text: 'Расти\nфинансово' },
+  ]
 
   useEffect(() => {
     document.body.classList.remove('app-body', 'sidebar-collapsed')
@@ -376,24 +237,26 @@ export default function Landing() {
       navigate('/profile', { replace: true })
       return
     }
-    // Auto-open auth if redirected from protected page
     if (searchParams.get('auth') === '1') {
       setAuthTab('login')
       setAuthOpen(true)
     }
   }, [navigate, searchParams])
 
+  useEffect(() => {
+    const t = setInterval(() => {
+      cubeIdx.current = (cubeIdx.current + 1) % CUBE_PHRASES.length
+      setCubeSlide(cubeIdx.current)
+    }, 2600)
+    return () => clearInterval(t)
+  }, []) // eslint-disable-line
+
   function handleAuth(name, userType = 'default') {
     localStorage.setItem('ss_auth', 'true')
     localStorage.setItem('ss_username', name)
     localStorage.setItem('ss_user_type', userType)
-    if (userType === 'full') {
-      loadFullUserData()
-    } else if (userType === 'empty') {
-      loadEmptyUserData()
-    } else {
-      loadEmptyUserData()
-    }
+    if (userType === 'full') loadFullUserData()
+    else loadEmptyUserData()
     setUsername(name)
     navigate('/feed', { replace: true })
   }
@@ -401,28 +264,26 @@ export default function Landing() {
   function openLogin() { setAuthTab('login'); setAuthOpen(true) }
   function openRegister() { setAuthTab('register'); setAuthOpen(true) }
 
-  const LogoMark = () => (
-    <div className="landing-logo-mark">
-      <svg viewBox="0 0 80 80" fill="none" width="28" height="28">
-        <rect width="80" height="80" rx="18" fill="var(--logo-bg)"/>
-        <rect x="14" y="14" width="52" height="52" rx="10" fill="var(--logo-fg)"/>
-      </svg>
-    </div>
-  )
+  const cur = CUBE_PHRASES[cubeSlide]
 
   return (
     <>
-      {/* NAV */}
+      {/* ── NAV ── */}
       <nav className="landing-nav">
         <div className="landing-nav-container">
           <div className="landing-logo">
-            <LogoMark />
+            <div className="landing-logo-mark">
+              <svg viewBox="0 0 80 80" fill="none" width="28" height="28">
+                <rect width="80" height="80" rx="18" fill="var(--logo-bg)"/>
+                <rect x="14" y="14" width="52" height="52" rx="10" fill="var(--logo-fg)"/>
+              </svg>
+            </div>
             <span>SmartSpend</span>
           </div>
           <div className="landing-nav-links">
-            <a className="landing-nav-link" href="#landing-how">Как это работает</a>
-            <a className="landing-nav-link" href="#landing-features">Инструменты</a>
-            <a className="landing-nav-link" href="#landing-scenario">Сценарий</a>
+            <a className="landing-nav-link" href="#ld-paths">Для кого</a>
+            <a className="landing-nav-link" href="#ld-features">Возможности</a>
+            <a className="landing-nav-link" href="#ld-cta">Начать</a>
           </div>
           <div className="landing-nav-actions">
             <button className="nav-btn-ghost" onClick={openLogin}>Войти</button>
@@ -431,248 +292,332 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* HERO */}
-      <section className="landing-hero-section">
-        <div className="landing-hero-bg" />
-        <div className="landing-container">
-          <div className="landing-hero-inner">
-            <div className="landing-hero-left">
-              <div className="landing-hero-tag">Осознанное потребление</div>
-              <h1 className="landing-h1">Зарплата пришла —<br/>и сразу <em>ушла?</em></h1>
-              <p className="landing-hero-sub">SmartSpend покажет, куда уходят деньги, и научит тратить так, чтобы капитал рос — без жертв и без боли.</p>
-              <div className="landing-hero-actions-row">
-                <button className="landing-btn-primary" onClick={openRegister}>Создать аккаунт →</button>
-                <button className="landing-btn-ghost" onClick={() => setQuizOpen(true)}>Пройти тест (2 мин)</button>
-              </div>
+      {/* ── HERO ── */}
+      <section className="ld-hero">
+        <div className="ld-container ld-hero-inner">
+          <div className="ld-hero-text">
+            <div className="ld-badge">Осознанное потребление</div>
+            <h1 className="ld-h1">Система<br/>экономии и<br/><em>планирования</em></h1>
+            <p className="ld-hero-sub">Планируй покупки заранее, веди инвентарь, сравнивай вклады и карты. Всё — в одном месте, без лишних усилий.</p>
+            <div className="ld-hero-actions">
+              <button className="landing-btn-primary" onClick={openRegister}>Начать бесплатно →</button>
+              <button className="landing-btn-ghost" onClick={openLogin}>Войти</button>
             </div>
-            <div className="landing-hero-mockup">
-              <div className="landing-mockup-window">
-                <div className="landing-mockup-topbar">
-                  <div className="landing-mockup-dot" /><div className="landing-mockup-dot" /><div className="landing-mockup-dot" />
-                  <span className="landing-mockup-title">SmartSpend / Профиль</span>
-                </div>
-                <div className="landing-mockup-body">
-                  <div className="landing-mk-balance">
-                    <div className="landing-mk-balance-label">Капитал</div>
-                    <div className="landing-mk-balance-num">186 400 ₽</div>
-                    <div className="landing-mk-balance-row">
-                      <span className="landing-mk-tag landing-mk-tag-green">↑ +4.2% за месяц</span>
-                      <span className="landing-mk-tag landing-mk-tag-neutral">EmoSpend: 8 200 ₽</span>
-                    </div>
-                  </div>
-                  <div className="landing-mk-envelopes">
-                    <div className="landing-mk-env-row">
-                      <div className="landing-mk-env-icon"><svg viewBox="0 0 12 12" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><path d="M1 3h10M1 6h6M1 9h4"/></svg></div>
-                      <span className="landing-mk-env-name">Smart-база</span>
-                      <div className="landing-mk-env-right"><div className="landing-mk-env-amount">22 000 ₽</div><div className="landing-mk-env-sub">из 22 000 ₽</div></div>
-                    </div>
-                    <div className="landing-mk-progress"><div className="landing-mk-progress-fill" style={{ width: '100%' }} /></div>
-                    <div className="landing-mk-env-row">
-                      <div className="landing-mk-env-icon"><svg viewBox="0 0 12 12" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><circle cx="6" cy="6" r="4.5"/><path d="M6 3.5v2.5l2 1"/></svg></div>
-                      <span className="landing-mk-env-name">Инвестиционное ядро</span>
-                      <div className="landing-mk-env-right"><div className="landing-mk-env-amount">40 000 ₽</div><div className="landing-mk-env-sub">накоплено</div></div>
-                    </div>
-                    <div className="landing-mk-progress"><div className="landing-mk-progress-fill" style={{ width: '72%' }} /></div>
-                  </div>
-                  <div className="landing-mk-inventory">
-                    <div className="landing-mk-inv-item landing-mk-inv-urgent"><div className="landing-mk-inv-name">Протеин</div><div className="landing-mk-inv-days">2 дня</div></div>
-                    <div className="landing-mk-inv-item"><div className="landing-mk-inv-name">Шампунь</div><div className="landing-mk-inv-days">8 дней</div></div>
-                    <div className="landing-mk-inv-item"><div className="landing-mk-inv-name">Кроссовки</div><div className="landing-mk-inv-days">42 дня</div></div>
-                  </div>
+            <div className="ld-stats-row">
+              <div className="ld-stat"><div className="ld-stat-val">10+</div><div className="ld-stat-lbl">категорий планирования</div></div>
+              <div className="ld-stat"><div className="ld-stat-val">500+</div><div className="ld-stat-lbl">компаний и акций</div></div>
+              <div className="ld-stat"><div className="ld-stat-val">∞</div><div className="ld-stat-lbl">статей сообщества</div></div>
+            </div>
+          </div>
+          <div className="ld-hero-visual">
+            <div className="ld-cube-wrap">
+              <div className="ld-cube-frame">
+                <div className="ld-cube-screen">
+                  {cur.brand ? (
+                    <div className="ld-cube-brand">SMART<br/>SPEND</div>
+                  ) : (
+                    <div className="ld-cube-phrase">{cur.text.split('\n')[0]}<br/><em>{cur.text.split('\n')[1]}</em></div>
+                  )}
                 </div>
               </div>
-              <div className="landing-mockup-badge">
-                <div className="landing-badge-icon"><svg viewBox="0 0 14 14" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><polyline points="2,9 5,5 8,7 12,3"/></svg></div>
-                <div><div className="landing-badge-label">Пассивный доход</div><div className="landing-badge-val">4 400 ₽/мес</div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TWO PATHS ── */}
+      <section id="ld-paths" className="ld-section ld-section--alt">
+        <div className="ld-container">
+          <div className="ld-section-head">
+            <div className="ld-section-label">С чего всё начинается</div>
+            <h2 className="ld-h2">Выбери <span className="ld-h2-pill">свой путь</span></h2>
+          </div>
+          <div className="ld-paths-grid">
+            <div className="ld-path-card ld-path-good">
+              <div className="ld-path-head">
+                <div className="ld-path-icon">🎯</div>
+                <div className="ld-path-title">Осознанный путь</div>
+                <div className="ld-path-badge ld-path-badge--good">Капитал за 10 лет</div>
+              </div>
+              <div className="ld-path-items">
+                <div className="ld-path-item"><strong>Системный инвентарь.</strong> Ты точно знаешь, что есть, что скоро закончится — покупки спланированы заранее.</div>
+                <div className="ld-path-item"><strong>Умный выбор.</strong> Вещь за 5 000 ₽ на 5 лет выгоднее вещи за 2 000 ₽ на год. Считаешь стоимость владения.</div>
+                <div className="ld-path-item"><strong>Готовые протоколы.</strong> Не изобретаешь велосипед — берёшь наборы по питанию, гаджетам, здоровью.</div>
+                <div className="ld-path-item"><strong>Конверты.</strong> Деньги распределены. В любой момент видно, сколько осталось — нет «куда делись деньги?»</div>
+                <div className="ld-path-item"><strong>И место для радостей.</strong> Бюджет на импульсивные покупки выделен заранее — наслаждайся без вины.</div>
+              </div>
+            </div>
+            <div className="ld-path-card ld-path-bad">
+              <div className="ld-path-head">
+                <div className="ld-path-icon">🔄</div>
+                <div className="ld-path-title">Обычный путь</div>
+                <div className="ld-path-badge ld-path-badge--bad">Капитал за 30 лет</div>
+              </div>
+              <div className="ld-path-items">
+                <div className="ld-path-item"><strong>Дофаминовая петля.</strong> Покупка ради короткой радости. Через неделю снова хочется что-то новее и дороже.</div>
+                <div className="ld-path-item"><strong>Инфляция потребления.</strong> Зарплата выросла — расходы выросли быстрее. Свободных денег по-прежнему нет.</div>
+                <div className="ld-path-item"><strong>Хаос в расходах.</strong> Сломался зуб или холодильник — нет подушки, снова в долги.</div>
+                <div className="ld-path-item"><strong>Двойные покупки.</strong> Купил похожее, потому что забыл, что уже есть. Переплатил — не сравнил.</div>
+                <div className="ld-path-item"><strong>«Потом разберусь».</strong> Вклад под 5%, хотя рядом есть под 21%. Карта без кешбэка — 2 000 ₽ в месяц мимо.</div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* PAIN */}
-      <section className="landing-section-wrap">
-        <div className="landing-container">
-          <div className="landing-pain-block">
-            <div className="landing-section-label">Три боли, которые мы решаем</div>
-            <h2 className="landing-h2">Почему деньги не накапливаются,<br/>даже когда их хватает</h2>
-            <div className="landing-pain-grid">
-              <div className="landing-pain-card">
-                <div className="landing-pain-icon"><svg viewBox="0 0 16 16" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5M8 11h.01"/></svg></div>
-                <h3>Усталость от выбора</h3>
-                <p>Вы часами сравниваете товары, читаете отзывы и всё равно сомневаетесь. Бесконечный выбор сжигает энергию, которая нужна для настоящих решений.</p>
-              </div>
-              <div className="landing-pain-card">
-                <div className="landing-pain-icon"><svg viewBox="0 0 16 16" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><polyline points="2,12 6,7 9,9 14,4"/><polyline points="11,4 14,4 14,7"/></svg></div>
-                <h3>Инфляция образа жизни</h3>
-                <p>Зарплата выросла — и расходы выросли. Автоматически. Незаметно. Через год оказывается, что денег по-прежнему «впритък».</p>
-              </div>
-              <div className="landing-pain-card">
-                <div className="landing-pain-icon"><svg viewBox="0 0 16 16" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><path d="M8 2a6 6 0 1 0 0 12A6 6 0 0 0 8 2z"/><path d="M8 6v3M8 11h.01"/></svg></div>
-                <h3>Финансовая тревожность</h3>
-                <p>Смутное ощущение, что «что-то не так», но непонятно что. SmartSpend превращает эту туманную тревогу в чёткие цифры.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ── FEATURES ── */}
+      <div id="ld-features">
 
-      {/* FOR WHOM */}
-      <section className="landing-section-wrap">
-        <div className="landing-container">
-          <div className="landing-section-label">Для кого</div>
-          <h2 className="landing-h2">Узнайте себя</h2>
-          <p className="landing-subhead">Если хоть одна фраза звучит знакомо — SmartSpend для вас.</p>
-          <div className="landing-fw-list">
-            <div className="landing-fw-item">
-              <div className="landing-fw-num">01</div>
-              <div className="landing-fw-quote">«Трачу нормально, но к концу месяца всегда ноль»</div>
-              <div className="landing-fw-answer">Вы не транжира. Просто нет системы. SmartSpend покажет, где спрятаны утечки.</div>
-            </div>
-            <div className="landing-fw-item">
-              <div className="landing-fw-num">02</div>
-              <div className="landing-fw-quote">«Хочу копить, но не знаю с чего начать»</div>
-              <div className="landing-fw-answer">Копить — это навык, а не воля. Мы дадим готовый алгоритм: Smart-база, ядро, EmoSpend.</div>
-            </div>
-            <div className="landing-fw-item">
-              <div className="landing-fw-num">03</div>
-              <div className="landing-fw-quote">«Покупаю одно и то же снова и снова — и это раздражает»</div>
-              <div className="landing-fw-answer">Инвентарь и умные наборы возьмут это на себя. Просто получайте уведомление вовремя.</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section id="landing-how" className="landing-section-wrap">
-        <div className="landing-container">
-          <div className="landing-section-label">Как это работает</div>
-          <h2 className="landing-h2">Три шага до финансового порядка</h2>
-          <div className="landing-steps">
-            <div className="landing-step">
-              <div className="landing-step-num">01</div>
-              <h3>Выберите наборы</h3>
-              <p>50+ готовых наборов: еда, одежда, косметика, техника. Каждый рассчитан по принципу «максимум пользы — минимум затрат».</p>
-              <span className="landing-step-result">→ Не нужно думать, что покупать</span>
-            </div>
-            <div className="landing-step">
-              <div className="landing-step-num">02</div>
-              <h3>Добавьте в инвентарь</h3>
-              <p>SmartSpend запустит таймеры. Система знает срок службы каждой вещи и предупредит заранее — не когда уже плохо, а когда самое время.</p>
-              <span className="landing-step-result">→ Покупки перестают быть срочными</span>
-            </div>
-            <div className="landing-step">
-              <div className="landing-step-num">03</div>
-              <h3>Копилка растёт сама</h3>
-              <p>Всё, что сэкономлено — направляется в инвестиционное ядро. Со временем пассивный доход начинает оплачивать ваши удовольствия.</p>
-              <span className="landing-step-result">→ Богатеете, не меняя образ жизни</span>
-            </div>
-          </div>
-          <div className="landing-mid-cta">
-            <div><h3>Готовы попробовать?</h3><p>Регистрация занимает меньше минуты. Карта не нужна.</p></div>
-            <button className="landing-btn-primary" onClick={openRegister}>Создать аккаунт →</button>
-          </div>
-        </div>
-      </section>
-
-      {/* PHILOSOPHY */}
-      <section className="landing-section-wrap">
-        <div className="landing-container">
-          <div className="landing-philosophy">
-            <div className="landing-phil-left">
-              <div className="landing-section-label">Философия SmartSpend</div>
-              <h2 className="landing-h2">Богатство — это не <em>«много»</em>, а <em>«достаточно»</em></h2>
-              <p>Мы не учим экономить на всём. Мы помогаем найти точку достаточности — уровень жизни, при котором вы счастливы, и при этом капитал продолжает расти.</p>
-            </div>
-            <div className="landing-phil-quotes">
-              <div className="landing-phil-quote">Трать на жизнь из дохода, а на мечту — из прибыли</div>
-              <div className="landing-phil-quote">Сила системы — в предсказуемости расходов и доходов</div>
-              <div className="landing-phil-quote">Вечное богатство — это капитал, который невозможно потратить</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURES */}
-      <section id="landing-features" className="landing-section-wrap">
-        <div className="landing-container">
-          <div className="landing-section-label">Инструменты</div>
-          <h2 className="landing-h2">Что делает SmartSpend</h2>
-          <p className="landing-subhead">Четыре инструмента, которые работают вместе как единая система.</p>
-          <div className="landing-feat-grid">
-            <div className="landing-feat-card">
-              <div className="landing-feat-icon"><svg viewBox="0 0 18 18" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><rect x="2" y="2" width="14" height="14" rx="3"/><path d="M6 9h6M6 12h4M6 6h6"/></svg></div>
-              <h3>Инвентарь вещей</h3>
-              <p>Отслеживайте срок службы продуктов, косметики, одежды и техники. Больше не нужно держать это в голове — система помнит за вас.</p>
-              <span className="landing-feat-tag">↑ Меньше просрочки и ненужных покупок</span>
-            </div>
-            <div className="landing-feat-card">
-              <div className="landing-feat-icon"><svg viewBox="0 0 18 18" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><path d="M4 5h10M4 9h7M4 13h5"/><circle cx="14" cy="13" r="2.5"/><path d="M13.3 13l.7.7 1.5-1.5"/></svg></div>
-              <h3>Умный список покупок</h3>
-              <p>Список обновляется автоматически на основе инвентаря. Сортировка по приоритету — сначала то, что нужно срочно.</p>
-              <span className="landing-feat-tag">↑ Нулевой умственный ресурс на рутину</span>
-            </div>
-            <div className="landing-feat-card">
-              <div className="landing-feat-icon"><svg viewBox="0 0 18 18" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><polyline points="2,13 6,8 9,10 13,5 16,7"/><path d="M2 16h14"/></svg></div>
-              <h3>Копилка (Smart-ядро)</h3>
-              <p>Финансовый советник, который анализирует доходы и расходы, ведёт накопительные конверты и показывает путь к точке финансовой безопасности.</p>
-              <span className="landing-feat-tag">↑ Капитал растёт предсказуемо</span>
-            </div>
-            <div className="landing-feat-card">
-              <div className="landing-feat-icon"><svg viewBox="0 0 18 18" fill="none" stroke="#6A9E84" strokeWidth="1.5" strokeLinecap="round"><path d="M9 2a7 7 0 1 0 0 14A7 7 0 0 0 9 2z"/><path d="M9 6v3.5l2.5 1.5"/></svg></div>
-              <h3>База знаний</h3>
-              <p>Статьи об осознанном потреблении, финансовой грамотности и рациональном гедонизме — от экспертов, не от копирайтеров.</p>
-              <span className="landing-feat-tag">↑ Понимаете систему, а не просто следуете</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SCENARIO */}
-      <section id="landing-scenario" className="landing-section-wrap" style={{ paddingTop: 24 }}>
-        <div className="landing-container">
-          <div className="landing-scenario-card">
-            <div className="landing-section-label">Реальный сценарий</div>
-            <h2 className="landing-h2">Что будет, если начать сегодня</h2>
-            <p className="landing-subhead" style={{ marginBottom: 0 }}>Сценарий А: 18 лет, зарплата 80 000 ₽. 40 000 ₽ — в ядро, 22 000 ₽ — Smart-база.</p>
-            <div className="landing-timeline">
-              <div className="landing-timeline-item">
-                <div className="landing-t-period">Через 1 год</div>
-                <div><div className="landing-t-capital">530 000 ₽</div><div className="landing-t-income">Пассивный доход: ~4 400 ₽ / мес</div><span className="landing-t-status">✅ Система запущена</span></div>
+        {/* 1. Наборы (Канеман) */}
+        <section className="ld-section">
+          <div className="ld-container">
+            <div className="ld-feature">
+              <div className="ld-feature-text">
+                <div className="ld-section-label">Инвентарь и Наборы</div>
+                <h2 className="ld-h2">ПЛАНИРУЙ ПОКУПКИ <span className="ld-h2-pill">НА ГОДЫ ВПЕРЁД</span></h2>
+                <div className="ld-quote-block">
+                  <div className="ld-quote-text">«Когда вы устали или голодны — вы не просто принимаете плохие решения. Вы позволяете импульсивной системе диктовать правила.»</div>
+                  <div className="ld-quote-name">Даниэль Канеман</div>
+                  <div className="ld-quote-role">Нобелевский лауреат по экономике · «Думай медленно, решай быстро»</div>
+                </div>
+                <p className="ld-feature-desc">Поэтому мы создали <strong>Наборы</strong> — готовые подборки товаров с расчётом амортизации. Добавь набор и SmartSpend покажет: на что уйдут деньги через месяц, год, пять лет — без единой импульсивной покупки.</p>
               </div>
-              <div className="landing-timeline-item">
-                <div className="landing-t-period">Через 5 лет</div>
-                <div><div className="landing-t-capital">3 100 000 ₽</div><div className="landing-t-income">Пассивный доход: ~26 000 ₽ / мес — покрывает Smart-базу</div><span className="landing-t-status">🎯 Safety Point</span></div>
-              </div>
-              <div className="landing-timeline-item">
-                <div className="landing-t-period">Через 10 лет</div>
-                <div><div className="landing-t-capital">8 000 000 ₽</div><div className="landing-t-income">Пассивный доход: ~65 000 ₽ / мес — EmoSpend в 3× больше базы</div><span className="landing-t-status">🚀 Independence Day</span></div>
+              <div className="ld-mockup ld-mockup--tilt-left">
+                <div className="ld-mockup-topbar">
+                  <div className="ld-mockup-dots"><span/><span/><span/></div>
+                  <span className="ld-mockup-title">Набор · Рабочее место 2026</span>
+                </div>
+                <div className="ld-mockup-body">
+                  <div className="ld-mk-hero">
+                    <div className="ld-mk-hero-tag">Гаджеты и техника</div>
+                    <div className="ld-mk-hero-title">🖥 Рабочее место 2026</div>
+                    <div className="ld-mk-stats">
+                      <div className="ld-mk-stat"><div className="ld-mk-stat-val">78 000 ₽</div><div className="ld-mk-stat-lbl">Бюджет</div></div>
+                      <div className="ld-mk-stat"><div className="ld-mk-stat-val" style={{color:'var(--accent-green)'}}>1 300 ₽/мес</div><div className="ld-mk-stat-lbl">Амортизация</div></div>
+                    </div>
+                  </div>
+                  <div className="ld-mk-items">
+                    <div className="ld-mk-item"><span>MacBook Air M2</span><span className="ld-mk-item-price">55 000 ₽</span><span className="ld-mk-item-amort">917 ₽/мес</span></div>
+                    <div className="ld-mk-item"><span>Монитор 27"</span><span className="ld-mk-item-price">18 000 ₽</span><span className="ld-mk-item-amort">250 ₽/мес</span></div>
+                    <div className="ld-mk-item"><span>Клавиатура + мышь</span><span className="ld-mk-item-price">5 000 ₽</span><span className="ld-mk-item-amort">139 ₽/мес</span></div>
+                  </div>
+                  <div className="ld-mk-articles">
+                    <div className="ld-mk-art">MacBook M2 или M3: стоит ли переплачивать в 2026?</div>
+                    <div className="ld-mk-art">Мониторы до 20 000 ₽: полный разбор</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* FINAL CTA */}
-      <section className="landing-section-wrap" style={{ paddingTop: 24 }}>
-        <div className="landing-container">
-          <div className="landing-cta-section">
-            <h2 className="landing-h2">Начните сегодня — следующая зарплата уже <em>под контролем</em></h2>
-            <p className="landing-subhead" style={{ textAlign: 'center', margin: '0 auto 28px' }}>Бесплатно. Без карты. Без обязательств.</p>
-            <button className="landing-btn-primary" onClick={openRegister}>Создать аккаунт →</button>
+        {/* 2. Конверты (Талер) */}
+        <section className="ld-section ld-section--alt">
+          <div className="ld-container">
+            <div className="ld-feature ld-feature--reverse">
+              <div className="ld-feature-text">
+                <div className="ld-section-label">Профиль · Конверты</div>
+                <h2 className="ld-h2">РАЗЛОЖИ ДЕНЬГИ <span className="ld-h2-pill">ПО КОНВЕРТАМ</span></h2>
+                <div className="ld-quote-block">
+                  <div className="ld-quote-text">«Наш мозг раскладывает деньги по виртуальным конвертам. Это не слабость — это природа. Используй её, а не борись с ней.»</div>
+                  <div className="ld-quote-name">Ричард Талер</div>
+                  <div className="ld-quote-role">Нобелевский лауреат по экономике · Теория ментального учёта</div>
+                </div>
+                <p className="ld-feature-desc">Поэтому в SmartSpend есть <strong>Конверты</strong> — распредели доход по категориям раз в месяц. В любой момент видно: сколько осталось на еду, досуг или транспорт. Больше никаких «куда делись деньги?»</p>
+              </div>
+              <div className="ld-mockup ld-mockup--tilt-right">
+                <div className="ld-mockup-topbar">
+                  <div className="ld-mockup-dots"><span/><span/><span/></div>
+                  <span className="ld-mockup-title">Профиль · Конверты</span>
+                </div>
+                <div className="ld-mockup-body">
+                  <div className="ld-mk-income">
+                    <div className="ld-mk-income-row"><span style={{fontWeight:600}}>Доступно в этом месяце</span><span style={{fontWeight:700,color:'var(--accent-green)'}}>+8 908 ₽</span></div>
+                    <div className="ld-mk-bar-track"><div className="ld-mk-bar-fill" style={{width:'46%'}}></div></div>
+                    <div className="ld-mk-income-row" style={{fontSize:'10px',opacity:0.6,marginTop:4}}><span>Доход: 16 104 ₽</span><span>Конверты: 7 196 ₽</span></div>
+                  </div>
+                  <div className="ld-mk-envs">
+                    <div className="ld-mk-env"><div className="ld-mk-env-dot" style={{background:'#5E9478'}}></div><div className="ld-mk-env-name"><div>Еда и Супермаркеты</div><div className="ld-mk-env-sub">осталось 18 дней</div></div><div className="ld-mk-env-amt" style={{color:'#5E9478'}}>4 785 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
+                    <div className="ld-mk-env"><div className="ld-mk-env-dot" style={{background:'#B08840'}}></div><div className="ld-mk-env-name"><div>Дом и Техника</div><div className="ld-mk-env-sub">7 дней до покупки</div></div><div className="ld-mk-env-amt" style={{color:'#B08840'}}>1 360 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
+                    <div className="ld-mk-env"><div className="ld-mk-env-dot" style={{background:'#4E8268'}}></div><div className="ld-mk-env-name"><div>Развлечения</div><div className="ld-mk-env-sub">в норме</div></div><div className="ld-mk-env-amt" style={{color:'#4E8268'}}>865 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
+                    <div className="ld-mk-env"><div className="ld-mk-env-dot" style={{background:'#B85555'}}></div><div className="ld-mk-env-name"><div>Красота и Здоровье</div><div className="ld-mk-env-sub">скоро закончится</div></div><div className="ld-mk-env-amt" style={{color:'#B85555'}}>186 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+        </section>
+
+        {/* 3. Лента (Беккер) */}
+        <section className="ld-section">
+          <div className="ld-container">
+            <div className="ld-feature">
+              <div className="ld-feature-text">
+                <div className="ld-section-label">Лента · Каталог</div>
+                <h2 className="ld-h2">УЧИСЬ НА <span className="ld-h2-pill">ГОТОВЫХ ПРОТОКОЛАХ</span></h2>
+                <div className="ld-quote-block">
+                  <div className="ld-quote-text">«Экономический подход не предполагает, что люди не совершают ошибок. Он предполагает, что люди делают лучший выбор из доступных им знаний.»</div>
+                  <div className="ld-quote-name">Гэри Беккер</div>
+                  <div className="ld-quote-role">Нобелевский лауреат по экономике · Теория человеческого капитала</div>
+                </div>
+                <p className="ld-feature-desc">Поэтому в SmartSpend есть <strong>Лента и Каталог</strong> — готовые наборы и статьи от сообщества по питанию, технике, здоровью, одежде. Не изобретай велосипед — перенимай опыт тех, кто уже разобрался.</p>
+              </div>
+              <div className="ld-mockup ld-mockup--tilt-left">
+                <div className="ld-mockup-topbar">
+                  <div className="ld-mockup-dots"><span/><span/><span/></div>
+                  <span className="ld-mockup-title">Лента</span>
+                </div>
+                <div className="ld-mockup-body">
+                  <div className="ld-mk-chips">
+                    <div className="ld-mk-chip ld-mk-chip--active">Все</div>
+                    <div className="ld-mk-chip">Питание</div>
+                    <div className="ld-mk-chip">Гаджеты</div>
+                    <div className="ld-mk-chip">Здоровье</div>
+                  </div>
+                  <div className="ld-mk-feed">
+                    <div className="ld-mk-feed-item">
+                      <div className="ld-mk-feed-meta">
+                        <div className="ld-mk-avatar" style={{background:'#5E7A6A'}}>АК</div>
+                        <span className="ld-mk-feed-author">Алексей К.</span>
+                        <span className="ld-mk-feed-date">2 дня назад</span>
+                        <span className="ld-mk-feed-tag">Питание</span>
+                      </div>
+                      <div className="ld-mk-feed-title">Северная диета: 11 000 ₽ в месяц на всё</div>
+                      <div className="ld-mk-feed-preview">Как есть рыбу, крупы и овощи, не переплачивать и чувствовать себя хорошо — протокол за 3 года.</div>
+                      <div className="ld-mk-feed-actions"><span>♥ 124</span><span>💬 18</span></div>
+                    </div>
+                    <div className="ld-mk-feed-item">
+                      <div className="ld-mk-feed-meta">
+                        <div className="ld-mk-avatar" style={{background:'#7A5E8A'}}>МП</div>
+                        <span className="ld-mk-feed-author">Мария П.</span>
+                        <span className="ld-mk-feed-date">5 дней назад</span>
+                        <span className="ld-mk-feed-tag">Гаджеты</span>
+                      </div>
+                      <div className="ld-mk-feed-title">Смартфон до 30 000 ₽: что брать в 2026</div>
+                      <div className="ld-mk-feed-preview">Сравнила 8 моделей по камере, батарее и стоимости владения — итоговая таблица.</div>
+                      <div className="ld-mk-feed-actions"><span>♥ 89</span><span>💬 31</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 4. Вклады/Карты (Мангер) */}
+        <section className="ld-section ld-section--alt">
+          <div className="ld-container">
+            <div className="ld-feature ld-feature--reverse">
+              <div className="ld-feature-text">
+                <div className="ld-section-label">Вклады · Карты · Промо</div>
+                <h2 className="ld-h2">СЭКОНОМИЛ — <span className="ld-h2-pill">ЗНАЧИТ ЗАРАБОТАЛ</span></h2>
+                <div className="ld-quote-block">
+                  <div className="ld-quote-text">«Первый капитал — самый сложный. Он требует навыков и дисциплины, которых у вас ещё нет.»</div>
+                  <div className="ld-quote-name">Чарльз Мангер</div>
+                  <div className="ld-quote-role">Инвестор · Партнёр Уоррена Баффета · Berkshire Hathaway</div>
+                </div>
+                <p className="ld-feature-desc"><strong>Вклады</strong> — найди максимальную ставку среди банков. <strong>Карты</strong> — подбери лучший кешбэк под свои расходы. <strong>Промо</strong> — купоны и акции от сообщества. Всё в одном месте.</p>
+              </div>
+              <div className="ld-mockup ld-mockup--tilt-right">
+                <div className="ld-mockup-topbar">
+                  <div className="ld-mockup-dots"><span/><span/><span/></div>
+                  <span className="ld-mockup-title">Вклады</span>
+                </div>
+                <div className="ld-mockup-body">
+                  <div className="ld-mk-dep-chart">
+                    <div className="ld-mk-dep-chart-title">Максимальная ставка по срокам</div>
+                    <div className="ld-mk-bars">
+                      <div className="ld-mk-bar" style={{height:'42px'}}><div className="ld-mk-bar-lbl">19%</div></div>
+                      <div className="ld-mk-bar" style={{height:'52px'}}><div className="ld-mk-bar-lbl">21%</div></div>
+                      <div className="ld-mk-bar" style={{height:'48px'}}><div className="ld-mk-bar-lbl">20%</div></div>
+                      <div className="ld-mk-bar" style={{height:'44px'}}><div className="ld-mk-bar-lbl">19%</div></div>
+                      <div className="ld-mk-bar" style={{height:'36px'}}><div className="ld-mk-bar-lbl">18%</div></div>
+                    </div>
+                    <div className="ld-mk-bar-labels">
+                      {['1 мес','3 мес','6 мес','1 год','2 года'].map(l => <span key={l}>{l}</span>)}
+                    </div>
+                  </div>
+                  <div className="ld-mk-dep-card">
+                    <div className="ld-mk-dep-logo" style={{background:'#0057A8'}}>СБ</div>
+                    <div><div className="ld-mk-dep-name">Сбер · Выгодный</div><div className="ld-mk-dep-sub">6 мес · выплата в конце</div></div>
+                    <div style={{marginLeft:'auto',textAlign:'right'}}><div className="ld-mk-dep-rate">21%</div><div className="ld-mk-dep-sub">+13 540 ₽/год</div></div>
+                  </div>
+                  <div className="ld-mk-dep-card">
+                    <div className="ld-mk-dep-logo" style={{background:'#FF5722'}}>Т</div>
+                    <div><div className="ld-mk-dep-name">Т-Банк · Все включено</div><div className="ld-mk-dep-sub">кредитная · до 2 500 ₽/мес</div></div>
+                    <div style={{marginLeft:'auto',textAlign:'right'}}><div className="ld-mk-dep-rate">5%</div><div className="ld-mk-dep-sub">кешбэк</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 5. Инвентарь (Рид) */}
+        <section className="ld-section">
+          <div className="ld-container">
+            <div className="ld-feature">
+              <div className="ld-feature-text">
+                <div className="ld-section-label">Инвентарь</div>
+                <h2 className="ld-h2">МЫ СМОТРИМ <span className="ld-h2-pill">ВПЕРЁД, НЕ НАЗАД</span></h2>
+                <div className="ld-quote-block">
+                  <div className="ld-quote-text">«Зачем вести учёт того, на что потратили деньги в прошлом — куда лучше думать о том, куда собираетесь их потратить в будущем.»</div>
+                  <div className="ld-quote-name">Джон Т. Рид</div>
+                  <div className="ld-quote-role">Автор книг по инвестициям и финансовой независимости</div>
+                </div>
+                <p className="ld-feature-desc">SmartSpend — это не трекер расходов. Это <strong>система планирования будущих покупок</strong>. Инвентарь показывает: что скоро закончится, что нужно купить, сколько это обойдётся в месяц. Ни одной неожиданности.</p>
+              </div>
+              <div className="ld-mockup ld-mockup--tilt-left">
+                <div className="ld-mockup-topbar">
+                  <div className="ld-mockup-dots"><span/><span/><span/></div>
+                  <span className="ld-mockup-title">Инвентарь · 9 200 ₽/мес</span>
+                </div>
+                <div className="ld-mockup-body">
+                  <div className="ld-mk-inv-group">
+                    <div className="ld-mk-inv-group-lbl">Скоро купить</div>
+                    <div className="ld-mk-inv-item ld-mk-inv-urgent"><span>Зубная щётка</span><span className="ld-mk-inv-date">сегодня</span><span className="ld-mk-inv-price">250 ₽</span></div>
+                    <div className="ld-mk-inv-item ld-mk-inv-soon"><span>Дезодорант</span><span className="ld-mk-inv-date">3 дня</span><span className="ld-mk-inv-price">300 ₽</span></div>
+                    <div className="ld-mk-inv-item ld-mk-inv-soon"><span>Крем для лица</span><span className="ld-mk-inv-date">7 дней</span><span className="ld-mk-inv-price">600 ₽</span></div>
+                  </div>
+                  <div className="ld-mk-inv-group">
+                    <div className="ld-mk-inv-group-lbl">Планируется</div>
+                    <div className="ld-mk-inv-item ld-mk-inv-ok"><span>Толстовка</span><span className="ld-mk-inv-date">2 мес</span><span className="ld-mk-inv-price">4 000 ₽</span></div>
+                    <div className="ld-mk-inv-item ld-mk-inv-ok"><span>Кроссовки</span><span className="ld-mk-inv-date">3 мес</span><span className="ld-mk-inv-price">6 000 ₽</span></div>
+                    <div className="ld-mk-inv-item ld-mk-inv-ok"><span>Netflix</span><span className="ld-mk-inv-date">1 мес</span><span className="ld-mk-inv-price">799 ₽</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>{/* /features */}
+
+      {/* ── CTA ── */}
+      <section id="ld-cta" className="ld-cta">
+        <div className="ld-cta-inner">
+          <div className="ld-section-label" style={{color:'var(--accent-green)'}}>Начни прямо сейчас</div>
+          <h2 className="ld-cta-title">Твои деньги заслуживают системы</h2>
+          <p className="ld-cta-sub">Подбери компании, создай инвентарь, распредели бюджет по конвертам — бесплатно.</p>
+          <button className="landing-btn-primary" onClick={openRegister}>Начать бесплатно →</button>
+          <p className="ld-cta-note">Без подписки · Данные хранятся у тебя</p>
         </div>
       </section>
 
-      {/* FOOTER */}
+      {/* ── FOOTER ── */}
       <footer className="landing-footer-new">
         <div className="landing-container landing-footer-container">
           <div className="landing-footer-left">
             <div className="landing-logo">
-              <LogoMark />
+              <div className="landing-logo-mark">
+                <svg viewBox="0 0 80 80" fill="none" width="28" height="28">
+                  <rect width="80" height="80" rx="18" fill="var(--logo-bg)"/>
+                  <rect x="14" y="14" width="52" height="52" rx="10" fill="var(--logo-fg)"/>
+                </svg>
+              </div>
               <span>SmartSpend</span>
             </div>
-            <p>© 2025 SmartSpend. Все права защищены.</p>
+            <p>© 2026 SmartSpend. Все права защищены.</p>
           </div>
           <div className="landing-footer-center">
             <a href="#">Политика конфиденциальности</a>
@@ -680,19 +625,12 @@ export default function Landing() {
           </div>
           <div className="landing-footer-right">
             <a href="#" className="landing-social-link" aria-label="Telegram">
-              <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-            </a>
-            <a href="#" className="landing-social-link" aria-label="VK">
-              <svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/></svg>
-            </a>
-            <a href="#" className="landing-social-link" aria-label="YouTube">
-              <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M10 10l5 3-5 3v-6z"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
             </a>
           </div>
         </div>
       </footer>
 
-      <QuizModal open={quizOpen} onClose={() => setQuizOpen(false)} onFinish={handleAuth} />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onAuth={handleAuth} defaultTab={authTab} />
     </>
   )

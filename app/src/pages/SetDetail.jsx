@@ -407,6 +407,9 @@ export default function SetDetail() {
   const [likedReplies, setLikedReplies] = useState(new Set())
   const [dislikedReplies, setDislikedReplies] = useState(new Set())
   const [bookmarked, setBookmarked] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [removedArticleIds, setRemovedArticleIds] = useState(new Set())
+  const [editRemovedIds, setEditRemovedIds] = useState(new Set())
   const [addToast, setAddToast] = useState(false)
   const addToastTimerRef = useRef(null)
   const [cmtToast, setCmtToast] = useState(false)
@@ -715,6 +718,7 @@ export default function SetDetail() {
 
   const isPersonal = location.state?.fromProfile === true
   const fromCatalog = isPersonal && (set?.source === 'ss' || set?.source === 'community')
+  const isOwner = !isPersonal && !!localStorage.getItem('ss_username')
 
   const tableItems   = items.length > 0 ? items : null
   const totalMonthly = tableItems
@@ -815,6 +819,15 @@ export default function SetDetail() {
             {!isPersonal && (
               <div className="hero-body-actions">
                 <AddInventoryBtn added={added} onAdd={handleAdd} onRemove={handleRemove} />
+                {isOwner && (
+                  <button className="sd-btn-sm" onClick={() => { setEditRemovedIds(new Set(removedArticleIds)); setShowEditModal(true) }}>
+                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    Редактировать
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -1175,44 +1188,48 @@ export default function SetDetail() {
           </div>
 
           </>
-        ) : allArticles.length > 0 && (
-          <div id="sd-articles-section" className="sd-section-card">
-            <div className="sd-section-header">
-              <div className="sd-section-title">Дополнения</div>
-            </div>
-
-            {/* Authors row */}
-            {uniqueArticleAuthors.length > 0 && (
-              <div className="sd-art-authors-row">
-                <span className="sd-art-authors-label">Авторы</span>
-                {uniqueArticleAuthors.map((a, i) => (
-                  <ArticleAuthorBubble key={i} name={a.name} ini={a.ini} color={a.color} />
-                ))}
-              </div>
-            )}
-
-            {/* Articles grid */}
-            <div className="sd-articles-grid">
-              {(artExpanded ? sortedArticles : sortedArticles.slice(0, SHOW_ART)).map((a, i) => (
-                <div key={i} className="sd-art-grid-card" onClick={() => navigate('/article/a1')}>
-                  <div className="sd-art-grid-title">{a.title}</div>
-                  {a.preview && <div className="sd-art-grid-preview">{a.preview}</div>}
+        ) : allArticles.length > 0 && (() => {
+            const visibleArticles = sortedArticles.filter(a => !removedArticleIds.has(a.id || a.title))
+            if (visibleArticles.length === 0) return null
+            return (
+              <div id="sd-articles-section" className="sd-section-card">
+                <div className="sd-section-header">
+                  <div className="sd-section-title">Дополнения</div>
                 </div>
-              ))}
-            </div>
 
-            {allArticles.length > SHOW_ART && (
-              <div className="sd-show-more-row">
-                <button className={`sd-btn-show${artExpanded ? ' open' : ''}`}
-                  onClick={() => setArtExpanded(o => !o)}>
-                  {artExpanded ? 'Скрыть' : `Показать все (${allArticles.length})`}
-                  <svg className="sd-chev" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 9l-7 7-7-7"/></svg>
-                </button>
+                {/* Authors row */}
+                {uniqueArticleAuthors.length > 0 && (
+                  <div className="sd-art-authors-row">
+                    <span className="sd-art-authors-label">Авторы</span>
+                    {uniqueArticleAuthors.map((a, i) => (
+                      <ArticleAuthorBubble key={i} name={a.name} ini={a.ini} color={a.color} />
+                    ))}
+                  </div>
+                )}
+
+                {/* Articles grid */}
+                <div className="sd-articles-grid">
+                  {(artExpanded ? visibleArticles : visibleArticles.slice(0, SHOW_ART)).map((a, i) => (
+                    <div key={i} className="sd-art-grid-card" onClick={() => navigate('/article/a1')}>
+                      <div className="sd-art-grid-title">{a.title}</div>
+                      {a.preview && <div className="sd-art-grid-preview">{a.preview}</div>}
+                    </div>
+                  ))}
+                </div>
+
+                {visibleArticles.length > SHOW_ART && (
+                  <div className="sd-show-more-row">
+                    <button className={`sd-btn-show${artExpanded ? ' open' : ''}`}
+                      onClick={() => setArtExpanded(o => !o)}>
+                      {artExpanded ? 'Скрыть' : `Показать все (${visibleArticles.length})`}
+                      <svg className="sd-chev" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        )}
+            )
+          })()}
 
         {/* ── COMMENTS ── */}
         {!isPersonal && comments.length > 0 && (
@@ -1394,6 +1411,62 @@ export default function SetDetail() {
           </div>
           <button className="sd-pause-toast-close" onClick={() => setPauseToast(false)}>✕</button>
         </div>
+
+        {/* Edit set modal */}
+        {showEditModal && (
+          <div className="dep-modal-overlay" onClick={e => e.target === e.currentTarget && setShowEditModal(false)}>
+            <div className="dep-modal">
+              <div className="dep-modal-header">
+                <span className="dep-modal-title">Редактировать набор</span>
+                <button className="dep-modal-close" onClick={() => setShowEditModal(false)}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+              <div className="dep-modal-body">
+                <div className="dep-modal-section">
+                  <div className="dep-modal-section-hdr">
+                    <span className="dep-modal-section-title">Дополнительно</span>
+                    <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Статьи к набору</span>
+                  </div>
+                  {allArticles.length === 0 ? (
+                    <div className="dep-bank-no-results">Нет прикреплённых статей</div>
+                  ) : (
+                    <div className="seedit-art-list">
+                      {allArticles.map((a, i) => {
+                        const artKey = a.id || a.title
+                        const isRemoved = editRemovedIds.has(artKey)
+                        return (
+                          <div key={i} className={`seedit-art-item${isRemoved ? ' removed' : ''}`}>
+                            <div className="seedit-art-title">{a.title}</div>
+                            <button
+                              className={`seedit-art-toggle${isRemoved ? ' restore' : ''}`}
+                              onClick={() => setEditRemovedIds(prev => {
+                                const n = new Set(prev)
+                                isRemoved ? n.delete(artKey) : n.add(artKey)
+                                return n
+                              })}
+                            >
+                              {isRemoved ? 'Восстановить' : 'Удалить'}
+                            </button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="dep-modal-footer">
+                <button className="dep-modal-reset" onClick={() => setShowEditModal(false)}>Отмена</button>
+                <button className="dep-modal-apply" onClick={() => {
+                  setRemovedArticleIds(new Set(editRemovedIds))
+                  setShowEditModal(false)
+                }}>Сохранить</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Delete confirmation modal */}
         {showDeleteModal && (

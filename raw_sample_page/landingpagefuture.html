@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Джон Т. Рид | Смотрим в будущее</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #ffffff;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 48px 40px;
+            color: #111111;
+            overflow-x: hidden;
+        }
+
+        .main-header {
+            max-width: 1400px;
+            margin: 0 auto 48px auto;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 52px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #000000;
+            text-transform: uppercase;
+        }
+
+        .page-title span {
+            background: #000000;
+            color: white;
+            padding: 4px 20px;
+            border-radius: 60px;
+            font-size: 48px;
+        }
+
+        .page-sub {
+            font-size: 18px;
+            font-weight: 500;
+            color: #3a3a3a;
+            margin-top: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .page {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 56px;
+            align-items: flex-start;
+            perspective: 1000px;
+        }
+
+        /* ========= ЛЕВАЯ СТОРОНА ========= */
+        .left {
+            flex: 1;
+            min-width: 300px;
+            transform-style: preserve-3d;
+        }
+
+        .floating-card {
+            background: #ffffff;
+            border-radius: 48px;
+            box-shadow: 0 25px 45px -18px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.03);
+            overflow: hidden;
+            transition: all 0.4s ease;
+            transform: rotateY(10deg) translateZ(10px);
+        }
+
+        .left:hover .floating-card {
+            transform: rotateY(7deg) translateZ(15px);
+            box-shadow: 0 30px 55px -20px rgba(0, 0, 0, 0.18);
+        }
+
+        .photo {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: #f2f2f4;
+            background-image: url('https://placehold.co/740x740/f5f5f7/1a1a1a?text=JOHN+T+REED');
+            background-size: cover;
+            background-position: center;
+            filter: grayscale(100%) contrast(1.05);
+        }
+
+        .info {
+            padding: 32px 28px 38px 28px;
+            background: #ffffff;
+        }
+
+        .name {
+            font-size: 40px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+            color: #000000;
+        }
+
+        .quote {
+            font-size: 18px;
+            line-height: 1.45;
+            font-weight: 450;
+            color: #2c2c2c;
+            border-left: 3px solid #d0d0d0;
+            padding-left: 20px;
+            margin-bottom: 28px;
+        }
+
+        .knowledge-text {
+            font-size: 16px;
+            font-weight: 500;
+            background: #f8f8f8;
+            padding: 18px 22px;
+            border-radius: 28px;
+            color: #000000;
+            margin-bottom: 24px;
+        }
+
+        /* ========= ПРАВАЯ СТОРОНА ========= */
+        .right {
+            flex: 1.2;
+            min-width: 500px;
+        }
+
+        .reed-logic {
+            background: #fafafc;
+            padding: 28px 32px;
+            border-radius: 40px;
+            margin-bottom: 32px;
+            border-left: 6px solid #6A9E84;
+        }
+
+        .insight {
+            font-size: 18px;
+            font-weight: 500;
+            line-height: 1.45;
+            color: #1a1a1a;
+        }
+
+        .insight strong {
+            font-weight: 800;
+            background: #e8e8e8;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .conclusion {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 20px;
+            color: #000000;
+        }
+
+        /* ИНВЕНТАРЬ - ДВЕ КОЛОНКИ */
+        .inv-split {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .inv-list-col {
+            flex: 1.2;
+            min-width: 280px;
+        }
+
+        .inv-panel-col {
+            flex: 0.8;
+            min-width: 260px;
+        }
+
+        /* группы инвентаря */
+        .inv-status-group {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.02);
+        }
+
+        .inv-status-group-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e8e8ec;
+        }
+
+        .inv-status-group-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .inv-status-group-dot--urgent {
+            background: #6A9E84;
+        }
+
+        .inv-status-group-dot--paused {
+            background: #c0a06b;
+        }
+
+        .inv-status-group-label {
+            font-size: 15px;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .inv-status-group-count {
+            font-size: 14px;
+            font-weight: 600;
+            color: #888;
+        }
+
+        .irow {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        .irow--paused {
+            opacity: 0.7;
+        }
+
+        .irow-name {
+            width: 140px;
+            font-weight: 500;
+        }
+
+        .irow-bar-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .irow-bar {
+            flex: 1;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .irow-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+        }
+
+        .irow-bar-fill--urgent {
+            background: #6A9E84;
+        }
+
+        .irow-bar-fill--paused {
+            background: #c0a06b;
+        }
+
+        .irow-pct {
+            font-size: 11px;
+            color: #888;
+            width: 35px;
+        }
+
+        .irow-price {
+            font-weight: 600;
+            color: #000;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        /* СПИСОК ПОКУПОК */
+        .inv-shopping-list {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.02);
+        }
+
+        .inv-shopping-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e8e8ec;
+        }
+
+        .inv-shopping-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .inv-shopping-period-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        .inv-shopping-period-btn {
+            background: transparent;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .inv-shopping-period-btn.active {
+            background: #000;
+            color: white;
+            border-color: #000;
+        }
+
+        .inv-shopping-total {
+            font-size: 20px;
+            font-weight: 800;
+            color: #6A9E84;
+        }
+
+        .inv-shopping-group {
+            margin-bottom: 20px;
+        }
+
+        .inv-shopping-group-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #888;
+        }
+
+        .inv-shopping-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        .inv-shopping-item-cost {
+            font-weight: 600;
+        }
+
+        .inv-shopping-item-qty {
+            font-size: 11px;
+            color: #888;
+            margin-right: 8px;
+        }
+
+        .build-footer {
+            text-align: center;
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 14px;
+            color: #666;
+        }
+
+        @media (max-width: 1100px) {
+            .floating-card { transform: rotateY(5deg) translateZ(5px); }
+            .page-title { font-size: 44px; }
+            .page-title span { font-size: 40px; }
+            .inv-split { flex-direction: column; }
+        }
+
+        @media (max-width: 950px) {
+            .page { flex-direction: column; }
+            .floating-card { transform: rotateY(0deg); }
+            .right { min-width: auto; }
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 30px 20px; }
+            .page-title { font-size: 32px; }
+            .page-title span { font-size: 28px; }
+            .irow { flex-wrap: wrap; }
+            .irow-name { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-header">
+        <div class="page-title">
+            МЫ СМОТРИМ <span>В БУДУЩЕЕ</span><br>
+            А НЕ В ПРОШЛОЕ
+        </div>
+        <div class="page-sub">
+            зачем вести учёт того, на что вы потратили деньги в прошлом месяце, куда лучше думать о том, куда вы собираетесь их потратить в будущем
+        </div>
+    </div>
+
+    <div class="page">
+        <!-- ЛЕВАЯ СТОРОНА -->
+        <div class="left">
+            <div class="floating-card">
+                <div class="photo"></div>
+                <div class="info">
+                    <div class="name">Джон Т. Рид</div>
+                    <div class="quote">
+                        Принципы рационального потребления
+                    </div>
+                    <div class="knowledge-text">
+                        «Рациональный человек принимает решения, глядя только вперёд. То, что вы потратили вчера, уже ушло, и это не должно влиять на то, стоит ли вам тратить завтра».
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ПРАВАЯ СТОРОНА -->
+        <div class="right">
+            <div class="reed-logic">
+                <div class="insight">
+                    <strong>Мы прислушались к совету Джона Т. Рида:</strong><br>
+                    «Смотри в будущее, не оглядывайся на прошлые траты».
+                </div>
+                <div class="conclusion">
+                    → Поэтому мы создали инструмент, который помогает планировать покупки вперёд<br>
+                    <strong>Инвентарь — 11 000 ₽ в месяц</strong>
+                </div>
+            </div>
+
+            <!-- ДВЕ КОЛОНКИ: ИНВЕНТАРЬ И СПИСОК ПОКУПОК -->
+            <div class="inv-split">
+                
+                <!-- ЛЕВАЯ КОЛОНКА: ИНВЕНТАРЬ -->
+                <div class="inv-list-col">
+                    <!-- ГРУППА: ОЖИДАЕТ ПОКУПКИ -->
+                    <div class="inv-status-group">
+                        <div class="inv-status-group-header">
+                            <span class="inv-status-group-dot inv-status-group-dot--urgent"></span>
+                            <span class="inv-status-group-label">Ожидает покупки</span>
+                            <span class="inv-status-group-count">8</span>
+                        </div>
+                        <div class="inv-status-group-items">
+                            <div class="irow">
+                                <span class="irow-name">Молочные продукты</span>
+                                <div class="irow-bar-wrap"><div class="irow-bar"><div class="irow-bar-fill irow-bar-fill--urgent" style="width: 0%;"></div></div><span class="irow-pct">0%</span></div>
+                                <span class="irow-price">126 ₽/нед</span>
+                            </div>
+                            <div class="irow">
+                                <span class="irow-name">Зубная щётка</span>
+                                <div class="irow-bar-wrap"><div class="irow-bar"><div class="irow-bar-fill irow-bar-fill--urgent" style="width: 0%;"></div></div><span class="irow-pct">0%</span></div>
+                                <span class="irow-price">250 ₽</span>
+                            </div>
+                            <div class="irow">
+                                <span class="irow-name">Дезодорант</span>
+                                <div class="irow-bar-wrap"><div class="irow-bar"><div class="irow-bar-fill irow-bar-fill--urgent" style="width: 0%;"></div></div><span class="irow-pct">0%</span></div>
+                                <span class="irow-price">300 ₽</span>
+                            </div>
+                            <div class="irow">
+                                <span class="irow-name">Крем для лица</span>
+                                <div class="irow-bar-wrap"><div class="irow-bar"><div class="irow-bar-fill irow-bar-fill--urgent" style="width: 0%;"></div></div><span class="irow-pct">0%</span></div>
+                                <span class="irow-price">600 ₽</span>
+                            </div>
+                            <div class="irow">
+                                <span class="irow-name">Netflix</span>
+                                <div class="irow-bar-wrap"><div class="irow-bar"><div class="irow-bar-fill irow-bar-fill--urgent" style="width: 0%;"></div></div><span class="irow-pct">0%</span></div>
+                                <span class="irow-price">799 ₽</span>
+                            </div>
+                            <div class="irow">
+                                <span class="irow-name">Толстовка / свитшот</span>
+                                <div class="irow-bar-wrap"><div class="irow-bar"><div class="irow-bar-fill irow-bar-fill--urgent" style="width: 0%;"></div></div><span class="irow-pct">0%</span></div>
+                                <span class="irow-price">4 000 ₽</span>
+                            </div>
+                            <div class="irow">
+                                <span class="irow-name">Кроссовки спортивные</span>
+                                <div class="irow-bar-wrap"><div class="irow-bar"><div class="irow-bar-fill irow-bar-fill--urgent" style="width: 0%;"></div></div><span class="irow-pct">0%</span></div>
+                                <span class="irow-price">6 000 ₽</span>
+                            </div>
+                            <div class="irow">
+                                <span class="irow-name">Брюки классические</span>
+                                <div class="irow-bar-wrap"><div class="irow-bar"><div class="irow-bar-fill irow-bar-fill--urgent" style="width: 0%;"></div></div><span class="irow-pct">0%</span></div>
+                                <span class="irow-price">4 500 ₽</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ГРУППА: ОЖИДАЕТ АКТИВАЦИИ -->
+                    <div class="inv-status-group">
+                        <div class="inv-status-group-header">
+                            <span class="inv-status-group-dot inv-status-group-dot--paused"></span>
+                            <span class="inv-status-group-label">Ожидает активации</span>
+                            <span class="inv-status-group-count">15</span>
+                        </div>
+                        <div class="inv-status-group-items">
+                            <div class="irow irow--paused">
+                                <span class="irow-name">Стиральный порошок</span>
+                                <div class="irow-bar-wrap"><div class="irow-bar"><div class="irow-bar-fill irow-bar-fill--paused" style="width: 50%;"></div></div><span class="irow-pct">—</span></div>
+                                <span class="irow-price">500 ₽</span>
+                            </div>
+                            <div class="irow irow--paused">
+                                <span class="irow-name">Средство для посуды</span>
+                                <div class="irow-bar-wrap"><div class="irow-bar"><div class="irow-bar-fill irow-bar-fill--paused" style="width: 50%;"></div></div><span class="irow-pct">—</span></div>
+                                <span class="irow-price">200 ₽</span>
+                            </div>
+                            <div class="irow irow--paused">
+                                <span class="irow-name">Чистящее для ванной</span>
+                                <div class="irow-bar-wrap"><div class="irow-bar"><div class="irow-bar-fill irow-bar-fill--paused" style="width: 50%;"></div></div><span class="irow-pct">—</span></div>
+                                <span class="irow-price">180 ₽</span>
+                            </div>
+                            <div class="irow irow--paused">
+                                <span class="irow-name">Овощи и фрукты</span>
+                                <div class="irow-bar-wrap"><div class="irow-bar"><div class="irow-bar-fill irow-bar-fill--paused" style="width: 50%;"></div></div><span class="irow-pct">—</span></div>
+                                <span class="irow-price">140 ₽/нед</span>
+                            </div>
+                            <div class="irow irow--paused">
+                                <span class="irow-name">Мясо и рыба</span>
+                                <div class="irow-bar-wrap"><div class="irow-bar"><div class="irow-bar-fill irow-bar-fill--paused" style="width: 50%;"></div></div><span class="irow-pct">—</span></div>
+                                <span class="irow-price">327 ₽/нед</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ПРАВАЯ КОЛОНКА: СПИСОК ПОКУПОК -->
+                <div class="inv-panel-col">
+                    <div class="inv-shopping-list">
+                        <div class="inv-shopping-header">
+                            <span class="inv-shopping-title">Список покупок</span>
+                            <div class="inv-shopping-period-toggle">
+                                <button class="inv-shopping-period-btn">Неделя</button>
+                                <button class="inv-shopping-period-btn active">Месяц</button>
+                            </div>
+                            <span class="inv-shopping-total">~11 000 ₽</span>
+                        </div>
+
+                        <div class="inv-shopping-group">
+                            <div class="inv-shopping-group-header">
+                                <span class="inv-shopping-group-name">Одежда и Обувь</span>
+                                <span class="inv-shopping-group-total">~4 500 ₽</span>
+                            </div>
+                            <div class="inv-shopping-row"><span class="inv-shopping-item-name">Толстовка / свитшот</span><span class="inv-shopping-item-cost"><span class="inv-shopping-item-qty">1 шт</span>~4 000 ₽</span></div>
+                            <div class="inv-shopping-row"><span class="inv-shopping-item-name">Брюки классические</span><span class="inv-shopping-item-cost"><span class="inv-shopping-item-qty">1 шт</span>~500 ₽</span></div>
+                        </div>
+
+                        <div class="inv-shopping-group">
+                            <div class="inv-shopping-group-header">
+                                <span class="inv-shopping-group-name">Красота и Здоровье</span>
+                                <span class="inv-shopping-group-total">~1 150 ₽</span>
+                            </div>
+                            <div class="inv-shopping-row"><span class="inv-shopping-item-name">Зубная щётка</span><span class="inv-shopping-item-cost"><span class="inv-shopping-item-qty">1 шт</span>~250 ₽</span></div>
+                            <div class="inv-shopping-row"><span class="inv-shopping-item-name">Дезодорант</span><span class="inv-shopping-item-cost"><span class="inv-shopping-item-qty">1 шт</span>~300 ₽</span></div>
+                            <div class="inv-shopping-row"><span class="inv-shopping-item-name">Крем для лица</span><span class="inv-shopping-item-cost"><span class="inv-shopping-item-qty">1 шт</span>~600 ₽</span></div>
+                        </div>
+
+                        <div class="inv-shopping-group">
+                            <div class="inv-shopping-group-header">
+                                <span class="inv-shopping-group-name">Еда и Супермаркеты</span>
+                                <span class="inv-shopping-group-total">~2 500 ₽</span>
+                            </div>
+                            <div class="inv-shopping-row"><span class="inv-shopping-item-name">Молочные продукты</span><span class="inv-shopping-item-cost"><span class="inv-shopping-item-qty">6 000 мл</span>~540 ₽</span></div>
+                            <div class="inv-shopping-row"><span class="inv-shopping-item-name">Овощи и фрукты</span><span class="inv-shopping-item-cost"><span class="inv-shopping-item-qty">на месяц</span>~560 ₽</span></div>
+                            <div class="inv-shopping-row"><span class="inv-shopping-item-name">Мясо и рыба</span><span class="inv-shopping-item-cost"><span class="inv-shopping-item-qty">на месяц</span>~1 308 ₽</span></div>
+                        </div>
+
+                        <div class="inv-shopping-group">
+                            <div class="inv-shopping-group-header">
+                                <span class="inv-shopping-group-name">Бытовая химия</span>
+                                <span class="inv-shopping-group-total">~880 ₽</span>
+                            </div>
+                            <div class="inv-shopping-row"><span class="inv-shopping-item-name">Стиральный порошок</span><span class="inv-shopping-item-cost"><span class="inv-shopping-item-qty">1 шт</span>~500 ₽</span></div>
+                            <div class="inv-shopping-row"><span class="inv-shopping-item-name">Средство для посуды</span><span class="inv-shopping-item-cost"><span class="inv-shopping-item-qty">1 шт</span>~200 ₽</span></div>
+                            <div class="inv-shopping-row"><span class="inv-shopping-item-name">Чистящее для ванной</span><span class="inv-shopping-item-cost"><span class="inv-shopping-item-qty">1 шт</span>~180 ₽</span></div>
+                        </div>
+
+                        <div class="inv-shopping-group">
+                            <div class="inv-shopping-group-header">
+                                <span class="inv-shopping-group-name">Развлечения и Хобби</span>
+                                <span class="inv-shopping-group-total">~799 ₽</span>
+                            </div>
+                            <div class="inv-shopping-row"><span class="inv-shopping-item-name">Netflix</span><span class="inv-shopping-item-cost"><span class="inv-shopping-item-qty">1 шт</span>~799 ₽</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="build-footer">
+                планируй будущие траты — не оглядывайся на прошлое
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
