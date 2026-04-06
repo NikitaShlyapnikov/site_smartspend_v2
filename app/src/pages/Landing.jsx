@@ -225,7 +225,6 @@ export default function Landing() {
     { text: 'Выбирай\nлучшее' },
     { text: 'Плати\nменьше' },
     { text: 'Собери\nбазу знаний' },
-    { smile: true },
   ]
 
   useEffect(() => {
@@ -368,7 +367,7 @@ export default function Landing() {
                     <div><div className="ld-quote-name">Даниэль Канеман</div><div className="ld-quote-role">Нобелевский лауреат по экономике · «Думай медленно, решай быстро»</div></div>
                   </div>
                 </div>
-                <p className="ld-feature-desc">Трекеры расходов отвечают на вопрос «куда делись деньги?» — но деньги уже потрачены, и этот ответ ничего не меняет. SmartSpend задаёт другой вопрос: <strong>что тебе понадобится через месяц, через год?</strong> Наборы — готовые подборки товаров с расчётом амортизации. Ты не реагируешь на уже случившееся — ты управляешь тем, что будет.</p>
+                <p className="ld-feature-desc">Принимай решения о покупках <strong>заранее — когда сыт, спокоен и рационален.</strong> Тогда не придётся решать в моменте: усталость, голод и стресс всегда толкают к импульсивному выбору. Наборы — это твои решения, принятые в спокойный день: подобранные товары, рассчитанные сроки, зафиксированный бюджет. Долгосрочный план защищает от сиюминутных ошибок.</p>
               </div>
               <div className="ld-mockup ld-mockup--tilt-left">
                 <div className="ld-mockup-topbar">
@@ -385,9 +384,9 @@ export default function Landing() {
                     </div>
                   </div>
                   <div className="ld-mk-items">
-                    <div className="ld-mk-item"><span>MacBook Air M2</span><span className="ld-mk-item-price">80 000 ₽</span><span className="ld-mk-item-amort">952 ₽/мес</span></div>
-                    <div className="ld-mk-item"><span>Монитор 27"</span><span className="ld-mk-item-price">18 000 ₽</span><span className="ld-mk-item-amort">150 ₽/мес</span></div>
-                    <div className="ld-mk-item"><span>Клавиатура + мышь</span><span className="ld-mk-item-price">5 000 ₽</span><span className="ld-mk-item-amort">42 ₽/мес</span></div>
+                    <div className="ld-mk-item"><span>MacBook Air M2</span><span className="ld-mk-item-term">84 мес</span><span className="ld-mk-item-price">80 000 ₽</span><span className="ld-mk-item-amort">952 ₽/мес</span></div>
+                    <div className="ld-mk-item"><span>Монитор 27"</span><span className="ld-mk-item-term">120 мес</span><span className="ld-mk-item-price">18 000 ₽</span><span className="ld-mk-item-amort">150 ₽/мес</span></div>
+                    <div className="ld-mk-item"><span>Клавиатура + мышь</span><span className="ld-mk-item-term">120 мес</span><span className="ld-mk-item-price">5 000 ₽</span><span className="ld-mk-item-amort">42 ₽/мес</span></div>
                   </div>
                   <div className="ld-mk-articles">
                     <div className="ld-mk-art">MacBook M2 или M3: стоит ли переплачивать в 2026?</div>
@@ -427,7 +426,7 @@ export default function Landing() {
                     <div className="ld-mk-income-row" style={{fontSize:'10px',opacity:0.6,marginTop:4}}><span>Доход: 60 000 ₽</span><span>Конверты: 18 000 ₽</span></div>
                   </div>
                   <div className="ld-mk-envs">
-                    <div className="ld-mk-env"><div className="ld-mk-env-dot" style={{background:'#5E9478'}}></div><div className="ld-mk-env-name"><div>Еда и Супермаркеты</div><div className="ld-mk-env-sub">осталось 18 дней</div></div><div className="ld-mk-env-amt" style={{color:'#5E9478'}}>11 000 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
+                    <div className="ld-mk-env ld-mk-env--expanded"><div className="ld-mk-env-dot" style={{background:'#5E9478'}}></div><div className="ld-mk-env-name"><div>Еда и Супермаркеты</div><div className="ld-mk-env-sub">осталось 18 дней</div><div className="ld-mk-env-sets"><div className="ld-mk-env-set"><span className="ld-mk-env-set-name">Северная диета</span><span className="ld-mk-env-set-meta">14 поз.</span><span className="ld-mk-env-set-amt">11 000 ₽/мес</span></div><div className="ld-mk-env-set"><span className="ld-mk-env-set-name">Вкусняшки и снеки</span><span className="ld-mk-env-set-meta">4 поз.</span><span className="ld-mk-env-set-amt">3 000 ₽/мес</span></div></div></div><div className="ld-mk-env-amt" style={{color:'#5E9478'}}>14 000 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
                     <div className="ld-mk-env"><div className="ld-mk-env-dot" style={{background:'#4E8268'}}></div><div className="ld-mk-env-name"><div>Одежда и Обувь</div><div className="ld-mk-env-sub">в норме</div></div><div className="ld-mk-env-amt" style={{color:'#4E8268'}}>3 000 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
                     <div className="ld-mk-env"><div className="ld-mk-env-dot" style={{background:'#B08840'}}></div><div className="ld-mk-env-name"><div>Дом и Техника</div><div className="ld-mk-env-sub">7 дней до покупки</div></div><div className="ld-mk-env-amt" style={{color:'#B08840'}}>2 000 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
                     <div className="ld-mk-env"><div className="ld-mk-env-dot" style={{background:'#B85555'}}></div><div className="ld-mk-env-name"><div>Красота и Здоровье</div><div className="ld-mk-env-sub">скоро закончится</div></div><div className="ld-mk-env-amt" style={{color:'#B85555'}}>2 000 ₽<div className="ld-mk-env-sub">/мес</div></div></div>
@@ -738,7 +737,7 @@ export default function Landing() {
         <div className="ld-cta-inner">
           <div className="ld-section-label" style={{color:'var(--accent-green)'}}>Начни прямо сейчас</div>
           <h2 className="ld-cta-title">Хватит считать прошлое — начни управлять будущим</h2>
-          <p className="ld-cta-sub">Подбери компании, создай инвентарь, распредели бюджет по конвертам — бесплатно.</p>
+          <p className="ld-cta-sub">Подбери компании, создай инвентарь, распредели бюджет по конвертам.</p>
           <button className="landing-btn-primary" onClick={openRegister}>Начать →</button>
         </div>
       </section>
@@ -759,8 +758,8 @@ export default function Landing() {
             <p>© 2026 SmartSpend. Все права защищены.</p>
           </div>
           <div className="landing-footer-center">
-            <a href="#">Политика конфиденциальности</a>
-            <a href="#">Пользовательское соглашение</a>
+            <a href="#/privacy">Политика конфиденциальности</a>
+            <a href="#/terms">Пользовательское соглашение</a>
           </div>
 
         </div>

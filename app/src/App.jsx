@@ -19,6 +19,8 @@ import Deposits from './pages/Deposits'
 import Cards from './pages/Cards'
 import CompanyPicker from './pages/CompanyPicker'
 import Promo from './pages/Promo'
+import Privacy from './pages/Privacy'
+import Terms from './pages/Terms'
 
 export default function App() {
   return (
@@ -43,6 +45,8 @@ export default function App() {
           <Route path="/cards" element={<Cards />} />
           <Route path="/company-picker" element={<CompanyPicker />} />
           <Route path="/promo" element={<Promo />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </HashRouter>
