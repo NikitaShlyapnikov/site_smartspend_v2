@@ -273,8 +273,8 @@ export default function Landing() {
         <div className="ld-container ld-hero-inner">
           <div className="ld-hero-text">
             <h1 className="ld-h1">Твои деньги<br/>заслуживают<br/><em>системы</em></h1>
-            <p className="ld-hero-label">SmartSpend — Система планирования расходов</p>
             <p className="ld-hero-sub">Большинство людей не знают, сколько потратят в следующем месяце. SmartSpend знает.</p>
+            <p className="ld-hero-label">SmartSpend — Система планирования расходов</p>
             <div className="ld-hero-actions">
               <button className="landing-btn-primary" onClick={openRegister}>Начать →</button>
               <button className="landing-btn-ghost" onClick={openLogin}>Войти</button>
@@ -292,53 +292,18 @@ export default function Landing() {
                   {cur.brand ? (
                     <div className="ld-cube-brand">SMART<br/>SPEND</div>
                   ) : cur.smile ? (
-                    <svg width="100" height="100" viewBox="0 0 80 80" fill="none">
-                      <path d="M26 36 Q29 32 32 36" stroke="var(--text)" strokeWidth="3" strokeLinecap="round" fill="none"/>
-                      <path d="M48 36 Q51 32 54 36" stroke="var(--text)" strokeWidth="3" strokeLinecap="round" fill="none"/>
-                      <path d="M30 48 Q40 58 50 48" stroke="var(--text)" strokeWidth="3" strokeLinecap="round" fill="none"/>
-                    </svg>
+                    <div className="ld-cube-smile">
+                      <svg width="72" height="72" viewBox="0 0 80 80" fill="none">
+                        <path d="M26 36 Q29 32 32 36" stroke="var(--text)" strokeWidth="3" strokeLinecap="round" fill="none"/>
+                        <path d="M48 36 Q51 32 54 36" stroke="var(--text)" strokeWidth="3" strokeLinecap="round" fill="none"/>
+                        <path d="M30 48 Q40 58 50 48" stroke="var(--text)" strokeWidth="3" strokeLinecap="round" fill="none"/>
+                      </svg>
+                      <div className="ld-cube-smile-text">Начни сегодня</div>
+                    </div>
                   ) : (
                     <div className="ld-cube-phrase">{cur.text.split('\n')[0]}<br/><em>{cur.text.split('\n')[1]}</em></div>
                   )}
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── TWO PATHS ── */}
-      <section id="ld-paths" className="ld-section ld-section--alt">
-        <div className="ld-container">
-          <div className="ld-section-head">
-            <div className="ld-section-label">С чего всё начинается</div>
-            <h2 className="ld-h2">Выбери <span className="ld-h2-pill">свой путь</span></h2>
-          </div>
-          <div className="ld-paths-grid">
-            <div className="ld-path-card ld-path-good">
-              <div className="ld-path-head">
-                <div className="ld-path-title">Осознанный путь</div>
-                <div className="ld-path-badge ld-path-badge--good">Капитал за 10 лет</div>
-              </div>
-              <div className="ld-path-items">
-                <div className="ld-path-item"><strong>Системный инвентарь.</strong> Ты точно знаешь, что есть, что скоро закончится — покупки спланированы заранее.</div>
-                <div className="ld-path-item"><strong>Умный выбор.</strong> Вещь за 5 000 ₽ на 5 лет выгоднее вещи за 2 000 ₽ на год. Считаешь стоимость владения.</div>
-                <div className="ld-path-item"><strong>Готовые протоколы.</strong> Не изобретаешь велосипед — берёшь наборы по питанию, гаджетам, здоровью.</div>
-                <div className="ld-path-item"><strong>Конверты.</strong> Деньги распределены. В любой момент видно, сколько осталось — нет «куда делись деньги?»</div>
-                <div className="ld-path-item"><strong>И место для радостей.</strong> Бюджет на импульсивные покупки выделен заранее — наслаждайся без вины.</div>
-              </div>
-            </div>
-            <div className="ld-path-card ld-path-bad">
-              <div className="ld-path-head">
-                <div className="ld-path-title">Обычный путь</div>
-                <div className="ld-path-badge ld-path-badge--bad">Капитал за 30 лет</div>
-              </div>
-              <div className="ld-path-items">
-                <div className="ld-path-item"><strong>Дофаминовая петля.</strong> Покупка ради короткой радости. Через неделю снова хочется что-то новее и дороже.</div>
-                <div className="ld-path-item"><strong>Инфляция потребления.</strong> Зарплата выросла — расходы выросли быстрее. Свободных денег по-прежнему нет.</div>
-                <div className="ld-path-item"><strong>Хаос в расходах.</strong> Сломался зуб или холодильник — нет подушки, снова в долги.</div>
-                <div className="ld-path-item"><strong>Двойные покупки.</strong> Купил похожее, потому что забыл, что уже есть. Переплатил — не сравнил.</div>
-                <div className="ld-path-item"><strong>«Потом разберусь».</strong> Вклад под 5%, хотя рядом есть под 21%. Карта без кешбэка — 2 000 ₽ в месяц мимо.</div>
               </div>
             </div>
           </div>
@@ -513,12 +478,22 @@ export default function Landing() {
                     <div className="ld-mockup-dots"><span/><span/><span/></div>
                     <span className="ld-mockup-title">Промо · Купоны</span>
                   </div>
+                  <div className="ld-winstack-body">
+                    <div className="ld-wk-row"><span>Супермаркеты</span><span className="ld-wk-badge" style={{background:'#B08840'}}>−15%</span></div>
+                    <div className="ld-wk-row"><span>Аптеки</span><span className="ld-wk-badge" style={{background:'#5E9478'}}>−30%</span></div>
+                    <div className="ld-wk-row"><span>Одежда и обувь</span><span className="ld-wk-badge" style={{background:'#7B5EA7'}}>−20%</span></div>
+                  </div>
                 </div>
                 {/* Окно 2 — Карты (середина) */}
                 <div className="ld-winstack-win ld-winstack-win--2">
                   <div className="ld-winstack-bar">
                     <div className="ld-mockup-dots"><span/><span/><span/></div>
                     <span className="ld-mockup-title">Банковские карты</span>
+                  </div>
+                  <div className="ld-winstack-body">
+                    <div className="ld-wk-row"><span>Продукты и кафе</span><span className="ld-wk-rate">5%</span></div>
+                    <div className="ld-wk-row"><span>Транспорт</span><span className="ld-wk-rate">3%</span></div>
+                    <div className="ld-wk-row"><span>Всё остальное</span><span className="ld-wk-rate">1%</span></div>
                   </div>
                 </div>
                 {/* Окно 3 — Вклады (внизу, передний план, раскрытое) */}
@@ -679,6 +654,44 @@ export default function Landing() {
         </section>
 
       </div>{/* /features */}
+
+      {/* ── TWO PATHS ── */}
+      <section id="ld-paths" className="ld-section ld-section--alt">
+        <div className="ld-container">
+          <div className="ld-section-head">
+            <div className="ld-section-label">С чего всё начинается</div>
+            <h2 className="ld-h2">Выбери <span className="ld-h2-pill">свой путь</span></h2>
+          </div>
+          <div className="ld-paths-grid">
+            <div className="ld-path-card ld-path-good">
+              <div className="ld-path-head">
+                <div className="ld-path-title">Осознанный путь</div>
+                <div className="ld-path-badge ld-path-badge--good">Капитал за 10 лет</div>
+              </div>
+              <div className="ld-path-items">
+                <div className="ld-path-item"><strong>Системный инвентарь.</strong> Ты точно знаешь, что есть, что скоро закончится — покупки спланированы заранее.</div>
+                <div className="ld-path-item"><strong>Умный выбор.</strong> Вещь за 5 000 ₽ на 5 лет выгоднее вещи за 2 000 ₽ на год. Считаешь стоимость владения.</div>
+                <div className="ld-path-item"><strong>Готовые протоколы.</strong> Не изобретаешь велосипед — берёшь наборы по питанию, гаджетам, здоровью.</div>
+                <div className="ld-path-item"><strong>Конверты.</strong> Деньги распределены. В любой момент видно, сколько осталось — нет «куда делись деньги?»</div>
+                <div className="ld-path-item"><strong>И место для радостей.</strong> Бюджет на импульсивные покупки выделен заранее — наслаждайся без вины.</div>
+              </div>
+            </div>
+            <div className="ld-path-card ld-path-bad">
+              <div className="ld-path-head">
+                <div className="ld-path-title">Обычный путь</div>
+                <div className="ld-path-badge ld-path-badge--bad">Капитал за 30 лет</div>
+              </div>
+              <div className="ld-path-items">
+                <div className="ld-path-item"><strong>Дофаминовая петля.</strong> Покупка ради короткой радости. Через неделю снова хочется что-то новее и дороже.</div>
+                <div className="ld-path-item"><strong>Инфляция потребления.</strong> Зарплата выросла — расходы выросли быстрее. Свободных денег по-прежнему нет.</div>
+                <div className="ld-path-item"><strong>Хаос в расходах.</strong> Сломался зуб или холодильник — нет подушки, снова в долги.</div>
+                <div className="ld-path-item"><strong>Двойные покупки.</strong> Купил похожее, потому что забыл, что уже есть. Переплатил — не сравнил.</div>
+                <div className="ld-path-item"><strong>«Потом разберусь».</strong> Вклад под 5%, хотя рядом есть под 21%. Карта без кешбэка — 2 000 ₽ в месяц мимо.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ── CTA ── */}
       <section id="ld-cta" className="ld-cta">

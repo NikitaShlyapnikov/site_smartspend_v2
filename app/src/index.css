@@ -11581,6 +11581,8 @@ body.dark .ipanel-date-input { color-scheme: dark; }
 .ld-cube-brand { font-family: var(--mono); font-size: 42px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; text-align: center; color: var(--text); animation: ldFadeIn 0.4s ease; }
 .ld-cube-phrase { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; text-align: center; color: var(--text); animation: ldFadeIn 0.4s ease; }
 .ld-cube-phrase em { font-style: normal; color: var(--accent-green); }
+.ld-cube-smile { display: flex; flex-direction: column; align-items: center; gap: 8px; animation: ldFadeIn 0.4s ease; }
+.ld-cube-smile-text { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
 @keyframes ldCubeBob { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(0.8deg); } }
 @keyframes ldFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -11708,10 +11710,10 @@ body.dark .ipanel-date-input { color-scheme: dark; }
 .ld-winstack { position: relative; width: 100%; }
 .ld-winstack-win { position: absolute; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .ld-winstack-win--1 { top: 0; z-index: 1; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-.ld-winstack-win--2 { top: 34px; z-index: 2; box-shadow: 0 4px 14px rgba(0,0,0,0.09); }
-.ld-winstack-win--3 { top: 68px; z-index: 3; box-shadow: 0 8px 24px rgba(0,0,0,0.13); }
-/* container height = 68 + topbar(34) + chart(80) + bar-labels(20) + padding(16) = ~218px */
-.ld-winstack { height: 222px; }
+.ld-winstack-win--2 { top: 138px; z-index: 2; box-shadow: 0 4px 14px rgba(0,0,0,0.09); }
+.ld-winstack-win--3 { top: 276px; z-index: 3; box-shadow: 0 8px 24px rgba(0,0,0,0.13); }
+/* container height = 276 + topbar(34) + chart(76) + labels(20) + padding(16) = ~422px */
+.ld-winstack { height: 422px; }
 .ld-winstack-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--surface-2); border-bottom: 1px solid var(--border); }
 .ld-winstack-body { padding: 12px; }
 .ld-wk-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
