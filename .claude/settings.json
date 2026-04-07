@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc -l \"c:/Users/Administrator/Desktop/site_smartspend_v2/app/src/pages/\"*.jsx)"
+    ]
+  }
+}
