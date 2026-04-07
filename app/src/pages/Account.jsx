@@ -705,9 +705,6 @@ export default function Account() {
             <div className="user-meta">
               {profile.followers > 0 && (
                 <span className="user-meta-item">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M2 3h6a4 4 0 0 1 4 4v14"/><path d="M22 3h-6a4 4 0 0 0-4 4v14"/>
-                  </svg>
                   {profile.followers} подписчиков
                 </span>
               )}
