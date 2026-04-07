@@ -257,7 +257,7 @@ function AccSetCard({ s, onDelete, onEdit, navigate }) {
           </>
         )}
         <div className="f-spacer" />
-        {!s.pub && !s.draft && (
+        {!s.draft && (
           <button className="acc-btn-edit" onClick={e => { e.stopPropagation(); onEdit(s) }}>
             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
               <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
@@ -478,7 +478,7 @@ function SubsTab({ subs, onUnsub, navigate }) {
 export default function Account() {
   const navigate = useNavigate()
   const location = useLocation()
-  const [tab, setTab] = useState(location.state?.tab || 'articles')
+  const [tab, setTab] = useState(location.state?.tab || localStorage.getItem('ss_account_tab') || 'articles')
   const [editing, setEditing] = useState(false)
   const [profile, setProfile] = useState(initProfile)
   const [draft, setDraft] = useState(initProfile)
@@ -727,7 +727,7 @@ export default function Account() {
         <div id="sp-acc-tabs" className="acc-tabs">
           {TABS.map(t => (
             <button key={t.id} className={`acc-tab${tab === t.id ? ' active' : ''}`}
-              onClick={() => setTab(t.id)}>
+              onClick={() => { setTab(t.id); localStorage.setItem('ss_account_tab', t.id) }}>
               {t.label}
             </button>
           ))}

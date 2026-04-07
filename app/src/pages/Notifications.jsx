@@ -156,6 +156,7 @@ export default function Notifications() {
   }
 
   const [deletedReqIds, setDeletedReqIds] = useState(new Set())
+  const [readReqIds, setReadReqIds] = useState(new Set())
 
   function updateRequest(id, patch) {
     setRequests(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r))
@@ -165,12 +166,16 @@ export default function Notifications() {
   function withdrawRequest(id){ updateRequest(id, { status: 'withdrawn' }) }
   function deleteRequest(id)  { setDeletedReqIds(prev => new Set([...prev, id])) }
   function clearDeletedRequests() { setDeletedReqIds(new Set()) }
+  function markRequestRead(id) {
+    setReadReqIds(prev => new Set([...prev, id]))
+  }
   function sendMessage(id, text) {
     setRequests(prev => prev.map(r =>
       r.id === id ? { ...r, messages: [...r.messages, { from: 'me', text, time: 'только что' }] } : r
     ))
   }
 
+  const unreadDialogCount = requests.filter(r => r.hasUnread && !readReqIds.has(r.id)).length
   const pendingRequestsCount = requests.filter(r => r.status === 'pending').length
   const closedRequests  = requests.filter(r => r.status !== 'pending' && !deletedReqIds.has(r.id))
   const deletedRequests = requests.filter(r => deletedReqIds.has(r.id))
@@ -214,8 +219,8 @@ export default function Notifications() {
               onClick={() => setFilter(f.id)}
             >
               {f.label}
-              {f.id === 'requests' && pendingRequestsCount > 0 && (
-                <span className="notif-filter-badge">{pendingRequestsCount}</span>
+              {f.id === 'requests' && unreadDialogCount > 0 && (
+                <span className="notif-filter-badge">{unreadDialogCount}</span>
               )}
             </button>
           ))}
@@ -256,6 +261,8 @@ export default function Notifications() {
                           onReject={() => rejectRequest(r.id)}
                           onWithdraw={() => withdrawRequest(r.id)}
                           onSendMessage={text => sendMessage(r.id, text)}
+                          onMarkRead={() => markRequestRead(r.id)}
+                          isRead={readReqIds.has(r.id)}
                         />
                       ))}
                     </>
@@ -270,6 +277,8 @@ export default function Notifications() {
                           onReject={() => rejectRequest(r.id)}
                           onWithdraw={() => withdrawRequest(r.id)}
                           onSendMessage={text => sendMessage(r.id, text)}
+                          onMarkRead={() => markRequestRead(r.id)}
+                          isRead={readReqIds.has(r.id)}
                           onDelete={() => deleteRequest(r.id)}
                         />
                       ))}
@@ -384,7 +393,7 @@ function ConfirmModal({ type, setTitle, onConfirm, onCancel }) {
   )
 }
 
-function RequestCard({ req, onApprove, onReject, onWithdraw, onSendMessage, onDelete }) {
+function RequestCard({ req, onApprove, onReject, onWithdraw, onSendMessage, onMarkRead, isRead, onDelete }) {
   const [showDiscuss, setShowDiscuss] = useState(false)
   const [msgInput, setMsgInput] = useState('')
   const [showUserPopup, setShowUserPopup] = useState(false)
@@ -394,6 +403,7 @@ function RequestCard({ req, onApprove, onReject, onWithdraw, onSendMessage, onDe
   const isPending  = req.status === 'pending'
   const isIncoming = req.direction === 'incoming'
   const user = isIncoming ? req.fromUser : req.toUser
+  const showUnreadDot = req.hasUnread && !isRead
 
   function handleSend() {
     if (!msgInput.trim()) return
@@ -403,7 +413,10 @@ function RequestCard({ req, onApprove, onReject, onWithdraw, onSendMessage, onDe
 
   function handleDiscussToggle() {
     setShowDiscuss(v => {
-      if (!v) setTimeout(() => inputRef.current?.focus(), 80)
+      if (!v) {
+        setTimeout(() => inputRef.current?.focus(), 80)
+        if (showUnreadDot) onMarkRead?.()
+      }
       return !v
     })
   }
@@ -467,6 +480,7 @@ function RequestCard({ req, onApprove, onReject, onWithdraw, onSendMessage, onDe
           <div className="req-card-set">{req.set.title}</div>
         </div>
         <div className="req-card-time">{req.time}</div>
+        {showUnreadDot && <span className="req-unread-dot" />}
         {onDelete && (
           <button className="req-card-delete-btn" onClick={onDelete} title="Удалить">
             <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round">

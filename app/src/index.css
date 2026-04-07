@@ -2348,6 +2348,10 @@ body.dark .req-card--pending { background: rgba(255,255,255,0.04); }
 }
 .req-card-set { margin-top: 3px; font-size: 12px; color: var(--text-3); }
 .req-card-time { font-size: 11px; color: var(--text-3); flex-shrink: 0; margin-top: 1px; }
+.req-unread-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent-green); flex-shrink: 0; margin-top: 1px;
+}
 .req-card-delete-btn {
   display: flex; align-items: center; justify-content: center;
   width: 22px; height: 22px; border-radius: 6px; border: none;

@@ -36,6 +36,9 @@ export default function CreateWhisper() {
   const [selCat,        setSelCat]        = useState(null)
   const [selCo,         setSelCo]         = useState(null)
 
+  const today   = new Date().toISOString().slice(0, 10)
+  const maxDate = new Date(new Date().setFullYear(new Date().getFullYear() + 3)).toISOString().slice(0, 10)
+
   const [title,   setTitle]   = useState('')
   const [code,    setCode]    = useState('')
   const [expires, setExpires] = useState('')
@@ -257,6 +260,8 @@ export default function CreateWhisper() {
               className="editor-excerpt-input"
               style={{ padding: '10px 14px' }}
               value={expires}
+              min={today}
+              max={maxDate}
               onChange={e => setExpires(e.target.value)}
             />
           </div>
