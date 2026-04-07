@@ -819,8 +819,6 @@ export default function SetDetail() {
             {!isPersonal && (
               <div className="hero-body-actions">
                 <AddInventoryBtn added={added} onAdd={handleAdd} onRemove={handleRemove} />
-                {false && (
-                )}
               </div>
             )}
           </div>
