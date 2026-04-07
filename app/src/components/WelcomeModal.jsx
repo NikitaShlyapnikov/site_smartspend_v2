@@ -318,9 +318,8 @@ const WIllust7 = () => {
   return (
     <WMockup title="Рост накоплений">
       <div style={{position:'relative',borderRadius:8,overflow:'hidden',background:'var(--surface)',border:'1px solid var(--border)',padding:'10px 12px 8px'}}>
-        <div style={{display:'flex',justifyContent:'space-between',marginBottom:8}}>
+        <div style={{marginBottom:8}}>
           <div><div style={{fontSize:9,color:'var(--text-3)'}}>Капитал через 3 года</div><div style={{fontFamily:'var(--mono)',fontSize:14,fontWeight:600,color:'var(--accent-green)',letterSpacing:'-0.02em'}}>320 000 ₽</div></div>
-          <div style={{textAlign:'right'}}><div style={{fontSize:9,color:'var(--text-3)'}}>Ежемес. взнос</div><div style={{fontFamily:'var(--mono)',fontSize:14,fontWeight:600,color:'var(--text)',letterSpacing:'-0.02em'}}>24 000 ₽</div></div>
         </div>
         <svg viewBox={`0 0 ${w} ${h}`} style={{width:'100%',height:70,display:'block'}}>
           <defs>
@@ -343,11 +342,11 @@ const WIllust7 = () => {
 
 const TOUR_STEPS = [
   { illust: <WIllust1/>, title: 'Система конвертов', desc: 'SmartSpend построен на конвертах. Конверт — это направление трат: еда, одежда, техника и другие. Каждый месяц вы откладываете нужную сумму в каждый конверт.' },
-  { illust: <WIllust2/>, title: 'Откладывайте регулярно', desc: 'Каждый месяц пополняйте конверты в рамках запланированной суммы. Система покажет, сколько уже отложено и сколько осталось до цели.' },
+  { illust: <WIllust2/>, title: 'Откладывайте регулярно', desc: 'Каждый месяц откладывайте нужную сумму в каждый конверт через своё банковское приложение. SmartSpend показывает сколько нужно — остальное делаете вы.' },
   { illust: <WIllust3/>, title: 'Наборы определяют суммы', desc: 'Выбирайте наборы из каталога, которые описывают ваш образ жизни, или создавайте собственные. Наборы автоматически рассчитают нужную сумму для каждого конверта.' },
   { illust: <WIllust4/>, title: 'Планирование покупок', desc: 'Наборы и инвентарь помогают планировать покупки заранее. Система предупредит, когда подходит время заменить вещь — никаких сюрпризов и импульсивных трат.' },
   { illust: <WIllust5/>, title: 'Остаток идёт в накопления', desc: 'Всё, что остаётся после конвертов, автоматически уходит в накопления. Чем точнее спланированы конверты — тем быстрее растёт ваш капитал.' },
-  { illust: <WIllust6/>, title: 'EmoSpend — доход от капитала', desc: 'Накопления приносят доход. Этот доход называется EmoSpend — его можно смело тратить на импульсивные желания или непредвиденные расходы, не трогая капитал.' },
+  { illust: <WIllust6/>, title: 'EmoSpend — осознанные траты', desc: 'EmoSpend — это сумма, которую вы разрешаете себе забрать из накоплений. Чем меньше EmoSpend — тем быстрее растёт капитал. Используй его для импульсивных желаний или непредвиденных расходов.' },
   { illust: <WIllust7/>, title: 'Капитал растёт предсказуемо', desc: 'Придерживайтесь системы — и накопления будут расти стабильно каждый месяц. Через несколько лет капитал начнёт работать на вас самостоятельно.' },
 ]
 
@@ -444,26 +443,12 @@ export default function WelcomeModal({ open, onDone }) {
 
         {step === 0 && (
           <div className="welcome-screen">
-            <div className="welcome-logo-mark">
-              <svg viewBox="0 0 80 80" fill="none" width="52" height="52">
-                <rect width="80" height="80" rx="18" fill="#4E8268"/>
-                <rect x="14" y="14" width="52" height="52" rx="10" fill="white" opacity="0.92"/>
-              </svg>
-            </div>
             <div className="welcome-title">Добро пожаловать!</div>
             <div className="welcome-hint-card">
-              <div className="welcome-hint-icon">
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="8" x2="12.01" y2="8"/>
-                  <line x1="12" y1="12" x2="12" y2="16"/>
-                </svg>
-              </div>
               <div className="welcome-hint-body">
-                <div className="welcome-hint-title">Туры по страницам</div>
                 <div className="welcome-hint-desc">
-                  На каждой странице есть кнопка&nbsp;
-                  <span className="welcome-hint-demo-btn">?</span>
+                  В самом верху каждой страницы есть кнопка&nbsp;
+                  <span className="welcome-hint-demo-btn help-btn--new">?</span>
                   &nbsp;— нажми, чтобы узнать как устроен раздел и что где находится.
                 </div>
               </div>
