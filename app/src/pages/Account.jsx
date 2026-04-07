@@ -976,6 +976,12 @@ export default function Account() {
           <div className="acc-panel">
             <div className="panel-header">
               <span className="panel-title">Скидки и промокоды, которые вы добавили</span>
+              <button className="btn-primary-action" onClick={() => navigate('/create-whisper')}>
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+                Поделиться промокодом
+              </button>
             </div>
 
             {whispers.length === 0 && (

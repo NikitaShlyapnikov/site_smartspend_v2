@@ -149,7 +149,18 @@ function ChangeEmailModal({ open, onClose }) {
   )
 }
 
-function ChangePasswordModal({ open, onClose }) {
+function ChangePasswordModal({ open, onClose, createMode, onCreated }) {
+  const fields = createMode
+    ? [
+        { key: 'next',    label: 'Новый пароль',    ph: 'Минимум 8 символов' },
+        { key: 'confirm', label: 'Повторите пароль', ph: 'Повторите новый пароль' },
+      ]
+    : [
+        { key: 'current', label: 'Текущий пароль',  ph: 'Введите текущий пароль' },
+        { key: 'next',    label: 'Новый пароль',    ph: 'Минимум 8 символов' },
+        { key: 'confirm', label: 'Повторите новый', ph: 'Повторите новый пароль' },
+      ]
+
   const [form, setForm] = useState({ current: '', next: '', confirm: '' })
   const [show, setShow] = useState(false)
   const [done, setDone] = useState(false)
@@ -159,11 +170,13 @@ function ChangePasswordModal({ open, onClose }) {
 
   function handleSubmit(e) {
     e.preventDefault()
-    if (!form.current || !form.next) return
+    if (!form.next) return
     if (form.next !== form.confirm) { setError('Пароли не совпадают'); return }
     if (form.next.length < 8) { setError('Минимум 8 символов'); return }
+    if (!createMode && !form.current) { setError('Введите текущий пароль'); return }
     setError('')
     setDone(true)
+    if (createMode) onCreated?.()
   }
 
   function handleClose() {
@@ -171,14 +184,24 @@ function ChangePasswordModal({ open, onClose }) {
     onClose()
   }
 
+  const canSubmit = createMode
+    ? form.next && form.confirm
+    : form.current && form.next && form.confirm
+
   if (!open) return null
   return (
     <div className="inv-modal-overlay" onClick={handleClose}>
       <div className="inv-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 380 }}>
-        <div className="inv-modal-title">{done ? 'Пароль изменён' : 'Сменить пароль'}</div>
+        <div className="inv-modal-title">
+          {done ? (createMode ? 'Пароль создан' : 'Пароль изменён') : (createMode ? 'Создать пароль' : 'Сменить пароль')}
+        </div>
         {done ? (
           <>
-            <div className="inv-modal-body">Пароль успешно обновлён. Используйте новый пароль при следующем входе.</div>
+            <div className="inv-modal-body">
+              {createMode
+                ? 'Пароль успешно создан. Теперь можно входить по email и паролю.'
+                : 'Пароль успешно обновлён. Используйте новый пароль при следующем входе.'}
+            </div>
             <div className="inv-modal-actions">
               <button className="inv-modal-btn" onClick={handleClose}>Готово</button>
             </div>
@@ -186,11 +209,7 @@ function ChangePasswordModal({ open, onClose }) {
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="inv-modal-body" style={{ paddingBottom: 0 }}>
-              {[
-                { key: 'current', label: 'Текущий пароль', ph: 'Введите текущий пароль' },
-                { key: 'next',    label: 'Новый пароль',   ph: 'Минимум 8 символов' },
-                { key: 'confirm', label: 'Повторите новый', ph: 'Повторите новый пароль' },
-              ].map(({ key, label, ph }) => (
+              {fields.map(({ key, label, ph }) => (
                 <div key={key} className="auth-field" style={{ marginBottom: 10 }}>
                   <label className="auth-label">{label}</label>
                   <div className="auth-pass-wrap">
@@ -210,9 +229,8 @@ function ChangePasswordModal({ open, onClose }) {
             <div className="inv-modal-actions">
               <button type="button" className="inv-modal-btn" onClick={handleClose}>Отмена</button>
               <button type="submit" className="inv-modal-btn"
-                disabled={!form.current || !form.next || !form.confirm}
-                style={{ opacity: form.current && form.next && form.confirm ? 1 : 0.4 }}>
-                Изменить пароль
+                disabled={!canSubmit} style={{ opacity: canSubmit ? 1 : 0.4 }}>
+                {createMode ? 'Создать пароль' : 'Изменить пароль'}
               </button>
             </div>
           </form>
@@ -230,7 +248,7 @@ export default function Settings() {
   const [showSpotlight, setShowSpotlight] = useState(false)
 
   // Notifications
-  const [notifs, setNotifs] = useState({ newSets: true, articles: true, reminders: false })
+  const [notifs, setNotifs] = useState({ newSets: true, articles: true, reminders: false, authorUpdates: true, setChanges: true })
 
   // Timezone
   const [timezone, setTimezone] = useState(() => localStorage.getItem('ss_timezone') || 'Europe/Moscow')
@@ -243,8 +261,15 @@ export default function Settings() {
   const setPriv = k => v => setPrivacy(p => ({ ...p, [k]: v }))
 
   // Security
+  const loginProvider = localStorage.getItem('ss_login_provider') || null // 'yandex' | 'vk' | null
+  const isSocialUser = !!loginProvider
   const currentEmail = localStorage.getItem('ss_email') || 'user@example.com'
-  const [socials, setSocials] = useState({ yandex: false, vk: false })
+  const providerLabel = loginProvider === 'yandex' ? 'Яндекс ID' : loginProvider === 'vk' ? 'VK (Max)' : null
+  const [hasPassword, setHasPassword] = useState(() => !isSocialUser || !!localStorage.getItem('ss_has_password'))
+  const [socials, setSocials] = useState({
+    yandex: loginProvider === 'yandex',
+    vk:     loginProvider === 'vk',
+  })
 
   // Modals
   const [emailModal, setEmailModal]   = useState(false)
@@ -255,6 +280,8 @@ export default function Settings() {
   function logout() {
     localStorage.removeItem('ss_auth')
     localStorage.removeItem('ss_username')
+    localStorage.removeItem('ss_login_provider')
+    localStorage.removeItem('ss_has_password')
     navigate('/', { replace: true })
   }
 
@@ -297,9 +324,11 @@ export default function Settings() {
         <div id="sp-settings-notifs" className="settings-section">
           <div className="settings-section-title">Уведомления</div>
           {[
-            { key: 'newSets',   label: 'Новые наборы',      desc: 'Когда добавляются новые наборы в каталог' },
-            { key: 'articles',  label: 'Статьи от авторов', desc: 'Когда выходят новые статьи' },
-            { key: 'reminders', label: 'Напоминания',       desc: 'Напоминания обновить инвентарь' },
+            { key: 'newSets',      label: 'Новые наборы',            desc: 'Когда добавляются новые наборы в каталог' },
+            { key: 'articles',     label: 'Статьи от авторов',       desc: 'Когда выходят новые статьи' },
+            { key: 'authorUpdates',label: 'Обновления подписок',     desc: 'Уведомления о новых статьях и наборах у авторов, на которых вы подписаны' },
+            { key: 'setChanges',   label: 'Изменения в наборах',     desc: 'Уведомления об изменениях в наборах, которые у вас оформлены' },
+            { key: 'reminders',    label: 'Напоминания',             desc: 'Напоминания обновить инвентарь' },
           ].map(({ key, label, desc }) => (
             <div key={key} className="settings-row">
               <div>
@@ -489,11 +518,16 @@ export default function Settings() {
           <div className="settings-row">
             <div>
               <div className="settings-row-label">Электронная почта</div>
-              <div className="settings-row-desc settings-row-value">{currentEmail}</div>
+              <div className="settings-row-desc settings-row-value">
+                {currentEmail}
+                {isSocialUser && (
+                  <span className="conn-provider-badge">управляется {providerLabel}</span>
+                )}
+              </div>
             </div>
-            <button className="settings-action-btn" onClick={() => setEmailModal(true)}>
-              Изменить
-            </button>
+            {!isSocialUser && (
+              <button className="settings-action-btn" onClick={() => setEmailModal(true)}>Изменить</button>
+            )}
           </div>
 
           {/* Password */}
@@ -501,11 +535,17 @@ export default function Settings() {
             <div>
               <div className="settings-row-label">Пароль</div>
               <div className="settings-row-desc">
-                <span className="pass-dots">••••••••</span> Последнее изменение: недавно
+                {isSocialUser && !hasPassword
+                  ? 'Не установлен — вход через ' + providerLabel
+                  : <><span className="pass-dots">••••••••</span> Последнее изменение: недавно</>
+                }
               </div>
+              {isSocialUser && !hasPassword && (
+                <div className="settings-row-hint">После создания можно будет также входить по email</div>
+              )}
             </div>
             <button className="settings-action-btn" onClick={() => setPassModal(true)}>
-              Сменить
+              {isSocialUser && !hasPassword ? 'Создать пароль' : 'Сменить'}
             </button>
           </div>
 
@@ -513,45 +553,43 @@ export default function Settings() {
           <div className="settings-conn-accounts">
             <div className="settings-conn-title">Привязанные аккаунты</div>
 
-            <div className="settings-conn-row">
-              <div className="settings-conn-left">
-                <SocialIcon provider="yandex" />
-                <div>
-                  <div className="settings-row-label">Яндекс ID</div>
-                  <div className="settings-row-desc">
-                    {socials.yandex
-                      ? <span className="conn-status connected">Привязан</span>
-                      : <span className="conn-status">Не привязан</span>}
+            {[
+              { id: 'yandex', label: 'Яндекс ID' },
+              { id: 'vk',     label: 'VK (Max)' },
+            ].map(({ id, label }) => {
+              const isPrimary = loginProvider === id
+              const isConnected = socials[id]
+              return (
+                <div key={id} className="settings-conn-row">
+                  <div className="settings-conn-left">
+                    <SocialIcon provider={id} />
+                    <div>
+                      <div className="settings-row-label">{label}</div>
+                      <div className="settings-row-desc">
+                        {isConnected
+                          ? <><span className="conn-status connected">Привязан</span>{isPrimary && <span className="conn-primary-badge">· основной вход</span>}</>
+                          : <span className="conn-status">Не привязан</span>
+                        }
+                      </div>
+                    </div>
                   </div>
+                  {isPrimary ? (
+                    <span className="settings-conn-locked" title="Нельзя отвязать основной способ входа">
+                      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                      </svg>
+                    </span>
+                  ) : (
+                    <button
+                      className={`settings-action-btn${isConnected ? ' disconnect' : ''}`}
+                      onClick={() => toggleSocial(id)}
+                    >
+                      {isConnected ? 'Отвязать' : 'Привязать'}
+                    </button>
+                  )}
                 </div>
-              </div>
-              <button
-                className={`settings-action-btn${socials.yandex ? ' disconnect' : ''}`}
-                onClick={() => toggleSocial('yandex')}
-              >
-                {socials.yandex ? 'Отвязать' : 'Привязать'}
-              </button>
-            </div>
-
-            <div className="settings-conn-row">
-              <div className="settings-conn-left">
-                <SocialIcon provider="vk" />
-                <div>
-                  <div className="settings-row-label">VK (Max)</div>
-                  <div className="settings-row-desc">
-                    {socials.vk
-                      ? <span className="conn-status connected">Привязан</span>
-                      : <span className="conn-status">Не привязан</span>}
-                  </div>
-                </div>
-              </div>
-              <button
-                className={`settings-action-btn${socials.vk ? ' disconnect' : ''}`}
-                onClick={() => toggleSocial('vk')}
-              >
-                {socials.vk ? 'Отвязать' : 'Привязать'}
-              </button>
-            </div>
+              )
+            })}
           </div>
         </div>
 
@@ -567,13 +605,6 @@ export default function Settings() {
             <button className="btn-danger" onClick={() => setLogoutModal(true)}>Выйти</button>
           </div>
 
-          <div className="settings-row">
-            <div>
-              <div className="settings-row-label settings-row-label-danger">Удалить аккаунт</div>
-              <div className="settings-row-desc">Все данные, наборы и статьи будут удалены без возможности восстановления</div>
-            </div>
-            <button className="btn-danger btn-danger-ghost" onClick={() => setDeleteModal(true)}>Удалить</button>
-          </div>
         </div>
 
       </div>
@@ -581,7 +612,15 @@ export default function Settings() {
 
       {/* Modals */}
       <ChangeEmailModal open={emailModal} onClose={() => setEmailModal(false)} />
-      <ChangePasswordModal open={passModal} onClose={() => setPassModal(false)} />
+      <ChangePasswordModal
+        open={passModal}
+        onClose={() => setPassModal(false)}
+        createMode={isSocialUser && !hasPassword}
+        onCreated={() => {
+          localStorage.setItem('ss_has_password', '1')
+          setHasPassword(true)
+        }}
+      />
 
       <ConfirmModal
         open={logoutModal}

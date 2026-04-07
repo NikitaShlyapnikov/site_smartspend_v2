@@ -34,7 +34,7 @@ function IconMail() {
 
 // ── Auth Modal ────────────────────────────────────────────────────────────────
 
-function AuthModal({ open, onClose, onAuth, defaultTab }) {
+function AuthModal({ open, onClose, onAuth, defaultTab, defaultName }) {
   const [tab, setTab] = useState(defaultTab || 'login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -43,10 +43,24 @@ function AuthModal({ open, onClose, onAuth, defaultTab }) {
   const [loading, setLoading] = useState(false)
   const [loadingProvider, setLoadingProvider] = useState(null)
   const [emailError, setEmailError] = useState('')
+  const [forgotMode, setForgotMode] = useState(false)
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotEmailError, setForgotEmailError] = useState('')
+  const [forgotSent, setForgotSent] = useState(false)
+  const [forgotLoading, setForgotLoading] = useState(false)
 
   useEffect(() => {
-    if (open) setTab(defaultTab || 'login')
-  }, [open, defaultTab])
+    if (open) { setTab(defaultTab || 'login'); setName(defaultName || ''); setForgotMode(false); setForgotSent(false); setForgotEmail(''); setForgotEmailError('') }
+  }, [open, defaultTab, defaultName])
+
+  function handleForgotSubmit(e) {
+    e.preventDefault()
+    if (!forgotEmail.trim()) { setForgotEmailError('Введите email'); return }
+    if (!forgotEmail.includes('@')) { setForgotEmailError('Некорректный email'); return }
+    setForgotEmailError('')
+    setForgotLoading(true)
+    setTimeout(() => { setForgotLoading(false); setForgotSent(true) }, 900)
+  }
 
   function autoLogin(userName, userType = 'default') {
     setTimeout(() => {
@@ -58,6 +72,10 @@ function AuthModal({ open, onClose, onAuth, defaultTab }) {
 
   function handleSocial(provider) {
     setLoadingProvider(provider)
+    localStorage.setItem('ss_login_provider', provider)
+    // Mock email from provider
+    const mockEmail = provider === 'yandex' ? 'user@yandex.ru' : 'user@vk.com'
+    localStorage.setItem('ss_email', mockEmail)
     autoLogin(FULL_USER.username, 'full')
   }
 
@@ -67,6 +85,8 @@ function AuthModal({ open, onClose, onAuth, defaultTab }) {
     if (!email.includes('@')) { setEmailError('Некорректный email'); return }
     setEmailError('')
     setLoading(true)
+    localStorage.setItem('ss_email', email.trim().toLowerCase())
+    localStorage.removeItem('ss_login_provider')
     const lower = email.trim().toLowerCase()
     if (lower === 'empty@user.ru') {
       autoLogin(EMPTY_USER.username, 'empty')
@@ -79,8 +99,9 @@ function AuthModal({ open, onClose, onAuth, defaultTab }) {
   }
 
   function handleClose() {
-    if (loading || loadingProvider) return
+    if (loading || loadingProvider || forgotLoading) return
     setEmail(''); setPassword(''); setName(''); setEmailError(''); setPassVisible(false)
+    setForgotMode(false); setForgotSent(false); setForgotEmail(''); setForgotEmailError('')
     onClose()
   }
 
@@ -89,7 +110,7 @@ function AuthModal({ open, onClose, onAuth, defaultTab }) {
   return (
     <div className="auth-overlay" onClick={e => e.target === e.currentTarget && handleClose()}>
       <div className="auth-modal">
-        <button className="auth-close" onClick={handleClose} disabled={loading || !!loadingProvider}>
+        <button className="auth-close" onClick={forgotMode ? () => { setForgotMode(false); setForgotSent(false); setForgotEmail(''); setForgotEmailError('') } : handleClose} disabled={loading || !!loadingProvider || forgotLoading}>
           <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
@@ -97,36 +118,61 @@ function AuthModal({ open, onClose, onAuth, defaultTab }) {
 
         <div className="auth-logo-row">
           <div className="auth-logo-mark">
-            <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
-              <rect x="2" y="2" width="5" height="5" rx="1.5" fill="white" opacity="0.9"/>
-              <rect x="9" y="2" width="5" height="5" rx="1.5" fill="white" opacity="0.5"/>
-              <rect x="2" y="9" width="5" height="5" rx="1.5" fill="white" opacity="0.5"/>
-              <rect x="9" y="9" width="5" height="5" rx="1.5" fill="white" opacity="0.9"/>
+            <svg viewBox="0 0 80 80" fill="none" width="36" height="36">
+              <rect width="80" height="80" rx="18" fill="var(--logo-bg, #4E8268)"/>
+              <rect x="14" y="14" width="52" height="52" rx="10" fill="var(--logo-fg, white)" opacity="0.9"/>
             </svg>
           </div>
-          <span className="auth-logo-text">SmartSpend</span>
         </div>
 
-        <div className="auth-tabs">
-          <button className={`auth-tab${tab === 'login' ? ' active' : ''}`} onClick={() => setTab('login')}>Войти</button>
-          <button className={`auth-tab${tab === 'register' ? ' active' : ''}`} onClick={() => setTab('register')}>Регистрация</button>
-        </div>
+        {!forgotMode && (
+          <div className="auth-tabs">
+            <button className={`auth-tab${tab === 'login' ? ' active' : ''}`} onClick={() => setTab('login')}>Войти</button>
+            <button className={`auth-tab${tab === 'register' ? ' active' : ''}`} onClick={() => setTab('register')}>Регистрация</button>
+          </div>
+        )}
 
+        {forgotMode ? (
+          forgotSent ? (
+            <div className="auth-forgot-success">
+              <div className="auth-forgot-success-icon">
+                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </div>
+              <div className="auth-title">Письмо отправлено</div>
+              <div className="auth-subtitle">Проверьте почту <strong>{forgotEmail}</strong> — ссылка для сброса пароля действует 30 минут</div>
+              <button className="auth-submit" style={{ marginTop: 8 }} onClick={() => { setForgotMode(false); setForgotSent(false); setForgotEmail('') }}>
+                ← Вернуться ко входу
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="auth-title">Сброс пароля</div>
+              <div className="auth-subtitle">Введите email — пришлём ссылку для создания нового пароля</div>
+              <form className="auth-form" onSubmit={handleForgotSubmit} noValidate>
+                <div className="auth-field">
+                  <label className="auth-label">Email</label>
+                  <input className={`auth-input${forgotEmailError ? ' error' : ''}`} type="email"
+                    placeholder="your@email.com" value={forgotEmail}
+                    onChange={e => { setForgotEmail(e.target.value); setForgotEmailError('') }}
+                    autoFocus autoComplete="email" />
+                  {forgotEmailError && <div className="auth-field-error">{forgotEmailError}</div>}
+                </div>
+                <button type="submit" className={`auth-submit${forgotLoading ? ' loading' : ''}`} disabled={forgotLoading}>
+                  {forgotLoading ? <span className="auth-spinner" /> : 'Отправить ссылку'}
+                </button>
+              </form>
+              <div className="auth-switch">
+                <button className="auth-switch-btn" onClick={() => { setForgotMode(false); setForgotEmail(''); setForgotEmailError('') }}>← Вернуться ко входу</button>
+              </div>
+            </>
+          )
+        ) : (
+          <>
         <div className="auth-title">{tab === 'login' ? 'Добро пожаловать' : 'Создать аккаунт'}</div>
         <div className="auth-subtitle">{tab === 'login' ? 'Войдите, чтобы продолжить' : 'Зарегистрируйтесь бесплатно'}</div>
-
-        <div className="auth-demo-hint">
-          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-          <div className="auth-demo-hint-body">
-            <div className="auth-demo-hint-title">Демо-режим</div>
-            <div className="auth-demo-hint-text">
-              <code>empty@user.ru</code> — пустой профиль<br />
-              <code>full@user.ru</code> — заполненный профиль
-            </div>
-          </div>
-        </div>
 
         <div className="auth-socials">
           <button className={`auth-social-btn yandex${loadingProvider === 'yandex' ? ' loading' : ''}`}
@@ -181,7 +227,7 @@ function AuthModal({ open, onClose, onAuth, defaultTab }) {
           </div>
           {tab === 'login' && (
             <div className="auth-forgot">
-              <button type="button" className="auth-forgot-link">Забыли пароль?</button>
+              <button type="button" className="auth-forgot-link" onClick={() => { setForgotEmail(email); setForgotMode(true) }}>Забыли пароль?</button>
             </div>
           )}
           <button type="submit" className={`auth-submit${loading ? ' loading' : ''}`} disabled={loading || !!loadingProvider}>
@@ -200,6 +246,285 @@ function AuthModal({ open, onClose, onAuth, defaultTab }) {
         <div className="auth-legal">
           Нажимая кнопку, вы соглашаетесь с <button className="auth-legal-link">условиями использования</button> и <button className="auth-legal-link">политикой конфиденциальности</button>
         </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── Welcome Onboarding Modal ──────────────────────────────────────────────────
+
+function toLatinUname(name) {
+  const map = { 'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh','з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'kh','ц':'ts','ч':'ch','ш':'sh','щ':'sch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya' }
+  return name.toLowerCase().split('').map(c => map[c] ?? (c.match(/[a-z0-9]/) ? c : '_')).join('').replace(/_+/g, '_').replace(/^_|_$/g, '').slice(0, 20)
+}
+
+const WELCOME_REGIONS = [
+  { group: 'Крупные города', items: [
+    { value: 'moscow',       label: 'Москва' },
+    { value: 'spb',          label: 'Санкт-Петербург' },
+    { value: 'novosibirsk',  label: 'Новосибирск' },
+    { value: 'ekaterinburg', label: 'Екатеринбург' },
+    { value: 'kazan',        label: 'Казань' },
+    { value: 'nizhny',       label: 'Нижний Новгород' },
+    { value: 'chelyabinsk',  label: 'Челябинск' },
+    { value: 'samara',       label: 'Самара' },
+    { value: 'omsk',         label: 'Омск' },
+    { value: 'rostov',       label: 'Ростов-на-Дону' },
+    { value: 'ufa',          label: 'Уфа' },
+    { value: 'krasnoyarsk',  label: 'Красноярск' },
+    { value: 'voronezh',     label: 'Воронеж' },
+    { value: 'perm',         label: 'Пермь' },
+    { value: 'volgograd',    label: 'Волгоград' },
+  ]},
+  { group: 'Области и регионы', items: [
+    { value: 'adygeya',           label: 'Республика Адыгея' },
+    { value: 'altay_r',           label: 'Республика Алтай' },
+    { value: 'altaysky',          label: 'Алтайский край' },
+    { value: 'amurskaya',         label: 'Амурская область' },
+    { value: 'arhangelskaya',     label: 'Архангельская область' },
+    { value: 'astrahanskaya',     label: 'Астраханская область' },
+    { value: 'bashkortostan',     label: 'Республика Башкортостан' },
+    { value: 'belgorodskaya',     label: 'Белгородская область' },
+    { value: 'bryanskaya',        label: 'Брянская область' },
+    { value: 'buryatiya',         label: 'Республика Бурятия' },
+    { value: 'vladimirskaya',     label: 'Владимирская область' },
+    { value: 'volgogradskaya',    label: 'Волгоградская область' },
+    { value: 'vologodskaya',      label: 'Вологодская область' },
+    { value: 'voronezhskaya',     label: 'Воронежская область' },
+    { value: 'dagestan',          label: 'Республика Дагестан' },
+    { value: 'zabaykalsky',       label: 'Забайкальский край' },
+    { value: 'ivanovskaya',       label: 'Ивановская область' },
+    { value: 'irkutskaya',        label: 'Иркутская область' },
+    { value: 'kalinigradskaya',   label: 'Калининградская область' },
+    { value: 'kaluzhskaya',       label: 'Калужская область' },
+    { value: 'kamchatsky',        label: 'Камчатский край' },
+    { value: 'kareliya',          label: 'Республика Карелия' },
+    { value: 'kemerovskaya',      label: 'Кемеровская область' },
+    { value: 'kirovskaya',        label: 'Кировская область' },
+    { value: 'komi',              label: 'Республика Коми' },
+    { value: 'kostromskaya',      label: 'Костромская область' },
+    { value: 'krasnodarsky',      label: 'Краснодарский край' },
+    { value: 'krasnoyarsky',      label: 'Красноярский край' },
+    { value: 'kurganskaya',       label: 'Курганская область' },
+    { value: 'kurskaya',          label: 'Курская область' },
+    { value: 'leningradskaya',    label: 'Ленинградская область' },
+    { value: 'lipetskaya',        label: 'Липецкая область' },
+    { value: 'moskovskaya',       label: 'Московская область' },
+    { value: 'murmanskaya',       label: 'Мурманская область' },
+    { value: 'nizhegorodskaya',   label: 'Нижегородская область' },
+    { value: 'novgorodskaya',     label: 'Новгородская область' },
+    { value: 'novosibirskaya',    label: 'Новосибирская область' },
+    { value: 'omskaya',           label: 'Омская область' },
+    { value: 'orenburgskaya',     label: 'Оренбургская область' },
+    { value: 'orlovskaya',        label: 'Орловская область' },
+    { value: 'penzenskaya',       label: 'Пензенская область' },
+    { value: 'permsky',           label: 'Пермский край' },
+    { value: 'primorsky',         label: 'Приморский край' },
+    { value: 'pskovskaya',        label: 'Псковская область' },
+    { value: 'rostovskaya',       label: 'Ростовская область' },
+    { value: 'ryazanskaya',       label: 'Рязанская область' },
+    { value: 'samarskaya',        label: 'Самарская область' },
+    { value: 'saratovskaya',      label: 'Саратовская область' },
+    { value: 'sakha',             label: 'Республика Саха (Якутия)' },
+    { value: 'sakhalinskaya',     label: 'Сахалинская область' },
+    { value: 'sverdlovskaya',     label: 'Свердловская область' },
+    { value: 'smolenskaya',       label: 'Смоленская область' },
+    { value: 'stavropolsky',      label: 'Ставропольский край' },
+    { value: 'tambovskaya',       label: 'Тамбовская область' },
+    { value: 'tatarstan',         label: 'Республика Татарстан' },
+    { value: 'tverskaya',         label: 'Тверская область' },
+    { value: 'tomskaya',          label: 'Томская область' },
+    { value: 'tulskaya',          label: 'Тульская область' },
+    { value: 'tyumenskaya',       label: 'Тюменская область' },
+    { value: 'udmurtiya',         label: 'Удмуртская Республика' },
+    { value: 'ulyanovskaya',      label: 'Ульяновская область' },
+    { value: 'khabarovsk',        label: 'Хабаровский край' },
+    { value: 'khakasiya',         label: 'Республика Хакасия' },
+    { value: 'khanty',            label: 'Ханты-Мансийский АО' },
+    { value: 'chelyabinskaya',    label: 'Челябинская область' },
+    { value: 'chechnya',          label: 'Чеченская Республика' },
+    { value: 'chuvashiya',        label: 'Чувашская Республика' },
+    { value: 'yamalo',            label: 'Ямало-Ненецкий АО' },
+    { value: 'yaroslavskaya',     label: 'Ярославская область' },
+  ]},
+]
+
+function WelcomeModal({ open, onDone }) {
+  const { dark, toggleTheme } = useApp()
+  const [step, setStep] = useState(0)
+  const [name, setName] = useState('')
+  const [username, setUsername] = useState('')
+  const [nameError, setNameError] = useState('')
+  const [region, setRegion] = useState('')
+
+  useEffect(() => {
+    if (open) { setStep(0); setName(''); setUsername(''); setNameError(''); setRegion('') }
+  }, [open])
+
+  function handleNameChange(v) {
+    setName(v)
+    setUsername(toLatinUname(v))
+    setNameError('')
+  }
+
+  function handleNext() {
+    if (step === 0) { setStep(1); return }
+    if (step === 1) { setStep(2); return }
+    if (step === 2) {
+      if (!name.trim()) { setNameError('Введите имя'); return }
+      setStep(3); return
+    }
+    // step 3: region (optional) → done
+    if (region) localStorage.setItem('ss_location', region)
+    onDone(name.trim(), username || toLatinUname(name.trim()))
+  }
+
+  if (!open) return null
+
+  return (
+    <div className="welcome-overlay">
+      <div className="welcome-modal">
+        <div className="welcome-dots">
+          {[0, 1, 2, 3].map(i => (
+            <div key={i} className={`welcome-dot${step === i ? ' active' : step > i ? ' done' : ''}`} />
+          ))}
+        </div>
+
+        {step === 0 && (
+          <div className="welcome-screen">
+            <div className="welcome-logo-mark">
+              <svg viewBox="0 0 80 80" fill="none" width="52" height="52">
+                <rect width="80" height="80" rx="18" fill="#4E8268"/>
+                <rect x="14" y="14" width="52" height="52" rx="10" fill="white" opacity="0.92"/>
+              </svg>
+            </div>
+            <div className="welcome-title">Добро пожаловать!</div>
+            <div className="welcome-sub">SmartSpend — система осознанного потребления и планирования расходов</div>
+            <div className="welcome-hint-card">
+              <div className="welcome-hint-icon">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8"/>
+                  <line x1="12" y1="12" x2="12" y2="16"/>
+                </svg>
+              </div>
+              <div className="welcome-hint-body">
+                <div className="welcome-hint-title">Туры по страницам</div>
+                <div className="welcome-hint-desc">На каждой странице есть кнопка&nbsp;<strong>?</strong> — нажми, чтобы узнать как устроен раздел и что где находится.</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {step === 1 && (
+          <div className="welcome-screen">
+            <div className="welcome-title">Выбери тему</div>
+            <div className="welcome-sub">Можно изменить в настройках в любой момент</div>
+            <div className="welcome-theme-row">
+              <button className={`welcome-theme-card${!dark ? ' active' : ''}`} onClick={() => { if (dark) toggleTheme() }}>
+                <div className="welcome-theme-preview wtp--light">
+                  <div className="wtp-topbar" />
+                  <div className="wtp-lines">
+                    <div className="wtp-line wtp-line--wide" />
+                    <div className="wtp-line" />
+                    <div className="wtp-line wtp-line--mid" />
+                  </div>
+                </div>
+                <div className="welcome-theme-label">Светлая</div>
+                {!dark && <div className="welcome-theme-check">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>}
+              </button>
+              <button className={`welcome-theme-card${dark ? ' active' : ''}`} onClick={() => { if (!dark) toggleTheme() }}>
+                <div className="welcome-theme-preview wtp--dark">
+                  <div className="wtp-topbar" />
+                  <div className="wtp-lines">
+                    <div className="wtp-line wtp-line--wide" />
+                    <div className="wtp-line" />
+                    <div className="wtp-line wtp-line--mid" />
+                  </div>
+                </div>
+                <div className="welcome-theme-label">Тёмная</div>
+                {dark && <div className="welcome-theme-check">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="welcome-screen">
+            <div className="welcome-title">Как тебя зовут?</div>
+            <div className="welcome-sub">Это будет отображаться в профиле</div>
+            <div className="welcome-fields">
+              <div className="welcome-field">
+                <label className="welcome-label">Имя</label>
+                <input
+                  className={`welcome-input${nameError ? ' error' : ''}`}
+                  type="text" placeholder="Никита"
+                  value={name} onChange={e => handleNameChange(e.target.value)}
+                  autoFocus
+                />
+                {nameError && <div className="welcome-error">{nameError}</div>}
+              </div>
+              <div className="welcome-field">
+                <label className="welcome-label">Имя пользователя</label>
+                <div className="welcome-input-wrap">
+                  <span className="welcome-at">@</span>
+                  <input
+                    className="welcome-input welcome-input--at"
+                    type="text" placeholder="nikita"
+                    value={username}
+                    onChange={e => setUsername(e.target.value.replace(/[^a-z0-9_]/g, '').slice(0, 20))}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="welcome-screen">
+            <div className="welcome-title">Твой регион</div>
+            <div className="welcome-sub">Влияет на локальные акции и предложения. Можно пропустить.</div>
+            <div className="welcome-fields">
+              <div className="welcome-field">
+                <label className="welcome-label">Местоположение</label>
+                <select
+                  className="welcome-input welcome-select"
+                  value={region}
+                  onChange={e => setRegion(e.target.value)}
+                >
+                  <option value="">Не указано</option>
+                  {WELCOME_REGIONS.map(g => (
+                    <optgroup key={g.group} label={g.group}>
+                      {g.items.map(r => (
+                        <option key={r.value} value={r.value}>{r.label}</option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="welcome-footer">
+          {step > 0 && (
+            <button className="welcome-btn-back" onClick={() => setStep(s => s - 1)}>← Назад</button>
+          )}
+          {step === 3 && (
+            <button className="welcome-btn-skip" onClick={() => onDone(name.trim(), username || toLatinUname(name.trim()))}>
+              Пропустить
+            </button>
+          )}
+          <button className="welcome-btn-next" onClick={handleNext}>
+            {step < 3 ? 'Далее →' : 'Продолжить →'}
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -213,6 +538,8 @@ export default function Landing() {
   const [searchParams] = useSearchParams()
   const [authOpen, setAuthOpen] = useState(false)
   const [authTab, setAuthTab] = useState('login')
+  const [welcomeOpen, setWelcomeOpen] = useState(false)
+  const [welcomeName, setWelcomeName] = useState('')
   const [planInflation, setPlanInflation] = useState(0)
   const [cookieAccepted, setCookieAccepted] = useState(() => !!localStorage.getItem('ss_cookie_ok'))
 
@@ -262,8 +589,16 @@ export default function Landing() {
     navigate('/feed', { replace: true })
   }
 
+  function handleWelcomeDone(name, uname) {
+    setWelcomeName(name)
+    if (uname) localStorage.setItem('ss_welcome_uname', uname)
+    setWelcomeOpen(false)
+    setAuthTab('register')
+    setAuthOpen(true)
+  }
+
   function openLogin() { setAuthTab('login'); setAuthOpen(true) }
-  function openRegister() { setAuthTab('register'); setAuthOpen(true) }
+  function openRegister() { setWelcomeOpen(true) }
 
   const cur = CUBE_PHRASES[cubeSlide]
 
@@ -772,7 +1107,8 @@ export default function Landing() {
         </div>
       </footer>
 
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onAuth={handleAuth} defaultTab={authTab} />
+      <WelcomeModal open={welcomeOpen} onDone={handleWelcomeDone} />
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onAuth={handleAuth} defaultTab={authTab} defaultName={welcomeName} />
 
       {/* ── COOKIE BANNER ── */}
       {!cookieAccepted && (
