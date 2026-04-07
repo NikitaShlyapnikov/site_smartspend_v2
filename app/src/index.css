@@ -3088,6 +3088,40 @@ body.dark .landing-nav { background: rgba(20,20,18,0.88); }
   margin-top: 28px;
 }
 .welcome-select { appearance: none; cursor: pointer; }
+
+/* Region search */
+.region-search-wrap { position: relative; width: 100%; }
+.region-search-input-row { position: relative; }
+.region-search-clear {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; padding: 2px;
+  color: var(--text-3); display: flex; align-items: center; justify-content: center;
+}
+.region-search-clear:hover { color: var(--text); }
+.region-search-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--r-sm); box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  max-height: 220px; overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+.region-search-option {
+  background: none; border: none; cursor: pointer; text-align: left;
+  padding: 9px 12px; font-size: 14px; color: var(--text);
+  font-family: var(--sans); transition: background 0.1s;
+}
+.region-search-option:hover { background: var(--surface-2); }
+.region-search-option.active { color: var(--accent-green); font-weight: 600; }
+.region-search-empty { padding: 12px; font-size: 14px; color: var(--text-3); text-align: center; }
+
+/* Welcome hint demo button */
+.welcome-hint-demo-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--surface-2); border: 1.5px solid var(--border);
+  color: var(--text-3); font-size: 11px; font-weight: 700;
+  font-family: var(--mono); vertical-align: middle; line-height: 1;
+}
 .welcome-btn-back {
   background: none; border: none; cursor: pointer;
   font-size: 14px; color: var(--text-2); padding: 0 4px;

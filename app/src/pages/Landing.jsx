@@ -123,6 +123,7 @@ function AuthModal({ open, onClose, onAuth, defaultTab, defaultName }) {
               <rect x="14" y="14" width="52" height="52" rx="10" fill="var(--logo-fg, white)" opacity="0.9"/>
             </svg>
           </div>
+          <span className="auth-logo-text">SmartSpend</span>
         </div>
 
         {!forgotMode && (
@@ -538,8 +539,6 @@ export default function Landing() {
   const [searchParams] = useSearchParams()
   const [authOpen, setAuthOpen] = useState(false)
   const [authTab, setAuthTab] = useState('login')
-  const [welcomeOpen, setWelcomeOpen] = useState(false)
-  const [welcomeName, setWelcomeName] = useState('')
   const [planInflation, setPlanInflation] = useState(0)
   const [cookieAccepted, setCookieAccepted] = useState(() => !!localStorage.getItem('ss_cookie_ok'))
 
@@ -580,25 +579,19 @@ export default function Landing() {
   }, []) // eslint-disable-line
 
   function handleAuth(name, userType = 'default') {
+    const isNew = !localStorage.getItem('ss_welcome_done')
     localStorage.setItem('ss_auth', 'true')
     localStorage.setItem('ss_username', name)
     localStorage.setItem('ss_user_type', userType)
+    if (isNew) localStorage.setItem('ss_welcome_pending', '1')
     if (userType === 'full') loadFullUserData()
     else loadEmptyUserData()
     setUsername(name)
-    navigate('/feed', { replace: true })
-  }
-
-  function handleWelcomeDone(name, uname) {
-    setWelcomeName(name)
-    if (uname) localStorage.setItem('ss_welcome_uname', uname)
-    setWelcomeOpen(false)
-    setAuthTab('register')
-    setAuthOpen(true)
+    navigate(isNew ? '/profile' : '/feed', { replace: true })
   }
 
   function openLogin() { setAuthTab('login'); setAuthOpen(true) }
-  function openRegister() { setWelcomeOpen(true) }
+  function openRegister() { setAuthTab('register'); setAuthOpen(true) }
 
   const cur = CUBE_PHRASES[cubeSlide]
 
@@ -1107,8 +1100,7 @@ export default function Landing() {
         </div>
       </footer>
 
-      <WelcomeModal open={welcomeOpen} onDone={handleWelcomeDone} />
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onAuth={handleAuth} defaultTab={authTab} defaultName={welcomeName} />
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onAuth={handleAuth} defaultTab={authTab} />
 
       {/* ── COOKIE BANNER ── */}
       {!cookieAccepted && (

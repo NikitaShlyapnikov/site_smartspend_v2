@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SpotlightTour, { HelpButton } from '../components/SpotlightTour'
+import WelcomeModal from '../components/WelcomeModal'
 import { useApp } from '../context/AppContext'
 import { inventoryGroups } from '../data/mock'
 
@@ -629,6 +630,7 @@ export default function Profile() {
   const [finOpen, setFinOpen] = useState(false)
   const [finance, setFinance] = useState(loadFinance)
   const [showSpotlight, setShowSpotlight] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(() => !!localStorage.getItem('ss_welcome_pending'))
 
   const { income, housing, credit, creditMonths = 0, capital, updatedAt } = finance
 
@@ -1218,6 +1220,15 @@ export default function Profile() {
         onSave={f => setFinance(f)}
         onClose={() => setFinOpen(false)}
       />
+      {showWelcome && (
+        <WelcomeModal open={showWelcome} onDone={(name, uname) => {
+          if (uname) localStorage.setItem('ss_welcome_uname', uname)
+          if (name) localStorage.setItem('ss_username', name)
+          localStorage.removeItem('ss_welcome_pending')
+          localStorage.setItem('ss_welcome_done', '1')
+          setShowWelcome(false)
+        }} />
+      )}
       {showSpotlight && <SpotlightTour steps={SPOTLIGHT_STEPS} onClose={() => setShowSpotlight(false)} />}
     </Layout>
   )
