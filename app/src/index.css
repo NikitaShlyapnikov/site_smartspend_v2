@@ -750,7 +750,7 @@ body.dark .liked-btn.disliked-btn.disliked svg { fill: #E07070; stroke: #E07070;
 }
 
 .fa-title {
-  font-size: 22px; font-weight: 700;
+  font-size: 20px; font-weight: 700;
   letter-spacing: -0.03em; line-height: 1.2;
   color: var(--text); margin: 0 0 10px;
 }
@@ -1315,7 +1315,7 @@ body.dark .cat-btn-liked.active { background: #8A2020; border-color: #8A2020; co
 body.dark .catalog-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
 .card-body { padding: 22px 24px 14px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
 .card-badges { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-.card-title { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.2; }
+.card-title { font-size: 20px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.2; }
 .card-desc { font-size: 14px; color: var(--text-2); line-height: 1.6; margin-top: 2px; }
 .card-items { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
 .card-item-tag {
